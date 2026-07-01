@@ -5,7 +5,15 @@
       "Bash(timeout 8 npx tsx src/index.ts)",
       "Bash(pnpm install *)",
       "Bash(node -e \"require\\('dotenv/config'\\); console.log\\(JSON.stringify\\(process.env.DATABASE_URL\\)\\)\")",
-      "Bash(npx tsx *)"
+      "Bash(npx tsx *)",
+      "mcp__claude_ai_Atlassian_Rovo__getAccessibleAtlassianResources",
+      "mcp__claude_ai_Atlassian_Rovo__getVisibleJiraProjects",
+      "mcp__claude_ai_Atlassian_Rovo__createJiraIssue",
+      "mcp__claude_ai_Atlassian_Rovo__getTransitionsForJiraIssue",
+      "mcp__claude_ai_Atlassian_Rovo__transitionJiraIssue",
+      "mcp__claude_ai_Atlassian_Rovo__editJiraIssue",
+      "Read(//home/bilar/.claude/**)",
+      "Read(//home/bilar/.claude/plugins/**)"
     ]
   }
 }

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs -I{} sh -c 'echo ==={}===; cat {}')",
+      "Bash(timeout 8 npx tsx src/index.ts)",
+      "Bash(pnpm install *)",
+      "Bash(node -e \"require\\('dotenv/config'\\); console.log\\(JSON.stringify\\(process.env.DATABASE_URL\\)\\)\")",
+      "Bash(npx tsx *)"
+    ]
+  }
+}

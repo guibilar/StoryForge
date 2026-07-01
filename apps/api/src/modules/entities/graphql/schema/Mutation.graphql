@@ -1,0 +1,22 @@
+input CreateEntityInput {
+    campaignId: ID!
+    type: String!
+    name: String!
+    description: String
+    icon: String
+    visibility: EntityVisibility = PUBLIC
+}
+
+input UpdateEntityInput {
+    id: ID!
+    name: String
+    description: String
+    icon: String
+    visibility: EntityVisibility
+}
+
+extend type Mutation {
+    createEntity(input: CreateEntityInput!): Entity!
+    updateEntity(input: UpdateEntityInput!): Entity!
+    deleteEntity(id: ID!): Boolean!
+}

@@ -26,6 +26,35 @@ The project follows:
 
 # Repository Structure
 
+Current state (packages/apps that exist on disk today; see notes below for
+what's still a stub or not yet started):
+
+```
+storyforge/
+
+apps/
+    api/                    GraphQL server (Fastify/graphql-yoga), modules/
+    web/                    React app (still default Vite scaffold)
+
+packages/
+    core/                   empty — not started
+    database/               Prisma schema, client, repositories live here
+    domain/                 Entity aggregate + shared errors implemented
+    plugin-sdk/             empty — not started
+    shared/                 empty — not started
+    ui/                     empty — not started
+    vtm-plugin/             empty — not started (Vampire plugin placeholder)
+
+docs/
+    Roadmap/                empty
+    sprints/                empty
+
+docker/
+.github/
+```
+
+Target/long-term structure (not fully realized yet — see gaps below):
+
 ```
 storyforge/
 
@@ -52,6 +81,17 @@ docker/
 scripts/
 .github/
 ```
+
+Known gaps between target and current code:
+
+- `packages/graphql` and `packages/compiler` do not exist yet. GraphQL
+  schema/resolvers currently live directly inside `apps/api` (see
+  `apps/api` section below). There is no compile-time plugin compiler yet.
+- There is no top-level `plugins/` directory. `packages/vtm-plugin` is a
+  placeholder for the future Vampire plugin but is currently empty.
+- There is no `scripts/` directory.
+- `packages/core`, `packages/plugin-sdk`, `packages/shared`, and
+  `packages/ui` exist as workspace entries but contain no source yet.
 
 ---
 
@@ -125,7 +165,18 @@ MoveCharacter
 
 ## packages/domain
 
-Contains:
+Currently contains:
+
+- `entity/` — the `Entity` aggregate (a generic, polymorphic domain object;
+  see Current Canonical Core Features), `EntityId`, `EntityVisibility`,
+  `EntityRepository` interface.
+- `shared/errors/` — `DomainError` (abstract base), `NotFoundError`,
+  `ValidationError`.
+
+Not yet implemented: a `Campaign` domain entity (only the Prisma model
+exists today — see packages/database), Domain Events, Domain Services.
+
+Should contain (per architecture rules):
 
 - Entities
 - Value Objects
@@ -142,34 +193,72 @@ No external dependencies.
 
 Contains:
 
-- Prisma
-- Repository implementations
-- Migrations
-- Generated Prisma Client
+- Prisma schema (`Campaign` and `Entity` models only, so far)
+- Generated Prisma Client (checked into `src/generated/prisma`, custom
+  output path set in `schema.prisma` — do not `export * from "@prisma/client"`
+  from `index.ts`; that package has no generated code behind it and will
+  crash on import)
+- `client.ts` — Prisma client singleton. Loads `DATABASE_URL` from this
+  package's own `.env` via an `import.meta.url`-anchored path, not the
+  bare `dotenv/config` default (which resolves relative to the calling
+  process's cwd, not this package's location — breaks when a consumer
+  like `apps/api` runs from its own directory).
+
+Repository implementations currently live in `apps/api` (see
+`apps/api/src/modules/entities/infrastructure`), not in this package —
+that's a deviation from the target architecture worth fixing as more
+modules are added.
 
 Never contains business logic.
 
 ---
 
-## packages/graphql
+## GraphQL layer (currently inside apps/api — packages/graphql not yet split out)
 
-Contains
+There is no standalone `packages/graphql` package yet. GraphQL currently
+lives inside `apps/api`, and the `entities` module is fully wired end-to-end
+(schema loads, resolvers call the service, mutations persist, domain errors
+surface as proper GraphQL errors):
 
-- GraphQL schema generation
-- Resolvers
-- DataLoaders
+- `apps/api/src/graphql/` — server wiring: `server.ts` (graphql-yoga +
+  node:http, passes `createContext` from `context.ts`), `schema.ts`
+  (reads the central `schema/Root.graphql` off disk via `fs`, then merges
+  it with each module's `typeDefs`/`resolvers` arrays into one
+  `createSchema` call), `schema/Root.graphql` (the one and only
+  `schema { query: Query mutation: Mutation }` block plus bare
+  `type Query`/`type Mutation` — modules only ever `extend` these, never
+  redeclare them), `context.ts` (builds `GraphQLContext`, including a
+  module-scope singleton `entityService` handed to every request),
+  `errors.ts` (`toGraphQLError` — maps `NotFoundError`/`ValidationError`
+  to `GraphQLError` with an `extensions.code`, so resolvers don't leak
+  masked "Unexpected error." responses).
+- `apps/api/src/modules/<module>/graphql/` — per-module schema
+  (`schema/*.graphql`, only `extend type Query`/`extend type Mutation` +
+  the module's own types/enums/inputs) and resolvers (`resolvers/Query.ts`,
+  `resolvers/Mutation.ts`, `resolvers/<Type>.ts`), re-exported via an
+  `index.ts` barrel that also reads its `.graphql` files off disk (via
+  `import.meta.url`, since this is ESM and `.graphql` files aren't
+  importable directly) and exports `typeDefs`/`resolvers` arrays for
+  `schema.ts` to merge in.
 
-No business logic.
+As the API grows, expect this to be extracted into `packages/graphql`
+per the target structure. Until then, new modules should follow the
+same `modules/<name>/{application,graphql,infrastructure}` layout as
+`modules/entities`, contribute their own `schema/*.graphql` +
+`resolvers/`, and get merged into `apps/api/src/graphql/schema.ts`
+alongside the entities module.
 
-Resolvers call services.
+No business logic in resolvers. Resolvers call services; type-level field
+resolvers (e.g. `modules/entities/graphql/resolvers/Entity.ts`) only
+translate the domain object's getters into the GraphQL field shape
+(e.g. `Date` → ISO string), never add business rules.
 
 ---
 
-## packages/compiler
+## packages/compiler (not started)
 
-Responsible for compile-time plugin composition.
-
-Responsibilities:
+Not yet implemented. Described here for future reference —
+responsible for compile-time plugin composition:
 
 - Discover plugins
 - Validate plugins
@@ -188,9 +277,9 @@ No runtime plugin loading.
 
 ---
 
-## packages/plugin-sdk
+## packages/plugin-sdk (not started)
 
-Contains types used by plugins.
+Empty. Will contain types used by plugins.
 
 Plugins depend on this package.
 
@@ -198,11 +287,9 @@ Core depends only on interfaces.
 
 ---
 
-## packages/ui
+## packages/ui (not started)
 
-Shared React components.
-
-Contains:
+Empty. Will contain shared React components:
 
 - Design system
 - Tables
@@ -213,11 +300,9 @@ Contains:
 
 ---
 
-## packages/shared
+## packages/shared (not started)
 
-Shared utilities.
-
-Examples:
+Empty. Will contain shared utilities:
 
 - Result
 - Either
@@ -229,26 +314,62 @@ Avoid business logic.
 
 ---
 
+## packages/core (not started)
+
+Empty. Purpose not yet defined in code — do not assume its role; confirm
+with the user before adding files here.
+
+---
+
+## packages/vtm-plugin (not started)
+
+Empty placeholder for the future Vampire: The Masquerade plugin. No
+plugin has been implemented yet, so treat the Plugin Architecture and
+UI Extensions sections below as target design, not working code.
+
+---
+
 # Applications
 
 ## apps/api
 
-Responsibilities:
+Current implementation:
 
-- GraphQL server
-- Authentication
-- DI container
-- Repository wiring
-- Event bus
-- Service registration
+- GraphQL server via `graphql-yoga` on top of `node:http`
+  (`src/graphql/server.ts`, `src/graphql/schema.ts`,
+  `src/graphql/context.ts`, `src/graphql/errors.ts`). Fully wired and
+  boots: `schema.ts` merges the central `Root.graphql` with the entities
+  module's typeDefs/resolvers, `context.ts` injects a singleton
+  `entityService` into every request, `errors.ts` maps domain errors to
+  proper `GraphQLError`s. `src/index.ts` imports `./graphql/server`.
+  `graphql` is pinned to `^16.x` in `package.json` — `graphql-yoga@5.x`
+  only supports v15/v16 as a peer; do not bump to a v17 prerelease
+  without confirming yoga supports it (a stray `^17` pin previously broke
+  introspection's default arguments in confusing ways).
+- One vertical-slice module so far: `src/modules/entities/`, split into
+  `application/` (`EntityService.ts` — create/update/delete/get/list
+  use cases), `graphql/` (schema + resolvers, fully implemented —
+  `createEntity`/`updateEntity`/`deleteEntity` mutations and
+  `entity`/`entities` queries), and `infrastructure/`
+  (`PrismaEntityRepository`, `EntityMapper`).
+- `package.json` lists both `fastify`/`mercurius` and `graphql-yoga` as
+  dependencies, but only `graphql-yoga` is wired up in code today.
 
-No business logic.
+Not yet implemented: authentication, a DI container, an event bus,
+service registration/wiring beyond manual instantiation.
+
+No business logic belongs here — resolvers call services, services call
+repositories.
 
 ---
 
 ## apps/web
 
-Responsibilities:
+Currently the default Vite + React scaffold (`App.tsx`, default
+`vite.svg`/`react.svg` assets) — no real UI, pages, or GraphQL client
+have been built yet.
+
+Target responsibilities (not yet realized):
 
 - React application
 - Pages
@@ -709,19 +830,29 @@ For every new feature:
 
 # Current Canonical Core Features
 
-The core application currently supports:
+The core application currently implements only:
 
-- Users
-- Projects
-- Worlds
-- Characters
-- Locations
-- Items
-- Notes
+- **Campaign** — the top-level container. Everything belongs to a
+  Campaign. (Prisma model only; no `Campaign` domain entity yet —
+  `packages/domain/src/campaing` exists but is empty. Note the existing
+  folder name is misspelled `campaing`; fix the typo if/when the domain
+  entity is added rather than perpetuating it.)
+- **Entity** — a single generic, polymorphic domain object with a
+  `type: string` field (e.g. `"character"`, `"location"`, `"item"`,
+  `"note"`) rather than separate Character/Location/Item/Note models.
+  Has `name`, `description`, `icon`, `visibility`
+  (`PUBLIC`/`STORYTELLER`/`PRIVATE`), soft delete (`deletedAt`), and a
+  `(campaignId, name)` uniqueness constraint. Fully wired
+  domain → service → Prisma repository; GraphQL resolvers are stubbed
+  but not yet implemented (see apps/api notes above).
 
-Projects are the top-level container.
-
-Everything belongs to a Project.
+Not yet implemented, despite being referenced elsewhere in this
+document as target scope: Users, Worlds, and dedicated
+Character/Location/Item/Note models. Until those exist (or a decision
+is made to keep the generic `Entity` model permanently), treat any
+guidance elsewhere in this file that assumes separate entity types as
+aspirational, and prefer extending the generic `Entity`/`type` pattern
+for consistency unless the user directs otherwise.
 
 ---
 

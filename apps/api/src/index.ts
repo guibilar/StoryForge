@@ -1,12 +1,9 @@
-import Fastify from "fastify";
-import { prisma } from "@storyforge/database";
+import { server } from "./graphql/server";
 
-const app = Fastify();
+const PORT = 4000;
 
-app.get("/", async () => {
-    return { status: "ok" };
-});
-
-app.listen({
-    port: 4000
+server.listen(PORT, () => {
+    console.log(
+        `🚀 StoryForge GraphQL Server running at http://localhost:${PORT}/graphql`
+    );
 });

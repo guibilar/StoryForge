@@ -1,0 +1,4 @@
+extend type Query {
+    entity(id: ID!): Entity
+    entities(campaignId: ID!): [Entity!]!
+}

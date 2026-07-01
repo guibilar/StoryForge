@@ -1,0 +1,24 @@
+{
+  "name": "@storyforge/api",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "fastify": "^5.8.5",
+    "graphql": "^17.0.1",
+    "mercurius": "^16.9.0",
+    "pino": "^10.3.1",
+    "zod": "^4.4.3",
+    "@storyforge/database": "workspace:*",
+    "@storyforge/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  }
+}

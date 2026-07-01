@@ -1,0 +1,437 @@
+# StoryForge Development Roadmap
+
+> **Vision:** Build a self-hosted, extensible tabletop RPG campaign manager where the Core Engine is game-agnostic and individual RPG systems (VTM, Call of Cthulhu, D&D, etc.) are implemented as plugins.
+
+---
+
+# Guiding Principles
+
+* Deliver vertical slices instead of isolated backend/frontend work.
+* Every sprint should produce a usable application.
+* The Core Engine never contains game-specific rules.
+* Plugins extend the engine without modifying it.
+* Business logic belongs in services, not GraphQL resolvers or React components.
+
+---
+
+# Sprint 0 — Project Foundation ✅
+
+## Goal
+
+Establish a production-ready development environment.
+
+### Deliverables
+
+* pnpm Workspace
+* Turborepo
+* React + Vite frontend
+* Fastify backend
+* GraphQL setup
+* Shared packages
+* Docker skeleton
+* Git repository
+* TypeScript
+* ESLint
+* Prettier
+* Husky
+* CI skeleton
+
+### Definition of Done
+
+Developers can run:
+
+```bash
+pnpm install
+pnpm dev
+```
+
+and start both frontend and backend locally.
+
+---
+
+# Sprint 1 — Authentication & Campaigns
+
+## Goal
+
+Users can authenticate and create their first StoryForge campaign.
+
+## Backend
+
+### Database
+
+* User
+* Campaign
+* CampaignMember
+
+### GraphQL
+
+Queries
+
+* me
+* campaigns
+* campaign(id)
+
+Mutations
+
+* register
+* login
+* createCampaign
+* updateCampaign
+* archiveCampaign
+
+### Services
+
+* AuthenticationService
+* CampaignService
+
+---
+
+## Frontend
+
+* Login page
+* Registration page
+* Dashboard
+* Campaign List
+* Create Campaign dialog
+* Protected routes
+
+---
+
+## Definition of Done
+
+A user can:
+
+* Register
+* Login
+* Create campaigns
+* Edit campaigns
+* Archive campaigns
+* View their dashboard
+
+---
+
+# Sprint 2 — World Building
+
+## Goal
+
+Create the campaign world.
+
+## Entities
+
+* Character
+* Organization
+* Location
+
+## Features
+
+* CRUD
+* Portrait upload
+* Tags
+* Rich description
+* Search
+* Filtering
+
+---
+
+## Definition of Done
+
+Storytellers can organize all important people, places, and organizations inside a campaign.
+
+---
+
+# Sprint 3 — Relationships
+
+## Goal
+
+Represent the campaign as a connected graph.
+
+## Features
+
+Relationship types
+
+Examples
+
+* Member Of
+* Owns
+* Enemy
+* Ally
+* Parent
+* Child
+
+Graph Visualization
+
+* React Flow
+* Filtering
+* Search
+* Automatic layout
+
+---
+
+## Definition of Done
+
+Every entity can be connected to every other entity.
+
+The relationship graph becomes navigable.
+
+---
+
+# Sprint 4 — Notes & Assets
+
+## Goal
+
+Replace Notion.
+
+## Features
+
+* Rich text editor
+* Markdown support
+* Attachments
+* Images
+* Internal links
+* Tags
+* Nested notes
+
+---
+
+## Definition of Done
+
+Storytellers can maintain all campaign documentation inside StoryForge.
+
+---
+
+# Sprint 5 — Sessions & Timeline
+
+## Goal
+
+Track the story over time.
+
+## Features
+
+Session
+
+* Session number
+* Date
+* Summary
+
+Events
+
+* Timeline
+* Participants
+* Related entities
+
+Timeline
+
+* Automatic ordering
+* Filters
+* Search
+
+---
+
+## Definition of Done
+
+A campaign history is automatically generated from recorded events.
+
+---
+
+# Sprint 6 — Maps
+
+## Goal
+
+Visualize the campaign world geographically.
+
+## Features
+
+* Leaflet integration
+* Markers
+* Territories
+* Regions
+* Districts
+* Custom overlays
+* Images as maps
+
+---
+
+## Definition of Done
+
+Locations can be placed on interactive maps.
+
+---
+
+# Sprint 7 — Plugin Runtime
+
+## Goal
+
+Introduce extensibility.
+
+## Features
+
+Plugin SDK
+
+Interfaces
+
+* Dice Engine
+* Character Sheet
+* Validators
+* Automation
+* Event Types
+* Relationship Types
+
+Plugin Loader
+
+Plugin Registry
+
+---
+
+## Definition of Done
+
+The engine can load external game systems.
+
+---
+
+# Sprint 8 — Vampire: The Masquerade Plugin
+
+## Goal
+
+Implement the first complete game system.
+
+## Features
+
+Character Sheet
+
+* Clan
+* Generation
+* Blood Potency
+* Humanity
+* Hunger
+* Willpower
+* Health
+
+Disciplines
+
+Merits
+
+Flaws
+
+Dice Engine
+
+Relationship Types
+
+* Sire
+* Childe
+* Ghoul
+* Prince
+* Primogen
+* Regent
+
+Events
+
+* Embrace
+* Blood Hunt
+* Diablerie
+* Final Death
+
+---
+
+## Definition of Done
+
+A complete Vampire: The Masquerade campaign can be managed inside StoryForge.
+
+---
+
+# Sprint 9 — Collaboration
+
+## Goal
+
+Support multiple users.
+
+## Features
+
+Roles
+
+* Owner
+* Storyteller
+* Co-Storyteller
+* Player
+* Observer
+
+Permissions
+
+Shared Notes
+
+Private Notes
+
+Player Handouts
+
+---
+
+## Definition of Done
+
+Multiple users can collaborate on the same campaign.
+
+---
+
+# Sprint 10 — Automation
+
+## Goal
+
+Reduce Storyteller bookkeeping.
+
+## Features
+
+Automatic reminders
+
+Relationship validation
+
+Timeline consistency
+
+Unused NPC detection
+
+Broken references
+
+Campaign health checks
+
+---
+
+## Definition of Done
+
+The application actively helps organize campaigns.
+
+---
+
+# Sprint 11 — AI Assistant
+
+## Goal
+
+Introduce AI-powered assistance.
+
+## Features
+
+* Semantic Search
+* Session Summaries
+* NPC Dialogue Generation
+* Plot Suggestions
+* Chronicle Q&A
+* Knowledge Retrieval
+* Campaign Summaries
+
+---
+
+## Definition of Done
+
+The AI understands campaign context and assists Storytellers without replacing their creativity.
+
+---
+
+# Long-Term Vision
+
+After the VTM plugin is complete, additional systems can be added without modifying the Core Engine.
+
+Planned plugins include:
+
+* Call of Cthulhu 7e
+* Dungeons & Dragons 5e
+* Pathfinder 2e
+* Lancer
+* Generic RPG System
+
+The long-term objective is for StoryForge to become a flexible platform capable of managing campaigns for any tabletop RPG through a shared, game-agnostic engine.

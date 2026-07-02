@@ -19,7 +19,8 @@
       "Bash(pip install *)",
       "Bash(python3 -c \"import yaml; yaml.safe_load\\(open\\('/home/bilar/Documents/StoryForge/.github/workflows/ci.yml'\\)\\); print\\('YAML valid'\\)\")",
       "Bash(pnpm lint *)",
-      "Bash(pnpm test *)"
+      "Bash(pnpm test *)",
+      "mcp__claude_ai_Atlassian_Rovo__getJiraIssue"
     ]
   }
 }

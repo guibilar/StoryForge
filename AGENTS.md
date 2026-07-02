@@ -841,10 +841,7 @@ For every new feature:
 The core application currently implements only:
 
 - **Campaign** — the top-level container. Everything belongs to a
-  Campaign. (Prisma model only; no `Campaign` domain entity yet —
-  `packages/domain/src/campaing` exists but is empty. Note the existing
-  folder name is misspelled `campaing`; fix the typo if/when the domain
-  entity is added rather than perpetuating it.)
+  Campaign. (Prisma model only; no `Campaign` domain entity yet.
 - **Entity** — a single generic, polymorphic domain object with a
   `type: string` field (e.g. `"character"`, `"location"`, `"item"`,
   `"note"`) rather than separate Character/Location/Item/Note models.

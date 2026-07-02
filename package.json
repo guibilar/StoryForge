@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "turbo dev",
+    "dev:debug": "turbo dev:debug",
     "build": "turbo build",
     "lint": "turbo lint",
     "test": "turbo test",

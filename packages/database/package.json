@@ -9,7 +9,8 @@
     "studio": "prisma studio",
     "format": "prisma format",
     "build": "tsc -p tsconfig.json",
-    "dev": "tsx watch src/test.ts"
+    "dev": "tsx watch src/test.ts",
+    "dev:debug": "tsx watch --inspect=9230 src/test.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

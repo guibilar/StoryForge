@@ -9,6 +9,10 @@
       "persistent": true,
       "cache": false
     },
+    "dev:debug": {
+      "persistent": true,
+      "cache": false
+    },
     "lint": {},
     "test": {}
   }

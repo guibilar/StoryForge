@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:debug": "tsx watch --inspect=9229 src/index.ts",
     "build": "tsc"
   },
   "dependencies": {

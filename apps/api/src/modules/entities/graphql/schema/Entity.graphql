@@ -1,18 +1,18 @@
 enum EntityVisibility {
-    PUBLIC
-    STORYTELLER
-    PRIVATE
+  PUBLIC
+  STORYTELLER
+  PRIVATE
 }
 
 type Entity {
-    id: ID!
-    campaignId: ID!
-    type: String!
-    name: String!
-    description: String
-    icon: String
-    visibility: EntityVisibility!
-    createdAt: String!
-    updatedAt: String!
-    deletedAt: String
+  id: ID!
+  campaignId: ID!
+  type: String!
+  name: String!
+  description: String
+  icon: String
+  visibility: EntityVisibility!
+  createdAt: String!
+  updatedAt: String!
+  deletedAt: String
 }

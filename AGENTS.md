@@ -132,15 +132,15 @@ Avoid anemic models.
 Prefer
 
 ```ts
-character.rename(name)
-character.moveTo(location)
-project.archive()
+character.rename(name);
+character.moveTo(location);
+project.archive();
 ```
 
 instead of
 
 ```ts
-character.name = name
+character.name = name;
 ```
 
 ---
@@ -487,13 +487,11 @@ Example
 
 ```ts
 interface CharacterCreated {
+  characterId: string;
 
-    characterId: string;
+  projectId: string;
 
-    projectId: string;
-
-    occurredAt: Date;
-
+  occurredAt: Date;
 }
 ```
 
@@ -509,11 +507,9 @@ Example
 
 ```ts
 interface CharacterRepository {
+  save(character: Character);
 
-    save(character: Character)
-
-    findById(id: CharacterId)
-
+  findById(id: CharacterId);
 }
 ```
 
@@ -588,11 +584,11 @@ Avoid raw strings.
 Example
 
 ```ts
-CharacterId
+CharacterId;
 
-ProjectId
+ProjectId;
 
-WorldId
+WorldId;
 ```
 
 ---
@@ -622,7 +618,7 @@ Avoid throwing generic Error.
 Prefer
 
 ```ts
-Result<T, Error>
+Result<T, Error>;
 ```
 
 instead of exceptions for business failures.

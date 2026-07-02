@@ -5,8 +5,8 @@ import { schema } from "./schema";
 import { createContext } from "./context";
 
 export const yoga = createYoga({
-    schema,
-    context: createContext,
+  schema,
+  context: createContext,
 });
 
 export const server = createServer(yoga);

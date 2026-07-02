@@ -9,13 +9,13 @@ import { Entity } from "./resolvers/Entity";
 const schemaDir = join(dirname(fileURLToPath(import.meta.url)), "schema");
 
 function readTypeDefs(fileName: string): string {
-    return readFileSync(join(schemaDir, fileName), "utf-8");
+  return readFileSync(join(schemaDir, fileName), "utf-8");
 }
 
 export const typeDefs = [
-    readTypeDefs("Entity.graphql"),
-    readTypeDefs("Query.graphql"),
-    readTypeDefs("Mutation.graphql"),
+  readTypeDefs("Entity.graphql"),
+  readTypeDefs("Query.graphql"),
+  readTypeDefs("Mutation.graphql"),
 ];
 
 export const resolvers = { Query, Mutation, Entity };

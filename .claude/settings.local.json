@@ -13,7 +13,13 @@
       "mcp__claude_ai_Atlassian_Rovo__transitionJiraIssue",
       "mcp__claude_ai_Atlassian_Rovo__editJiraIssue",
       "Read(//home/bilar/.claude/**)",
-      "Read(//home/bilar/.claude/plugins/**)"
+      "Read(//home/bilar/.claude/plugins/**)",
+      "Bash(pnpm build *)",
+      "Bash(python3 -c \"import yaml,sys; yaml.safe_load\\(open\\('/home/bilar/Documents/StoryForge/.github/workflows/ci.yml'\\)\\)\")",
+      "Bash(pip install *)",
+      "Bash(python3 -c \"import yaml; yaml.safe_load\\(open\\('/home/bilar/Documents/StoryForge/.github/workflows/ci.yml'\\)\\); print\\('YAML valid'\\)\")",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm test *)"
     ]
   }
 }

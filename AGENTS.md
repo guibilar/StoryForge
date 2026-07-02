@@ -757,6 +757,18 @@ Avoid `any`.
 
 ---
 
+# Tooling
+
+Pre-commit hooks are wired via Husky: `.husky/pre-commit`, `core.hooksPath`
+set to `.husky/_`, `prepare: "husky"` in root `package.json`. The hook runs
+`pnpm test` then `pnpm lint-staged` — the latter isn't a defined root
+script, but `pnpm` resolves it straight from `node_modules/.bin`. `lint-staged`
+config (root `package.json`) runs `eslint --fix` + `prettier --write` on
+staged `*.{js,ts,tsx,jsx}` and `prettier --write` on staged `*.{json,md}`, so
+a lint/format violation is blocked locally before it reaches CI.
+
+---
+
 # Testing
 
 Write tests for:

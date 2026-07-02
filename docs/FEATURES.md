@@ -3,7 +3,7 @@
 Status snapshot generated from repo inspection. Update as work lands — this file
 tracks what's actually built, not just planned.
 
-## Sprint 0 — Foundation
+## Foundation
 
 - [x] pnpm workspace + Turborepo
 - [x] TypeScript, ESLint, Prettier
@@ -11,10 +11,10 @@ tracks what's actually built, not just planned.
 - [x] Fastify / graphql-yoga backend boots
 - [x] GraphQL setup (schema merge, context, error mapping)
 - [x] Docker skeleton (`docker/` — contents unverified)
-- [ ] CI pipeline (`.github/workflows` exists but empty)
-- [ ] Husky hooks — unverified
+- [x] CI pipeline (`.github/workflows/ci.yml` — lint, build, test on push/PR to main)
+- [x] Husky hooks — pre-commit runs `pnpm test` then `pnpm lint-staged` (KAN-24)
 
-## Sprint 1 — Authentication & Campaigns
+## Authentication & Campaigns
 
 - [ ] `User` domain entity + Prisma model
 - [ ] `Campaign` domain entity (Prisma model exists; domain layer missing)
@@ -24,7 +24,7 @@ tracks what's actually built, not just planned.
 - [ ] GraphQL: `me`, `campaigns`, `campaign(id)`, `register`, `login`, `createCampaign`, `updateCampaign`, `archiveCampaign`
 - [ ] Frontend: login, register, dashboard, campaign list, create-campaign dialog, protected routes
 
-## Sprint 2 — World Building
+## World Building
 
 - [x] Entity CRUD backend (SF-001): service, repository, GraphQL resolvers
 - [x] Entity soft delete
@@ -35,38 +35,38 @@ tracks what's actually built, not just planned.
 - [ ] Search / filtering
 - [ ] Frontend entity list + form
 
-## Sprint 3 — Relationships
+## Relationships
 
 - [ ] Relationship domain model
 - [ ] Relationship types (MemberOf, Owns, Enemy, Ally, Parent, Child)
 - [ ] Graph visualization (React Flow)
 
-## Sprint 4 — Notes & Assets
+## Notes & Assets
 
 - [ ] Rich text / markdown notes
 - [ ] Attachments, images
 - [ ] Internal links between notes/entities
 - [ ] Nested notes
 
-## Sprint 5 — Sessions & Timeline
+## Sessions & Timeline
 
 - [ ] Session model (number, date, summary)
 - [ ] Event model (timeline, participants, related entities)
 - [ ] Timeline UI (ordering, filters, search)
 
-## Sprint 6 — Maps
+## Maps
 
 - [ ] Leaflet integration
 - [ ] Markers, territories, regions, districts
 - [ ] Custom overlays / images as maps
 
-## Sprint 7 — Plugin Runtime
+## Plugin Runtime
 
 - [ ] `packages/plugin-sdk` (currently empty)
 - [ ] Plugin loader + registry
 - [ ] Compile-time plugin compiler (`packages/compiler`, not started)
 
-## Sprint 8 — Vampire: The Masquerade Plugin
+## Vampire: The Masquerade Plugin
 
 - [ ] `packages/vtm-plugin` (currently empty)
 - [ ] Character sheet (Clan, Generation, Blood Potency, Humanity, Hunger, Willpower, Health)
@@ -75,27 +75,27 @@ tracks what's actually built, not just planned.
 - [ ] VTM relationship types (Sire, Childe, Ghoul, Prince, Primogen, Regent)
 - [ ] VTM events (Embrace, Blood Hunt, Diablerie, Final Death)
 
-## Sprint 9 — Collaboration
+## Collaboration
 
 - [ ] Roles (Owner, Storyteller, Co-Storyteller, Player, Observer)
 - [ ] Permissions
 - [ ] Shared vs private notes, player handouts
 
-## Sprint 10 — Automation
+## Automation
 
 - [ ] Automatic reminders
 - [ ] Relationship validation
 - [ ] Timeline consistency checks
 - [ ] Unused NPC / broken reference detection
 
-## Sprint 11 — AI Assistant
+## AI Assistant
 
 - [ ] Semantic search
 - [ ] Session summaries
 - [ ] NPC dialogue generation
 - [ ] Plot suggestions / chronicle Q&A
 
-## Cross-cutting gaps (not tied to a single sprint)
+## Cross-cutting gaps (not tied to a single area)
 
 - [ ] Tests — zero across the repo (no `*.test.ts`/`*.spec.ts` anywhere); backend service/resolver tests and frontend tests both missing
 - [ ] `packages/core` — purpose undefined, decide before adding files

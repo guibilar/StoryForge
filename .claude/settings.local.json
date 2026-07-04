@@ -41,7 +41,14 @@
       "Bash(echo \"EXIT:$?\")",
       "Bash(./node_modules/.bin/tsc --noEmit --skipLibCheck /tmp/skiplib/t.ts)",
       "Bash(./node_modules/.bin/tsc --noEmit /tmp/skiplib/t.ts)",
-      "Bash(./node_modules/.bin/tsc --noEmit -p apps/api/tsconfig.json)"
+      "Bash(./node_modules/.bin/tsc --noEmit -p apps/api/tsconfig.json)",
+      "Bash(node -e \"console.log\\(require\\('vite/package.json'\\).version\\)\")",
+      "Bash(node -e \"const {loadEnv}=require\\('vitest/config'\\); console.log\\(typeof loadEnv\\)\")",
+      "Bash(node -e \"console.log\\(require.resolve\\('dotenv'\\)\\)\")",
+      "Bash(pnpm --filter @storyforge/domain build)",
+      "Bash(pnpm --filter @storyforge/database build)",
+      "Bash(pnpm --filter @storyforge/domain test)",
+      "Bash(docker exec my-postgres *)"
     ]
   }
 }

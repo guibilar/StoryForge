@@ -6,7 +6,8 @@
     "dev": "tsx watch --env-file=.env src/index.ts",
     "dev:debug": "tsx watch --inspect=9229 --env-file=.env src/index.ts",
     "build": "tsc",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@storyforge/database": "workspace:*",

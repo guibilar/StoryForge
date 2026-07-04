@@ -1,0 +1,46 @@
+import { describe, expect, it } from "vitest";
+import { CampaignMember } from "./CampaignMember";
+import { UserId } from "../user";
+
+describe("CampaignMember", () => {
+  it("creates a member with the given role and fresh timestamps", () => {
+    const userId = UserId.create();
+
+    const member = CampaignMember.create({ userId, role: "PLAYER" });
+
+    expect(member.UserId.equals(userId)).toBe(true);
+    expect(member.Role).toBe("PLAYER");
+    expect(member.CreatedAt).toBeInstanceOf(Date);
+    expect(member.UpdatedAt).toBeInstanceOf(Date);
+  });
+
+  it("rehydrates preserving the given timestamps", () => {
+    const userId = UserId.create();
+    const createdAt = new Date("2024-01-01T00:00:00Z");
+    const updatedAt = new Date("2024-02-01T00:00:00Z");
+
+    const member = CampaignMember.rehydrate({
+      userId,
+      role: "OWNER",
+      createdAt,
+      updatedAt,
+    });
+
+    expect(member.CreatedAt).toBe(createdAt);
+    expect(member.UpdatedAt).toBe(updatedAt);
+  });
+
+  it("changes the role and bumps updatedAt", async () => {
+    const member = CampaignMember.create({
+      userId: UserId.create(),
+      role: "PLAYER",
+    });
+    const before = member.UpdatedAt;
+
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    member.changeRole("STORYTELLER");
+
+    expect(member.Role).toBe("STORYTELLER");
+    expect(member.UpdatedAt.getTime()).toBeGreaterThan(before.getTime());
+  });
+});

@@ -175,9 +175,12 @@ Currently contains:
   and `Entity` list.
 - `campaignMember/` — `CampaignMember` value object (userId + role), no
   own repository — persisted as part of the `Campaign` aggregate.
-- `user/` — the `User` aggregate, `UserId`, `UserRepository` interface.
+- `user/` — the `User` aggregate (email/password validation, `CreatedAt`/
+  `UpdatedAt`/`Id`/`Email`/`Password` getters — password hashing itself is
+  an application-layer concern, not domain), `UserId`, `UserRepository`
+  interface.
 - `shared/errors/` — `DomainError` (abstract base), `NotFoundError`,
-  `ValidationError`.
+  `ValidationError`, `AuthenticationError`.
 
 Not yet implemented: Domain Events, Domain Services. No repository
 implementations yet either (see packages/database — schema only).
@@ -222,9 +225,9 @@ Never contains business logic.
 ## GraphQL layer (currently inside apps/api — packages/graphql not yet split out)
 
 There is no standalone `packages/graphql` package yet. GraphQL currently
-lives inside `apps/api`, and the `entities` module is fully wired end-to-end
-(schema loads, resolvers call the service, mutations persist, domain errors
-surface as proper GraphQL errors):
+lives inside `apps/api`, and both the `entities` and `auth` modules are
+fully wired end-to-end (schema loads, resolvers call the service, mutations
+persist, domain errors surface as proper GraphQL errors):
 
 - `apps/api/src/graphql/` — server wiring: `server.ts` (graphql-yoga +
   node:http, passes `createContext` from `context.ts`), `schema.ts`
@@ -233,11 +236,16 @@ surface as proper GraphQL errors):
   `createSchema` call), `schema/Root.graphql` (the one and only
   `schema { query: Query mutation: Mutation }` block plus bare
   `type Query`/`type Mutation` — modules only ever `extend` these, never
-  redeclare them), `context.ts` (builds `GraphQLContext`, including a
-  module-scope singleton `entityService` handed to every request),
-  `errors.ts` (`toGraphQLError` — maps `NotFoundError`/`ValidationError`
-  to `GraphQLError` with an `extensions.code`, so resolvers don't leak
-  masked "Unexpected error." responses).
+  redeclare them), `context.ts` (builds `GraphQLContext`, including
+  module-scope singleton `entityService`/`authenticationService` handed to
+  every request, plus a per-request `currentUserId: string | null` decoded
+  off the `Authorization: Bearer <token>` header — a failed/missing token
+  resolves to `null` rather than throwing, so resolvers decide what's
+  protected, not the context builder), `errors.ts` (`toGraphQLError` —
+  maps `NotFoundError`/`ValidationError`/`AuthenticationError` to
+  `GraphQLError` with an `extensions.code` — `NOT_FOUND`/`BAD_USER_INPUT`/
+  `UNAUTHENTICATED` respectively — so resolvers don't leak masked
+  "Unexpected error." responses).
 - `apps/api/src/modules/<module>/graphql/` — per-module schema
   (`schema/*.graphql`, only `extend type Query`/`extend type Mutation` +
   the module's own types/enums/inputs) and resolvers (`resolvers/Query.ts`,
@@ -352,17 +360,32 @@ Current implementation:
   only supports v15/v16 as a peer; do not bump to a v17 prerelease
   without confirming yoga supports it (a stray `^17` pin previously broke
   introspection's default arguments in confusing ways).
-- One vertical-slice module so far: `src/modules/entities/`, split into
-  `application/` (`EntityService.ts` — create/update/delete/get/list
-  use cases), `graphql/` (schema + resolvers, fully implemented —
-  `createEntity`/`updateEntity`/`deleteEntity` mutations and
-  `entity`/`entities` queries), and `infrastructure/`
-  (`PrismaEntityRepository`, `EntityMapper`).
+- Two vertical-slice modules so far:
+  - `src/modules/entities/`, split into `application/` (`EntityService.ts`
+    — create/update/delete/get/list use cases), `graphql/` (schema +
+    resolvers, fully implemented — `createEntity`/`updateEntity`/
+    `deleteEntity` mutations and `entity`/`entities` queries), and
+    `infrastructure/` (`PrismaEntityRepository`, `EntityMapper`).
+  - `src/modules/auth/` (KAN-28), same layout: `application/`
+    (`AuthenticationService.ts` — `register`/`login`, bcrypt hashing via
+    `bcrypt-ts`, JWT issuance via `jsonwebtoken` with a minimal
+    `{ sub: userId }` payload — full domain objects never go in the token),
+    `graphql/` (`login`/`registerUser` mutations, `AuthPayload { token,
+user }`), `infrastructure/` (`PrismaUserRepository`, `UserMapper`).
+    Session strategy is JWT (stateless, no session table) — decided
+    explicitly over server-side sessions and refresh-token pairs; revisit
+    only if revocation-before-expiry becomes a real requirement.
 - `package.json` lists both `fastify`/`mercurius` and `graphql-yoga` as
   dependencies, but only `graphql-yoga` is wired up in code today.
+- `JWT_SECRET` loaded via `src/config/env.ts` (fail-fast if unset) from
+  `apps/api/.env`, itself loaded via Node's native `--env-file` flag
+  (`package.json` `dev`/`dev:debug` scripts) — no `dotenv` dependency.
+  `.env` is gitignored; `.env.example` is the committed template.
 
-Not yet implemented: authentication, a DI container, an event bus,
-service registration/wiring beyond manual instantiation.
+Not yet implemented: a DI container, an event bus, service
+registration/wiring beyond manual instantiation, anything actually
+_consuming_ `context.currentUserId` to gate a resolver (auth is wired
+end-to-end but nothing is protected by it yet).
 
 No business logic belongs here — resolvers call services, services call
 repositories.
@@ -846,6 +869,11 @@ For every new feature:
 
 The core application currently implements only:
 
+- **Authentication** — `User` aggregate + `AuthenticationService`
+  (register/login, bcrypt hashing, JWT issuance), wired end-to-end through
+  `login`/`registerUser` GraphQL mutations (KAN-28). Nothing consumes
+  `context.currentUserId` to gate a resolver yet — identity is decoded per
+  request but not enforced anywhere.
 - **Campaign** — the top-level container. Everything belongs to a
   Campaign. (Prisma model only; no `Campaign` domain entity yet.
 - **Entity** — a single generic, polymorphic domain object with a
@@ -858,7 +886,7 @@ The core application currently implements only:
   but not yet implemented (see apps/api notes above).
 
 Not yet implemented, despite being referenced elsewhere in this
-document as target scope: Users, Worlds, and dedicated
+document as target scope: Worlds, and dedicated
 Character/Location/Item/Note models. Until those exist (or a decision
 is made to keep the generic `Entity` model permanently), treat any
 guidance elsewhere in this file that assumes separate entity types as

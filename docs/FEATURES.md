@@ -19,9 +19,10 @@ tracks what's actually built, not just planned.
 - [x] `User` domain entity + Prisma model
 - [x] `Campaign` domain entity + Prisma model
 - [x] `CampaignMember` model (KAN-27) — value object on `Campaign`, join table w/ role enum
-- [ ] AuthenticationService (register/login, hashing, session/JWT)
+- [x] AuthenticationService (register/login, bcrypt hashing, JWT) (KAN-28)
 - [ ] CampaignService (create/update/archive)
-- [ ] GraphQL: `me`, `campaigns`, `campaign(id)`, `register`, `login`, `createCampaign`, `updateCampaign`, `archiveCampaign`
+- [x] GraphQL: `login`, `registerUser`
+- [ ] GraphQL: `me`, `campaigns`, `campaign(id)`, `createCampaign`, `updateCampaign`, `archiveCampaign`
 - [ ] Frontend: login, register, dashboard, campaign list, create-campaign dialog, protected routes
 
 ## World Building

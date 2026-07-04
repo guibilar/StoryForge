@@ -21,13 +21,8 @@ apps/
   web/         React app
 
 packages/
-  core/        (empty, not started)
   database/    Prisma schema, client, repositories
-  domain/      Entity aggregate + shared errors
-  plugin-sdk/  (empty, not started)
-  shared/      (empty, not started)
-  ui/          (empty, not started)
-  vtm-plugin/  (empty, Vampire plugin placeholder)
+  domain/      Campaign, Entity, User, CampaignMember aggregates + shared errors
 
 docs/
 docker/
@@ -56,4 +51,4 @@ at `DATABASE_URL` (no mocking) — a Postgres must be running and migrated
 
 ## Status
 
-Early stage. Only `Campaign` (Prisma model) and `Entity` (full domain → service → repo → GraphQL) exist today. Web app is still default Vite scaffold. Plugin compiler not started.
+Early stage. `Campaign`, `Entity`, `User` (auth), and `CampaignMember` are implemented full-stack (domain → service → Prisma repo → GraphQL). Web app is still default Vite scaffold. Plugin compiler and plugin packages not started.

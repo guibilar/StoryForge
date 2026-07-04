@@ -1,0 +1,8 @@
+type Campaign {
+  id: ID!
+  name: String!
+  description: String
+  createdAt: String!
+  updatedAt: String!
+  archivedAt: String
+}

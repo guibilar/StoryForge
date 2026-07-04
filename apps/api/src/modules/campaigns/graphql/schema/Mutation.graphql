@@ -1,0 +1,16 @@
+input CreateCampaignDTO {
+  name: String!
+  description: String
+}
+
+input UpdateCampaignInput {
+  id: ID!
+  name: String
+  description: String
+}
+
+extend type Mutation {
+  createCampaign(input: CreateCampaignDTO!): Campaign!
+  updateCampaign(input: UpdateCampaignInput!): Campaign!
+  archiveCampaign(id: ID!): Boolean!
+}

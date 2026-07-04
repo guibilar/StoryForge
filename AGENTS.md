@@ -875,7 +875,12 @@ The core application currently implements only:
   `context.currentUserId` to gate a resolver yet — identity is decoded per
   request but not enforced anywhere.
 - **Campaign** — the top-level container. Everything belongs to a
-  Campaign. (Prisma model only; no `Campaign` domain entity yet.
+  Campaign. Domain entity + `CampaignService` (create/update/archive,
+  KAN-29) now implemented, same domain → service → Prisma repository
+  shape as Entity. GraphQL resolvers (`campaign`, `campaigns`,
+  `createCampaign`, `updateCampaign`, `archiveCampaign`) wired. Known
+  gap: `CampaignMapper.toDomain` never hydrates `campaignMembers`
+  (always `[]`), so `archiveCampaign`'s no-owner check always fails.
 - **Entity** — a single generic, polymorphic domain object with a
   `type: string` field (e.g. `"character"`, `"location"`, `"item"`,
   `"note"`) rather than separate Character/Location/Item/Note models.

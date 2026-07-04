@@ -6,15 +6,19 @@ import { PrismaEntityRepository } from "../modules/entities/infrastructure/Prism
 import { AuthenticationService } from "../modules/auth/application/AuthenticationService";
 import { PrismaUserRepository } from "../modules/auth/infrastructure/PrismaUserRepository";
 import { JWT_SECRET } from "../config/env";
+import { CampaignService } from "../modules/campaigns/application/CampaignService";
+import { PrismaCampaignRepository } from "../modules/campaigns/infrastructure/PrismaCampaignRepository";
 
 export interface GraphQLContext extends YogaInitialContext {
   requestId: string;
   entityService: EntityService;
   authenticationService: AuthenticationService;
+  campaignService: CampaignService;
   currentUserId: string | null;
 }
 
 const entityService = new EntityService(new PrismaEntityRepository());
+const campaignService = new CampaignService(new PrismaCampaignRepository());
 const authenticationService = new AuthenticationService(
   new PrismaUserRepository(),
 );
@@ -49,6 +53,7 @@ export async function createContext(
     requestId: crypto.randomUUID(),
     entityService,
     authenticationService,
+    campaignService,
     currentUserId: getCurrentUserId(initialContext.request),
   };
 }

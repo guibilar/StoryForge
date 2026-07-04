@@ -6,9 +6,11 @@ export interface CampaignRepository {
 
   existsByName(name: string): Promise<boolean>;
 
-  create(entity: Campaign): Promise<void>;
+  create(entity: Campaign): Promise<Campaign>;
 
-  update(entity: Campaign): Promise<void>;
+  update(entity: Campaign): Promise<Campaign>;
 
   archive(campaign: Campaign): Promise<void>;
+
+  listCampaigns(): Promise<Campaign[]>;
 }

@@ -35,7 +35,13 @@
       "Bash(xargs -I{} echo {})",
       "Bash(echo \"exit: $?\")",
       "Bash(timeout 3 node --env-file=.env -e \"import\\('./src/config/env.ts'\\).catch\\(e=>{console.error\\('ERR',e.message\\)}\\)\")",
-      "Bash(echo \"tsc exit: $?\")"
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(git mv *)",
+      "Bash(mv apps/api/src/modules/campaign apps/api/src/modules/campaigns)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(./node_modules/.bin/tsc --noEmit --skipLibCheck /tmp/skiplib/t.ts)",
+      "Bash(./node_modules/.bin/tsc --noEmit /tmp/skiplib/t.ts)",
+      "Bash(./node_modules/.bin/tsc --noEmit -p apps/api/tsconfig.json)"
     ]
   }
 }

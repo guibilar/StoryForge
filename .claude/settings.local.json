@@ -50,7 +50,8 @@
       "Bash(pnpm --filter @storyforge/domain test)",
       "Bash(docker exec my-postgres *)",
       "Bash(git check-ignore *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; cat {}')"
     ]
   }
 }

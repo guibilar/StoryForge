@@ -1,0 +1,259 @@
+{
+  "info": {
+    "name": "StoryForge API",
+    "description": "GraphQL API for StoryForge. Import the StoryForge Local environment alongside this collection. Run Auth > Register or Login first — it stores the JWT in {{token}}, which the other requests send as a Bearer header.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "storyforge-api-collection"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation RegisterUser($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    token\n    user {\n      id\n      email\n      createdAt\n      updatedAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"email\": \"{{userEmail}}\",\n    \"password\": \"{{userPassword}}\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const token = body?.data?.registerUser?.token;",
+                  "if (token) pm.environment.set('token', token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      createdAt\n      updatedAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"email\": \"{{userEmail}}\",\n    \"password\": \"{{userPassword}}\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const token = body?.data?.login?.token;",
+                  "if (token) pm.environment.set('token', token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Campaigns",
+      "item": [
+        {
+          "name": "List Campaigns",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Campaigns {\n  campaigns {\n    id\n    name\n    description\n    createdAt\n    updatedAt\n    archivedAt\n  }\n}",
+                "variables": ""
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Campaign",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    description\n    createdAt\n    updatedAt\n    archivedAt\n  }\n}",
+                "variables": "{\n  \"id\": \"{{campaignId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Campaign",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateCampaign($input: CreateCampaignDTO!) {\n  createCampaign(input: $input) {\n    id\n    name\n    description\n    createdAt\n    updatedAt\n    archivedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"name\": \"My Campaign\",\n    \"description\": \"Created from Postman\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const id = body?.data?.createCampaign?.id;",
+                  "if (id) pm.environment.set('campaignId', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Campaign",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateCampaign($input: UpdateCampaignInput!) {\n  updateCampaign(input: $input) {\n    id\n    name\n    description\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"id\": \"{{campaignId}}\",\n    \"name\": \"My Campaign (updated)\"\n  }\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "Archive Campaign",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation ArchiveCampaign($id: ID!) {\n  archiveCampaign(id: $id)\n}",
+                "variables": "{\n  \"id\": \"{{campaignId}}\"\n}"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Entities",
+      "item": [
+        {
+          "name": "List Entities",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Entities($campaignId: ID!) {\n  entities(campaignId: $campaignId) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Entity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Entity($id: ID!) {\n  entity(id: $id) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
+                "variables": "{\n  \"id\": \"{{entityId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Entity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    visibility\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"type\": \"npc\",\n    \"name\": \"My Entity\",\n    \"description\": \"Created from Postman\",\n    \"visibility\": \"PUBLIC\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const id = body?.data?.createEntity?.id;",
+                  "if (id) pm.environment.set('entityId', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Entity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    icon\n    visibility\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"id\": \"{{entityId}}\",\n    \"name\": \"My Entity (updated)\"\n  }\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Entity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteEntity($id: ID!) {\n  deleteEntity(id: $id)\n}",
+                "variables": "{\n  \"id\": \"{{entityId}}\"\n}"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

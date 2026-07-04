@@ -49,6 +49,13 @@ pnpm test
 at `DATABASE_URL` (no mocking) — a Postgres must be running and migrated
 (`pnpm --filter @storyforge/database migrate:deploy`) before running tests locally.
 
+## API testing
+
+A Postman collection lives in `postman/` — `StoryForge.postman_collection.json` covers every
+query/mutation (auth, campaigns, entities) and `StoryForge.postman_environment.json` holds
+`baseUrl`, `token`, and test IDs. Import both, run Auth > Login or Register first (it stores
+the JWT in `{{token}}` automatically), then run the rest.
+
 ## Status
 
 Early stage. `Campaign`, `Entity`, `User` (auth), and `CampaignMember` are implemented full-stack (domain → service → Prisma repo → GraphQL). Web app is still default Vite scaffold. Plugin compiler and plugin packages not started.

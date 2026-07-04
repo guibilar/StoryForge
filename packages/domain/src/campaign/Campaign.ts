@@ -1,4 +1,7 @@
+import { CampaignMember } from "../campaignMember";
+import { Entity, EntityId } from "../entity";
 import { ValidationError } from "../shared";
+import { UserId } from "../user";
 import { CampaignId } from "./CampaignId";
 
 export interface CreateCampaignProps {
@@ -13,6 +16,8 @@ export interface RehydrateCampaignProps {
   createdAt: Date;
   updatedAt: Date;
   archivedAt: Date | null;
+  campaignMembers: CampaignMember[];
+  entities: Entity[];
 }
 
 export class Campaign {
@@ -23,6 +28,8 @@ export class Campaign {
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
     private archivedAtValue: Date | null,
+    private readonly campaignMembersValue: CampaignMember[],
+    private readonly entitiesValue: Entity[],
   ) {
     this.validateName(nameValue);
     this.validateDescription(descriptionValue);
@@ -36,6 +43,8 @@ export class Campaign {
       new Date(),
       new Date(),
       null,
+      [],
+      [],
     );
   }
 
@@ -47,6 +56,8 @@ export class Campaign {
       props.createdAt,
       props.updatedAt,
       props.archivedAt,
+      props.campaignMembers,
+      props.entities,
     );
   }
 
@@ -120,5 +131,67 @@ export class Campaign {
         "Campaign description cannot exceed 1000 characters.",
       );
     }
+  }
+
+  addMember(member: CampaignMember): void {
+    const existingMember = this.campaignMembersValue.find((m) =>
+      m.UserId.equals(member.UserId),
+    );
+
+    if (existingMember) {
+      throw new ValidationError(
+        `User with ID ${member.UserId.toString()} is already a member of the campaign.`,
+      );
+    }
+
+    this.campaignMembersValue.push(member);
+  }
+
+  removeMember(userId: UserId): void {
+    const index = this.campaignMembersValue.findIndex((m) =>
+      m.UserId.equals(userId),
+    );
+
+    if (index === -1) {
+      throw new ValidationError(
+        `User with ID ${userId.toString()} is not a member of the campaign.`,
+      );
+    }
+
+    this.campaignMembersValue.splice(index, 1);
+  }
+
+  get Members(): CampaignMember[] {
+    return [...this.campaignMembersValue];
+  }
+
+  addEntity(entity: Entity): void {
+    const existingEntity = this.entitiesValue.find((e) =>
+      e.Id.equals(entity.Id),
+    );
+
+    if (existingEntity) {
+      throw new ValidationError(
+        `Entity with ID ${entity.Id.toString()} already exists in the campaign.`,
+      );
+    }
+
+    this.entitiesValue.push(entity);
+  }
+
+  removeEntity(entityId: EntityId): void {
+    const index = this.entitiesValue.findIndex((e) => e.Id.equals(entityId));
+
+    if (index === -1) {
+      throw new ValidationError(
+        `Entity with ID ${entityId.toString()} does not exist in the campaign.`,
+      );
+    }
+
+    this.entitiesValue.splice(index, 1);
+  }
+
+  get Entities(): Entity[] {
+    return [...this.entitiesValue];
   }
 }

@@ -11,8 +11,14 @@ tracks what's actually built, not just planned.
 - [x] Fastify / graphql-yoga backend boots
 - [x] GraphQL setup (schema merge, context, error mapping)
 - [x] Docker skeleton (`docker/` — contents unverified)
-- [x] CI pipeline (`.github/workflows/ci.yml` — lint, build, test on push/PR to main)
+- [x] CI pipeline (`.github/workflows/ci.yml` — lint, build, test on push/PR
+      to main; runs a `postgres:16` service container + `prisma migrate deploy`
+      so Prisma repository integration tests run for real, not mocked)
 - [x] Husky hooks — pre-commit runs `pnpm test` then `pnpm lint-staged` (KAN-24)
+- [x] Test suite — 107 tests via Vitest across `packages/domain` (entities,
+      value objects) and `apps/api` (application services w/ mocked repos,
+      Prisma mappers, and Prisma repository integration tests against a real
+      Postgres). See AGENTS.md "Testing" section for layout and gotchas.
 
 ## Authentication & Campaigns
 
@@ -101,7 +107,7 @@ tracks what's actually built, not just planned.
 
 ## Cross-cutting gaps (not tied to a single area)
 
-- [ ] Tests — zero across the repo (no `*.test.ts`/`*.spec.ts` anywhere); backend service/resolver tests and frontend tests both missing
+- [ ] Frontend tests — `apps/web` has no test infra yet (still Vite scaffold)
 - [ ] `packages/core` — purpose undefined, decide before adding files
 - [ ] `packages/shared` — empty, needed once a 2nd backend module or frontend utilities appear
 - [ ] `packages/ui` — empty, needed once frontend work starts

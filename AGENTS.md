@@ -220,6 +220,9 @@ modules are added.
 
 Never contains business logic.
 
+Those `apps/api` repository implementations are integration-tested against
+this package's real Prisma client and a live Postgres — see Testing section.
+
 ---
 
 ## GraphQL layer (currently inside apps/api — packages/graphql not yet split out)
@@ -379,8 +382,10 @@ user }`), `infrastructure/` (`PrismaUserRepository`, `UserMapper`).
   dependencies, but only `graphql-yoga` is wired up in code today.
 - `JWT_SECRET` loaded via `src/config/env.ts` (fail-fast if unset) from
   `apps/api/.env`, itself loaded via Node's native `--env-file` flag
-  (`package.json` `dev`/`dev:debug` scripts) — no `dotenv` dependency.
-  `.env` is gitignored; `.env.example` is the committed template.
+  (`package.json` `dev`/`dev:debug` scripts) or, for tests, `vitest.setup.ts`
+  via `process.loadEnvFile` — no `dotenv` dependency. `.env` is gitignored;
+  `.env.example` is the committed template; CI supplies `JWT_SECRET` as a
+  workflow env var instead (see Testing section).
 
 Not yet implemented: a DI container, an event bus, service
 registration/wiring beyond manual instantiation, anything actually
@@ -800,17 +805,54 @@ a lint/format violation is blocked locally before it reaches CI.
 
 # Testing
 
-Write tests for:
+Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
+`test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
+so workspace deps are built first). Current coverage (107 tests):
 
-- Domain entities
-- Value Objects
-- Services
-- Compiler
-- Plugin validation
+- **Domain unit tests** (`packages/domain/src/**/*.test.ts`) — `Campaign`,
+  `Entity`, `CampaignMember`, `User`, `Id`, `DomainError` subclasses. Pure
+  logic, no mocks, no I/O.
+- **Application service tests** (`apps/api/src/modules/*/application/*.test.ts`)
+  — `CampaignService`, `EntityService`, `AuthenticationService` against
+  hand-rolled `vi.fn()` mocks of the repository interfaces. `AuthenticationService`
+  uses real `bcrypt-ts`/`jsonwebtoken` (not mocked) so the token roundtrip is
+  actually verified, not assumed.
+- **Mapper tests** (`apps/api/src/modules/*/infrastructure/*Mapper.test.ts`)
+  — `toDomain`/`toPersistence` roundtrips against literal Prisma-shaped
+  records.
+- **Prisma repository integration tests**
+  (`apps/api/src/modules/*/infrastructure/Prisma*Repository.test.ts`) — hit a
+  **real** Postgres (the same one `DATABASE_URL` points at — locally that's
+  the `my-postgres` docker container, in CI it's the `postgres:16` service
+  container declared in `.github/workflows/ci.yml`), not a mock. Each test
+  creates its own rows (unique names/emails via `randomUUID()`) and deletes
+  them in `afterEach` — no test database/schema isolation exists yet, so
+  cleanup discipline is load-bearing; don't add a test that skips it.
 
-Mock repositories.
+Mock repositories for service tests. Avoid mocking the domain. Don't mock
+Prisma for repository tests — that's what the integration layer above is for.
 
-Avoid mocking the domain.
+Gotchas learned building this out, worth knowing before adding more:
+
+- `apps/api/vitest.setup.ts` loads `apps/api/.env` for `JWT_SECRET` via
+  Node's native `process.loadEnvFile` — wrapped in try/catch for `ENOENT`
+  since `.env` doesn't exist in CI (env vars come from the workflow's `env:`
+  block instead).
+- Turborepo v2 defaults to **strict env mode** — it strips env vars from a
+  task's child process unless the task declares them in `turbo.json`. Both
+  `DATABASE_URL` and `JWT_SECRET` are declared under the `test` task's `env`
+  array for exactly this reason; a run that works locally (real `.env` files
+  present) can still fail in CI if a new required env var isn't added there
+  too.
+- `tsconfig.json` in `apps/api` and `packages/domain` excludes
+  `src/**/*.test.ts` from the build (`tsc`) output. Without that exclude,
+  `dist/**/*.test.js` gets emitted, and since Vitest v4's default `exclude`
+  is just `node_modules`/`.git` (no longer `dist`), every test ran twice —
+  once from `src`, once from the stale `dist` copy with no way to load env
+  files relative to it.
+
+No test infra yet for `apps/web` (still the Vite scaffold) or the compiler
+(not started).
 
 ---
 

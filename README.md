@@ -48,6 +48,11 @@ pnpm test
 ```
 
 `packages/database` needs its own `.env` with `DATABASE_URL` set (see `packages/database/.env`).
+`apps/api` needs its own `.env` with `JWT_SECRET` set.
+
+`pnpm test` includes Prisma repository integration tests that hit the real database
+at `DATABASE_URL` (no mocking) — a Postgres must be running and migrated
+(`pnpm --filter @storyforge/database migrate:deploy`) before running tests locally.
 
 ## Status
 

@@ -1,23 +1,8 @@
-export class EntityId {
-  private constructor(private readonly value: string) {}
+import { Id } from "../shared/Id";
 
-  static create(value?: string): EntityId {
-    return new EntityId(value ?? crypto.randomUUID());
-  }
+export type EntityId = Id<"Entity">;
 
-  static fromString(value: string): EntityId {
-    if (!value.trim()) {
-      throw new Error("EntityId cannot be empty.");
-    }
-
-    return new EntityId(value);
-  }
-
-  toString(): string {
-    return this.value;
-  }
-
-  equals(other: EntityId): boolean {
-    return this.value === other.value;
-  }
-}
+export const EntityId = {
+  create: (): EntityId => Id.create<"Entity">(),
+  fromString: (value: string): EntityId => Id.fromString<"Entity">(value),
+};

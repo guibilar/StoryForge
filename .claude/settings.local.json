@@ -28,7 +28,10 @@
       "Bash(pkill -9 -f \"turbo dev:debug\")",
       "Bash(pkill -9 -f \"tsx watch --inspect\")",
       "Bash(echo \"cleared: $?\")",
-      "Bash(disown)"
+      "Bash(disown)",
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(npx turbo *)"
     ]
   }
 }

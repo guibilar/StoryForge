@@ -16,9 +16,9 @@ tracks what's actually built, not just planned.
 
 ## Authentication & Campaigns
 
-- [ ] `User` domain entity + Prisma model
-- [ ] `Campaign` domain entity (Prisma model exists; domain layer missing)
-- [ ] `CampaignMember` model
+- [x] `User` domain entity + Prisma model
+- [x] `Campaign` domain entity + Prisma model
+- [x] `CampaignMember` model (KAN-27) — value object on `Campaign`, join table w/ role enum
 - [ ] AuthenticationService (register/login, hashing, session/JWT)
 - [ ] CampaignService (create/update/archive)
 - [ ] GraphQL: `me`, `campaigns`, `campaign(id)`, `register`, `login`, `createCampaign`, `updateCampaign`, `archiveCampaign`

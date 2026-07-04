@@ -170,11 +170,17 @@ Currently contains:
 - `entity/` — the `Entity` aggregate (a generic, polymorphic domain object;
   see Current Canonical Core Features), `EntityId`, `EntityVisibility`,
   `EntityRepository` interface.
+- `campaign/` — the `Campaign` aggregate, `CampaignId`, `CampaignRepository`
+  interface. Holds `CampaignMember` value objects (add/remove/enumerate)
+  and `Entity` list.
+- `campaignMember/` — `CampaignMember` value object (userId + role), no
+  own repository — persisted as part of the `Campaign` aggregate.
+- `user/` — the `User` aggregate, `UserId`, `UserRepository` interface.
 - `shared/errors/` — `DomainError` (abstract base), `NotFoundError`,
   `ValidationError`.
 
-Not yet implemented: a `Campaign` domain entity (only the Prisma model
-exists today — see packages/database), Domain Events, Domain Services.
+Not yet implemented: Domain Events, Domain Services. No repository
+implementations yet either (see packages/database — schema only).
 
 Should contain (per architecture rules):
 
@@ -193,7 +199,7 @@ No external dependencies.
 
 Contains:
 
-- Prisma schema (`Campaign` and `Entity` models only, so far)
+- Prisma schema (`Campaign`, `CampaignMember`, `Entity`, `User` models so far)
 - Generated Prisma Client (checked into `src/generated/prisma`, custom
   output path set in `schema.prisma` — do not `export * from "@prisma/client"`
   from `index.ts`; that package has no generated code behind it and will

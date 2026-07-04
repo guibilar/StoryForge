@@ -16,8 +16,8 @@
 
 import * as runtime from "@prisma/client/runtime/index-browser";
 
-export type * from "../models.ts";
-export type * from "./prismaNamespace.ts";
+export type * from "../models";
+export type * from "./prismaNamespace";
 
 export const Decimal = runtime.Decimal;
 
@@ -56,6 +56,8 @@ export const AnyNull = runtime.AnyNull;
 export const ModelName = {
   Campaign: "Campaign",
   Entity: "Entity",
+  User: "User",
+  CampaignMember: "CampaignMember",
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -80,6 +82,7 @@ export const CampaignScalarFieldEnum = {
   description: "description",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
+  archivedAt: "archivedAt",
 } as const;
 
 export type CampaignScalarFieldEnum =
@@ -100,6 +103,29 @@ export const EntityScalarFieldEnum = {
 
 export type EntityScalarFieldEnum =
   (typeof EntityScalarFieldEnum)[keyof typeof EntityScalarFieldEnum];
+
+export const UserScalarFieldEnum = {
+  id: "id",
+  email: "email",
+  password: "password",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type UserScalarFieldEnum =
+  (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum];
+
+export const CampaignMemberScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  userId: "userId",
+  role: "role",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type CampaignMemberScalarFieldEnum =
+  (typeof CampaignMemberScalarFieldEnum)[keyof typeof CampaignMemberScalarFieldEnum];
 
 export const SortOrder = {
   asc: "asc",

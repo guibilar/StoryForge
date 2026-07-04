@@ -58,6 +58,14 @@ export class User {
     return this.passwordValue;
   }
 
+  get CreatedAt(): Date {
+    return this.createdAtValue;
+  }
+
+  get UpdatedAt(): Date {
+    return this.updatedAtValue;
+  }
+
   changeEmail(newEmail: string): void {
     this.validateEmail(newEmail);
     this.emailValue = newEmail;

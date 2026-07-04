@@ -7,6 +7,8 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from "./models/Campaign.ts";
-export type * from "./models/Entity.ts";
-export type * from "./commonInputTypes.ts";
+export type * from "./models/Campaign";
+export type * from "./models/Entity";
+export type * from "./models/User";
+export type * from "./models/CampaignMember";
+export type * from "./commonInputTypes";

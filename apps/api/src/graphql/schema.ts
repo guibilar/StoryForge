@@ -8,6 +8,10 @@ import {
   typeDefs as entityTypeDefs,
   resolvers as entityResolvers,
 } from "../modules/entities/graphql";
+import {
+  typeDefs as authTypeDefs,
+  resolvers as authResolvers,
+} from "../modules/auth/graphql";
 
 const rootTypeDefs = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), "schema", "Root.graphql"),
@@ -15,6 +19,6 @@ const rootTypeDefs = readFileSync(
 );
 
 export const schema = createSchema({
-  typeDefs: [rootTypeDefs, ...entityTypeDefs],
-  resolvers: [entityResolvers],
+  typeDefs: [rootTypeDefs, ...entityTypeDefs, ...authTypeDefs],
+  resolvers: [entityResolvers, authResolvers],
 });

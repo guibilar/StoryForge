@@ -12,10 +12,10 @@
  * 🟢 You can import this file directly.
  */
 
-import * as Prisma from "./internal/prismaNamespaceBrowser.ts";
+import * as Prisma from "./internal/prismaNamespaceBrowser";
 export { Prisma };
-export * as $Enums from "./enums.ts";
-export * from "./enums.ts";
+export * as $Enums from "./enums";
+export * from "./enums";
 /**
  * Model Campaign
  *
@@ -26,3 +26,13 @@ export type Campaign = Prisma.CampaignModel;
  *
  */
 export type Entity = Prisma.EntityModel;
+/**
+ * Model User
+ *
+ */
+export type User = Prisma.UserModel;
+/**
+ * Model CampaignMember
+ *
+ */
+export type CampaignMember = Prisma.CampaignMemberModel;

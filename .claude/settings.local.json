@@ -48,7 +48,9 @@
       "Bash(pnpm --filter @storyforge/domain build)",
       "Bash(pnpm --filter @storyforge/database build)",
       "Bash(pnpm --filter @storyforge/domain test)",
-      "Bash(docker exec my-postgres *)"
+      "Bash(docker exec my-postgres *)",
+      "Bash(git check-ignore *)",
+      "Bash(node -e ' *)"
     ]
   }
 }

@@ -144,6 +144,29 @@ describe("EntityService", () => {
     });
   });
 
+  describe("setEntityImage", () => {
+    it("throws NotFoundError when the entity does not exist", async () => {
+      vi.mocked(repository.findById).mockResolvedValue(null);
+
+      await expect(
+        service.setEntityImage("missing", "/uploads/missing/a.png"),
+      ).rejects.toThrow(NotFoundError);
+    });
+
+    it("sets the image and persists the entity", async () => {
+      const entity = Entity.create(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      const updated = await service.setEntityImage(
+        entity.Id.toString(),
+        "/uploads/entity-1/a.png",
+      );
+
+      expect(updated.Image).toBe("/uploads/entity-1/a.png");
+      expect(repository.update).toHaveBeenCalledWith(entity);
+    });
+  });
+
   describe("listEntities", () => {
     it("delegates to the repository", async () => {
       const entities = [Entity.create(createDto)];

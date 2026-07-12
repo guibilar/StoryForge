@@ -13,6 +13,9 @@ dist
 dist-ssr
 *.local
 
+# Local upload storage
+apps/api/uploads/
+
 # Env files
 .env
 .env.*

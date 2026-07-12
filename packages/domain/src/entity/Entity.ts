@@ -8,6 +8,7 @@ export interface CreateEntityProps {
   name: string;
   description?: string | null;
   icon?: string | null;
+  image?: string | null;
   visibility: EntityVisibility;
 }
 
@@ -18,6 +19,7 @@ export interface RehydrateEntityProps {
   name: string;
   description: string | null;
   icon: string | null;
+  image: string | null;
   visibility: EntityVisibility;
   createdAt: Date;
   updatedAt: Date;
@@ -32,6 +34,7 @@ export class Entity {
     private nameValue: string,
     private descriptionValue: string | null,
     private iconValue: string | null,
+    private imageValue: string | null,
     private visibilityValue: EntityVisibility,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
@@ -50,6 +53,7 @@ export class Entity {
       props.name,
       props.description ?? null,
       props.icon ?? null,
+      props.image ?? null,
       props.visibility,
       new Date(),
       new Date(),
@@ -65,6 +69,7 @@ export class Entity {
       props.name,
       props.description,
       props.icon,
+      props.image,
       props.visibility,
       props.createdAt,
       props.updatedAt,
@@ -94,6 +99,10 @@ export class Entity {
 
   get Icon(): string | null {
     return this.iconValue;
+  }
+
+  get Image(): string | null {
+    return this.imageValue;
   }
 
   get Visibility(): EntityVisibility {
@@ -135,6 +144,11 @@ export class Entity {
 
   changeIcon(icon: string | null): void {
     this.iconValue = icon;
+    this.updatedAtValue = new Date();
+  }
+
+  changeImage(image: string | null): void {
+    this.imageValue = image;
     this.updatedAtValue = new Date();
   }
 

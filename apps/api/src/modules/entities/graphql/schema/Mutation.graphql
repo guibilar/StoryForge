@@ -4,6 +4,7 @@ input CreateEntityInput {
   name: String!
   description: String
   icon: String
+  image: String
   visibility: EntityVisibility = PUBLIC
 }
 
@@ -12,11 +13,13 @@ input UpdateEntityInput {
   name: String
   description: String
   icon: String
+  image: String
   visibility: EntityVisibility
 }
-
+scalar Upload 
 extend type Mutation {
   createEntity(input: CreateEntityInput!): Entity!
   updateEntity(input: UpdateEntityInput!): Entity!
   deleteEntity(id: ID!): Boolean!
+  uploadEntityImage(entityId: ID!, file: Upload!): Entity!
 }

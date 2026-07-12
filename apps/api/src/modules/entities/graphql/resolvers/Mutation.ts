@@ -1,5 +1,6 @@
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
+import { requireCurrentUser } from "../../../auth/graphql/guards";
 import type {
   CreateEntityDto,
   UpdateEntityDto,
@@ -38,6 +39,21 @@ export const Mutation = {
     try {
       await context.entityService.deleteEntity(args.id);
       return true;
+    } catch (error) {
+      toGraphQLError(error);
+    }
+  },
+
+  uploadEntityImage: async (
+    _parent: unknown,
+    args: { entityId: string; file: File },
+    context: GraphQLContext,
+  ) => {
+    try {
+      requireCurrentUser(context);
+      const path = await context.imageStorage.save(args.entityId, args.file);
+
+      return await context.entityService.setEntityImage(args.entityId, path);
     } catch (error) {
       toGraphQLError(error);
     }

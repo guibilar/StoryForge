@@ -51,7 +51,8 @@
       "Bash(docker exec my-postgres *)",
       "Bash(git check-ignore *)",
       "Bash(node -e ' *)",
-      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; cat {}')"
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; cat {}')",
+      "Bash(python3 -m json.tool /home/bilar/Documents/StoryForge/postman/StoryForge.postman_collection.json)"
     ]
   }
 }

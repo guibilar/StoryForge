@@ -12,6 +12,7 @@ describe("EntityMapper", () => {
       name: "Goblin",
       description: "A sneaky goblin",
       icon: "goblin.png",
+      image: "goblin.jpg",
       visibility: "PRIVATE",
       createdAt: new Date("2024-01-01T00:00:00Z"),
       updatedAt: new Date("2024-02-01T00:00:00Z"),
@@ -26,6 +27,7 @@ describe("EntityMapper", () => {
     expect(entity.Name).toBe(record.name);
     expect(entity.Description).toBe(record.description);
     expect(entity.Icon).toBe(record.icon);
+    expect(entity.Image).toBe(record.image);
     expect(entity.Visibility).toBe(EntityVisibility.PRIVATE);
     expect(entity.CreatedAt).toEqual(record.createdAt);
     expect(entity.UpdatedAt).toEqual(record.updatedAt);
@@ -39,6 +41,7 @@ describe("EntityMapper", () => {
       name: "Goblin",
       description: "A sneaky goblin",
       icon: "goblin.png",
+      image: "goblin.jpg",
       visibility: EntityVisibility.PUBLIC,
     });
 
@@ -51,6 +54,7 @@ describe("EntityMapper", () => {
       name: entity.Name,
       description: entity.Description,
       icon: entity.Icon,
+      image: entity.Image,
       visibility: entity.Visibility,
       createdAt: entity.CreatedAt,
       updatedAt: entity.UpdatedAt,

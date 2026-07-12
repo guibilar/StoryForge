@@ -47,6 +47,7 @@ model Entity {
   name        String
   description String?
   icon        String?
+  image       String?
 
   visibility Visibility @default(PUBLIC)
 

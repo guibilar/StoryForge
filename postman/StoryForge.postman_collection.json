@@ -190,7 +190,7 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "query Entities($campaignId: ID!) {\n  entities(campaignId: $campaignId) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
+                "query": "query Entities($campaignId: ID!) {\n  entities(campaignId: $campaignId) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    image\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
                 "variables": "{\n  \"campaignId\": \"{{campaignId}}\"\n}"
               }
             }
@@ -205,7 +205,7 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "query Entity($id: ID!) {\n  entity(id: $id) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
+                "query": "query Entity($id: ID!) {\n  entity(id: $id) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    image\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
                 "variables": "{\n  \"id\": \"{{entityId}}\"\n}"
               }
             }
@@ -220,7 +220,7 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    visibility\n    createdAt\n    updatedAt\n  }\n}",
+                "query": "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    image\n    visibility\n    createdAt\n    updatedAt\n  }\n}",
                 "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"type\": \"npc\",\n    \"name\": \"My Entity\",\n    \"description\": \"Created from Postman\",\n    \"visibility\": \"PUBLIC\"\n  }\n}"
               }
             }
@@ -247,7 +247,7 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    icon\n    visibility\n    updatedAt\n  }\n}",
+                "query": "mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    icon\n    image\n    visibility\n    updatedAt\n  }\n}",
                 "variables": "{\n  \"input\": {\n    \"id\": \"{{entityId}}\",\n    \"name\": \"My Entity (updated)\"\n  }\n}"
               }
             }
@@ -267,6 +267,34 @@
               }
             }
           }
+        },
+        {
+          "name": "Upload Entity Image",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "operations",
+                  "type": "text",
+                  "value": "{\n  \"query\": \"mutation UploadEntityImage($entityId: ID!, $file: Upload!) {\\n  uploadEntityImage(entityId: $entityId, file: $file) {\\n    id\\n    image\\n    updatedAt\\n  }\\n}\",\n  \"variables\": { \"entityId\": \"{{entityId}}\", \"file\": null }\n}"
+                },
+                {
+                  "key": "map",
+                  "type": "text",
+                  "value": "{ \"0\": [\"variables.file\"] }"
+                },
+                {
+                  "key": "0",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "description": "Uses the GraphQL multipart request spec (https://github.com/jaydenseric/graphql-multipart-request-spec), which graphql-yoga supports natively. Select a PNG/JPEG/GIF/WEBP under 5MB for the '0' file field before sending."
         }
       ]
     }

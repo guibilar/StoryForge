@@ -31,6 +31,7 @@ export type EntityMinAggregateOutputType = {
   name: string | null;
   description: string | null;
   icon: string | null;
+  image: string | null;
   visibility: $Enums.Visibility | null;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -44,6 +45,7 @@ export type EntityMaxAggregateOutputType = {
   name: string | null;
   description: string | null;
   icon: string | null;
+  image: string | null;
   visibility: $Enums.Visibility | null;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -57,6 +59,7 @@ export type EntityCountAggregateOutputType = {
   name: number;
   description: number;
   icon: number;
+  image: number;
   visibility: number;
   createdAt: number;
   updatedAt: number;
@@ -71,6 +74,7 @@ export type EntityMinAggregateInputType = {
   name?: true;
   description?: true;
   icon?: true;
+  image?: true;
   visibility?: true;
   createdAt?: true;
   updatedAt?: true;
@@ -84,6 +88,7 @@ export type EntityMaxAggregateInputType = {
   name?: true;
   description?: true;
   icon?: true;
+  image?: true;
   visibility?: true;
   createdAt?: true;
   updatedAt?: true;
@@ -97,6 +102,7 @@ export type EntityCountAggregateInputType = {
   name?: true;
   description?: true;
   icon?: true;
+  image?: true;
   visibility?: true;
   createdAt?: true;
   updatedAt?: true;
@@ -190,6 +196,7 @@ export type EntityGroupByOutputType = {
   name: string;
   description: string | null;
   icon: string | null;
+  image: string | null;
   visibility: $Enums.Visibility;
   createdAt: Date;
   updatedAt: Date;
@@ -222,6 +229,7 @@ export type EntityWhereInput = {
   name?: Prisma.StringFilter<"Entity"> | string;
   description?: Prisma.StringNullableFilter<"Entity"> | string | null;
   icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
+  image?: Prisma.StringNullableFilter<"Entity"> | string | null;
   visibility?: Prisma.EnumVisibilityFilter<"Entity"> | $Enums.Visibility;
   createdAt?: Prisma.DateTimeFilter<"Entity"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"Entity"> | Date | string;
@@ -239,6 +247,7 @@ export type EntityOrderByWithRelationInput = {
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrderInput | Prisma.SortOrder;
   icon?: Prisma.SortOrderInput | Prisma.SortOrder;
+  image?: Prisma.SortOrderInput | Prisma.SortOrder;
   visibility?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
@@ -258,6 +267,7 @@ export type EntityWhereUniqueInput = Prisma.AtLeast<
     name?: Prisma.StringFilter<"Entity"> | string;
     description?: Prisma.StringNullableFilter<"Entity"> | string | null;
     icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
+    image?: Prisma.StringNullableFilter<"Entity"> | string | null;
     visibility?: Prisma.EnumVisibilityFilter<"Entity"> | $Enums.Visibility;
     createdAt?: Prisma.DateTimeFilter<"Entity"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Entity"> | Date | string;
@@ -277,6 +287,7 @@ export type EntityOrderByWithAggregationInput = {
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrderInput | Prisma.SortOrder;
   icon?: Prisma.SortOrderInput | Prisma.SortOrder;
+  image?: Prisma.SortOrderInput | Prisma.SortOrder;
   visibility?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
@@ -301,6 +312,7 @@ export type EntityScalarWhereWithAggregatesInput = {
   description?:
     Prisma.StringNullableWithAggregatesFilter<"Entity"> | string | null;
   icon?: Prisma.StringNullableWithAggregatesFilter<"Entity"> | string | null;
+  image?: Prisma.StringNullableWithAggregatesFilter<"Entity"> | string | null;
   visibility?:
     Prisma.EnumVisibilityWithAggregatesFilter<"Entity"> | $Enums.Visibility;
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Entity"> | Date | string;
@@ -318,6 +330,7 @@ export type EntityCreateInput = {
   name: string;
   description?: string | null;
   icon?: string | null;
+  image?: string | null;
   visibility?: $Enums.Visibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -332,6 +345,7 @@ export type EntityUncheckedCreateInput = {
   name: string;
   description?: string | null;
   icon?: string | null;
+  image?: string | null;
   visibility?: $Enums.Visibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -344,6 +358,7 @@ export type EntityUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   visibility?:
     Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -360,6 +375,7 @@ export type EntityUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   visibility?:
     Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -375,6 +391,7 @@ export type EntityCreateManyInput = {
   name: string;
   description?: string | null;
   icon?: string | null;
+  image?: string | null;
   visibility?: $Enums.Visibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -387,6 +404,7 @@ export type EntityUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   visibility?:
     Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -402,6 +420,7 @@ export type EntityUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   visibility?:
     Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -432,6 +451,7 @@ export type EntityCountOrderByAggregateInput = {
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
+  image?: Prisma.SortOrder;
   visibility?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
@@ -445,6 +465,7 @@ export type EntityMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
+  image?: Prisma.SortOrder;
   visibility?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
@@ -458,6 +479,7 @@ export type EntityMinOrderByAggregateInput = {
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
+  image?: Prisma.SortOrder;
   visibility?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
@@ -560,6 +582,7 @@ export type EntityCreateWithoutCampaignInput = {
   name: string;
   description?: string | null;
   icon?: string | null;
+  image?: string | null;
   visibility?: $Enums.Visibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -572,6 +595,7 @@ export type EntityUncheckedCreateWithoutCampaignInput = {
   name: string;
   description?: string | null;
   icon?: string | null;
+  image?: string | null;
   visibility?: $Enums.Visibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -631,6 +655,7 @@ export type EntityScalarWhereInput = {
   name?: Prisma.StringFilter<"Entity"> | string;
   description?: Prisma.StringNullableFilter<"Entity"> | string | null;
   icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
+  image?: Prisma.StringNullableFilter<"Entity"> | string | null;
   visibility?: Prisma.EnumVisibilityFilter<"Entity"> | $Enums.Visibility;
   createdAt?: Prisma.DateTimeFilter<"Entity"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"Entity"> | Date | string;
@@ -643,6 +668,7 @@ export type EntityCreateManyCampaignInput = {
   name: string;
   description?: string | null;
   icon?: string | null;
+  image?: string | null;
   visibility?: $Enums.Visibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -655,6 +681,7 @@ export type EntityUpdateWithoutCampaignInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   visibility?:
     Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -669,6 +696,7 @@ export type EntityUncheckedUpdateWithoutCampaignInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   visibility?:
     Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -683,6 +711,7 @@ export type EntityUncheckedUpdateManyWithoutCampaignInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   visibility?:
     Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -702,6 +731,7 @@ export type EntitySelect<
     name?: boolean;
     description?: boolean;
     icon?: boolean;
+    image?: boolean;
     visibility?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -722,6 +752,7 @@ export type EntitySelectCreateManyAndReturn<
     name?: boolean;
     description?: boolean;
     icon?: boolean;
+    image?: boolean;
     visibility?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -742,6 +773,7 @@ export type EntitySelectUpdateManyAndReturn<
     name?: boolean;
     description?: boolean;
     icon?: boolean;
+    image?: boolean;
     visibility?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -758,6 +790,7 @@ export type EntitySelectScalar = {
   name?: boolean;
   description?: boolean;
   icon?: boolean;
+  image?: boolean;
   visibility?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
@@ -774,6 +807,7 @@ export type EntityOmit<
   | "name"
   | "description"
   | "icon"
+  | "image"
   | "visibility"
   | "createdAt"
   | "updatedAt"
@@ -815,6 +849,7 @@ export type $EntityPayload<
       name: string;
       description: string | null;
       icon: string | null;
+      image: string | null;
       visibility: $Enums.Visibility;
       createdAt: Date;
       updatedAt: Date;
@@ -1425,6 +1460,7 @@ export interface EntityFieldRefs {
   readonly name: Prisma.FieldRef<"Entity", "String">;
   readonly description: Prisma.FieldRef<"Entity", "String">;
   readonly icon: Prisma.FieldRef<"Entity", "String">;
+  readonly image: Prisma.FieldRef<"Entity", "String">;
   readonly visibility: Prisma.FieldRef<"Entity", "Visibility">;
   readonly createdAt: Prisma.FieldRef<"Entity", "DateTime">;
   readonly updatedAt: Prisma.FieldRef<"Entity", "DateTime">;

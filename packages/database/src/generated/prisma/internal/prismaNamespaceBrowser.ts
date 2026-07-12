@@ -95,6 +95,7 @@ export const EntityScalarFieldEnum = {
   name: "name",
   description: "description",
   icon: "icon",
+  image: "image",
   visibility: "visibility",
   createdAt: "createdAt",
   updatedAt: "updatedAt",

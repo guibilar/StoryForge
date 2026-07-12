@@ -9,6 +9,7 @@ import { JWT_SECRET } from "../config/env";
 import { CampaignService } from "../modules/campaigns/application/CampaignService";
 import { PrismaCampaignRepository } from "../modules/campaigns/infrastructure/PrismaCampaignRepository";
 import { User, UserId } from "@storyforge/domain";
+import { LocalImageStore } from "../modules/entities/infrastructure/LocalImageStore";
 
 export interface GraphQLContext extends YogaInitialContext {
   requestId: string;
@@ -17,12 +18,14 @@ export interface GraphQLContext extends YogaInitialContext {
   campaignService: CampaignService;
   currentUserId: string | null;
   currentUser: User | null;
+  imageStorage: LocalImageStore;
 }
 
 const entityService = new EntityService(new PrismaEntityRepository());
 const campaignService = new CampaignService(new PrismaCampaignRepository());
 const userRepository = new PrismaUserRepository();
 const authenticationService = new AuthenticationService(userRepository);
+const imageStorage = new LocalImageStore();
 
 function getCurrentUserId(request: Request): string | null {
   const authHeader = request.headers.get("authorization");
@@ -61,5 +64,6 @@ export async function createContext(
     campaignService,
     currentUserId,
     currentUser,
+    imageStorage,
   };
 }

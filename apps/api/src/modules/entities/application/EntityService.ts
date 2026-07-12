@@ -13,6 +13,7 @@ export interface CreateEntityDto {
   name: string;
   description?: string | null;
   icon?: string | null;
+  image?: string | null;
   visibility: EntityVisibility;
 }
 
@@ -21,6 +22,7 @@ export interface UpdateEntityDto {
   name?: string;
   description?: string | null;
   icon?: string | null;
+  image?: string | null;
   visibility?: EntityVisibility;
 }
 
@@ -72,6 +74,10 @@ export class EntityService {
       entity.changeIcon(dto.icon);
     }
 
+    if (dto.image !== undefined) {
+      entity.changeImage(dto.image);
+    }
+
     if (dto.visibility !== undefined) {
       entity.changeVisibility(dto.visibility);
     }
@@ -99,6 +105,20 @@ export class EntityService {
     if (!entity) {
       throw new NotFoundError("Entity not found.");
     }
+
+    return entity;
+  }
+
+  async setEntityImage(id: string, image: string): Promise<Entity> {
+    const entity = await this.repository.findById(EntityId.fromString(id));
+
+    if (!entity) {
+      throw new NotFoundError("Entity not found.");
+    }
+
+    entity.changeImage(image);
+
+    await this.repository.update(entity);
 
     return entity;
   }

@@ -1,4 +1,5 @@
 import type { Entity as DomainEntity } from "@storyforge/domain";
+import { GraphQLContext } from "../../../../graphql/context";
 
 export const Entity = {
   id: (entity: DomainEntity) => entity.Id.toString(),
@@ -12,4 +13,6 @@ export const Entity = {
   createdAt: (entity: DomainEntity) => entity.CreatedAt.toISOString(),
   updatedAt: (entity: DomainEntity) => entity.UpdatedAt.toISOString(),
   deletedAt: (entity: DomainEntity) => entity.DeletedAt?.toISOString() ?? null,
+  tags: (entity: DomainEntity, _args: unknown, context: GraphQLContext) =>
+    context.tagService.listEntityTags(entity.Id.toString()),
 };

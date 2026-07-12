@@ -10,6 +10,8 @@ import { CampaignService } from "../modules/campaigns/application/CampaignServic
 import { PrismaCampaignRepository } from "../modules/campaigns/infrastructure/PrismaCampaignRepository";
 import { User, UserId } from "@storyforge/domain";
 import { LocalImageStore } from "../modules/entities/infrastructure/LocalImageStore";
+import { TagService } from "../modules/tags/application/TagService";
+import { PrismaTagRepository } from "../modules/tags/infrastructure/PrismaTagRepository";
 
 export interface GraphQLContext extends YogaInitialContext {
   requestId: string;
@@ -19,11 +21,16 @@ export interface GraphQLContext extends YogaInitialContext {
   currentUserId: string | null;
   currentUser: User | null;
   imageStorage: LocalImageStore;
+  tagService: TagService;
 }
 
 const entityService = new EntityService(new PrismaEntityRepository());
 const campaignService = new CampaignService(new PrismaCampaignRepository());
 const userRepository = new PrismaUserRepository();
+const tagService = new TagService(
+  new PrismaTagRepository(),
+  new PrismaEntityRepository(),
+);
 const authenticationService = new AuthenticationService(userRepository);
 const imageStorage = new LocalImageStore();
 
@@ -65,5 +72,6 @@ export async function createContext(
     currentUserId,
     currentUser,
     imageStorage,
+    tagService,
   };
 }

@@ -1,0 +1,4 @@
+extend type Mutation {
+  addTagToEntity(entityId: ID!, name: String!): Entity!
+  removeTagFromEntity(entityId: ID!, tagId: ID!): Entity!
+}

@@ -16,4 +16,5 @@ type Entity {
   createdAt: String!
   updatedAt: String!
   deletedAt: String
+  tags: [Tag!]!
 }

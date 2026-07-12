@@ -297,6 +297,68 @@
           "description": "Uses the GraphQL multipart request spec (https://github.com/jaydenseric/graphql-multipart-request-spec), which graphql-yoga supports natively. Select a PNG/JPEG/GIF/WEBP under 5MB for the '0' file field before sending."
         }
       ]
+    },
+    {
+      "name": "Tags",
+      "item": [
+        {
+          "name": "List Campaign Tags",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query CampaignTags($campaignId: ID!) {\n  campaignTags(campaignId: $campaignId) {\n    id\n    campaignId\n    name\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "Add Tag To Entity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation AddTagToEntity($entityId: ID!, $name: String!) {\n  addTagToEntity(entityId: $entityId, name: $name) {\n    id\n    tags {\n      id\n      campaignId\n      name\n      createdAt\n      updatedAt\n    }\n  }\n}",
+                "variables": "{\n  \"entityId\": \"{{entityId}}\",\n  \"name\": \"faction:thieves-guild\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const id = body?.data?.addTagToEntity?.tags?.[0]?.id;",
+                  "if (id) pm.environment.set('tagId', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Remove Tag From Entity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation RemoveTagFromEntity($entityId: ID!, $tagId: ID!) {\n  removeTagFromEntity(entityId: $entityId, tagId: $tagId) {\n    id\n    tags {\n      id\n      campaignId\n      name\n      createdAt\n      updatedAt\n    }\n  }\n}",
+                "variables": "{\n  \"entityId\": \"{{entityId}}\",\n  \"tagId\": \"{{tagId}}\"\n}"
+              }
+            }
+          }
+        }
+      ]
     }
   ]
 }

@@ -196,6 +196,7 @@ export type CampaignWhereInput = {
   archivedAt?: Prisma.DateTimeNullableFilter<"Campaign"> | Date | string | null;
   entities?: Prisma.EntityListRelationFilter;
   members?: Prisma.CampaignMemberListRelationFilter;
+  tags?: Prisma.TagListRelationFilter;
 };
 
 export type CampaignOrderByWithRelationInput = {
@@ -207,6 +208,7 @@ export type CampaignOrderByWithRelationInput = {
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   entities?: Prisma.EntityOrderByRelationAggregateInput;
   members?: Prisma.CampaignMemberOrderByRelationAggregateInput;
+  tags?: Prisma.TagOrderByRelationAggregateInput;
 };
 
 export type CampaignWhereUniqueInput = Prisma.AtLeast<
@@ -223,6 +225,7 @@ export type CampaignWhereUniqueInput = Prisma.AtLeast<
       Prisma.DateTimeNullableFilter<"Campaign"> | Date | string | null;
     entities?: Prisma.EntityListRelationFilter;
     members?: Prisma.CampaignMemberListRelationFilter;
+    tags?: Prisma.TagListRelationFilter;
   },
   "id"
 >;
@@ -269,6 +272,7 @@ export type CampaignCreateInput = {
   archivedAt?: Date | string | null;
   entities?: Prisma.EntityCreateNestedManyWithoutCampaignInput;
   members?: Prisma.CampaignMemberCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateInput = {
@@ -280,6 +284,7 @@ export type CampaignUncheckedCreateInput = {
   archivedAt?: Date | string | null;
   entities?: Prisma.EntityUncheckedCreateNestedManyWithoutCampaignInput;
   members?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagUncheckedCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUpdateInput = {
@@ -292,6 +297,7 @@ export type CampaignUpdateInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   entities?: Prisma.EntityUpdateManyWithoutCampaignNestedInput;
   members?: Prisma.CampaignMemberUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateInput = {
@@ -304,6 +310,7 @@ export type CampaignUncheckedUpdateInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   entities?: Prisma.EntityUncheckedUpdateManyWithoutCampaignNestedInput;
   members?: Prisma.CampaignMemberUncheckedUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateManyInput = {
@@ -409,6 +416,32 @@ export type CampaignUpdateOneRequiredWithoutEntitiesNestedInput = {
   >;
 };
 
+export type CampaignCreateNestedOneWithoutTagsInput = {
+  create?: Prisma.XOR<
+    Prisma.CampaignCreateWithoutTagsInput,
+    Prisma.CampaignUncheckedCreateWithoutTagsInput
+  >;
+  connectOrCreate?: Prisma.CampaignCreateOrConnectWithoutTagsInput;
+  connect?: Prisma.CampaignWhereUniqueInput;
+};
+
+export type CampaignUpdateOneRequiredWithoutTagsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.CampaignCreateWithoutTagsInput,
+    Prisma.CampaignUncheckedCreateWithoutTagsInput
+  >;
+  connectOrCreate?: Prisma.CampaignCreateOrConnectWithoutTagsInput;
+  upsert?: Prisma.CampaignUpsertWithoutTagsInput;
+  connect?: Prisma.CampaignWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.CampaignUpdateToOneWithWhereWithoutTagsInput,
+      Prisma.CampaignUpdateWithoutTagsInput
+    >,
+    Prisma.CampaignUncheckedUpdateWithoutTagsInput
+  >;
+};
+
 export type CampaignCreateNestedOneWithoutMembersInput = {
   create?: Prisma.XOR<
     Prisma.CampaignCreateWithoutMembersInput,
@@ -443,6 +476,7 @@ export type CampaignCreateWithoutEntitiesInput = {
   updatedAt?: Date | string;
   archivedAt?: Date | string | null;
   members?: Prisma.CampaignMemberCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutEntitiesInput = {
@@ -453,6 +487,7 @@ export type CampaignUncheckedCreateWithoutEntitiesInput = {
   updatedAt?: Date | string;
   archivedAt?: Date | string | null;
   members?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagUncheckedCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutEntitiesInput = {
@@ -492,6 +527,7 @@ export type CampaignUpdateWithoutEntitiesInput = {
   archivedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   members?: Prisma.CampaignMemberUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutEntitiesInput = {
@@ -503,6 +539,81 @@ export type CampaignUncheckedUpdateWithoutEntitiesInput = {
   archivedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   members?: Prisma.CampaignMemberUncheckedUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUncheckedUpdateManyWithoutCampaignNestedInput;
+};
+
+export type CampaignCreateWithoutTagsInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  archivedAt?: Date | string | null;
+  entities?: Prisma.EntityCreateNestedManyWithoutCampaignInput;
+  members?: Prisma.CampaignMemberCreateNestedManyWithoutCampaignInput;
+};
+
+export type CampaignUncheckedCreateWithoutTagsInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  archivedAt?: Date | string | null;
+  entities?: Prisma.EntityUncheckedCreateNestedManyWithoutCampaignInput;
+  members?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutCampaignInput;
+};
+
+export type CampaignCreateOrConnectWithoutTagsInput = {
+  where: Prisma.CampaignWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.CampaignCreateWithoutTagsInput,
+    Prisma.CampaignUncheckedCreateWithoutTagsInput
+  >;
+};
+
+export type CampaignUpsertWithoutTagsInput = {
+  update: Prisma.XOR<
+    Prisma.CampaignUpdateWithoutTagsInput,
+    Prisma.CampaignUncheckedUpdateWithoutTagsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.CampaignCreateWithoutTagsInput,
+    Prisma.CampaignUncheckedCreateWithoutTagsInput
+  >;
+  where?: Prisma.CampaignWhereInput;
+};
+
+export type CampaignUpdateToOneWithWhereWithoutTagsInput = {
+  where?: Prisma.CampaignWhereInput;
+  data: Prisma.XOR<
+    Prisma.CampaignUpdateWithoutTagsInput,
+    Prisma.CampaignUncheckedUpdateWithoutTagsInput
+  >;
+};
+
+export type CampaignUpdateWithoutTagsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  archivedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  entities?: Prisma.EntityUpdateManyWithoutCampaignNestedInput;
+  members?: Prisma.CampaignMemberUpdateManyWithoutCampaignNestedInput;
+};
+
+export type CampaignUncheckedUpdateWithoutTagsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  archivedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  entities?: Prisma.EntityUncheckedUpdateManyWithoutCampaignNestedInput;
+  members?: Prisma.CampaignMemberUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutMembersInput = {
@@ -513,6 +624,7 @@ export type CampaignCreateWithoutMembersInput = {
   updatedAt?: Date | string;
   archivedAt?: Date | string | null;
   entities?: Prisma.EntityCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutMembersInput = {
@@ -523,6 +635,7 @@ export type CampaignUncheckedCreateWithoutMembersInput = {
   updatedAt?: Date | string;
   archivedAt?: Date | string | null;
   entities?: Prisma.EntityUncheckedCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagUncheckedCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutMembersInput = {
@@ -562,6 +675,7 @@ export type CampaignUpdateWithoutMembersInput = {
   archivedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   entities?: Prisma.EntityUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutMembersInput = {
@@ -573,6 +687,7 @@ export type CampaignUncheckedUpdateWithoutMembersInput = {
   archivedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   entities?: Prisma.EntityUncheckedUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 /**
@@ -582,6 +697,7 @@ export type CampaignUncheckedUpdateWithoutMembersInput = {
 export type CampaignCountOutputType = {
   entities: number;
   members: number;
+  tags: number;
 };
 
 export type CampaignCountOutputTypeSelect<
@@ -590,6 +706,7 @@ export type CampaignCountOutputTypeSelect<
 > = {
   entities?: boolean | CampaignCountOutputTypeCountEntitiesArgs;
   members?: boolean | CampaignCountOutputTypeCountMembersArgs;
+  tags?: boolean | CampaignCountOutputTypeCountTagsArgs;
 };
 
 /**
@@ -625,6 +742,16 @@ export type CampaignCountOutputTypeCountMembersArgs<
   where?: Prisma.CampaignMemberWhereInput;
 };
 
+/**
+ * CampaignCountOutputType without action
+ */
+export type CampaignCountOutputTypeCountTagsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.TagWhereInput;
+};
+
 export type CampaignSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -638,6 +765,7 @@ export type CampaignSelect<
     archivedAt?: boolean;
     entities?: boolean | Prisma.Campaign$entitiesArgs<ExtArgs>;
     members?: boolean | Prisma.Campaign$membersArgs<ExtArgs>;
+    tags?: boolean | Prisma.Campaign$tagsArgs<ExtArgs>;
     _count?: boolean | Prisma.CampaignCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["campaign"]
@@ -695,6 +823,7 @@ export type CampaignInclude<
 > = {
   entities?: boolean | Prisma.Campaign$entitiesArgs<ExtArgs>;
   members?: boolean | Prisma.Campaign$membersArgs<ExtArgs>;
+  tags?: boolean | Prisma.Campaign$tagsArgs<ExtArgs>;
   _count?: boolean | Prisma.CampaignCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type CampaignIncludeCreateManyAndReturn<
@@ -714,6 +843,7 @@ export type $CampaignPayload<
   objects: {
     entities: Prisma.$EntityPayload<ExtArgs>[];
     members: Prisma.$CampaignMemberPayload<ExtArgs>[];
+    tags: Prisma.$TagPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1295,6 +1425,17 @@ export interface Prisma__CampaignClient<
       >
     | Null
   >;
+  tags<T extends Prisma.Campaign$tagsArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Campaign$tagsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$TagPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1852,6 +1993,34 @@ export type Campaign$membersArgs<
   distinct?:
     | Prisma.CampaignMemberScalarFieldEnum
     | Prisma.CampaignMemberScalarFieldEnum[];
+};
+
+/**
+ * Campaign.tags
+ */
+export type Campaign$tagsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Tag
+   */
+  select?: Prisma.TagSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Tag
+   */
+  omit?: Prisma.TagOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TagInclude<ExtArgs> | null;
+  where?: Prisma.TagWhereInput;
+  orderBy?:
+    Prisma.TagOrderByWithRelationInput | Prisma.TagOrderByWithRelationInput[];
+  cursor?: Prisma.TagWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.TagScalarFieldEnum | Prisma.TagScalarFieldEnum[];
 };
 
 /**

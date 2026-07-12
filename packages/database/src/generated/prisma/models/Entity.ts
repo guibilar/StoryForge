@@ -238,6 +238,7 @@ export type EntityWhereInput = {
     Prisma.CampaignScalarRelationFilter,
     Prisma.CampaignWhereInput
   >;
+  tags?: Prisma.EntityTagListRelationFilter;
 };
 
 export type EntityOrderByWithRelationInput = {
@@ -253,6 +254,7 @@ export type EntityOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   campaign?: Prisma.CampaignOrderByWithRelationInput;
+  tags?: Prisma.EntityTagOrderByRelationAggregateInput;
 };
 
 export type EntityWhereUniqueInput = Prisma.AtLeast<
@@ -276,6 +278,7 @@ export type EntityWhereUniqueInput = Prisma.AtLeast<
       Prisma.CampaignScalarRelationFilter,
       Prisma.CampaignWhereInput
     >;
+    tags?: Prisma.EntityTagListRelationFilter;
   },
   "id" | "campaignId_name"
 >;
@@ -336,6 +339,7 @@ export type EntityCreateInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityUncheckedCreateInput = {
@@ -350,6 +354,7 @@ export type EntityUncheckedCreateInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
+  tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityUpdateInput = {
@@ -366,6 +371,7 @@ export type EntityUpdateInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateInput = {
@@ -382,6 +388,7 @@ export type EntityUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityCreateManyInput = {
@@ -486,6 +493,11 @@ export type EntityMinOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder;
 };
 
+export type EntityScalarRelationFilter = {
+  is?: Prisma.EntityWhereInput;
+  isNot?: Prisma.EntityWhereInput;
+};
+
 export type EntityCreateNestedManyWithoutCampaignInput = {
   create?:
     | Prisma.XOR<
@@ -576,6 +588,32 @@ export type EnumVisibilityFieldUpdateOperationsInput = {
   set?: $Enums.Visibility;
 };
 
+export type EntityCreateNestedOneWithoutTagsInput = {
+  create?: Prisma.XOR<
+    Prisma.EntityCreateWithoutTagsInput,
+    Prisma.EntityUncheckedCreateWithoutTagsInput
+  >;
+  connectOrCreate?: Prisma.EntityCreateOrConnectWithoutTagsInput;
+  connect?: Prisma.EntityWhereUniqueInput;
+};
+
+export type EntityUpdateOneRequiredWithoutTagsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.EntityCreateWithoutTagsInput,
+    Prisma.EntityUncheckedCreateWithoutTagsInput
+  >;
+  connectOrCreate?: Prisma.EntityCreateOrConnectWithoutTagsInput;
+  upsert?: Prisma.EntityUpsertWithoutTagsInput;
+  connect?: Prisma.EntityWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.EntityUpdateToOneWithWhereWithoutTagsInput,
+      Prisma.EntityUpdateWithoutTagsInput
+    >,
+    Prisma.EntityUncheckedUpdateWithoutTagsInput
+  >;
+};
+
 export type EntityCreateWithoutCampaignInput = {
   id?: string;
   type: string;
@@ -587,6 +625,7 @@ export type EntityCreateWithoutCampaignInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
+  tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityUncheckedCreateWithoutCampaignInput = {
@@ -600,6 +639,7 @@ export type EntityUncheckedCreateWithoutCampaignInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
+  tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityCreateOrConnectWithoutCampaignInput = {
@@ -662,6 +702,94 @@ export type EntityScalarWhereInput = {
   deletedAt?: Prisma.DateTimeNullableFilter<"Entity"> | Date | string | null;
 };
 
+export type EntityCreateWithoutTagsInput = {
+  id?: string;
+  type: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  image?: string | null;
+  visibility?: $Enums.Visibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+};
+
+export type EntityUncheckedCreateWithoutTagsInput = {
+  id?: string;
+  campaignId: string;
+  type: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  image?: string | null;
+  visibility?: $Enums.Visibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+};
+
+export type EntityCreateOrConnectWithoutTagsInput = {
+  where: Prisma.EntityWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.EntityCreateWithoutTagsInput,
+    Prisma.EntityUncheckedCreateWithoutTagsInput
+  >;
+};
+
+export type EntityUpsertWithoutTagsInput = {
+  update: Prisma.XOR<
+    Prisma.EntityUpdateWithoutTagsInput,
+    Prisma.EntityUncheckedUpdateWithoutTagsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.EntityCreateWithoutTagsInput,
+    Prisma.EntityUncheckedCreateWithoutTagsInput
+  >;
+  where?: Prisma.EntityWhereInput;
+};
+
+export type EntityUpdateToOneWithWhereWithoutTagsInput = {
+  where?: Prisma.EntityWhereInput;
+  data: Prisma.XOR<
+    Prisma.EntityUpdateWithoutTagsInput,
+    Prisma.EntityUncheckedUpdateWithoutTagsInput
+  >;
+};
+
+export type EntityUpdateWithoutTagsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+};
+
+export type EntityUncheckedUpdateWithoutTagsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+};
+
 export type EntityCreateManyCampaignInput = {
   id?: string;
   type: string;
@@ -688,6 +816,7 @@ export type EntityUpdateWithoutCampaignInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateWithoutCampaignInput = {
@@ -703,6 +832,7 @@ export type EntityUncheckedUpdateWithoutCampaignInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateManyWithoutCampaignInput = {
@@ -718,6 +848,44 @@ export type EntityUncheckedUpdateManyWithoutCampaignInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+};
+
+/**
+ * Count Type EntityCountOutputType
+ */
+
+export type EntityCountOutputType = {
+  tags: number;
+};
+
+export type EntityCountOutputTypeSelect<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  tags?: boolean | EntityCountOutputTypeCountTagsArgs;
+};
+
+/**
+ * EntityCountOutputType without action
+ */
+export type EntityCountOutputTypeDefaultArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the EntityCountOutputType
+   */
+  select?: Prisma.EntityCountOutputTypeSelect<ExtArgs> | null;
+};
+
+/**
+ * EntityCountOutputType without action
+ */
+export type EntityCountOutputTypeCountTagsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.EntityTagWhereInput;
 };
 
 export type EntitySelect<
@@ -737,6 +905,8 @@ export type EntitySelect<
     updatedAt?: boolean;
     deletedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    tags?: boolean | Prisma.Entity$tagsArgs<ExtArgs>;
+    _count?: boolean | Prisma.EntityCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["entity"]
 >;
@@ -819,6 +989,8 @@ export type EntityInclude<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  tags?: boolean | Prisma.Entity$tagsArgs<ExtArgs>;
+  _count?: boolean | Prisma.EntityCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type EntityIncludeCreateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
@@ -840,6 +1012,7 @@ export type $EntityPayload<
   name: "Entity";
   objects: {
     campaign: Prisma.$CampaignPayload<ExtArgs>;
+    tags: Prisma.$EntityTagPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1418,6 +1591,17 @@ export interface Prisma__EntityClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  tags<T extends Prisma.Entity$tagsArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Entity$tagsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$EntityTagPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1922,6 +2106,36 @@ export type EntityDeleteManyArgs<
    * Limit how many Entities to delete.
    */
   limit?: number;
+};
+
+/**
+ * Entity.tags
+ */
+export type Entity$tagsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the EntityTag
+   */
+  select?: Prisma.EntityTagSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the EntityTag
+   */
+  omit?: Prisma.EntityTagOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EntityTagInclude<ExtArgs> | null;
+  where?: Prisma.EntityTagWhereInput;
+  orderBy?:
+    | Prisma.EntityTagOrderByWithRelationInput
+    | Prisma.EntityTagOrderByWithRelationInput[];
+  cursor?: Prisma.EntityTagWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    Prisma.EntityTagScalarFieldEnum | Prisma.EntityTagScalarFieldEnum[];
 };
 
 /**

@@ -413,6 +413,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never
 export const ModelName = {
   Campaign: "Campaign",
   Entity: "Entity",
+  Tag: "Tag",
+  EntityTag: "EntityTag",
   User: "User",
   CampaignMember: "CampaignMember",
 } as const;
@@ -436,7 +438,8 @@ export type TypeMap<
     omit: GlobalOmitOptions;
   };
   meta: {
-    modelProps: "campaign" | "entity" | "user" | "campaignMember";
+    modelProps:
+      "campaign" | "entity" | "tag" | "entityTag" | "user" | "campaignMember";
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
@@ -588,6 +591,158 @@ export type TypeMap<
           args: Prisma.EntityCountArgs<ExtArgs>;
           result:
             | runtime.Types.Utils.Optional<Prisma.EntityCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    Tag: {
+      payload: Prisma.$TagPayload<ExtArgs>;
+      fields: Prisma.TagFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.TagFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.TagFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        findFirst: {
+          args: Prisma.TagFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.TagFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        findMany: {
+          args: Prisma.TagFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>[];
+        };
+        create: {
+          args: Prisma.TagCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        createMany: {
+          args: Prisma.TagCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.TagCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>[];
+        };
+        delete: {
+          args: Prisma.TagDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        update: {
+          args: Prisma.TagUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        deleteMany: {
+          args: Prisma.TagDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.TagUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.TagUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>[];
+        };
+        upsert: {
+          args: Prisma.TagUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TagPayload>;
+        };
+        aggregate: {
+          args: Prisma.TagAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTag>;
+        };
+        groupBy: {
+          args: Prisma.TagGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.TagGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.TagCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.TagCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    EntityTag: {
+      payload: Prisma.$EntityTagPayload<ExtArgs>;
+      fields: Prisma.EntityTagFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.EntityTagFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.EntityTagFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload>;
+        };
+        findFirst: {
+          args: Prisma.EntityTagFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.EntityTagFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload>;
+        };
+        findMany: {
+          args: Prisma.EntityTagFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload>[];
+        };
+        create: {
+          args: Prisma.EntityTagCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload>;
+        };
+        createMany: {
+          args: Prisma.EntityTagCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.EntityTagCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload>[];
+        };
+        delete: {
+          args: Prisma.EntityTagDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload>;
+        };
+        update: {
+          args: Prisma.EntityTagUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload>;
+        };
+        deleteMany: {
+          args: Prisma.EntityTagDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.EntityTagUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.EntityTagUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload>[];
+        };
+        upsert: {
+          args: Prisma.EntityTagUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EntityTagPayload>;
+        };
+        aggregate: {
+          args: Prisma.EntityTagAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEntityTag>;
+        };
+        groupBy: {
+          args: Prisma.EntityTagGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.EntityTagGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.EntityTagCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.EntityTagCountAggregateOutputType>
             | number;
         };
       };
@@ -811,6 +966,27 @@ export const EntityScalarFieldEnum = {
 
 export type EntityScalarFieldEnum =
   (typeof EntityScalarFieldEnum)[keyof typeof EntityScalarFieldEnum];
+
+export const TagScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  name: "name",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type TagScalarFieldEnum =
+  (typeof TagScalarFieldEnum)[keyof typeof TagScalarFieldEnum];
+
+export const EntityTagScalarFieldEnum = {
+  id: "id",
+  entityId: "entityId",
+  tagId: "tagId",
+  createdAt: "createdAt",
+} as const;
+
+export type EntityTagScalarFieldEnum =
+  (typeof EntityTagScalarFieldEnum)[keyof typeof EntityTagScalarFieldEnum];
 
 export const UserScalarFieldEnum = {
   id: "id",
@@ -1060,6 +1236,8 @@ export type PrismaClientOptions = (
 export type GlobalOmitConfig = {
   campaign?: Prisma.CampaignOmit;
   entity?: Prisma.EntityOmit;
+  tag?: Prisma.TagOmit;
+  entityTag?: Prisma.EntityTagOmit;
   user?: Prisma.UserOmit;
   campaignMember?: Prisma.CampaignMemberOmit;
 };

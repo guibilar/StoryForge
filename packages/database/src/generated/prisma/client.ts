@@ -57,6 +57,16 @@ export type Campaign = Prisma.CampaignModel;
  */
 export type Entity = Prisma.EntityModel;
 /**
+ * Model Tag
+ *
+ */
+export type Tag = Prisma.TagModel;
+/**
+ * Model EntityTag
+ *
+ */
+export type EntityTag = Prisma.EntityTagModel;
+/**
  * Model User
  *
  */

@@ -7,6 +7,7 @@ export const Entity = {
   name: (entity: DomainEntity) => entity.Name,
   description: (entity: DomainEntity) => entity.Description,
   icon: (entity: DomainEntity) => entity.Icon,
+  image: (entity: DomainEntity) => entity.Image,
   visibility: (entity: DomainEntity) => entity.Visibility,
   createdAt: (entity: DomainEntity) => entity.CreatedAt.toISOString(),
   updatedAt: (entity: DomainEntity) => entity.UpdatedAt.toISOString(),

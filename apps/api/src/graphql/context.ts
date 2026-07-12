@@ -8,6 +8,7 @@ import { PrismaUserRepository } from "../modules/auth/infrastructure/PrismaUserR
 import { JWT_SECRET } from "../config/env";
 import { CampaignService } from "../modules/campaigns/application/CampaignService";
 import { PrismaCampaignRepository } from "../modules/campaigns/infrastructure/PrismaCampaignRepository";
+import { User, UserId } from "@storyforge/domain";
 
 export interface GraphQLContext extends YogaInitialContext {
   requestId: string;
@@ -15,13 +16,13 @@ export interface GraphQLContext extends YogaInitialContext {
   authenticationService: AuthenticationService;
   campaignService: CampaignService;
   currentUserId: string | null;
+  currentUser: User | null;
 }
 
 const entityService = new EntityService(new PrismaEntityRepository());
 const campaignService = new CampaignService(new PrismaCampaignRepository());
-const authenticationService = new AuthenticationService(
-  new PrismaUserRepository(),
-);
+const userRepository = new PrismaUserRepository();
+const authenticationService = new AuthenticationService(userRepository);
 
 function getCurrentUserId(request: Request): string | null {
   const authHeader = request.headers.get("authorization");
@@ -48,12 +49,17 @@ function getCurrentUserId(request: Request): string | null {
 export async function createContext(
   initialContext: YogaInitialContext,
 ): Promise<GraphQLContext> {
+  const currentUserId = getCurrentUserId(initialContext.request);
+  const currentUser = currentUserId
+    ? await userRepository.findById(UserId.fromString(currentUserId))
+    : null;
   return {
     ...initialContext,
     requestId: crypto.randomUUID(),
     entityService,
     authenticationService,
     campaignService,
-    currentUserId: getCurrentUserId(initialContext.request),
+    currentUserId,
+    currentUser,
   };
 }

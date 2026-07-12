@@ -68,6 +68,21 @@
               }
             }
           ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Me {\n  me {\n    id\n    email\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": ""
+              }
+            }
+          }
         }
       ]
     },

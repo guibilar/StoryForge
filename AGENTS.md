@@ -377,8 +377,26 @@ Current implementation:
   - `src/modules/entities/`, split into `application/` (`EntityService.ts`
     — create/update/delete/get/list use cases), `graphql/` (schema +
     resolvers, fully implemented — `createEntity`/`updateEntity`/
-    `deleteEntity` mutations and `entity`/`entities` queries), and
-    `infrastructure/` (`PrismaEntityRepository`, `EntityMapper`).
+    `deleteEntity` mutations and `entity`/`entities` queries, all
+    unguarded), and `infrastructure/` (`PrismaEntityRepository`,
+    `EntityMapper`, `LocalImageStore`). Also owns image upload:
+    `uploadEntityImage(entityId, file: Upload!)` mutation over the
+    [GraphQL multipart request spec](https://github.com/jaydenseric/graphql-multipart-request-spec)
+    (native `graphql-yoga` support, no extra deps) — the one entities
+    mutation that _is_ guarded (`requireCurrentUser`).
+    `LocalImageStore.save()` validates MIME type (JPEG/PNG/GIF/WEBP),
+    filename length, and a 5MB size cap, then writes to
+    `UPLOADS_DIR/<entityId>/<uuid>.<ext>` and returns that path as
+    `Entity.image`. `UPLOADS_DIR` defaults to `<cwd>/uploads` if unset
+    (`src/config/env.ts`).
+  - `src/modules/campaigns/`, same layout: `application/`
+    (`CampaignService.ts` — create/update/archive/list; `archiveCampaign`
+    additionally requires an `OWNER`-role `CampaignMember` to exist, which
+    is currently unreachable — see `CampaignMapper` gap below), `graphql/`
+    (`createCampaign`/`updateCampaign`/`archiveCampaign` mutations, all
+    guarded via `requireCurrentUser`; `campaigns`/`campaign(id)` queries,
+    unguarded), `infrastructure/` (`PrismaCampaignRepository`,
+    `CampaignMapper`).
   - `src/modules/auth/` (KAN-28), same layout: `application/`
     (`AuthenticationService.ts` — `register`/`login`, bcrypt hashing via
     `bcrypt-ts`, JWT issuance via `jsonwebtoken` with a minimal
@@ -411,9 +429,15 @@ user }`), `infrastructure/` (`PrismaUserRepository`, `UserMapper`).
   workflow env var instead (see Testing section).
 
 Not yet implemented: a DI container, an event bus, service
-registration/wiring beyond manual instantiation, anything actually
-_consuming_ `context.currentUserId` to gate a resolver (auth is wired
-end-to-end but nothing is protected by it yet).
+registration/wiring beyond manual instantiation. Auth gating is now
+partially wired: `requireCurrentUser` (`modules/auth/graphql/guards.ts`)
+throws `AuthenticationError` when `context.currentUser` is null, and is
+called at the top of `createCampaign`/`updateCampaign`/`archiveCampaign`
+and `uploadEntityImage`. It is _not_ applied consistently — `createEntity`/
+`updateEntity`/`deleteEntity` and every query resolver (`entity`/
+`entities`/`campaign`/`campaigns`/`campaignTags`) remain unguarded. Treat
+this as inconsistent-by-history, not intentional design, when adding new
+mutations.
 
 No business logic belongs here — resolvers call services, services call
 repositories.
@@ -937,9 +961,11 @@ The core application currently implements only:
 
 - **Authentication** — `User` aggregate + `AuthenticationService`
   (register/login, bcrypt hashing, JWT issuance), wired end-to-end through
-  `login`/`registerUser` GraphQL mutations (KAN-28). Nothing consumes
-  `context.currentUserId` to gate a resolver yet — identity is decoded per
-  request but not enforced anywhere.
+  `login`/`registerUser` GraphQL mutations (KAN-28), plus a `me` query
+  (`context.currentUser`, resolves to `null` when logged out). Gating via
+  `requireCurrentUser` now protects `createCampaign`/`updateCampaign`/
+  `archiveCampaign` and `uploadEntityImage` — see apps/api notes above for
+  which resolvers remain unguarded.
 - **Campaign** — the top-level container. Everything belongs to a
   Campaign. Domain entity + `CampaignService` (create/update/archive,
   KAN-29) now implemented, same domain → service → Prisma repository
@@ -950,11 +976,13 @@ The core application currently implements only:
 - **Entity** — a single generic, polymorphic domain object with a
   `type: string` field (e.g. `"character"`, `"location"`, `"item"`,
   `"note"`) rather than separate Character/Location/Item/Note models.
-  Has `name`, `description`, `icon`, `visibility`
+  Has `name`, `description`, `icon`, `image`, `visibility`
   (`PUBLIC`/`STORYTELLER`/`PRIVATE`), soft delete (`deletedAt`), and a
   `(campaignId, name)` uniqueness constraint. Fully wired
-  domain → service → Prisma repository; GraphQL resolvers are stubbed
-  but not yet implemented (see apps/api notes above).
+  domain → service → Prisma repository → GraphQL: `createEntity`/
+  `updateEntity`/`deleteEntity`/`uploadEntityImage` mutations,
+  `entity`/`entities` queries (see apps/api notes above for image
+  upload details).
 - **Tags** (KAN-37) — campaign-scoped `Tag` aggregate, reusable across
   entities in the same campaign via the `EntityTag` join. Fully wired
   domain → service → Prisma repository → GraphQL: `addTagToEntity`/

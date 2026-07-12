@@ -10,7 +10,7 @@ tracks what's actually built, not just planned.
 - [x] React + Vite frontend scaffold (default, unstyled)
 - [x] Fastify / graphql-yoga backend boots
 - [x] GraphQL setup (schema merge, context, error mapping)
-- [x] Docker skeleton (`docker/` — contents unverified)
+- [ ] Docker skeleton (`docker/` exists but is empty — no Dockerfile/compose yet)
 - [x] CI pipeline (`.github/workflows/ci.yml` — lint, build, test on push/PR
       to main; runs a `postgres:16` service container + `prisma migrate deploy`
       so Prisma repository integration tests run for real, not mocked)
@@ -31,7 +31,9 @@ tracks what's actually built, not just planned.
       `campaignMembers`, so it's always empty
 - [x] GraphQL: `login`, `registerUser`
 - [x] GraphQL: `campaigns`, `campaign(id)`, `createCampaign`, `updateCampaign`, `archiveCampaign`
-- [ ] GraphQL: `me`
+      — the three mutations are guarded (`requireCurrentUser`); the queries are not
+- [x] GraphQL: `me` (returns `context.currentUser`, no guard — resolves to `null` when
+      logged out rather than throwing)
 - [ ] Frontend: login, register, dashboard, campaign list, create-campaign dialog, protected routes
 
 ## World Building
@@ -40,7 +42,9 @@ tracks what's actually built, not just planned.
 - [x] Entity soft delete
 - [x] Duplicate-name validation per campaign
 - [x] Generic `type` field (Character/Location/Organization via type string, no type-specific schema)
-- [ ] Portrait / image upload
+- [x] Portrait / image upload — `uploadEntityImage` mutation (GraphQL multipart
+      request spec), `LocalImageStore` (validates JPEG/PNG/GIF/WEBP, 5MB limit,
+      writes to `UPLOADS_DIR/<entityId>/<uuid>.<ext>`), guarded via `requireCurrentUser`
 - [x] Tags (KAN-37) — campaign-scoped `Tag`/`EntityTag` join model (reusable
       across entities in a campaign, name normalized trim+lowercase);
       `addTagToEntity`/`removeTagFromEntity` GraphQL mutations (find-or-create

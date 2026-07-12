@@ -179,6 +179,12 @@ Currently contains:
   `UpdatedAt`/`Id`/`Email`/`Password` getters — password hashing itself is
   an application-layer concern, not domain), `UserId`, `UserRepository`
   interface.
+- `tag/` (KAN-37) — the `Tag` aggregate (`campaignId` + `name`, normalized
+  trim+lowercase on both `create()` and `rename()` so casing variants
+  collide into one tag), `TagId`, `TagRepository` interface (includes
+  `attachToEntity`/`detachFromEntity` — the `Tag`↔`Entity` join is managed
+  through this repository rather than its own domain object, since
+  `EntityTag` is a plain link with no behavior of its own).
 - `shared/errors/` — `DomainError` (abstract base), `NotFoundError`,
   `ValidationError`, `AuthenticationError`.
 
@@ -202,7 +208,10 @@ No external dependencies.
 
 Contains:
 
-- Prisma schema (`Campaign`, `CampaignMember`, `Entity`, `User` models so far)
+- Prisma schema (`Campaign`, `CampaignMember`, `Entity`, `User`, `Tag`,
+  `EntityTag` models so far — `Tag` is campaign-scoped with a
+  `[campaignId, name]` unique constraint; `EntityTag` is the join table with
+  a `[entityId, tagId]` unique constraint, KAN-37)
 - Generated Prisma Client (checked into `src/generated/prisma`, custom
   output path set in `schema.prisma` — do not `export * from "@prisma/client"`
   from `index.ts`; that package has no generated code behind it and will
@@ -228,9 +237,9 @@ this package's real Prisma client and a live Postgres — see Testing section.
 ## GraphQL layer (currently inside apps/api — packages/graphql not yet split out)
 
 There is no standalone `packages/graphql` package yet. GraphQL currently
-lives inside `apps/api`, and both the `entities` and `auth` modules are
-fully wired end-to-end (schema loads, resolvers call the service, mutations
-persist, domain errors surface as proper GraphQL errors):
+lives inside `apps/api`, and the `entities`, `auth`, `campaigns`, and `tags`
+modules are all fully wired end-to-end (schema loads, resolvers call the
+service, mutations persist, domain errors surface as proper GraphQL errors):
 
 - `apps/api/src/graphql/` — server wiring: `server.ts` (graphql-yoga +
   node:http, passes `createContext` from `context.ts`), `schema.ts`
@@ -363,7 +372,8 @@ Current implementation:
   only supports v15/v16 as a peer; do not bump to a v17 prerelease
   without confirming yoga supports it (a stray `^17` pin previously broke
   introspection's default arguments in confusing ways).
-- Two vertical-slice modules so far:
+- Three vertical-slice modules so far (also `src/modules/campaigns/`,
+  same layout, not detailed here):
   - `src/modules/entities/`, split into `application/` (`EntityService.ts`
     — create/update/delete/get/list use cases), `graphql/` (schema +
     resolvers, fully implemented — `createEntity`/`updateEntity`/
@@ -378,6 +388,19 @@ user }`), `infrastructure/` (`PrismaUserRepository`, `UserMapper`).
     Session strategy is JWT (stateless, no session table) — decided
     explicitly over server-side sessions and refresh-token pairs; revisit
     only if revocation-before-expiry becomes a real requirement.
+  - `src/modules/tags/` (KAN-37), same layout: `application/`
+    (`TagService.ts` — `addTagToEntity`/`removeTagFromEntity` (find-or-create
+    the campaign-scoped `Tag` by normalized name, then idempotently
+    attach/detach the `EntityTag` link), `listCampaignTags`, `listEntityTags`;
+    takes both `TagRepository` and `EntityRepository` since it needs to
+    resolve `campaignId` from `entityId` and validate the entity exists),
+    `graphql/` (`addTagToEntity`/`removeTagFromEntity` mutations —
+    unguarded, matching `createEntity`/`updateEntity`/`deleteEntity`, not
+    `uploadEntityImage`'s `requireCurrentUser` — `campaignTags` query; plus
+    `Entity.tags` field resolver added directly to
+    `modules/entities/graphql/resolvers/Entity.ts`, the one `Entity` field
+    that needs `context`), `infrastructure/` (`PrismaTagRepository`,
+    `TagMapper`).
 - `package.json` lists both `fastify`/`mercurius` and `graphql-yoga` as
   dependencies, but only `graphql-yoga` is wired up in code today.
 - `JWT_SECRET` loaded via `src/config/env.ts` (fail-fast if unset) from
@@ -807,14 +830,15 @@ a lint/format violation is blocked locally before it reaches CI.
 
 Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
 `test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
-so workspace deps are built first). Current coverage (107 tests):
+so workspace deps are built first). Current coverage (153 tests):
 
 - **Domain unit tests** (`packages/domain/src/**/*.test.ts`) — `Campaign`,
-  `Entity`, `CampaignMember`, `User`, `Id`, `DomainError` subclasses. Pure
-  logic, no mocks, no I/O.
+  `Entity`, `CampaignMember`, `User`, `Tag`, `Id`, `DomainError` subclasses.
+  Pure logic, no mocks, no I/O.
 - **Application service tests** (`apps/api/src/modules/*/application/*.test.ts`)
-  — `CampaignService`, `EntityService`, `AuthenticationService` against
-  hand-rolled `vi.fn()` mocks of the repository interfaces. `AuthenticationService`
+  — `CampaignService`, `EntityService`, `AuthenticationService`, `TagService`
+  against hand-rolled `vi.fn()` mocks of the repository interfaces (`TagService`
+  mocks both `TagRepository` and `EntityRepository`). `AuthenticationService`
   uses real `bcrypt-ts`/`jsonwebtoken` (not mocked) so the token roundtrip is
   actually verified, not assumed.
 - **Mapper tests** (`apps/api/src/modules/*/infrastructure/*Mapper.test.ts`)
@@ -931,6 +955,11 @@ The core application currently implements only:
   `(campaignId, name)` uniqueness constraint. Fully wired
   domain → service → Prisma repository; GraphQL resolvers are stubbed
   but not yet implemented (see apps/api notes above).
+- **Tags** (KAN-37) — campaign-scoped `Tag` aggregate, reusable across
+  entities in the same campaign via the `EntityTag` join. Fully wired
+  domain → service → Prisma repository → GraphQL: `addTagToEntity`/
+  `removeTagFromEntity` mutations, `campaignTags` query, `Entity.tags`
+  field.
 
 Not yet implemented, despite being referenced elsewhere in this
 document as target scope: Worlds, and dedicated

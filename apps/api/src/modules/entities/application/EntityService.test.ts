@@ -168,12 +168,27 @@ describe("EntityService", () => {
   });
 
   describe("listEntities", () => {
-    it("delegates to the repository", async () => {
+    it("delegates to the repository without a filter", async () => {
       const entities = [Entity.create(createDto)];
       vi.mocked(repository.findByCampaign).mockResolvedValue(entities);
 
       await expect(service.listEntities("campaign-1")).resolves.toBe(entities);
-      expect(repository.findByCampaign).toHaveBeenCalledWith("campaign-1");
+      expect(repository.findByCampaign).toHaveBeenCalledWith(
+        "campaign-1",
+        undefined,
+      );
+    });
+
+    it("passes the filter through to the repository unchanged", async () => {
+      vi.mocked(repository.findByCampaign).mockResolvedValue([]);
+      const filter = { type: "npc", nameContains: "gob", tagIds: ["tag-1"] };
+
+      await service.listEntities("campaign-1", filter);
+
+      expect(repository.findByCampaign).toHaveBeenCalledWith(
+        "campaign-1",
+        filter,
+      );
     });
   });
 });

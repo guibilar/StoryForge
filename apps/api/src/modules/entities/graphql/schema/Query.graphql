@@ -1,4 +1,10 @@
+input EntityFilter {
+  type: String
+  nameContains: String
+  tagIds: [ID!]
+}
+
 extend type Query {
   entity(id: ID!): Entity
-  entities(campaignId: ID!): [Entity!]!
+  entities(campaignId: ID!, filter: EntityFilter): [Entity!]!
 }

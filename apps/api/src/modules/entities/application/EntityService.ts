@@ -1,5 +1,6 @@
 import {
   Entity,
+  EntityFilter,
   EntityId,
   EntityRepository,
   EntityVisibility,
@@ -123,7 +124,10 @@ export class EntityService {
     return entity;
   }
 
-  async listEntities(campaignId: string): Promise<Entity[]> {
-    return this.repository.findByCampaign(campaignId);
+  async listEntities(
+    campaignId: string,
+    filter?: EntityFilter | null,
+  ): Promise<Entity[]> {
+    return this.repository.findByCampaign(campaignId, filter);
   }
 }

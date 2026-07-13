@@ -1,3 +1,4 @@
+import { EntityFilter } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 
@@ -16,11 +17,14 @@ export const Query = {
 
   entities: async (
     _parent: unknown,
-    args: { campaignId: string },
+    args: { campaignId: string; filter?: EntityFilter | null },
     context: GraphQLContext,
   ) => {
     try {
-      return await context.entityService.listEntities(args.campaignId);
+      return await context.entityService.listEntities(
+        args.campaignId,
+        args.filter,
+      );
     } catch (error) {
       toGraphQLError(error);
     }

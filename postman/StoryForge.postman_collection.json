@@ -190,8 +190,23 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "query Entities($campaignId: ID!) {\n  entities(campaignId: $campaignId) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    image\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
-                "variables": "{\n  \"campaignId\": \"{{campaignId}}\"\n}"
+                "query": "query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    image\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"filter\": null\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "List Entities (Filtered)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    image\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"filter\": {\n    \"type\": \"npc\",\n    \"nameContains\": \"gob\",\n    \"tagIds\": []\n  }\n}"
               }
             }
           }

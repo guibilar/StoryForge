@@ -15,7 +15,7 @@ tracks what's actually built, not just planned.
       to main; runs a `postgres:16` service container + `prisma migrate deploy`
       so Prisma repository integration tests run for real, not mocked)
 - [x] Husky hooks — pre-commit runs `pnpm test` then `pnpm lint-staged` (KAN-24)
-- [x] Test suite — 153 tests via Vitest across `packages/domain` (entities,
+- [x] Test suite — 164 tests via Vitest across `packages/domain` (entities,
       value objects, tags) and `apps/api` (application services w/ mocked repos,
       Prisma mappers, and Prisma repository integration tests against a real
       Postgres). See AGENTS.md "Testing" section for layout and gotchas.
@@ -50,7 +50,10 @@ tracks what's actually built, not just planned.
       `addTagToEntity`/`removeTagFromEntity` GraphQL mutations (find-or-create
       by name, idempotent attach/detach), `campaignTags` query, `Entity.tags`
       field
-- [ ] Search / filtering
+- [x] Search / filtering — `entities(campaignId, filter: EntityFilter)`
+      GraphQL query; `EntityFilter { type, nameContains, tagIds }`, AND-combined
+      (`type` exact match, `nameContains` case-insensitive, `tagIds` any-match
+      via `EntityTag` join), all fields optional
 - [ ] Frontend entity list + form
 
 ## Relationships

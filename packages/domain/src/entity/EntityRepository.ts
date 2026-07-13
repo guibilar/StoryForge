@@ -1,10 +1,19 @@
 import { Entity } from "./Entity";
 import { EntityId } from "./EntityId";
 
+export interface EntityFilter {
+  type?: string;
+  nameContains?: string;
+  tagIds?: string[];
+}
+
 export interface EntityRepository {
   findById(id: EntityId): Promise<Entity | null>;
 
-  findByCampaign(campaignId: string): Promise<Entity[]>;
+  findByCampaign(
+    campaignId: string,
+    filter?: EntityFilter | null,
+  ): Promise<Entity[]>;
 
   existsByName(campaignId: string, name: string): Promise<boolean>;
 

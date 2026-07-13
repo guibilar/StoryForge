@@ -1,6 +1,11 @@
-import { Entity, EntityId, EntityRepository } from "@storyforge/domain";
+import {
+  Entity,
+  EntityFilter,
+  EntityId,
+  EntityRepository,
+} from "@storyforge/domain";
 
-import { prisma } from "@storyforge/database";
+import { prisma, Prisma } from "@storyforge/database";
 import { EntityMapper } from "./EntityMapper";
 
 export class PrismaEntityRepository implements EntityRepository {
@@ -18,12 +23,29 @@ export class PrismaEntityRepository implements EntityRepository {
     return EntityMapper.toDomain(record);
   }
 
-  async findByCampaign(campaignId: string): Promise<Entity[]> {
+  async findByCampaign(
+    campaignId: string,
+    filter?: EntityFilter | null,
+  ): Promise<Entity[]> {
+    const where: Prisma.EntityWhereInput = {
+      campaignId,
+      deletedAt: null,
+    };
+
+    if (filter?.type) {
+      where.type = filter.type;
+    }
+
+    if (filter?.nameContains) {
+      where.name = { contains: filter.nameContains, mode: "insensitive" };
+    }
+
+    if (filter?.tagIds && filter.tagIds.length > 0) {
+      where.tags = { some: { tagId: { in: filter.tagIds } } };
+    }
+
     const records = await prisma.entity.findMany({
-      where: {
-        campaignId,
-        deletedAt: null,
-      },
+      where,
       orderBy: {
         createdAt: "asc",
       },

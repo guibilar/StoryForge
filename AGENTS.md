@@ -378,7 +378,13 @@ Current implementation:
     — create/update/delete/get/list use cases), `graphql/` (schema +
     resolvers, fully implemented — `createEntity`/`updateEntity`/
     `deleteEntity` mutations and `entity`/`entities` queries, all
-    unguarded), and `infrastructure/` (`PrismaEntityRepository`,
+    unguarded — `entities(campaignId, filter: EntityFilter)` takes an
+    optional `EntityFilter { type, nameContains, tagIds }` input, passed
+    unchanged through `EntityService.listEntities` down to
+    `PrismaEntityRepository.findByCampaign`, which AND-combines an exact
+    `type` match, case-insensitive `nameContains`, and an any-match
+    `tagIds` filter via the `EntityTag` join — always excludes
+    soft-deleted rows), and `infrastructure/` (`PrismaEntityRepository`,
     `EntityMapper`, `LocalImageStore`). Also owns image upload:
     `uploadEntityImage(entityId, file: Upload!)` mutation over the
     [GraphQL multipart request spec](https://github.com/jaydenseric/graphql-multipart-request-spec)
@@ -854,7 +860,7 @@ a lint/format violation is blocked locally before it reaches CI.
 
 Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
 `test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
-so workspace deps are built first). Current coverage (153 tests):
+so workspace deps are built first). Current coverage (164 tests):
 
 - **Domain unit tests** (`packages/domain/src/**/*.test.ts`) — `Campaign`,
   `Entity`, `CampaignMember`, `User`, `Tag`, `Id`, `DomainError` subclasses.
@@ -868,6 +874,10 @@ so workspace deps are built first). Current coverage (153 tests):
 - **Mapper tests** (`apps/api/src/modules/*/infrastructure/*Mapper.test.ts`)
   — `toDomain`/`toPersistence` roundtrips against literal Prisma-shaped
   records.
+- **GraphQL resolver tests** (`apps/api/src/modules/*/graphql/resolvers/*.test.ts`)
+  — e.g. `entities/graphql/resolvers/{Query,Mutation}.test.ts` — against a
+  hand-rolled `EntityService` mock, asserting argument pass-through
+  (including `entities(campaignId, filter)`) and `toGraphQLError` mapping.
 - **Prisma repository integration tests**
   (`apps/api/src/modules/*/infrastructure/Prisma*Repository.test.ts`) — hit a
   **real** Postgres (the same one `DATABASE_URL` points at — locally that's

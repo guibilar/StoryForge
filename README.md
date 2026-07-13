@@ -1,5 +1,7 @@
 # StoryForge
 
+[![CI](https://github.com/guibilar/StoryForge/actions/workflows/ci.yml/badge.svg)](https://github.com/guibilar/StoryForge/actions/workflows/ci.yml)
+
 Modular tabletop RPG campaign management platform.
 
 Generic core manages worlds, characters, notes, locations, timelines, items, and projects. RPG systems (Call of Cthulhu, Vampire, D&D, etc.) extend behavior via compile-time plugins.
@@ -22,10 +24,9 @@ apps/
 
 packages/
   database/    Prisma schema, client, repositories
-  domain/      Campaign, Entity, User, CampaignMember, Tag aggregates + shared errors
+  domain/      Campaign, Entity, User, CampaignMember, Tag, Relationship aggregates + shared errors
 
 docs/
-docker/
 ```
 
 See `AGENTS.md` for full architecture rules, conventions, and current implementation state.
@@ -58,7 +59,7 @@ the JWT in `{{token}}` automatically), then run the rest.
 
 ## Status
 
-Early stage. `Campaign`, `Entity` (incl. image upload), `User` (auth), `CampaignMember`, and
-`Tag` are implemented full-stack (domain → service → Prisma repo → GraphQL). Auth guarding is
+Early stage. `Campaign`, `Entity` (incl. image upload), `User` (auth), `CampaignMember`,
+`Tag`, and `Relationship` are implemented full-stack (domain → service → Prisma repo → GraphQL). Auth guarding is
 partial — see `AGENTS.md` "apps/api" section for which mutations require a logged-in user. Web
 app is still default Vite scaffold. Plugin compiler and plugin packages not started.

@@ -66,15 +66,17 @@ tracks what's actually built, not just planned.
       self-relationships and duplicate `(campaignId, source, target, type)` edges
       via a unique constraint.
 - [x] Relationship types (MemberOf, Owns, Enemy, Ally, Parent, Child) (KAN-41)
-      — `RelationshipType` TS enum + matching Prisma enum, replacing KAN-40's
-      free-string `type`; `RelationshipService`, `PrismaRelationshipRepository`,
+      — `RelationshipService`, `PrismaRelationshipRepository`,
       `RelationshipMapper` under `apps/api/src/modules/relationships/`; GraphQL
       `relationship(id)`, `relationships(campaignId, entityId)` queries,
       `createRelationship`/`updateRelationship`/`deleteRelationship` mutations
       (all three guarded via `requireCurrentUser`). Directional-only for v1 —
       Ally/Enemy do not auto-create an inverse edge (deferred, not needed yet).
       No nested `sourceEntity`/`targetEntity` field resolvers — GraphQL type
-      exposes raw IDs only.
+      exposes raw IDs only. `type` is a validated free string (like
+      `Entity.type`), not a closed enum — KAN-41 originally made it a TS/Prisma
+      enum, reverted so future plugins (e.g. the VTM plugin's Sire/Childe/Ghoul
+      relationship types) can define their own values without a core migration.
 - [ ] Graph visualization (React Flow)
 
 ## Notes & Assets

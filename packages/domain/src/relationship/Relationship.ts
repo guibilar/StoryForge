@@ -1,12 +1,11 @@
 import { ValidationError } from "../shared";
 import { RelationshipId } from "./RelationshipId";
-import { RelationshipType } from "./RelationshipType";
 
 export interface CreateRelationshipProps {
   campaignId: string;
   sourceEntityId: string;
   targetEntityId: string;
-  type: RelationshipType;
+  type: string;
   description?: string | null;
 }
 
@@ -15,7 +14,7 @@ export interface RehydrateRelationshipProps {
   campaignId: string;
   sourceEntityId: string;
   targetEntityId: string;
-  type: RelationshipType;
+  type: string;
   description: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -28,7 +27,7 @@ export class Relationship {
     private readonly campaignIdValue: string,
     private readonly sourceEntityIdValue: string,
     private readonly targetEntityIdValue: string,
-    private typeValue: RelationshipType,
+    private typeValue: string,
     private descriptionValue: string | null,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
@@ -83,7 +82,7 @@ export class Relationship {
     return this.targetEntityIdValue;
   }
 
-  get Type(): RelationshipType {
+  get Type(): string {
     return this.typeValue;
   }
 
@@ -103,7 +102,7 @@ export class Relationship {
     return this.deletedAtValue;
   }
 
-  changeType(type: RelationshipType): void {
+  changeType(type: string): void {
     this.validateType(type);
 
     this.typeValue = type;
@@ -146,9 +145,15 @@ export class Relationship {
     }
   }
 
-  private validateType(type: RelationshipType): void {
-    if (!Object.values(RelationshipType).includes(type)) {
-      throw new ValidationError(`Invalid relationship type: "${type}".`);
+  private validateType(type: string): void {
+    const trimmed = type.trim();
+
+    if (!trimmed) {
+      throw new ValidationError("Relationship type is required.");
+    }
+
+    if (trimmed.length > 100) {
+      throw new ValidationError("Relationship type is too long.");
     }
   }
 

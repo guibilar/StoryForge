@@ -168,39 +168,6 @@ export type EnumVisibilityWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumVisibilityFilter<$PrismaModel>;
 };
 
-export type EnumRelationshipTypeFilter<$PrismaModel = never> = {
-  equals?:
-    | $Enums.RelationshipType
-    | Prisma.EnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  in?:
-    | $Enums.RelationshipType[]
-    | Prisma.ListEnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  notIn?:
-    | $Enums.RelationshipType[]
-    | Prisma.ListEnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  not?:
-    | Prisma.NestedEnumRelationshipTypeFilter<$PrismaModel>
-    | $Enums.RelationshipType;
-};
-
-export type EnumRelationshipTypeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?:
-    | $Enums.RelationshipType
-    | Prisma.EnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  in?:
-    | $Enums.RelationshipType[]
-    | Prisma.ListEnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  notIn?:
-    | $Enums.RelationshipType[]
-    | Prisma.ListEnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  not?:
-    | Prisma.NestedEnumRelationshipTypeWithAggregatesFilter<$PrismaModel>
-    | $Enums.RelationshipType;
-  _count?: Prisma.NestedIntFilter<$PrismaModel>;
-  _min?: Prisma.NestedEnumRelationshipTypeFilter<$PrismaModel>;
-  _max?: Prisma.NestedEnumRelationshipTypeFilter<$PrismaModel>;
-};
-
 export type EnumCampaignRoleFilter<$PrismaModel = never> = {
   equals?:
     $Enums.CampaignRole | Prisma.EnumCampaignRoleFieldRefInput<$PrismaModel>;
@@ -397,41 +364,6 @@ export type NestedEnumVisibilityWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>;
   _min?: Prisma.NestedEnumVisibilityFilter<$PrismaModel>;
   _max?: Prisma.NestedEnumVisibilityFilter<$PrismaModel>;
-};
-
-export type NestedEnumRelationshipTypeFilter<$PrismaModel = never> = {
-  equals?:
-    | $Enums.RelationshipType
-    | Prisma.EnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  in?:
-    | $Enums.RelationshipType[]
-    | Prisma.ListEnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  notIn?:
-    | $Enums.RelationshipType[]
-    | Prisma.ListEnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  not?:
-    | Prisma.NestedEnumRelationshipTypeFilter<$PrismaModel>
-    | $Enums.RelationshipType;
-};
-
-export type NestedEnumRelationshipTypeWithAggregatesFilter<
-  $PrismaModel = never,
-> = {
-  equals?:
-    | $Enums.RelationshipType
-    | Prisma.EnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  in?:
-    | $Enums.RelationshipType[]
-    | Prisma.ListEnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  notIn?:
-    | $Enums.RelationshipType[]
-    | Prisma.ListEnumRelationshipTypeFieldRefInput<$PrismaModel>;
-  not?:
-    | Prisma.NestedEnumRelationshipTypeWithAggregatesFilter<$PrismaModel>
-    | $Enums.RelationshipType;
-  _count?: Prisma.NestedIntFilter<$PrismaModel>;
-  _min?: Prisma.NestedEnumRelationshipTypeFilter<$PrismaModel>;
-  _max?: Prisma.NestedEnumRelationshipTypeFilter<$PrismaModel>;
 };
 
 export type NestedEnumCampaignRoleFilter<$PrismaModel = never> = {

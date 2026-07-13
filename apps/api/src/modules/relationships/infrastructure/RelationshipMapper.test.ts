@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Relationship, RelationshipType } from "@storyforge/domain";
+import { Relationship } from "@storyforge/domain";
 import type { Relationship as PrismaRelationship } from "@storyforge/database";
 import { RelationshipMapper } from "./RelationshipMapper";
 
@@ -23,7 +23,7 @@ describe("RelationshipMapper", () => {
     expect(relationship.CampaignId).toBe(record.campaignId);
     expect(relationship.SourceEntityId).toBe(record.sourceEntityId);
     expect(relationship.TargetEntityId).toBe(record.targetEntityId);
-    expect(relationship.Type).toBe(RelationshipType.ALLY);
+    expect(relationship.Type).toBe("ALLY");
     expect(relationship.Description).toBe(record.description);
     expect(relationship.CreatedAt).toEqual(record.createdAt);
     expect(relationship.UpdatedAt).toEqual(record.updatedAt);
@@ -35,7 +35,7 @@ describe("RelationshipMapper", () => {
       campaignId: "22222222-2222-2222-2222-222222222222",
       sourceEntityId: "33333333-3333-3333-3333-333333333333",
       targetEntityId: "44444444-4444-4444-4444-444444444444",
-      type: RelationshipType.ENEMY,
+      type: "ENEMY",
       description: "Blood feud",
     });
 

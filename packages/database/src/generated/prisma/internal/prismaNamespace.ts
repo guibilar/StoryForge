@@ -1183,20 +1183,6 @@ export type ListEnumVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<
 >;
 
 /**
- * Reference to a field of type 'RelationshipType'
- */
-export type EnumRelationshipTypeFieldRefInput<$PrismaModel> = FieldRefInputType<
-  $PrismaModel,
-  "RelationshipType"
->;
-
-/**
- * Reference to a field of type 'RelationshipType[]'
- */
-export type ListEnumRelationshipTypeFieldRefInput<$PrismaModel> =
-  FieldRefInputType<$PrismaModel, "RelationshipType[]">;
-
-/**
  * Reference to a field of type 'CampaignRole'
  */
 export type EnumCampaignRoleFieldRefInput<$PrismaModel> = FieldRefInputType<

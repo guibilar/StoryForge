@@ -24,15 +24,6 @@ enum Visibility {
   PRIVATE
 }
 
-enum RelationshipType {
-  MEMBER_OF
-  OWNS
-  ENEMY
-  ALLY
-  PARENT
-  CHILD
-}
-
 model Campaign {
   id          String  @id @default(uuid())
   name        String
@@ -115,7 +106,7 @@ model Relationship {
   source   Entity   @relation("RelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Cascade)
   target   Entity   @relation("RelationshipTarget", fields: [targetEntityId], references: [id], onDelete: Cascade)
 
-  type        RelationshipType
+  type        String
   description String?
 
   createdAt DateTime  @default(now())

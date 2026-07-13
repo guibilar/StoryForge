@@ -2,7 +2,6 @@ import {
   Relationship,
   RelationshipId,
   RelationshipRepository,
-  RelationshipType,
 } from "@storyforge/domain";
 
 import { prisma } from "@storyforge/database";
@@ -55,7 +54,7 @@ export class PrismaRelationshipRepository implements RelationshipRepository {
     campaignId: string,
     sourceEntityId: string,
     targetEntityId: string,
-    type: RelationshipType,
+    type: string,
   ): Promise<boolean> {
     const count = await prisma.relationship.count({
       where: { campaignId, sourceEntityId, targetEntityId, type },

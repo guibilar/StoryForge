@@ -1,18 +1,9 @@
-enum RelationshipType {
-  MEMBER_OF
-  OWNS
-  ENEMY
-  ALLY
-  PARENT
-  CHILD
-}
-
 type Relationship {
   id: ID!
   campaignId: ID!
   sourceEntityId: ID!
   targetEntityId: ID!
-  type: RelationshipType!
+  type: String!
   description: String
   createdAt: String!
   updatedAt: String!

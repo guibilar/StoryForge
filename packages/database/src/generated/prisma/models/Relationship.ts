@@ -29,7 +29,7 @@ export type RelationshipMinAggregateOutputType = {
   campaignId: string | null;
   sourceEntityId: string | null;
   targetEntityId: string | null;
-  type: $Enums.RelationshipType | null;
+  type: string | null;
   description: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -41,7 +41,7 @@ export type RelationshipMaxAggregateOutputType = {
   campaignId: string | null;
   sourceEntityId: string | null;
   targetEntityId: string | null;
-  type: $Enums.RelationshipType | null;
+  type: string | null;
   description: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -183,7 +183,7 @@ export type RelationshipGroupByOutputType = {
   campaignId: string;
   sourceEntityId: string;
   targetEntityId: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -214,8 +214,7 @@ export type RelationshipWhereInput = {
   campaignId?: Prisma.StringFilter<"Relationship"> | string;
   sourceEntityId?: Prisma.StringFilter<"Relationship"> | string;
   targetEntityId?: Prisma.StringFilter<"Relationship"> | string;
-  type?:
-    Prisma.EnumRelationshipTypeFilter<"Relationship"> | $Enums.RelationshipType;
+  type?: Prisma.StringFilter<"Relationship"> | string;
   description?: Prisma.StringNullableFilter<"Relationship"> | string | null;
   createdAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
@@ -260,9 +259,7 @@ export type RelationshipWhereUniqueInput = Prisma.AtLeast<
     campaignId?: Prisma.StringFilter<"Relationship"> | string;
     sourceEntityId?: Prisma.StringFilter<"Relationship"> | string;
     targetEntityId?: Prisma.StringFilter<"Relationship"> | string;
-    type?:
-      | Prisma.EnumRelationshipTypeFilter<"Relationship">
-      | $Enums.RelationshipType;
+    type?: Prisma.StringFilter<"Relationship"> | string;
     description?: Prisma.StringNullableFilter<"Relationship"> | string | null;
     createdAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
@@ -311,9 +308,7 @@ export type RelationshipScalarWhereWithAggregatesInput = {
   campaignId?: Prisma.StringWithAggregatesFilter<"Relationship"> | string;
   sourceEntityId?: Prisma.StringWithAggregatesFilter<"Relationship"> | string;
   targetEntityId?: Prisma.StringWithAggregatesFilter<"Relationship"> | string;
-  type?:
-    | Prisma.EnumRelationshipTypeWithAggregatesFilter<"Relationship">
-    | $Enums.RelationshipType;
+  type?: Prisma.StringWithAggregatesFilter<"Relationship"> | string;
   description?:
     Prisma.StringNullableWithAggregatesFilter<"Relationship"> | string | null;
   createdAt?:
@@ -329,7 +324,7 @@ export type RelationshipScalarWhereWithAggregatesInput = {
 
 export type RelationshipCreateInput = {
   id?: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -344,7 +339,7 @@ export type RelationshipUncheckedCreateInput = {
   campaignId: string;
   sourceEntityId: string;
   targetEntityId: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -353,9 +348,7 @@ export type RelationshipUncheckedCreateInput = {
 
 export type RelationshipUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -371,9 +364,7 @@ export type RelationshipUncheckedUpdateInput = {
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   sourceEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
   targetEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -386,7 +377,7 @@ export type RelationshipCreateManyInput = {
   campaignId: string;
   sourceEntityId: string;
   targetEntityId: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -395,9 +386,7 @@ export type RelationshipCreateManyInput = {
 
 export type RelationshipUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -410,9 +399,7 @@ export type RelationshipUncheckedUpdateManyInput = {
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   sourceEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
   targetEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -435,7 +422,7 @@ export type RelationshipCampaignIdSourceEntityIdTargetEntityIdTypeCompoundUnique
     campaignId: string;
     sourceEntityId: string;
     targetEntityId: string;
-    type: $Enums.RelationshipType;
+    type: string;
   };
 
 export type RelationshipCountOrderByAggregateInput = {
@@ -768,13 +755,9 @@ export type RelationshipUncheckedUpdateManyWithoutTargetNestedInput = {
     Prisma.RelationshipScalarWhereInput | Prisma.RelationshipScalarWhereInput[];
 };
 
-export type EnumRelationshipTypeFieldUpdateOperationsInput = {
-  set?: $Enums.RelationshipType;
-};
-
 export type RelationshipCreateWithoutCampaignInput = {
   id?: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -787,7 +770,7 @@ export type RelationshipUncheckedCreateWithoutCampaignInput = {
   id?: string;
   sourceEntityId: string;
   targetEntityId: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -847,8 +830,7 @@ export type RelationshipScalarWhereInput = {
   campaignId?: Prisma.StringFilter<"Relationship"> | string;
   sourceEntityId?: Prisma.StringFilter<"Relationship"> | string;
   targetEntityId?: Prisma.StringFilter<"Relationship"> | string;
-  type?:
-    Prisma.EnumRelationshipTypeFilter<"Relationship"> | $Enums.RelationshipType;
+  type?: Prisma.StringFilter<"Relationship"> | string;
   description?: Prisma.StringNullableFilter<"Relationship"> | string | null;
   createdAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
@@ -858,7 +840,7 @@ export type RelationshipScalarWhereInput = {
 
 export type RelationshipCreateWithoutSourceInput = {
   id?: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -871,7 +853,7 @@ export type RelationshipUncheckedCreateWithoutSourceInput = {
   id?: string;
   campaignId: string;
   targetEntityId: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -895,7 +877,7 @@ export type RelationshipCreateManySourceInputEnvelope = {
 
 export type RelationshipCreateWithoutTargetInput = {
   id?: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -908,7 +890,7 @@ export type RelationshipUncheckedCreateWithoutTargetInput = {
   id?: string;
   campaignId: string;
   sourceEntityId: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -990,7 +972,7 @@ export type RelationshipCreateManyCampaignInput = {
   id?: string;
   sourceEntityId: string;
   targetEntityId: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -999,9 +981,7 @@ export type RelationshipCreateManyCampaignInput = {
 
 export type RelationshipUpdateWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1015,9 +995,7 @@ export type RelationshipUncheckedUpdateWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   sourceEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
   targetEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1029,9 +1007,7 @@ export type RelationshipUncheckedUpdateManyWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   sourceEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
   targetEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1043,7 +1019,7 @@ export type RelationshipCreateManySourceInput = {
   id?: string;
   campaignId: string;
   targetEntityId: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -1054,7 +1030,7 @@ export type RelationshipCreateManyTargetInput = {
   id?: string;
   campaignId: string;
   sourceEntityId: string;
-  type: $Enums.RelationshipType;
+  type: string;
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -1063,9 +1039,7 @@ export type RelationshipCreateManyTargetInput = {
 
 export type RelationshipUpdateWithoutSourceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1079,9 +1053,7 @@ export type RelationshipUncheckedUpdateWithoutSourceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   targetEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1093,9 +1065,7 @@ export type RelationshipUncheckedUpdateManyWithoutSourceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   targetEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1105,9 +1075,7 @@ export type RelationshipUncheckedUpdateManyWithoutSourceInput = {
 
 export type RelationshipUpdateWithoutTargetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1121,9 +1089,7 @@ export type RelationshipUncheckedUpdateWithoutTargetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   sourceEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1135,9 +1101,7 @@ export type RelationshipUncheckedUpdateManyWithoutTargetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   sourceEntityId?: Prisma.StringFieldUpdateOperationsInput | string;
-  type?:
-    | Prisma.EnumRelationshipTypeFieldUpdateOperationsInput
-    | $Enums.RelationshipType;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1276,7 +1240,7 @@ export type $RelationshipPayload<
       campaignId: string;
       sourceEntityId: string;
       targetEntityId: string;
-      type: $Enums.RelationshipType;
+      type: string;
       description: string | null;
       createdAt: Date;
       updatedAt: Date;
@@ -1919,7 +1883,7 @@ export interface RelationshipFieldRefs {
   readonly campaignId: Prisma.FieldRef<"Relationship", "String">;
   readonly sourceEntityId: Prisma.FieldRef<"Relationship", "String">;
   readonly targetEntityId: Prisma.FieldRef<"Relationship", "String">;
-  readonly type: Prisma.FieldRef<"Relationship", "RelationshipType">;
+  readonly type: Prisma.FieldRef<"Relationship", "String">;
   readonly description: Prisma.FieldRef<"Relationship", "String">;
   readonly createdAt: Prisma.FieldRef<"Relationship", "DateTime">;
   readonly updatedAt: Prisma.FieldRef<"Relationship", "DateTime">;

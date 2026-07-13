@@ -1,8 +1,4 @@
-import {
-  Relationship,
-  RelationshipId,
-  RelationshipType,
-} from "@storyforge/domain";
+import { Relationship, RelationshipId } from "@storyforge/domain";
 import type { Relationship as PrismaRelationship } from "@storyforge/database";
 
 export class RelationshipMapper {
@@ -12,7 +8,7 @@ export class RelationshipMapper {
       campaignId: record.campaignId,
       sourceEntityId: record.sourceEntityId,
       targetEntityId: record.targetEntityId,
-      type: record.type as RelationshipType,
+      type: record.type,
       description: record.description,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,

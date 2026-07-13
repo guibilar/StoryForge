@@ -3,7 +3,6 @@ import {
   Relationship,
   RelationshipId,
   RelationshipRepository,
-  RelationshipType,
   ValidationError,
 } from "@storyforge/domain";
 
@@ -11,13 +10,13 @@ export interface CreateRelationshipDto {
   campaignId: string;
   sourceEntityId: string;
   targetEntityId: string;
-  type: RelationshipType;
+  type: string;
   description?: string | null;
 }
 
 export interface UpdateRelationshipDto {
   id: string;
-  type?: RelationshipType;
+  type?: string;
   description?: string | null;
 }
 

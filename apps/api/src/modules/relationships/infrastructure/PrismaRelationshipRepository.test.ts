@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
-import {
-  Relationship,
-  RelationshipId,
-  RelationshipType,
-} from "@storyforge/domain";
+import { Relationship, RelationshipId } from "@storyforge/domain";
 import { prisma } from "@storyforge/database";
 import { PrismaRelationshipRepository } from "./PrismaRelationshipRepository";
 
@@ -50,7 +46,7 @@ describe("PrismaRelationshipRepository", () => {
       campaignId,
       sourceEntityId,
       targetEntityId,
-      type: RelationshipType.ALLY,
+      type: "ALLY",
     });
 
     await repository.create(relationship);
@@ -59,7 +55,7 @@ describe("PrismaRelationshipRepository", () => {
     expect(found).not.toBeNull();
     expect(found?.Id.equals(relationship.Id)).toBe(true);
     expect(found?.CampaignId).toBe(campaignId);
-    expect(found?.Type).toBe(RelationshipType.ALLY);
+    expect(found?.Type).toBe("ALLY");
   });
 
   it("returns null when the relationship does not exist", async () => {
@@ -77,13 +73,13 @@ describe("PrismaRelationshipRepository", () => {
       campaignId,
       sourceEntityId: a,
       targetEntityId: b,
-      type: RelationshipType.ALLY,
+      type: "ALLY",
     });
     const deleted = Relationship.create({
       campaignId,
       sourceEntityId: a,
       targetEntityId: c,
-      type: RelationshipType.ENEMY,
+      type: "ENEMY",
     });
     deleted.delete();
     await repository.create(kept);
@@ -104,19 +100,19 @@ describe("PrismaRelationshipRepository", () => {
       campaignId,
       sourceEntityId: a,
       targetEntityId: b,
-      type: RelationshipType.MEMBER_OF,
+      type: "MEMBER_OF",
     });
     const asTarget = Relationship.create({
       campaignId,
       sourceEntityId: c,
       targetEntityId: a,
-      type: RelationshipType.OWNS,
+      type: "OWNS",
     });
     const unrelated = Relationship.create({
       campaignId,
       sourceEntityId: b,
       targetEntityId: c,
-      type: RelationshipType.PARENT,
+      type: "PARENT",
     });
     await repository.create(asSource);
     await repository.create(asTarget);
@@ -137,15 +133,15 @@ describe("PrismaRelationshipRepository", () => {
       campaignId,
       sourceEntityId: a,
       targetEntityId: b,
-      type: RelationshipType.CHILD,
+      type: "CHILD",
     });
     await repository.create(relationship);
 
     await expect(
-      repository.existsByEdge(campaignId, a, b, RelationshipType.CHILD),
+      repository.existsByEdge(campaignId, a, b, "CHILD"),
     ).resolves.toBe(true);
     await expect(
-      repository.existsByEdge(campaignId, a, b, RelationshipType.ALLY),
+      repository.existsByEdge(campaignId, a, b, "ALLY"),
     ).resolves.toBe(false);
   });
 
@@ -157,16 +153,16 @@ describe("PrismaRelationshipRepository", () => {
       campaignId,
       sourceEntityId: a,
       targetEntityId: b,
-      type: RelationshipType.ALLY,
+      type: "ALLY",
     });
     await repository.create(relationship);
 
-    relationship.changeType(RelationshipType.ENEMY);
+    relationship.changeType("ENEMY");
     relationship.changeDescription("Turned hostile");
     await repository.update(relationship);
 
     const found = await repository.findById(relationship.Id);
-    expect(found?.Type).toBe(RelationshipType.ENEMY);
+    expect(found?.Type).toBe("ENEMY");
     expect(found?.Description).toBe("Turned hostile");
   });
 
@@ -178,7 +174,7 @@ describe("PrismaRelationshipRepository", () => {
       campaignId,
       sourceEntityId: a,
       targetEntityId: b,
-      type: RelationshipType.ALLY,
+      type: "ALLY",
     });
     await repository.create(relationship);
     relationship.delete();

@@ -2,13 +2,13 @@ input CreateRelationshipInput {
   campaignId: ID!
   sourceEntityId: ID!
   targetEntityId: ID!
-  type: RelationshipType!
+  type: String!
   description: String
 }
 
 input UpdateRelationshipInput {
   id: ID!
-  type: RelationshipType
+  type: String
   description: String
 }
 

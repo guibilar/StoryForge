@@ -3,7 +3,6 @@ import {
   NotFoundError,
   Relationship,
   RelationshipRepository,
-  RelationshipType,
   ValidationError,
 } from "@storyforge/domain";
 import { RelationshipService } from "./RelationshipService";
@@ -23,7 +22,7 @@ const createDto = {
   campaignId: "campaign-1",
   sourceEntityId: "entity-1",
   targetEntityId: "entity-2",
-  type: RelationshipType.ALLY,
+  type: "ALLY",
 };
 
 describe("RelationshipService", () => {
@@ -41,7 +40,7 @@ describe("RelationshipService", () => {
 
       const relationship = await service.createRelationship(createDto);
 
-      expect(relationship.Type).toBe(RelationshipType.ALLY);
+      expect(relationship.Type).toBe("ALLY");
       expect(repository.create).toHaveBeenCalledWith(relationship);
     });
 
@@ -70,11 +69,11 @@ describe("RelationshipService", () => {
 
       const updated = await service.updateRelationship({
         id: relationship.Id.toString(),
-        type: RelationshipType.ENEMY,
+        type: "ENEMY",
         description: "Falling out",
       });
 
-      expect(updated.Type).toBe(RelationshipType.ENEMY);
+      expect(updated.Type).toBe("ENEMY");
       expect(updated.Description).toBe("Falling out");
       expect(repository.update).toHaveBeenCalledWith(relationship);
     });

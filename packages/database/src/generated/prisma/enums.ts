@@ -23,15 +23,3 @@ export const Visibility = {
 } as const;
 
 export type Visibility = (typeof Visibility)[keyof typeof Visibility];
-
-export const RelationshipType = {
-  MEMBER_OF: "MEMBER_OF",
-  OWNS: "OWNS",
-  ENEMY: "ENEMY",
-  ALLY: "ALLY",
-  PARENT: "PARENT",
-  CHILD: "CHILD",
-} as const;
-
-export type RelationshipType =
-  (typeof RelationshipType)[keyof typeof RelationshipType];

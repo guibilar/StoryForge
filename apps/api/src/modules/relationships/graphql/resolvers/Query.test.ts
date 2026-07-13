@@ -1,9 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  NotFoundError,
-  Relationship,
-  RelationshipType,
-} from "@storyforge/domain";
+import { NotFoundError, Relationship } from "@storyforge/domain";
 import { Query } from "./Query";
 import type { GraphQLContext } from "../../../../graphql/context";
 import type { RelationshipService } from "../../application/RelationshipService";
@@ -27,7 +23,7 @@ const relationship = Relationship.create({
   campaignId: "campaign-1",
   sourceEntityId: "entity-1",
   targetEntityId: "entity-2",
-  type: RelationshipType.ALLY,
+  type: "ALLY",
 });
 
 describe("relationships Query.relationship", () => {

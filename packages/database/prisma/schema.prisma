@@ -29,13 +29,14 @@ model Campaign {
   name        String
   description String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   archivedAt DateTime?
 
-  entities Entity[]
-  members  CampaignMember[]
-  tags     Tag[]
+  entities      Entity[]
+  members       CampaignMember[]
+  tags          Tag[]
+  relationships Relationship[]
 }
 
 model Entity {
@@ -57,6 +58,9 @@ model Entity {
   deletedAt DateTime?
 
   tags EntityTag[]
+
+  relationshipsAsSource Relationship[] @relation("RelationshipSource")
+  relationshipsAsTarget Relationship[] @relation("RelationshipTarget")
 
   @@unique([campaignId, name])
   @@index([campaignId])
@@ -92,19 +96,42 @@ model EntityTag {
   @@index([tagId])
 }
 
-model User{
-  id    String @id @default(uuid())
-  email String @unique
-  password  String
+model Relationship {
+  id             String @id @default(uuid())
+  campaignId     String
+  sourceEntityId String
+  targetEntityId String
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  source   Entity   @relation("RelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Cascade)
+  target   Entity   @relation("RelationshipTarget", fields: [targetEntityId], references: [id], onDelete: Cascade)
+
+  type        String
+  description String?
 
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([campaignId, sourceEntityId, targetEntityId, type])
+  @@index([campaignId])
+  @@index([sourceEntityId])
+  @@index([targetEntityId])
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   campaignMemberships CampaignMember[]
 }
 
 model CampaignMember {
-  id         String @id @default(uuid())
+  id         String       @id @default(uuid())
   campaignId String
   userId     String
   role       CampaignRole

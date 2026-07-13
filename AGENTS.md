@@ -860,11 +860,11 @@ a lint/format violation is blocked locally before it reaches CI.
 
 Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
 `test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
-so workspace deps are built first). Current coverage (164 tests):
+so workspace deps are built first). Current coverage (176 tests):
 
 - **Domain unit tests** (`packages/domain/src/**/*.test.ts`) — `Campaign`,
-  `Entity`, `CampaignMember`, `User`, `Tag`, `Id`, `DomainError` subclasses.
-  Pure logic, no mocks, no I/O.
+  `Entity`, `CampaignMember`, `User`, `Tag`, `Relationship`, `Id`, `DomainError`
+  subclasses. Pure logic, no mocks, no I/O.
 - **Application service tests** (`apps/api/src/modules/*/application/*.test.ts`)
   — `CampaignService`, `EntityService`, `AuthenticationService`, `TagService`
   against hand-rolled `vi.fn()` mocks of the repository interfaces (`TagService`

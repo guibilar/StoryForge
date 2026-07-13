@@ -1,0 +1,19 @@
+input CreateRelationshipInput {
+  campaignId: ID!
+  sourceEntityId: ID!
+  targetEntityId: ID!
+  type: RelationshipType!
+  description: String
+}
+
+input UpdateRelationshipInput {
+  id: ID!
+  type: RelationshipType
+  description: String
+}
+
+extend type Mutation {
+  createRelationship(input: CreateRelationshipInput!): Relationship!
+  updateRelationship(input: UpdateRelationshipInput!): Relationship!
+  deleteRelationship(id: ID!): Boolean!
+}

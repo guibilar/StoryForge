@@ -415,6 +415,7 @@ export const ModelName = {
   Entity: "Entity",
   Tag: "Tag",
   EntityTag: "EntityTag",
+  Relationship: "Relationship",
   User: "User",
   CampaignMember: "CampaignMember",
 } as const;
@@ -439,7 +440,13 @@ export type TypeMap<
   };
   meta: {
     modelProps:
-      "campaign" | "entity" | "tag" | "entityTag" | "user" | "campaignMember";
+      | "campaign"
+      | "entity"
+      | "tag"
+      | "entityTag"
+      | "relationship"
+      | "user"
+      | "campaignMember";
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
@@ -747,6 +754,82 @@ export type TypeMap<
         };
       };
     };
+    Relationship: {
+      payload: Prisma.$RelationshipPayload<ExtArgs>;
+      fields: Prisma.RelationshipFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.RelationshipFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.RelationshipFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload>;
+        };
+        findFirst: {
+          args: Prisma.RelationshipFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.RelationshipFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload>;
+        };
+        findMany: {
+          args: Prisma.RelationshipFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload>[];
+        };
+        create: {
+          args: Prisma.RelationshipCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload>;
+        };
+        createMany: {
+          args: Prisma.RelationshipCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.RelationshipCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload>[];
+        };
+        delete: {
+          args: Prisma.RelationshipDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload>;
+        };
+        update: {
+          args: Prisma.RelationshipUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload>;
+        };
+        deleteMany: {
+          args: Prisma.RelationshipDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.RelationshipUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.RelationshipUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload>[];
+        };
+        upsert: {
+          args: Prisma.RelationshipUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipPayload>;
+        };
+        aggregate: {
+          args: Prisma.RelationshipAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRelationship>;
+        };
+        groupBy: {
+          args: Prisma.RelationshipGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.RelationshipGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.RelationshipCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.RelationshipCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
     User: {
       payload: Prisma.$UserPayload<ExtArgs>;
       fields: Prisma.UserFieldRefs;
@@ -988,6 +1071,21 @@ export const EntityTagScalarFieldEnum = {
 export type EntityTagScalarFieldEnum =
   (typeof EntityTagScalarFieldEnum)[keyof typeof EntityTagScalarFieldEnum];
 
+export const RelationshipScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  sourceEntityId: "sourceEntityId",
+  targetEntityId: "targetEntityId",
+  type: "type",
+  description: "description",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+  deletedAt: "deletedAt",
+} as const;
+
+export type RelationshipScalarFieldEnum =
+  (typeof RelationshipScalarFieldEnum)[keyof typeof RelationshipScalarFieldEnum];
+
 export const UserScalarFieldEnum = {
   id: "id",
   email: "email",
@@ -1083,6 +1181,20 @@ export type ListEnumVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<
   $PrismaModel,
   "Visibility[]"
 >;
+
+/**
+ * Reference to a field of type 'RelationshipType'
+ */
+export type EnumRelationshipTypeFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  "RelationshipType"
+>;
+
+/**
+ * Reference to a field of type 'RelationshipType[]'
+ */
+export type ListEnumRelationshipTypeFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, "RelationshipType[]">;
 
 /**
  * Reference to a field of type 'CampaignRole'
@@ -1238,6 +1350,7 @@ export type GlobalOmitConfig = {
   entity?: Prisma.EntityOmit;
   tag?: Prisma.TagOmit;
   entityTag?: Prisma.EntityTagOmit;
+  relationship?: Prisma.RelationshipOmit;
   user?: Prisma.UserOmit;
   campaignMember?: Prisma.CampaignMemberOmit;
 };

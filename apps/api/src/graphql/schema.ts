@@ -20,6 +20,10 @@ import {
   typeDefs as tagTypeDefs,
   resolvers as tagResolvers,
 } from "../modules/tags/graphql";
+import {
+  typeDefs as relationshipTypeDefs,
+  resolvers as relationshipResolvers,
+} from "../modules/relationships/graphql";
 
 const rootTypeDefs = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), "schema", "Root.graphql"),
@@ -33,6 +37,13 @@ export const schema = createSchema({
     ...authTypeDefs,
     ...campTypeDefs,
     ...tagTypeDefs,
+    ...relationshipTypeDefs,
   ],
-  resolvers: [entityResolvers, authResolvers, campResolvers, tagResolvers],
+  resolvers: [
+    entityResolvers,
+    authResolvers,
+    campResolvers,
+    tagResolvers,
+    relationshipResolvers,
+  ],
 });

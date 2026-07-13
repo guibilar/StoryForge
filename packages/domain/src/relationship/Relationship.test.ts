@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { Relationship } from "./Relationship";
 import { RelationshipId } from "./RelationshipId";
+import { RelationshipType } from "./RelationshipType";
 
 const validProps = {
   campaignId: "campaign-1",
   sourceEntityId: "entity-1",
   targetEntityId: "entity-2",
-  type: "Ally",
+  type: RelationshipType.ALLY,
   description: "Mutual protection pact",
 };
 
@@ -28,7 +29,7 @@ describe("Relationship", () => {
       campaignId: "campaign-1",
       sourceEntityId: "entity-1",
       targetEntityId: "entity-2",
-      type: "Enemy",
+      type: RelationshipType.ENEMY,
     });
 
     expect(relationship.Description).toBeNull();
@@ -66,16 +67,13 @@ describe("Relationship", () => {
     ).toThrow("Relationship source and target cannot be the same entity.");
   });
 
-  it.each(["", "   "])("rejects an empty type %j", (type) => {
-    expect(() => Relationship.create({ ...validProps, type })).toThrow(
-      "Relationship type is required.",
-    );
-  });
-
-  it("rejects a type longer than 100 characters", () => {
+  it("rejects an invalid type", () => {
     expect(() =>
-      Relationship.create({ ...validProps, type: "a".repeat(101) }),
-    ).toThrow("Relationship type is too long.");
+      Relationship.create({
+        ...validProps,
+        type: "Rival" as RelationshipType,
+      }),
+    ).toThrow('Invalid relationship type: "Rival".');
   });
 
   it("rejects a description longer than 1000 characters", () => {
@@ -87,19 +85,11 @@ describe("Relationship", () => {
   it("changes type and description", () => {
     const relationship = Relationship.create(validProps);
 
-    relationship.changeType("Rival");
+    relationship.changeType(RelationshipType.MEMBER_OF);
     relationship.changeDescription("New description");
 
-    expect(relationship.Type).toBe("Rival");
+    expect(relationship.Type).toBe(RelationshipType.MEMBER_OF);
     expect(relationship.Description).toBe("New description");
-  });
-
-  it("trims the type on change", () => {
-    const relationship = Relationship.create(validProps);
-
-    relationship.changeType("  Rival  ");
-
-    expect(relationship.Type).toBe("Rival");
   });
 
   it("soft-deletes and restores", () => {

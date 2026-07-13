@@ -11,6 +11,7 @@ export type * from "./models/Campaign";
 export type * from "./models/Entity";
 export type * from "./models/Tag";
 export type * from "./models/EntityTag";
+export type * from "./models/Relationship";
 export type * from "./models/User";
 export type * from "./models/CampaignMember";
 export type * from "./commonInputTypes";

@@ -37,6 +37,11 @@ export type Tag = Prisma.TagModel;
  */
 export type EntityTag = Prisma.EntityTagModel;
 /**
+ * Model Relationship
+ *
+ */
+export type Relationship = Prisma.RelationshipModel;
+/**
  * Model User
  *
  */

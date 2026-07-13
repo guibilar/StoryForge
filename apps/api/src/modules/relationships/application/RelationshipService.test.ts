@@ -1,0 +1,145 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  NotFoundError,
+  Relationship,
+  RelationshipRepository,
+  RelationshipType,
+  ValidationError,
+} from "@storyforge/domain";
+import { RelationshipService } from "./RelationshipService";
+
+function makeRepository(): RelationshipRepository {
+  return {
+    findById: vi.fn(),
+    findByCampaign: vi.fn(),
+    findByEntity: vi.fn(),
+    existsByEdge: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  };
+}
+
+const createDto = {
+  campaignId: "campaign-1",
+  sourceEntityId: "entity-1",
+  targetEntityId: "entity-2",
+  type: RelationshipType.ALLY,
+};
+
+describe("RelationshipService", () => {
+  let repository: RelationshipRepository;
+  let service: RelationshipService;
+
+  beforeEach(() => {
+    repository = makeRepository();
+    service = new RelationshipService(repository);
+  });
+
+  describe("createRelationship", () => {
+    it("creates the relationship when no duplicate edge exists", async () => {
+      vi.mocked(repository.existsByEdge).mockResolvedValue(false);
+
+      const relationship = await service.createRelationship(createDto);
+
+      expect(relationship.Type).toBe(RelationshipType.ALLY);
+      expect(repository.create).toHaveBeenCalledWith(relationship);
+    });
+
+    it("rejects a duplicate edge in the campaign", async () => {
+      vi.mocked(repository.existsByEdge).mockResolvedValue(true);
+
+      await expect(service.createRelationship(createDto)).rejects.toThrow(
+        ValidationError,
+      );
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("updateRelationship", () => {
+    it("throws NotFoundError when the relationship does not exist", async () => {
+      vi.mocked(repository.findById).mockResolvedValue(null);
+
+      await expect(
+        service.updateRelationship({ id: "missing" }),
+      ).rejects.toThrow(NotFoundError);
+    });
+
+    it("changes type and description", async () => {
+      const relationship = Relationship.create(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(relationship);
+
+      const updated = await service.updateRelationship({
+        id: relationship.Id.toString(),
+        type: RelationshipType.ENEMY,
+        description: "Falling out",
+      });
+
+      expect(updated.Type).toBe(RelationshipType.ENEMY);
+      expect(updated.Description).toBe("Falling out");
+      expect(repository.update).toHaveBeenCalledWith(relationship);
+    });
+  });
+
+  describe("deleteRelationship", () => {
+    it("throws NotFoundError when the relationship does not exist", async () => {
+      vi.mocked(repository.findById).mockResolvedValue(null);
+
+      await expect(service.deleteRelationship("missing")).rejects.toThrow(
+        NotFoundError,
+      );
+    });
+
+    it("soft-deletes and persists the relationship", async () => {
+      const relationship = Relationship.create(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(relationship);
+
+      await service.deleteRelationship(relationship.Id.toString());
+
+      expect(relationship.isDeleted()).toBe(true);
+      expect(repository.update).toHaveBeenCalledWith(relationship);
+    });
+  });
+
+  describe("getRelationship", () => {
+    it("throws NotFoundError when the relationship does not exist", async () => {
+      vi.mocked(repository.findById).mockResolvedValue(null);
+
+      await expect(service.getRelationship("missing")).rejects.toThrow(
+        NotFoundError,
+      );
+    });
+
+    it("returns the relationship when found", async () => {
+      const relationship = Relationship.create(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(relationship);
+
+      await expect(
+        service.getRelationship(relationship.Id.toString()),
+      ).resolves.toBe(relationship);
+    });
+  });
+
+  describe("listRelationshipsByCampaign", () => {
+    it("delegates to the repository", async () => {
+      const relationships = [Relationship.create(createDto)];
+      vi.mocked(repository.findByCampaign).mockResolvedValue(relationships);
+
+      await expect(
+        service.listRelationshipsByCampaign("campaign-1"),
+      ).resolves.toBe(relationships);
+      expect(repository.findByCampaign).toHaveBeenCalledWith("campaign-1");
+    });
+  });
+
+  describe("listRelationshipsByEntity", () => {
+    it("delegates to the repository", async () => {
+      const relationships = [Relationship.create(createDto)];
+      vi.mocked(repository.findByEntity).mockResolvedValue(relationships);
+
+      await expect(service.listRelationshipsByEntity("entity-1")).resolves.toBe(
+        relationships,
+      );
+      expect(repository.findByEntity).toHaveBeenCalledWith("entity-1");
+    });
+  });
+});

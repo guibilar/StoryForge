@@ -58,6 +58,7 @@ export const ModelName = {
   Entity: "Entity",
   Tag: "Tag",
   EntityTag: "EntityTag",
+  Relationship: "Relationship",
   User: "User",
   CampaignMember: "CampaignMember",
 } as const;
@@ -127,6 +128,21 @@ export const EntityTagScalarFieldEnum = {
 
 export type EntityTagScalarFieldEnum =
   (typeof EntityTagScalarFieldEnum)[keyof typeof EntityTagScalarFieldEnum];
+
+export const RelationshipScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  sourceEntityId: "sourceEntityId",
+  targetEntityId: "targetEntityId",
+  type: "type",
+  description: "description",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+  deletedAt: "deletedAt",
+} as const;
+
+export type RelationshipScalarFieldEnum =
+  (typeof RelationshipScalarFieldEnum)[keyof typeof RelationshipScalarFieldEnum];
 
 export const UserScalarFieldEnum = {
   id: "id",

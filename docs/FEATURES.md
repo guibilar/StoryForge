@@ -15,11 +15,11 @@ tracks what's actually built, not just planned.
       to main; runs a `postgres:16` service container + `prisma migrate deploy`
       so Prisma repository integration tests run for real, not mocked)
 - [x] Husky hooks — pre-commit runs `pnpm test` then `pnpm lint-staged` (KAN-24)
-- [x] Test suite — 176 tests via Vitest across `packages/domain` (entities,
+- [x] Test suite — 203 tests via Vitest across `packages/domain` (entities,
       value objects, tags, relationships) and `apps/api` (application services
-      w/ mocked repos, Prisma mappers, and Prisma repository integration tests
-      against a real Postgres). See AGENTS.md "Testing" section for layout and
-      gotchas.
+      w/ mocked repos, Prisma mappers, GraphQL resolvers, and Prisma repository
+      integration tests against a real Postgres). See AGENTS.md "Testing"
+      section for layout and gotchas.
 
 ## Authentication & Campaigns
 
@@ -64,9 +64,17 @@ tracks what's actually built, not just planned.
       `Relationship` Prisma model (directed edge, `sourceEntityId`/`targetEntityId`
       FKs to `Entity`, `onDelete: Cascade`); soft delete like `Entity`; blocks
       self-relationships and duplicate `(campaignId, source, target, type)` edges
-      via a unique constraint. No service/repository impl or GraphQL layer yet —
-      that's KAN-41.
-- [ ] Relationship types (MemberOf, Owns, Enemy, Ally, Parent, Child)
+      via a unique constraint.
+- [x] Relationship types (MemberOf, Owns, Enemy, Ally, Parent, Child) (KAN-41)
+      — `RelationshipType` TS enum + matching Prisma enum, replacing KAN-40's
+      free-string `type`; `RelationshipService`, `PrismaRelationshipRepository`,
+      `RelationshipMapper` under `apps/api/src/modules/relationships/`; GraphQL
+      `relationship(id)`, `relationships(campaignId, entityId)` queries,
+      `createRelationship`/`updateRelationship`/`deleteRelationship` mutations
+      (all three guarded via `requireCurrentUser`). Directional-only for v1 —
+      Ally/Enemy do not auto-create an inverse edge (deferred, not needed yet).
+      No nested `sourceEntity`/`targetEntity` field resolvers — GraphQL type
+      exposes raw IDs only.
 - [ ] Graph visualization (React Flow)
 
 ## Notes & Assets

@@ -1,0 +1,4 @@
+extend type Query {
+  relationship(id: ID!): Relationship
+  relationships(campaignId: ID!, entityId: ID): [Relationship!]!
+}

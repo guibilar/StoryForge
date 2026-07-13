@@ -860,17 +860,17 @@ a lint/format violation is blocked locally before it reaches CI.
 
 Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
 `test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
-so workspace deps are built first). Current coverage (176 tests):
+so workspace deps are built first). Current coverage (203 tests):
 
 - **Domain unit tests** (`packages/domain/src/**/*.test.ts`) — `Campaign`,
   `Entity`, `CampaignMember`, `User`, `Tag`, `Relationship`, `Id`, `DomainError`
   subclasses. Pure logic, no mocks, no I/O.
 - **Application service tests** (`apps/api/src/modules/*/application/*.test.ts`)
-  — `CampaignService`, `EntityService`, `AuthenticationService`, `TagService`
-  against hand-rolled `vi.fn()` mocks of the repository interfaces (`TagService`
-  mocks both `TagRepository` and `EntityRepository`). `AuthenticationService`
-  uses real `bcrypt-ts`/`jsonwebtoken` (not mocked) so the token roundtrip is
-  actually verified, not assumed.
+  — `CampaignService`, `EntityService`, `AuthenticationService`, `TagService`,
+  `RelationshipService` against hand-rolled `vi.fn()` mocks of the repository
+  interfaces (`TagService` mocks both `TagRepository` and `EntityRepository`).
+  `AuthenticationService` uses real `bcrypt-ts`/`jsonwebtoken` (not mocked) so
+  the token roundtrip is actually verified, not assumed.
 - **Mapper tests** (`apps/api/src/modules/*/infrastructure/*Mapper.test.ts`)
   — `toDomain`/`toPersistence` roundtrips against literal Prisma-shaped
   records.

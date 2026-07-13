@@ -1,13 +1,19 @@
 {
   "info": {
     "name": "StoryForge API",
-    "description": "GraphQL API for StoryForge. Import the StoryForge Local environment alongside this collection. Run Auth > Register or Login first — it stores the JWT in {{token}}, which the other requests send as a Bearer header.",
+    "description": "GraphQL API for StoryForge. Import the StoryForge Local environment alongside this collection. Run Auth > Register or Login first \u2014 it stores the JWT in {{token}}, which the other requests send as a Bearer header.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "storyforge-api-collection"
   },
   "auth": {
     "type": "bearer",
-    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
   },
   "item": [
     {
@@ -17,8 +23,15 @@
           "name": "Register User",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "auth": { "type": "noauth" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -45,8 +58,15 @@
           "name": "Login",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "auth": { "type": "noauth" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -73,7 +93,12 @@
           "name": "Me",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -93,7 +118,12 @@
           "name": "List Campaigns",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -108,7 +138,12 @@
           "name": "Get Campaign",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -123,7 +158,12 @@
           "name": "Create Campaign",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -150,7 +190,12 @@
           "name": "Update Campaign",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -165,7 +210,12 @@
           "name": "Archive Campaign",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -185,7 +235,12 @@
           "name": "List Entities",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -200,7 +255,12 @@
           "name": "List Entities (Filtered)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -215,7 +275,12 @@
           "name": "Get Entity",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -230,7 +295,12 @@
           "name": "Create Entity",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -257,7 +327,12 @@
           "name": "Update Entity",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -272,7 +347,12 @@
           "name": "Delete Entity",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -320,7 +400,12 @@
           "name": "List Campaign Tags",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -335,7 +420,12 @@
           "name": "Add Tag To Entity",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
@@ -362,13 +452,187 @@
           "name": "Remove Tag From Entity",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}",
             "body": {
               "mode": "graphql",
               "graphql": {
                 "query": "mutation RemoveTagFromEntity($entityId: ID!, $tagId: ID!) {\n  removeTagFromEntity(entityId: $entityId, tagId: $tagId) {\n    id\n    tags {\n      id\n      campaignId\n      name\n      createdAt\n      updatedAt\n    }\n  }\n}",
                 "variables": "{\n  \"entityId\": \"{{entityId}}\",\n  \"tagId\": \"{{tagId}}\"\n}"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Relationships",
+      "item": [
+        {
+          "name": "Create Target Entity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    name\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"type\": \"npc\",\n    \"name\": \"My Target Entity\",\n    \"description\": \"Second entity for relationship testing\",\n    \"visibility\": \"PUBLIC\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const id = body?.data?.createEntity?.id;",
+                  "if (id) pm.environment.set('targetEntityId', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Relationship",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    campaignId\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"sourceEntityId\": \"{{entityId}}\",\n    \"targetEntityId\": \"{{targetEntityId}}\",\n    \"type\": \"ALLY\",\n    \"description\": \"Created from Postman\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const id = body?.data?.createRelationship?.id;",
+                  "if (id) pm.environment.set('relationshipId', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Relationship",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Relationship($id: ID!) {\n  relationship(id: $id) {\n    id\n    campaignId\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
+                "variables": "{\n  \"id\": \"{{relationshipId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "List Relationships (By Campaign)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"entityId\": null\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "List Relationships (By Entity)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"entityId\": \"{{entityId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Relationship",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    type\n    description\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"id\": \"{{relationshipId}}\",\n    \"type\": \"ENEMY\",\n    \"description\": \"Turned hostile (updated from Postman)\"\n  }\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Relationship",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteRelationship($id: ID!) {\n  deleteRelationship(id: $id)\n}",
+                "variables": "{\n  \"id\": \"{{relationshipId}}\"\n}"
               }
             }
           }

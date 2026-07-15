@@ -7,3 +7,4 @@ export * from "./tag";
 export * from "./relationship";
 export * from "./note";
 export * from "./attachment";
+export * from "./noteLink";

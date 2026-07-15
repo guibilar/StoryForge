@@ -69,6 +69,22 @@ export class PrismaEntityRepository implements EntityRepository {
     return entity !== null;
   }
 
+  async findByName(campaignId: string, name: string): Promise<Entity | null> {
+    const record = await prisma.entity.findFirst({
+      where: {
+        campaignId,
+        name,
+        deletedAt: null,
+      },
+    });
+
+    if (!record) {
+      return null;
+    }
+
+    return EntityMapper.toDomain(record);
+  }
+
   async create(entity: Entity): Promise<void> {
     await prisma.entity.create({
       data: EntityMapper.toPersistence(entity),

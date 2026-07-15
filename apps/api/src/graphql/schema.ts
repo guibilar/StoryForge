@@ -36,6 +36,10 @@ import {
   typeDefs as attachmentTypeDefs,
   resolvers as attachmentResolvers,
 } from "../modules/attachments/graphql";
+import {
+  typeDefs as noteLinkTypeDefs,
+  resolvers as noteLinkResolvers,
+} from "../modules/noteLinks/graphql";
 
 const rootTypeDefs = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), "schema", "Root.graphql"),
@@ -53,6 +57,7 @@ export const schema = createSchema({
     ...campaignMemberTypeDefs,
     ...noteTypeDefs,
     ...attachmentTypeDefs,
+    ...noteLinkTypeDefs,
   ],
   resolvers: [
     entityResolvers,
@@ -63,5 +68,6 @@ export const schema = createSchema({
     campaignMemberResolvers,
     noteResolvers,
     attachmentResolvers,
+    noteLinkResolvers,
   ],
 });

@@ -32,6 +32,18 @@ export class PrismaNoteRepository implements NoteRepository {
     return records.map(NoteMapper.toDomain);
   }
 
+  async findByTitle(campaignId: string, title: string): Promise<Note[]> {
+    const records = await prisma.note.findMany({
+      where: {
+        campaignId,
+        title,
+        deletedAt: null,
+      },
+    });
+
+    return records.map(NoteMapper.toDomain);
+  }
+
   async create(note: Note): Promise<void> {
     await prisma.note.create({
       data: NoteMapper.toPersistence(note),

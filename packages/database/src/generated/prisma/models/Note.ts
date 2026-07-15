@@ -215,6 +215,8 @@ export type NoteWhereInput = {
   >;
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
   attachments?: Prisma.AttachmentListRelationFilter;
+  linksOut?: Prisma.NoteLinkListRelationFilter;
+  linksIn?: Prisma.NoteLinkListRelationFilter;
 };
 
 export type NoteOrderByWithRelationInput = {
@@ -229,6 +231,8 @@ export type NoteOrderByWithRelationInput = {
   campaign?: Prisma.CampaignOrderByWithRelationInput;
   author?: Prisma.UserOrderByWithRelationInput;
   attachments?: Prisma.AttachmentOrderByRelationAggregateInput;
+  linksOut?: Prisma.NoteLinkOrderByRelationAggregateInput;
+  linksIn?: Prisma.NoteLinkOrderByRelationAggregateInput;
 };
 
 export type NoteWhereUniqueInput = Prisma.AtLeast<
@@ -250,6 +254,8 @@ export type NoteWhereUniqueInput = Prisma.AtLeast<
     >;
     author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     attachments?: Prisma.AttachmentListRelationFilter;
+    linksOut?: Prisma.NoteLinkListRelationFilter;
+    linksIn?: Prisma.NoteLinkListRelationFilter;
   },
   "id"
 >;
@@ -297,6 +303,8 @@ export type NoteCreateInput = {
   campaign: Prisma.CampaignCreateNestedOneWithoutNotesInput;
   author: Prisma.UserCreateNestedOneWithoutNotesInput;
   attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
+  linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
 
 export type NoteUncheckedCreateInput = {
@@ -309,6 +317,8 @@ export type NoteUncheckedCreateInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
+  linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
 
 export type NoteUpdateInput = {
@@ -322,6 +332,8 @@ export type NoteUpdateInput = {
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutNotesNestedInput;
   author?: Prisma.UserUpdateOneRequiredWithoutNotesNestedInput;
   attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
+  linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
 
 export type NoteUncheckedUpdateInput = {
@@ -335,6 +347,8 @@ export type NoteUncheckedUpdateInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
+  linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
 
 export type NoteCreateManyInput = {
@@ -416,6 +430,11 @@ export type NoteMinOrderByAggregateInput = {
 export type NoteScalarRelationFilter = {
   is?: Prisma.NoteWhereInput;
   isNot?: Prisma.NoteWhereInput;
+};
+
+export type NoteNullableScalarRelationFilter = {
+  is?: Prisma.NoteWhereInput | null;
+  isNot?: Prisma.NoteWhereInput | null;
 };
 
 export type NoteCreateNestedManyWithoutCampaignInput = {
@@ -590,6 +609,60 @@ export type NoteUncheckedUpdateManyWithoutAuthorNestedInput = {
   deleteMany?: Prisma.NoteScalarWhereInput | Prisma.NoteScalarWhereInput[];
 };
 
+export type NoteCreateNestedOneWithoutLinksOutInput = {
+  create?: Prisma.XOR<
+    Prisma.NoteCreateWithoutLinksOutInput,
+    Prisma.NoteUncheckedCreateWithoutLinksOutInput
+  >;
+  connectOrCreate?: Prisma.NoteCreateOrConnectWithoutLinksOutInput;
+  connect?: Prisma.NoteWhereUniqueInput;
+};
+
+export type NoteCreateNestedOneWithoutLinksInInput = {
+  create?: Prisma.XOR<
+    Prisma.NoteCreateWithoutLinksInInput,
+    Prisma.NoteUncheckedCreateWithoutLinksInInput
+  >;
+  connectOrCreate?: Prisma.NoteCreateOrConnectWithoutLinksInInput;
+  connect?: Prisma.NoteWhereUniqueInput;
+};
+
+export type NoteUpdateOneRequiredWithoutLinksOutNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.NoteCreateWithoutLinksOutInput,
+    Prisma.NoteUncheckedCreateWithoutLinksOutInput
+  >;
+  connectOrCreate?: Prisma.NoteCreateOrConnectWithoutLinksOutInput;
+  upsert?: Prisma.NoteUpsertWithoutLinksOutInput;
+  connect?: Prisma.NoteWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.NoteUpdateToOneWithWhereWithoutLinksOutInput,
+      Prisma.NoteUpdateWithoutLinksOutInput
+    >,
+    Prisma.NoteUncheckedUpdateWithoutLinksOutInput
+  >;
+};
+
+export type NoteUpdateOneWithoutLinksInNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.NoteCreateWithoutLinksInInput,
+    Prisma.NoteUncheckedCreateWithoutLinksInInput
+  >;
+  connectOrCreate?: Prisma.NoteCreateOrConnectWithoutLinksInInput;
+  upsert?: Prisma.NoteUpsertWithoutLinksInInput;
+  disconnect?: Prisma.NoteWhereInput | boolean;
+  delete?: Prisma.NoteWhereInput | boolean;
+  connect?: Prisma.NoteWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.NoteUpdateToOneWithWhereWithoutLinksInInput,
+      Prisma.NoteUpdateWithoutLinksInInput
+    >,
+    Prisma.NoteUncheckedUpdateWithoutLinksInInput
+  >;
+};
+
 export type NoteCreateNestedOneWithoutAttachmentsInput = {
   create?: Prisma.XOR<
     Prisma.NoteCreateWithoutAttachmentsInput,
@@ -625,6 +698,8 @@ export type NoteCreateWithoutCampaignInput = {
   deletedAt?: Date | string | null;
   author: Prisma.UserCreateNestedOneWithoutNotesInput;
   attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
+  linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
 
 export type NoteUncheckedCreateWithoutCampaignInput = {
@@ -636,6 +711,8 @@ export type NoteUncheckedCreateWithoutCampaignInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
+  linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
 
 export type NoteCreateOrConnectWithoutCampaignInput = {
@@ -703,6 +780,8 @@ export type NoteCreateWithoutAuthorInput = {
   deletedAt?: Date | string | null;
   campaign: Prisma.CampaignCreateNestedOneWithoutNotesInput;
   attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
+  linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
 
 export type NoteUncheckedCreateWithoutAuthorInput = {
@@ -714,6 +793,8 @@ export type NoteUncheckedCreateWithoutAuthorInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
+  linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
 
 export type NoteCreateOrConnectWithoutAuthorInput = {
@@ -757,6 +838,170 @@ export type NoteUpdateManyWithWhereWithoutAuthorInput = {
   >;
 };
 
+export type NoteCreateWithoutLinksOutInput = {
+  id?: string;
+  title: string;
+  content: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  campaign: Prisma.CampaignCreateNestedOneWithoutNotesInput;
+  author: Prisma.UserCreateNestedOneWithoutNotesInput;
+  attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
+};
+
+export type NoteUncheckedCreateWithoutLinksOutInput = {
+  id?: string;
+  campaignId: string;
+  authorId: string;
+  title: string;
+  content: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
+};
+
+export type NoteCreateOrConnectWithoutLinksOutInput = {
+  where: Prisma.NoteWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.NoteCreateWithoutLinksOutInput,
+    Prisma.NoteUncheckedCreateWithoutLinksOutInput
+  >;
+};
+
+export type NoteCreateWithoutLinksInInput = {
+  id?: string;
+  title: string;
+  content: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  campaign: Prisma.CampaignCreateNestedOneWithoutNotesInput;
+  author: Prisma.UserCreateNestedOneWithoutNotesInput;
+  attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
+  linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
+};
+
+export type NoteUncheckedCreateWithoutLinksInInput = {
+  id?: string;
+  campaignId: string;
+  authorId: string;
+  title: string;
+  content: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
+  linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
+};
+
+export type NoteCreateOrConnectWithoutLinksInInput = {
+  where: Prisma.NoteWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.NoteCreateWithoutLinksInInput,
+    Prisma.NoteUncheckedCreateWithoutLinksInInput
+  >;
+};
+
+export type NoteUpsertWithoutLinksOutInput = {
+  update: Prisma.XOR<
+    Prisma.NoteUpdateWithoutLinksOutInput,
+    Prisma.NoteUncheckedUpdateWithoutLinksOutInput
+  >;
+  create: Prisma.XOR<
+    Prisma.NoteCreateWithoutLinksOutInput,
+    Prisma.NoteUncheckedCreateWithoutLinksOutInput
+  >;
+  where?: Prisma.NoteWhereInput;
+};
+
+export type NoteUpdateToOneWithWhereWithoutLinksOutInput = {
+  where?: Prisma.NoteWhereInput;
+  data: Prisma.XOR<
+    Prisma.NoteUpdateWithoutLinksOutInput,
+    Prisma.NoteUncheckedUpdateWithoutLinksOutInput
+  >;
+};
+
+export type NoteUpdateWithoutLinksOutInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  title?: Prisma.StringFieldUpdateOperationsInput | string;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  campaign?: Prisma.CampaignUpdateOneRequiredWithoutNotesNestedInput;
+  author?: Prisma.UserUpdateOneRequiredWithoutNotesNestedInput;
+  attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
+};
+
+export type NoteUncheckedUpdateWithoutLinksOutInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  authorId?: Prisma.StringFieldUpdateOperationsInput | string;
+  title?: Prisma.StringFieldUpdateOperationsInput | string;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
+};
+
+export type NoteUpsertWithoutLinksInInput = {
+  update: Prisma.XOR<
+    Prisma.NoteUpdateWithoutLinksInInput,
+    Prisma.NoteUncheckedUpdateWithoutLinksInInput
+  >;
+  create: Prisma.XOR<
+    Prisma.NoteCreateWithoutLinksInInput,
+    Prisma.NoteUncheckedCreateWithoutLinksInInput
+  >;
+  where?: Prisma.NoteWhereInput;
+};
+
+export type NoteUpdateToOneWithWhereWithoutLinksInInput = {
+  where?: Prisma.NoteWhereInput;
+  data: Prisma.XOR<
+    Prisma.NoteUpdateWithoutLinksInInput,
+    Prisma.NoteUncheckedUpdateWithoutLinksInInput
+  >;
+};
+
+export type NoteUpdateWithoutLinksInInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  title?: Prisma.StringFieldUpdateOperationsInput | string;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  campaign?: Prisma.CampaignUpdateOneRequiredWithoutNotesNestedInput;
+  author?: Prisma.UserUpdateOneRequiredWithoutNotesNestedInput;
+  attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
+  linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
+};
+
+export type NoteUncheckedUpdateWithoutLinksInInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  authorId?: Prisma.StringFieldUpdateOperationsInput | string;
+  title?: Prisma.StringFieldUpdateOperationsInput | string;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
+  linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
+};
+
 export type NoteCreateWithoutAttachmentsInput = {
   id?: string;
   title: string;
@@ -766,6 +1011,8 @@ export type NoteCreateWithoutAttachmentsInput = {
   deletedAt?: Date | string | null;
   campaign: Prisma.CampaignCreateNestedOneWithoutNotesInput;
   author: Prisma.UserCreateNestedOneWithoutNotesInput;
+  linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
 
 export type NoteUncheckedCreateWithoutAttachmentsInput = {
@@ -777,6 +1024,8 @@ export type NoteUncheckedCreateWithoutAttachmentsInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
+  linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
 
 export type NoteCreateOrConnectWithoutAttachmentsInput = {
@@ -817,6 +1066,8 @@ export type NoteUpdateWithoutAttachmentsInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutNotesNestedInput;
   author?: Prisma.UserUpdateOneRequiredWithoutNotesNestedInput;
+  linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
 
 export type NoteUncheckedUpdateWithoutAttachmentsInput = {
@@ -829,6 +1080,8 @@ export type NoteUncheckedUpdateWithoutAttachmentsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
 
 export type NoteCreateManyCampaignInput = {
@@ -851,6 +1104,8 @@ export type NoteUpdateWithoutCampaignInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   author?: Prisma.UserUpdateOneRequiredWithoutNotesNestedInput;
   attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
+  linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
 
 export type NoteUncheckedUpdateWithoutCampaignInput = {
@@ -863,6 +1118,8 @@ export type NoteUncheckedUpdateWithoutCampaignInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
+  linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
 
 export type NoteUncheckedUpdateManyWithoutCampaignInput = {
@@ -896,6 +1153,8 @@ export type NoteUpdateWithoutAuthorInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutNotesNestedInput;
   attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
+  linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
 
 export type NoteUncheckedUpdateWithoutAuthorInput = {
@@ -908,6 +1167,8 @@ export type NoteUncheckedUpdateWithoutAuthorInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
+  linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
 
 export type NoteUncheckedUpdateManyWithoutAuthorInput = {
@@ -927,6 +1188,8 @@ export type NoteUncheckedUpdateManyWithoutAuthorInput = {
 
 export type NoteCountOutputType = {
   attachments: number;
+  linksOut: number;
+  linksIn: number;
 };
 
 export type NoteCountOutputTypeSelect<
@@ -934,6 +1197,8 @@ export type NoteCountOutputTypeSelect<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   attachments?: boolean | NoteCountOutputTypeCountAttachmentsArgs;
+  linksOut?: boolean | NoteCountOutputTypeCountLinksOutArgs;
+  linksIn?: boolean | NoteCountOutputTypeCountLinksInArgs;
 };
 
 /**
@@ -959,6 +1224,26 @@ export type NoteCountOutputTypeCountAttachmentsArgs<
   where?: Prisma.AttachmentWhereInput;
 };
 
+/**
+ * NoteCountOutputType without action
+ */
+export type NoteCountOutputTypeCountLinksOutArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.NoteLinkWhereInput;
+};
+
+/**
+ * NoteCountOutputType without action
+ */
+export type NoteCountOutputTypeCountLinksInArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.NoteLinkWhereInput;
+};
+
 export type NoteSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -975,6 +1260,8 @@ export type NoteSelect<
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
     author?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     attachments?: boolean | Prisma.Note$attachmentsArgs<ExtArgs>;
+    linksOut?: boolean | Prisma.Note$linksOutArgs<ExtArgs>;
+    linksIn?: boolean | Prisma.Note$linksInArgs<ExtArgs>;
     _count?: boolean | Prisma.NoteCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["note"]
@@ -1050,6 +1337,8 @@ export type NoteInclude<
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
   attachments?: boolean | Prisma.Note$attachmentsArgs<ExtArgs>;
+  linksOut?: boolean | Prisma.Note$linksOutArgs<ExtArgs>;
+  linksIn?: boolean | Prisma.Note$linksInArgs<ExtArgs>;
   _count?: boolean | Prisma.NoteCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type NoteIncludeCreateManyAndReturn<
@@ -1076,6 +1365,8 @@ export type $NotePayload<
     campaign: Prisma.$CampaignPayload<ExtArgs>;
     author: Prisma.$UserPayload<ExtArgs>;
     attachments: Prisma.$AttachmentPayload<ExtArgs>[];
+    linksOut: Prisma.$NoteLinkPayload<ExtArgs>[];
+    linksIn: Prisma.$NoteLinkPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1676,6 +1967,28 @@ export interface Prisma__NoteClient<
       >
     | Null
   >;
+  linksOut<T extends Prisma.Note$linksOutArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Note$linksOutArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$NoteLinkPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  linksIn<T extends Prisma.Note$linksInArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Note$linksInArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$NoteLinkPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2198,6 +2511,64 @@ export type Note$attachmentsArgs<
   skip?: number;
   distinct?:
     Prisma.AttachmentScalarFieldEnum | Prisma.AttachmentScalarFieldEnum[];
+};
+
+/**
+ * Note.linksOut
+ */
+export type Note$linksOutArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the NoteLink
+   */
+  select?: Prisma.NoteLinkSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the NoteLink
+   */
+  omit?: Prisma.NoteLinkOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NoteLinkInclude<ExtArgs> | null;
+  where?: Prisma.NoteLinkWhereInput;
+  orderBy?:
+    | Prisma.NoteLinkOrderByWithRelationInput
+    | Prisma.NoteLinkOrderByWithRelationInput[];
+  cursor?: Prisma.NoteLinkWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.NoteLinkScalarFieldEnum | Prisma.NoteLinkScalarFieldEnum[];
+};
+
+/**
+ * Note.linksIn
+ */
+export type Note$linksInArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the NoteLink
+   */
+  select?: Prisma.NoteLinkSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the NoteLink
+   */
+  omit?: Prisma.NoteLinkOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NoteLinkInclude<ExtArgs> | null;
+  where?: Prisma.NoteLinkWhereInput;
+  orderBy?:
+    | Prisma.NoteLinkOrderByWithRelationInput
+    | Prisma.NoteLinkOrderByWithRelationInput[];
+  cursor?: Prisma.NoteLinkWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.NoteLinkScalarFieldEnum | Prisma.NoteLinkScalarFieldEnum[];
 };
 
 /**

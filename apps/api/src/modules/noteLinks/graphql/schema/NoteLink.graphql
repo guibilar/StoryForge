@@ -1,0 +1,9 @@
+extend type Note {
+  linkedEntities: [Entity!]!
+  linkedNotes: [Note!]!
+  backlinks: [Note!]!
+}
+
+extend type Entity {
+  backlinks: [Note!]!
+}

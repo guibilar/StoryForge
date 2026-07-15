@@ -63,6 +63,8 @@ model Entity {
   relationshipsAsSource Relationship[] @relation("RelationshipSource")
   relationshipsAsTarget Relationship[] @relation("RelationshipTarget")
 
+  backlinks NoteLink[] @relation("NoteLinkTargetEntity")
+
   @@unique([campaignId, name])
   @@index([campaignId])
 }
@@ -149,7 +151,29 @@ model Note {
 
   attachments Attachment[]
 
+  linksOut NoteLink[] @relation("NoteLinkSource")
+  linksIn  NoteLink[] @relation("NoteLinkTargetNote")
+
   @@index([campaignId])
+}
+
+model NoteLink {
+  id     String @id @default(uuid())
+  noteId String
+
+  note Note @relation("NoteLinkSource", fields: [noteId], references: [id], onDelete: Cascade)
+
+  targetEntityId String?
+  targetEntity   Entity? @relation("NoteLinkTargetEntity", fields: [targetEntityId], references: [id], onDelete: Cascade)
+
+  targetNoteId String?
+  targetNote   Note?    @relation("NoteLinkTargetNote", fields: [targetNoteId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([noteId])
+  @@index([targetEntityId])
+  @@index([targetNoteId])
 }
 
 model Attachment {

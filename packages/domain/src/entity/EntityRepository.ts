@@ -17,6 +17,8 @@ export interface EntityRepository {
 
   existsByName(campaignId: string, name: string): Promise<boolean>;
 
+  findByName(campaignId: string, name: string): Promise<Entity | null>;
+
   create(entity: Entity): Promise<void>;
 
   update(entity: Entity): Promise<void>;

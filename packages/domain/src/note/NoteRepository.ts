@@ -6,6 +6,8 @@ export interface NoteRepository {
 
   findByCampaign(campaignId: string): Promise<Note[]>;
 
+  findByTitle(campaignId: string, title: string): Promise<Note[]>;
+
   create(note: Note): Promise<void>;
 
   update(note: Note): Promise<void>;

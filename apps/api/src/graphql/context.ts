@@ -20,6 +20,7 @@ import { NoteService } from "../modules/notes/application/NoteService";
 import { PrismaNoteRepository } from "../modules/notes/infrastructure/PrismaNoteRepository";
 import { AttachmentService } from "../modules/attachments/application/AttachmentService";
 import { PrismaAttachmentRepository } from "../modules/attachments/infrastructure/PrismaAttachmentRepository";
+import { PrismaNoteLinkRepository } from "../modules/noteLinks/infrastructure/PrismaNoteLinkRepository";
 
 export interface GraphQLContext extends YogaInitialContext {
   requestId: string;
@@ -56,7 +57,11 @@ const campaignMemberService = new CampaignMemberService(
 );
 const authenticationService = new AuthenticationService(userRepository);
 const imageStorage = new LocalImageStore();
-const noteService = new NoteService(new PrismaNoteRepository());
+const noteService = new NoteService(
+  new PrismaNoteRepository(),
+  new PrismaEntityRepository(),
+  new PrismaNoteLinkRepository(),
+);
 const attachmentService = new AttachmentService(
   new PrismaAttachmentRepository(),
 );

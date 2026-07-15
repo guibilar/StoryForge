@@ -241,6 +241,7 @@ export type EntityWhereInput = {
   tags?: Prisma.EntityTagListRelationFilter;
   relationshipsAsSource?: Prisma.RelationshipListRelationFilter;
   relationshipsAsTarget?: Prisma.RelationshipListRelationFilter;
+  backlinks?: Prisma.NoteLinkListRelationFilter;
 };
 
 export type EntityOrderByWithRelationInput = {
@@ -259,6 +260,7 @@ export type EntityOrderByWithRelationInput = {
   tags?: Prisma.EntityTagOrderByRelationAggregateInput;
   relationshipsAsSource?: Prisma.RelationshipOrderByRelationAggregateInput;
   relationshipsAsTarget?: Prisma.RelationshipOrderByRelationAggregateInput;
+  backlinks?: Prisma.NoteLinkOrderByRelationAggregateInput;
 };
 
 export type EntityWhereUniqueInput = Prisma.AtLeast<
@@ -285,6 +287,7 @@ export type EntityWhereUniqueInput = Prisma.AtLeast<
     tags?: Prisma.EntityTagListRelationFilter;
     relationshipsAsSource?: Prisma.RelationshipListRelationFilter;
     relationshipsAsTarget?: Prisma.RelationshipListRelationFilter;
+    backlinks?: Prisma.NoteLinkListRelationFilter;
   },
   "id" | "campaignId_name"
 >;
@@ -348,6 +351,7 @@ export type EntityCreateInput = {
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
 };
 
 export type EntityUncheckedCreateInput = {
@@ -365,6 +369,7 @@ export type EntityUncheckedCreateInput = {
   tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
 };
 
 export type EntityUpdateInput = {
@@ -384,6 +389,7 @@ export type EntityUpdateInput = {
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateInput = {
@@ -403,6 +409,7 @@ export type EntityUncheckedUpdateInput = {
   tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
 };
 
 export type EntityCreateManyInput = {
@@ -510,6 +517,11 @@ export type EntityMinOrderByAggregateInput = {
 export type EntityScalarRelationFilter = {
   is?: Prisma.EntityWhereInput;
   isNot?: Prisma.EntityWhereInput;
+};
+
+export type EntityNullableScalarRelationFilter = {
+  is?: Prisma.EntityWhereInput | null;
+  isNot?: Prisma.EntityWhereInput | null;
 };
 
 export type EntityCreateNestedManyWithoutCampaignInput = {
@@ -680,6 +692,34 @@ export type EntityUpdateOneRequiredWithoutRelationshipsAsTargetNestedInput = {
   >;
 };
 
+export type EntityCreateNestedOneWithoutBacklinksInput = {
+  create?: Prisma.XOR<
+    Prisma.EntityCreateWithoutBacklinksInput,
+    Prisma.EntityUncheckedCreateWithoutBacklinksInput
+  >;
+  connectOrCreate?: Prisma.EntityCreateOrConnectWithoutBacklinksInput;
+  connect?: Prisma.EntityWhereUniqueInput;
+};
+
+export type EntityUpdateOneWithoutBacklinksNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.EntityCreateWithoutBacklinksInput,
+    Prisma.EntityUncheckedCreateWithoutBacklinksInput
+  >;
+  connectOrCreate?: Prisma.EntityCreateOrConnectWithoutBacklinksInput;
+  upsert?: Prisma.EntityUpsertWithoutBacklinksInput;
+  disconnect?: Prisma.EntityWhereInput | boolean;
+  delete?: Prisma.EntityWhereInput | boolean;
+  connect?: Prisma.EntityWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.EntityUpdateToOneWithWhereWithoutBacklinksInput,
+      Prisma.EntityUpdateWithoutBacklinksInput
+    >,
+    Prisma.EntityUncheckedUpdateWithoutBacklinksInput
+  >;
+};
+
 export type EntityCreateWithoutCampaignInput = {
   id?: string;
   type: string;
@@ -694,6 +734,7 @@ export type EntityCreateWithoutCampaignInput = {
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
 };
 
 export type EntityUncheckedCreateWithoutCampaignInput = {
@@ -710,6 +751,7 @@ export type EntityUncheckedCreateWithoutCampaignInput = {
   tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
 };
 
 export type EntityCreateOrConnectWithoutCampaignInput = {
@@ -786,6 +828,7 @@ export type EntityCreateWithoutTagsInput = {
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
 };
 
 export type EntityUncheckedCreateWithoutTagsInput = {
@@ -802,6 +845,7 @@ export type EntityUncheckedCreateWithoutTagsInput = {
   deletedAt?: Date | string | null;
   relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
 };
 
 export type EntityCreateOrConnectWithoutTagsInput = {
@@ -848,6 +892,7 @@ export type EntityUpdateWithoutTagsInput = {
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateWithoutTagsInput = {
@@ -866,6 +911,7 @@ export type EntityUncheckedUpdateWithoutTagsInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
 };
 
 export type EntityCreateWithoutRelationshipsAsSourceInput = {
@@ -882,6 +928,7 @@ export type EntityCreateWithoutRelationshipsAsSourceInput = {
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
 };
 
 export type EntityUncheckedCreateWithoutRelationshipsAsSourceInput = {
@@ -898,6 +945,7 @@ export type EntityUncheckedCreateWithoutRelationshipsAsSourceInput = {
   deletedAt?: Date | string | null;
   tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
 };
 
 export type EntityCreateOrConnectWithoutRelationshipsAsSourceInput = {
@@ -922,6 +970,7 @@ export type EntityCreateWithoutRelationshipsAsTargetInput = {
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
+  backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
 };
 
 export type EntityUncheckedCreateWithoutRelationshipsAsTargetInput = {
@@ -938,6 +987,7 @@ export type EntityUncheckedCreateWithoutRelationshipsAsTargetInput = {
   deletedAt?: Date | string | null;
   tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
+  backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
 };
 
 export type EntityCreateOrConnectWithoutRelationshipsAsTargetInput = {
@@ -984,6 +1034,7 @@ export type EntityUpdateWithoutRelationshipsAsSourceInput = {
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateWithoutRelationshipsAsSourceInput = {
@@ -1002,6 +1053,7 @@ export type EntityUncheckedUpdateWithoutRelationshipsAsSourceInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
 };
 
 export type EntityUpsertWithoutRelationshipsAsTargetInput = {
@@ -1040,6 +1092,7 @@ export type EntityUpdateWithoutRelationshipsAsTargetInput = {
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
+  backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateWithoutRelationshipsAsTargetInput = {
@@ -1058,6 +1111,107 @@ export type EntityUncheckedUpdateWithoutRelationshipsAsTargetInput = {
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
+  backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
+};
+
+export type EntityCreateWithoutBacklinksInput = {
+  id?: string;
+  type: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  image?: string | null;
+  visibility?: $Enums.Visibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
+  relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
+  relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
+};
+
+export type EntityUncheckedCreateWithoutBacklinksInput = {
+  id?: string;
+  campaignId: string;
+  type: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  image?: string | null;
+  visibility?: $Enums.Visibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
+  relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
+  relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
+};
+
+export type EntityCreateOrConnectWithoutBacklinksInput = {
+  where: Prisma.EntityWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.EntityCreateWithoutBacklinksInput,
+    Prisma.EntityUncheckedCreateWithoutBacklinksInput
+  >;
+};
+
+export type EntityUpsertWithoutBacklinksInput = {
+  update: Prisma.XOR<
+    Prisma.EntityUpdateWithoutBacklinksInput,
+    Prisma.EntityUncheckedUpdateWithoutBacklinksInput
+  >;
+  create: Prisma.XOR<
+    Prisma.EntityCreateWithoutBacklinksInput,
+    Prisma.EntityUncheckedCreateWithoutBacklinksInput
+  >;
+  where?: Prisma.EntityWhereInput;
+};
+
+export type EntityUpdateToOneWithWhereWithoutBacklinksInput = {
+  where?: Prisma.EntityWhereInput;
+  data: Prisma.XOR<
+    Prisma.EntityUpdateWithoutBacklinksInput,
+    Prisma.EntityUncheckedUpdateWithoutBacklinksInput
+  >;
+};
+
+export type EntityUpdateWithoutBacklinksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
+  relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
+  relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
+};
+
+export type EntityUncheckedUpdateWithoutBacklinksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
+  relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
+  relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
 };
 
 export type EntityCreateManyCampaignInput = {
@@ -1089,6 +1243,7 @@ export type EntityUpdateWithoutCampaignInput = {
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateWithoutCampaignInput = {
@@ -1107,6 +1262,7 @@ export type EntityUncheckedUpdateWithoutCampaignInput = {
   tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateManyWithoutCampaignInput = {
@@ -1132,6 +1288,7 @@ export type EntityCountOutputType = {
   tags: number;
   relationshipsAsSource: number;
   relationshipsAsTarget: number;
+  backlinks: number;
 };
 
 export type EntityCountOutputTypeSelect<
@@ -1143,6 +1300,7 @@ export type EntityCountOutputTypeSelect<
     boolean | EntityCountOutputTypeCountRelationshipsAsSourceArgs;
   relationshipsAsTarget?:
     boolean | EntityCountOutputTypeCountRelationshipsAsTargetArgs;
+  backlinks?: boolean | EntityCountOutputTypeCountBacklinksArgs;
 };
 
 /**
@@ -1188,6 +1346,16 @@ export type EntityCountOutputTypeCountRelationshipsAsTargetArgs<
   where?: Prisma.RelationshipWhereInput;
 };
 
+/**
+ * EntityCountOutputType without action
+ */
+export type EntityCountOutputTypeCountBacklinksArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.NoteLinkWhereInput;
+};
+
 export type EntitySelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -1210,6 +1378,7 @@ export type EntitySelect<
       boolean | Prisma.Entity$relationshipsAsSourceArgs<ExtArgs>;
     relationshipsAsTarget?:
       boolean | Prisma.Entity$relationshipsAsTargetArgs<ExtArgs>;
+    backlinks?: boolean | Prisma.Entity$backlinksArgs<ExtArgs>;
     _count?: boolean | Prisma.EntityCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["entity"]
@@ -1298,6 +1467,7 @@ export type EntityInclude<
     boolean | Prisma.Entity$relationshipsAsSourceArgs<ExtArgs>;
   relationshipsAsTarget?:
     boolean | Prisma.Entity$relationshipsAsTargetArgs<ExtArgs>;
+  backlinks?: boolean | Prisma.Entity$backlinksArgs<ExtArgs>;
   _count?: boolean | Prisma.EntityCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type EntityIncludeCreateManyAndReturn<
@@ -1323,6 +1493,7 @@ export type $EntityPayload<
     tags: Prisma.$EntityTagPayload<ExtArgs>[];
     relationshipsAsSource: Prisma.$RelationshipPayload<ExtArgs>[];
     relationshipsAsTarget: Prisma.$RelationshipPayload<ExtArgs>[];
+    backlinks: Prisma.$NoteLinkPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1938,6 +2109,17 @@ export interface Prisma__EntityClient<
       >
     | Null
   >;
+  backlinks<T extends Prisma.Entity$backlinksArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Entity$backlinksArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$NoteLinkPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2532,6 +2714,35 @@ export type Entity$relationshipsAsTargetArgs<
   skip?: number;
   distinct?:
     Prisma.RelationshipScalarFieldEnum | Prisma.RelationshipScalarFieldEnum[];
+};
+
+/**
+ * Entity.backlinks
+ */
+export type Entity$backlinksArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the NoteLink
+   */
+  select?: Prisma.NoteLinkSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the NoteLink
+   */
+  omit?: Prisma.NoteLinkOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NoteLinkInclude<ExtArgs> | null;
+  where?: Prisma.NoteLinkWhereInput;
+  orderBy?:
+    | Prisma.NoteLinkOrderByWithRelationInput
+    | Prisma.NoteLinkOrderByWithRelationInput[];
+  cursor?: Prisma.NoteLinkWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.NoteLinkScalarFieldEnum | Prisma.NoteLinkScalarFieldEnum[];
 };
 
 /**

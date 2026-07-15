@@ -418,6 +418,7 @@ export const ModelName = {
   Relationship: "Relationship",
   User: "User",
   Note: "Note",
+  NoteLink: "NoteLink",
   Attachment: "Attachment",
   CampaignMember: "CampaignMember",
 } as const;
@@ -449,6 +450,7 @@ export type TypeMap<
       | "relationship"
       | "user"
       | "note"
+      | "noteLink"
       | "attachment"
       | "campaignMember";
     txIsolationLevel: TransactionIsolationLevel;
@@ -986,6 +988,82 @@ export type TypeMap<
         };
       };
     };
+    NoteLink: {
+      payload: Prisma.$NoteLinkPayload<ExtArgs>;
+      fields: Prisma.NoteLinkFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.NoteLinkFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.NoteLinkFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload>;
+        };
+        findFirst: {
+          args: Prisma.NoteLinkFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.NoteLinkFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload>;
+        };
+        findMany: {
+          args: Prisma.NoteLinkFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload>[];
+        };
+        create: {
+          args: Prisma.NoteLinkCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload>;
+        };
+        createMany: {
+          args: Prisma.NoteLinkCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.NoteLinkCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload>[];
+        };
+        delete: {
+          args: Prisma.NoteLinkDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload>;
+        };
+        update: {
+          args: Prisma.NoteLinkUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload>;
+        };
+        deleteMany: {
+          args: Prisma.NoteLinkDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.NoteLinkUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.NoteLinkUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload>[];
+        };
+        upsert: {
+          args: Prisma.NoteLinkUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoteLinkPayload>;
+        };
+        aggregate: {
+          args: Prisma.NoteLinkAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNoteLink>;
+        };
+        groupBy: {
+          args: Prisma.NoteLinkGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.NoteLinkGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.NoteLinkCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.NoteLinkCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
     Attachment: {
       payload: Prisma.$AttachmentPayload<ExtArgs>;
       fields: Prisma.AttachmentFieldRefs;
@@ -1267,6 +1345,17 @@ export const NoteScalarFieldEnum = {
 export type NoteScalarFieldEnum =
   (typeof NoteScalarFieldEnum)[keyof typeof NoteScalarFieldEnum];
 
+export const NoteLinkScalarFieldEnum = {
+  id: "id",
+  noteId: "noteId",
+  targetEntityId: "targetEntityId",
+  targetNoteId: "targetNoteId",
+  createdAt: "createdAt",
+} as const;
+
+export type NoteLinkScalarFieldEnum =
+  (typeof NoteLinkScalarFieldEnum)[keyof typeof NoteLinkScalarFieldEnum];
+
 export const AttachmentScalarFieldEnum = {
   id: "id",
   noteId: "noteId",
@@ -1538,6 +1627,7 @@ export type GlobalOmitConfig = {
   relationship?: Prisma.RelationshipOmit;
   user?: Prisma.UserOmit;
   note?: Prisma.NoteOmit;
+  noteLink?: Prisma.NoteLinkOmit;
   attachment?: Prisma.AttachmentOmit;
   campaignMember?: Prisma.CampaignMemberOmit;
 };

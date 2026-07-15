@@ -147,7 +147,25 @@ model Note {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+  attachments Attachment[]
+
   @@index([campaignId])
+}
+
+model Attachment {
+  id     String @id @default(uuid())
+  noteId String
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  url       String
+  fileName  String
+  mimeType  String
+  sizeBytes Int
+
+  createdAt DateTime @default(now())
+
+  @@index([noteId])
 }
 
 model CampaignMember {

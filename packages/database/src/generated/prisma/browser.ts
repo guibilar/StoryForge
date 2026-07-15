@@ -52,6 +52,11 @@ export type User = Prisma.UserModel;
  */
 export type Note = Prisma.NoteModel;
 /**
+ * Model Attachment
+ *
+ */
+export type Attachment = Prisma.AttachmentModel;
+/**
  * Model CampaignMember
  *
  */

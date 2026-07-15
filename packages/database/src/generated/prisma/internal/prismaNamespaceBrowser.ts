@@ -61,6 +61,7 @@ export const ModelName = {
   Relationship: "Relationship",
   User: "User",
   Note: "Note",
+  Attachment: "Attachment",
   CampaignMember: "CampaignMember",
 } as const;
 
@@ -169,6 +170,19 @@ export const NoteScalarFieldEnum = {
 
 export type NoteScalarFieldEnum =
   (typeof NoteScalarFieldEnum)[keyof typeof NoteScalarFieldEnum];
+
+export const AttachmentScalarFieldEnum = {
+  id: "id",
+  noteId: "noteId",
+  url: "url",
+  fileName: "fileName",
+  mimeType: "mimeType",
+  sizeBytes: "sizeBytes",
+  createdAt: "createdAt",
+} as const;
+
+export type AttachmentScalarFieldEnum =
+  (typeof AttachmentScalarFieldEnum)[keyof typeof AttachmentScalarFieldEnum];
 
 export const CampaignMemberScalarFieldEnum = {
   id: "id",

@@ -1,0 +1,4 @@
+extend type Mutation {
+  uploadNoteAttachment(noteId: ID!, file: Upload!): Attachment!
+  deleteAttachment(id: ID!): Boolean!
+}

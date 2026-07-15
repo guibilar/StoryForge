@@ -128,7 +128,21 @@ tracks what's actually built, not just planned.
       `authorId` from the resolved membership, not client input. Markdown
       stored as raw source only (client renders) — no stored-HTML sanitization
       surface.
-- [ ] Attachments, images
+- [x] Attachments, images (KAN-44) — `Attachment` domain entity + `Attachment`
+      Prisma model (`noteId` FK, `Cascade`, no soft delete — hard delete like
+      `CampaignMember`/`Tag`); `AttachmentService`, `PrismaAttachmentRepository`,
+      `AttachmentMapper` under `apps/api/src/modules/attachments/`. Files are
+      stored on local disk via the existing `LocalImageStore`
+      (`apps/api/src/modules/entities/infrastructure/LocalImageStore.ts`,
+      already used for `Entity.image`) rather than a new object-storage
+      client — no S3/MinIO configured anywhere in the repo, so this reuses
+      the mechanism already wired to `UPLOADS_DIR` and the `/uploads/*`
+      static handler. GraphQL `uploadNoteAttachment(noteId, file: Upload!)`,
+      `deleteAttachment(id)`, and a `Note.attachments` field resolver, all
+      guarded via `requireCampaignMember` (load the parent `Note` first to
+      get its `campaignId`, same pattern as `updateNote`/`deleteNote`).
+      Images only for v1, enforced by a mime-type allowlist (jpeg/png/gif/webp)
+      in both `LocalImageStore` and the `Attachment` domain entity.
 - [ ] Internal links between notes/entities
 - [ ] Nested notes
 

@@ -14,5 +14,6 @@ export type * from "./models/EntityTag";
 export type * from "./models/Relationship";
 export type * from "./models/User";
 export type * from "./models/Note";
+export type * from "./models/Attachment";
 export type * from "./models/CampaignMember";
 export type * from "./commonInputTypes";

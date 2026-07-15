@@ -1,0 +1,13 @@
+type Attachment {
+  id: ID!
+  noteId: ID!
+  url: String!
+  fileName: String!
+  mimeType: String!
+  sizeBytes: Int!
+  createdAt: String!
+}
+
+extend type Note {
+  attachments: [Attachment!]!
+}

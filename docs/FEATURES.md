@@ -28,12 +28,13 @@ tracks what's actually built, not just planned.
 - [x] `CampaignMember` model (KAN-27) — value object on `Campaign`, join table w/ role enum
 - [x] AuthenticationService (register/login, bcrypt hashing, JWT) (KAN-28)
 - [x] CampaignService (create/update/archive) (KAN-29) — `archiveCampaign`'s
-      owner-check always fails: `CampaignMapper.toDomain` never hydrates
-      `campaignMembers`, so it's always empty (tracked in KAN-79; unaffected
-      by the CampaignMember work below, which uses its own repository)
+      owner-check now resolves correctly: `CampaignMapper.toDomain` hydrates
+      `campaignMembers` via an `include: { members: true }` query (KAN-79)
 - [x] GraphQL: `login`, `registerUser`
 - [x] GraphQL: `campaigns`, `campaign(id)`, `createCampaign`, `updateCampaign`, `archiveCampaign`
-      — the three mutations are guarded (`requireCurrentUser`); the queries are not.
+      — the three mutations and `campaigns` are guarded (`requireCurrentUser`);
+      `campaigns` is also scoped to the caller's own `CampaignMember` rows
+      (KAN-78); `campaign(id)` remains unguarded.
       `createCampaign` now also persists the requesting user as an `OWNER`
       `CampaignMember` row, so newly created campaigns always have an owner.
 - [x] GraphQL: `me` (returns `context.currentUser`, no guard — resolves to `null` when
@@ -44,8 +45,11 @@ tracks what's actually built, not just planned.
       own `campaignId` (previously only `userId`/`role`) so it has an
       independent repository, mirroring how `Relationship`/`Tag` are
       persisted outside the `Campaign` aggregate rather than through
-      `Campaign.addMember`/`removeMember` (which can't currently round-trip
-      through `CampaignMapper`'s empty-members gap — see KAN-79). `Campaign.members`
+      `Campaign.addMember`/`removeMember` (`CampaignMapper.toDomain` now
+      hydrates `members` for reads — KAN-79 — but `toPersistence` still
+      only serializes `id`/`name`/`description`, so writes still go
+      through the dedicated `CampaignMember` repository, not
+      `CampaignRepository.update`). `Campaign.members`
       field resolver lists a campaign's members; `addCampaignMember`,
       `removeCampaignMember`, `updateCampaignMemberRole` mutations, all
       gated by a new `requireCampaignOwner` guard (`requireCurrentUser` +

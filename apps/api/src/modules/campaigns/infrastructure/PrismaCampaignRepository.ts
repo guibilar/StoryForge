@@ -9,6 +9,7 @@ export class PrismaCampaignRepository implements CampaignRepository {
       where: {
         id: id.toString(),
       },
+      include: { members: true },
     });
 
     if (!record) {
@@ -35,6 +36,7 @@ export class PrismaCampaignRepository implements CampaignRepository {
           some: { userId },
         },
       },
+      include: { members: true },
     });
 
     return records.map(CampaignMapper.toDomain);
@@ -43,6 +45,7 @@ export class PrismaCampaignRepository implements CampaignRepository {
   async create(entity: Campaign): Promise<Campaign> {
     const record = await prisma.campaign.create({
       data: CampaignMapper.toPersistence(entity),
+      include: { members: true },
     });
     return CampaignMapper.toDomain(record);
   }
@@ -53,6 +56,7 @@ export class PrismaCampaignRepository implements CampaignRepository {
         id: entity.Id.toString(),
       },
       data: CampaignMapper.toPersistence(entity),
+      include: { members: true },
     });
     return CampaignMapper.toDomain(record);
   }

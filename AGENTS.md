@@ -397,12 +397,14 @@ Current implementation:
     (`src/config/env.ts`).
   - `src/modules/campaigns/`, same layout: `application/`
     (`CampaignService.ts` — create/update/archive/list; `archiveCampaign`
-    additionally requires an `OWNER`-role `CampaignMember` to exist, which
-    is currently unreachable — see `CampaignMapper` gap below), `graphql/`
-    (`createCampaign`/`updateCampaign`/`archiveCampaign` mutations, all
-    guarded via `requireCurrentUser`; `campaigns`/`campaign(id)` queries,
-    unguarded), `infrastructure/` (`PrismaCampaignRepository`,
-    `CampaignMapper`).
+    additionally requires an `OWNER`-role `CampaignMember` to exist —
+    `CampaignMapper.toDomain` now hydrates `campaignMembers` via an
+    `include: { members: true }` query, so this check is reachable
+    (KAN-79)), `graphql/` (`createCampaign`/`updateCampaign`/
+    `archiveCampaign` mutations, guarded via `requireCurrentUser`;
+    `campaigns` query also guarded and scoped to the caller's own
+    `CampaignMember` rows (KAN-78); `campaign(id)` remains unguarded),
+    `infrastructure/` (`PrismaCampaignRepository`, `CampaignMapper`).
   - `src/modules/auth/` (KAN-28), same layout: `application/`
     (`AuthenticationService.ts` — `register`/`login`, bcrypt hashing via
     `bcrypt-ts`, JWT issuance via `jsonwebtoken` with a minimal
@@ -974,15 +976,17 @@ The core application currently implements only:
   `login`/`registerUser` GraphQL mutations (KAN-28), plus a `me` query
   (`context.currentUser`, resolves to `null` when logged out). Gating via
   `requireCurrentUser` now protects `createCampaign`/`updateCampaign`/
-  `archiveCampaign` and `uploadEntityImage` — see apps/api notes above for
-  which resolvers remain unguarded.
+  `archiveCampaign`, `campaigns`, and `uploadEntityImage` — see apps/api
+  notes above for which resolvers remain unguarded.
 - **Campaign** — the top-level container. Everything belongs to a
   Campaign. Domain entity + `CampaignService` (create/update/archive,
   KAN-29) now implemented, same domain → service → Prisma repository
   shape as Entity. GraphQL resolvers (`campaign`, `campaigns`,
-  `createCampaign`, `updateCampaign`, `archiveCampaign`) wired. Known
-  gap: `CampaignMapper.toDomain` never hydrates `campaignMembers`
-  (always `[]`), so `archiveCampaign`'s no-owner check always fails.
+  `createCampaign`, `updateCampaign`, `archiveCampaign`) wired.
+  `campaigns` is scoped to the caller's own `CampaignMember` rows
+  (KAN-78). `CampaignMapper.toDomain` hydrates `campaignMembers` from an
+  `include: { members: true }` query (KAN-79), so `archiveCampaign`'s
+  no-owner check now resolves correctly.
 - **Entity** — a single generic, polymorphic domain object with a
   `type: string` field (e.g. `"character"`, `"location"`, `"item"`,
   `"note"`) rather than separate Character/Location/Item/Note models.

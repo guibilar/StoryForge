@@ -9,6 +9,7 @@ export const Query = {
     context: GraphQLContext,
   ) => {
     try {
+      requireCurrentUser(context);
       return await context.campaignService.getCampaignById(args.id);
     } catch (error) {
       toGraphQLError(error);

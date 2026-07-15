@@ -13,6 +13,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
+      requireCurrentUser(context);
       return await context.entityService.createEntity(args.input);
     } catch (error) {
       toGraphQLError(error);
@@ -25,6 +26,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
+      requireCurrentUser(context);
       return await context.entityService.updateEntity(args.input);
     } catch (error) {
       toGraphQLError(error);
@@ -37,6 +39,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
+      requireCurrentUser(context);
       await context.entityService.deleteEntity(args.id);
       return true;
     } catch (error) {

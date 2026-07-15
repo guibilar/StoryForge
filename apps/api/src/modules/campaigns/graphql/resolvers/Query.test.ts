@@ -34,6 +34,36 @@ describe("campaigns Query", () => {
     campaignService = makeCampaignService();
   });
 
+  describe("campaign", () => {
+    it("rejects with UNAUTHENTICATED when logged out", async () => {
+      const context = makeContext(campaignService, loggedOutUser);
+
+      await expect(
+        Query.campaign(undefined, { id: "campaign-1" }, context),
+      ).rejects.toMatchObject({
+        extensions: { code: "UNAUTHENTICATED" },
+      });
+      expect(campaignService.getCampaignById).not.toHaveBeenCalled();
+    });
+
+    it("delegates to campaignService when authenticated", async () => {
+      const campaign = { id: "campaign-1" } as unknown as Campaign;
+      vi.mocked(campaignService.getCampaignById).mockResolvedValue(campaign);
+      const context = makeContext(campaignService, authenticatedUser);
+
+      const result = await Query.campaign(
+        undefined,
+        { id: "campaign-1" },
+        context,
+      );
+
+      expect(campaignService.getCampaignById).toHaveBeenCalledWith(
+        "campaign-1",
+      );
+      expect(result).toBe(campaign);
+    });
+  });
+
   describe("campaigns", () => {
     it("rejects with UNAUTHENTICATED when logged out", async () => {
       const context = makeContext(campaignService, loggedOutUser);

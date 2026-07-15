@@ -1,5 +1,6 @@
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
+import { requireCurrentUser } from "../../../auth/graphql/guards";
 
 export const Mutation = {
   addTagToEntity: async (
@@ -8,6 +9,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
+      requireCurrentUser(context);
       return await context.tagService.addTagToEntity(args.entityId, args.name);
     } catch (error) {
       toGraphQLError(error);
@@ -20,6 +22,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
+      requireCurrentUser(context);
       return await context.tagService.removeTagFromEntity(
         args.entityId,
         args.tagId,

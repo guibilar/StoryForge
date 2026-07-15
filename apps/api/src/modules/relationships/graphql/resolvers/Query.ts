@@ -1,5 +1,6 @@
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
+import { requireCurrentUser } from "../../../auth/graphql/guards";
 
 export const Query = {
   relationship: async (
@@ -8,6 +9,7 @@ export const Query = {
     context: GraphQLContext,
   ) => {
     try {
+      requireCurrentUser(context);
       return await context.relationshipService.getRelationship(args.id);
     } catch (error) {
       toGraphQLError(error);
@@ -20,6 +22,7 @@ export const Query = {
     context: GraphQLContext,
   ) => {
     try {
+      requireCurrentUser(context);
       if (args.entityId) {
         return await context.relationshipService.listRelationshipsByEntity(
           args.entityId,

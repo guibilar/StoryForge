@@ -186,6 +186,7 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string;
   campaignMemberships?: Prisma.CampaignMemberListRelationFilter;
+  notes?: Prisma.NoteListRelationFilter;
 };
 
 export type UserOrderByWithRelationInput = {
@@ -195,6 +196,7 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   campaignMemberships?: Prisma.CampaignMemberOrderByRelationAggregateInput;
+  notes?: Prisma.NoteOrderByRelationAggregateInput;
 };
 
 export type UserWhereUniqueInput = Prisma.AtLeast<
@@ -208,6 +210,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     createdAt?: Prisma.DateTimeFilter<"User"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string;
     campaignMemberships?: Prisma.CampaignMemberListRelationFilter;
+    notes?: Prisma.NoteListRelationFilter;
   },
   "id" | "email"
 >;
@@ -245,6 +248,7 @@ export type UserCreateInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   campaignMemberships?: Prisma.CampaignMemberCreateNestedManyWithoutUserInput;
+  notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
 };
 
 export type UserUncheckedCreateInput = {
@@ -254,6 +258,7 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   campaignMemberships?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutUserInput;
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
 };
 
 export type UserUpdateInput = {
@@ -263,6 +268,7 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   campaignMemberships?: Prisma.CampaignMemberUpdateManyWithoutUserNestedInput;
+  notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
 };
 
 export type UserUncheckedUpdateInput = {
@@ -272,6 +278,7 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   campaignMemberships?: Prisma.CampaignMemberUncheckedUpdateManyWithoutUserNestedInput;
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
 };
 
 export type UserCreateManyInput = {
@@ -327,6 +334,32 @@ export type UserScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput;
 };
 
+export type UserCreateNestedOneWithoutNotesInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutNotesInput,
+    Prisma.UserUncheckedCreateWithoutNotesInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotesInput;
+  connect?: Prisma.UserWhereUniqueInput;
+};
+
+export type UserUpdateOneRequiredWithoutNotesNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutNotesInput,
+    Prisma.UserUncheckedCreateWithoutNotesInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotesInput;
+  upsert?: Prisma.UserUpsertWithoutNotesInput;
+  connect?: Prisma.UserWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.UserUpdateToOneWithWhereWithoutNotesInput,
+      Prisma.UserUpdateWithoutNotesInput
+    >,
+    Prisma.UserUncheckedUpdateWithoutNotesInput
+  >;
+};
+
 export type UserCreateNestedOneWithoutCampaignMembershipsInput = {
   create?: Prisma.XOR<
     Prisma.UserCreateWithoutCampaignMembershipsInput,
@@ -353,12 +386,77 @@ export type UserUpdateOneRequiredWithoutCampaignMembershipsNestedInput = {
   >;
 };
 
+export type UserCreateWithoutNotesInput = {
+  id?: string;
+  email: string;
+  password: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  campaignMemberships?: Prisma.CampaignMemberCreateNestedManyWithoutUserInput;
+};
+
+export type UserUncheckedCreateWithoutNotesInput = {
+  id?: string;
+  email: string;
+  password: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  campaignMemberships?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutUserInput;
+};
+
+export type UserCreateOrConnectWithoutNotesInput = {
+  where: Prisma.UserWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutNotesInput,
+    Prisma.UserUncheckedCreateWithoutNotesInput
+  >;
+};
+
+export type UserUpsertWithoutNotesInput = {
+  update: Prisma.XOR<
+    Prisma.UserUpdateWithoutNotesInput,
+    Prisma.UserUncheckedUpdateWithoutNotesInput
+  >;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutNotesInput,
+    Prisma.UserUncheckedCreateWithoutNotesInput
+  >;
+  where?: Prisma.UserWhereInput;
+};
+
+export type UserUpdateToOneWithWhereWithoutNotesInput = {
+  where?: Prisma.UserWhereInput;
+  data: Prisma.XOR<
+    Prisma.UserUpdateWithoutNotesInput,
+    Prisma.UserUncheckedUpdateWithoutNotesInput
+  >;
+};
+
+export type UserUpdateWithoutNotesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  password?: Prisma.StringFieldUpdateOperationsInput | string;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  campaignMemberships?: Prisma.CampaignMemberUpdateManyWithoutUserNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutNotesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  password?: Prisma.StringFieldUpdateOperationsInput | string;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  campaignMemberships?: Prisma.CampaignMemberUncheckedUpdateManyWithoutUserNestedInput;
+};
+
 export type UserCreateWithoutCampaignMembershipsInput = {
   id?: string;
   email: string;
   password: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
 };
 
 export type UserUncheckedCreateWithoutCampaignMembershipsInput = {
@@ -367,6 +465,7 @@ export type UserUncheckedCreateWithoutCampaignMembershipsInput = {
   password: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
 };
 
 export type UserCreateOrConnectWithoutCampaignMembershipsInput = {
@@ -403,6 +502,7 @@ export type UserUpdateWithoutCampaignMembershipsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutCampaignMembershipsInput = {
@@ -411,6 +511,7 @@ export type UserUncheckedUpdateWithoutCampaignMembershipsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
 };
 
 /**
@@ -419,6 +520,7 @@ export type UserUncheckedUpdateWithoutCampaignMembershipsInput = {
 
 export type UserCountOutputType = {
   campaignMemberships: number;
+  notes: number;
 };
 
 export type UserCountOutputTypeSelect<
@@ -427,6 +529,7 @@ export type UserCountOutputTypeSelect<
 > = {
   campaignMemberships?:
     boolean | UserCountOutputTypeCountCampaignMembershipsArgs;
+  notes?: boolean | UserCountOutputTypeCountNotesArgs;
 };
 
 /**
@@ -452,6 +555,16 @@ export type UserCountOutputTypeCountCampaignMembershipsArgs<
   where?: Prisma.CampaignMemberWhereInput;
 };
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.NoteWhereInput;
+};
+
 export type UserSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -464,6 +577,7 @@ export type UserSelect<
     updatedAt?: boolean;
     campaignMemberships?:
       boolean | Prisma.User$campaignMembershipsArgs<ExtArgs>;
+    notes?: boolean | Prisma.User$notesArgs<ExtArgs>;
     _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["user"]
@@ -517,6 +631,7 @@ export type UserInclude<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaignMemberships?: boolean | Prisma.User$campaignMembershipsArgs<ExtArgs>;
+  notes?: boolean | Prisma.User$notesArgs<ExtArgs>;
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type UserIncludeCreateManyAndReturn<
@@ -535,6 +650,7 @@ export type $UserPayload<
   name: "User";
   objects: {
     campaignMemberships: Prisma.$CampaignMemberPayload<ExtArgs>[];
+    notes: Prisma.$NotePayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1106,6 +1222,17 @@ export interface Prisma__UserClient<
       >
     | Null
   >;
+  notes<T extends Prisma.User$notesArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.User$notesArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$NotePayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1618,6 +1745,34 @@ export type User$campaignMembershipsArgs<
   distinct?:
     | Prisma.CampaignMemberScalarFieldEnum
     | Prisma.CampaignMemberScalarFieldEnum[];
+};
+
+/**
+ * User.notes
+ */
+export type User$notesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Note
+   */
+  select?: Prisma.NoteSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Note
+   */
+  omit?: Prisma.NoteOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NoteInclude<ExtArgs> | null;
+  where?: Prisma.NoteWhereInput;
+  orderBy?:
+    Prisma.NoteOrderByWithRelationInput | Prisma.NoteOrderByWithRelationInput[];
+  cursor?: Prisma.NoteWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.NoteScalarFieldEnum | Prisma.NoteScalarFieldEnum[];
 };
 
 /**

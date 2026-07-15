@@ -1,0 +1,4 @@
+extend type Query {
+  note(id: ID!): Note
+  notes(campaignId: ID!): [Note!]!
+}

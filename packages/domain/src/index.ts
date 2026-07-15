@@ -5,3 +5,4 @@ export * from "./campaign";
 export * from "./campaignMember";
 export * from "./tag";
 export * from "./relationship";
+export * from "./note";

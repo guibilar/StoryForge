@@ -1,6 +1,7 @@
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
+import { requireCampaignMember } from "../../../campaignMembers/graphql/guards";
 
 export const Query = {
   relationship: async (
@@ -10,7 +11,11 @@ export const Query = {
   ) => {
     try {
       requireCurrentUser(context);
-      return await context.relationshipService.getRelationship(args.id);
+      const relationship = await context.relationshipService.getRelationship(
+        args.id,
+      );
+      await requireCampaignMember(context, relationship.CampaignId);
+      return relationship;
     } catch (error) {
       toGraphQLError(error);
     }
@@ -22,7 +27,7 @@ export const Query = {
     context: GraphQLContext,
   ) => {
     try {
-      requireCurrentUser(context);
+      await requireCampaignMember(context, args.campaignId);
       if (args.entityId) {
         return await context.relationshipService.listRelationshipsByEntity(
           args.entityId,

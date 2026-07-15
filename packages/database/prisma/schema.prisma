@@ -37,6 +37,7 @@ model Campaign {
   members       CampaignMember[]
   tags          Tag[]
   relationships Relationship[]
+  notes         Note[]
 }
 
 model Entity {
@@ -128,6 +129,25 @@ model User {
   updatedAt DateTime @updatedAt
 
   campaignMemberships CampaignMember[]
+  notes               Note[]
+}
+
+model Note {
+  id         String @id @default(uuid())
+  campaignId String
+  authorId   String
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  title   String
+  content String @db.Text
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([campaignId])
 }
 
 model CampaignMember {

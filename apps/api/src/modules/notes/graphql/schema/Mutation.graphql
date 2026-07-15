@@ -1,0 +1,17 @@
+input CreateNoteInput {
+  campaignId: ID!
+  title: String!
+  content: String
+}
+
+input UpdateNoteInput {
+  id: ID!
+  title: String
+  content: String
+}
+
+extend type Mutation {
+  createNote(input: CreateNoteInput!): Note!
+  updateNote(input: UpdateNoteInput!): Note!
+  deleteNote(id: ID!): Boolean!
+}

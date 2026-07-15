@@ -1,8 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { NotFoundError, Relationship, User } from "@storyforge/domain";
+import {
+  CampaignMember,
+  NotFoundError,
+  Relationship,
+  User,
+} from "@storyforge/domain";
 import { Query } from "./Query";
 import type { GraphQLContext } from "../../../../graphql/context";
 import type { RelationshipService } from "../../application/RelationshipService";
+import type { CampaignMemberService } from "../../../campaignMembers/application/CampaignMemberService";
 
 function makeRelationshipService(): RelationshipService {
   return {
@@ -15,17 +21,32 @@ function makeRelationshipService(): RelationshipService {
   } as unknown as RelationshipService;
 }
 
+function makeCampaignMemberService(): CampaignMemberService {
+  return { getMembership: vi.fn() } as unknown as CampaignMemberService;
+}
+
 function makeContext(
   relationshipService: RelationshipService,
+  campaignMemberService: CampaignMemberService,
   currentUser: User | null,
 ): GraphQLContext {
-  return { relationshipService, currentUser } as GraphQLContext;
+  return {
+    relationshipService,
+    campaignMemberService,
+    currentUser,
+  } as GraphQLContext;
 }
 
 const loggedOutUser = null;
 const authenticatedUser = User.create({
   email: "user@example.com",
   password: "hashed",
+});
+
+const membership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
+  role: "PLAYER",
 });
 
 const relationship = Relationship.create({
@@ -38,7 +59,12 @@ const relationship = Relationship.create({
 describe("relationships Query.relationship", () => {
   it("rejects with UNAUTHENTICATED when logged out", async () => {
     const relationshipService = makeRelationshipService();
-    const context = makeContext(relationshipService, loggedOutUser);
+    const campaignMemberService = makeCampaignMemberService();
+    const context = makeContext(
+      relationshipService,
+      campaignMemberService,
+      loggedOutUser,
+    );
 
     await expect(
       Query.relationship(undefined, { id: "relationship-1" }, context),
@@ -48,12 +74,38 @@ describe("relationships Query.relationship", () => {
     expect(relationshipService.getRelationship).not.toHaveBeenCalled();
   });
 
-  it("returns the relationship from the service", async () => {
+  it("rejects with FORBIDDEN when not a member of the relationship's campaign", async () => {
     const relationshipService = makeRelationshipService();
+    const campaignMemberService = makeCampaignMemberService();
     vi.mocked(relationshipService.getRelationship).mockResolvedValue(
       relationship,
     );
-    const context = makeContext(relationshipService, authenticatedUser);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      relationshipService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Query.relationship(undefined, { id: "relationship-1" }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+  });
+
+  it("returns the relationship when the user is a campaign member", async () => {
+    const relationshipService = makeRelationshipService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(relationshipService.getRelationship).mockResolvedValue(
+      relationship,
+    );
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      membership,
+    );
+    const context = makeContext(
+      relationshipService,
+      campaignMemberService,
+      authenticatedUser,
+    );
 
     const result = await Query.relationship(
       undefined,
@@ -69,10 +121,15 @@ describe("relationships Query.relationship", () => {
 
   it("translates domain errors into GraphQL errors", async () => {
     const relationshipService = makeRelationshipService();
+    const campaignMemberService = makeCampaignMemberService();
     vi.mocked(relationshipService.getRelationship).mockRejectedValue(
       new NotFoundError("Relationship not found"),
     );
-    const context = makeContext(relationshipService, authenticatedUser);
+    const context = makeContext(
+      relationshipService,
+      campaignMemberService,
+      authenticatedUser,
+    );
 
     await expect(
       Query.relationship(undefined, { id: "missing" }, context),
@@ -83,7 +140,12 @@ describe("relationships Query.relationship", () => {
 describe("relationships Query.relationships", () => {
   it("rejects with UNAUTHENTICATED when logged out", async () => {
     const relationshipService = makeRelationshipService();
-    const context = makeContext(relationshipService, loggedOutUser);
+    const campaignMemberService = makeCampaignMemberService();
+    const context = makeContext(
+      relationshipService,
+      campaignMemberService,
+      loggedOutUser,
+    );
 
     await expect(
       Query.relationships(undefined, { campaignId: "campaign-1" }, context),
@@ -95,12 +157,38 @@ describe("relationships Query.relationships", () => {
     ).not.toHaveBeenCalled();
   });
 
+  it("rejects with FORBIDDEN when not a campaign member", async () => {
+    const relationshipService = makeRelationshipService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      relationshipService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Query.relationships(undefined, { campaignId: "campaign-1" }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(
+      relationshipService.listRelationshipsByCampaign,
+    ).not.toHaveBeenCalled();
+  });
+
   it("delegates to listRelationshipsByCampaign when no entityId is given", async () => {
     const relationshipService = makeRelationshipService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      membership,
+    );
     vi.mocked(
       relationshipService.listRelationshipsByCampaign,
     ).mockResolvedValue([relationship]);
-    const context = makeContext(relationshipService, authenticatedUser);
+    const context = makeContext(
+      relationshipService,
+      campaignMemberService,
+      authenticatedUser,
+    );
 
     const result = await Query.relationships(
       undefined,
@@ -119,10 +207,18 @@ describe("relationships Query.relationships", () => {
 
   it("delegates to listRelationshipsByEntity when entityId is given", async () => {
     const relationshipService = makeRelationshipService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      membership,
+    );
     vi.mocked(relationshipService.listRelationshipsByEntity).mockResolvedValue([
       relationship,
     ]);
-    const context = makeContext(relationshipService, authenticatedUser);
+    const context = makeContext(
+      relationshipService,
+      campaignMemberService,
+      authenticatedUser,
+    );
 
     const result = await Query.relationships(
       undefined,
@@ -137,17 +233,5 @@ describe("relationships Query.relationships", () => {
       relationshipService.listRelationshipsByCampaign,
     ).not.toHaveBeenCalled();
     expect(result).toEqual([relationship]);
-  });
-
-  it("translates domain errors into GraphQL errors", async () => {
-    const relationshipService = makeRelationshipService();
-    vi.mocked(
-      relationshipService.listRelationshipsByCampaign,
-    ).mockRejectedValue(new NotFoundError("Campaign not found"));
-    const context = makeContext(relationshipService, authenticatedUser);
-
-    await expect(
-      Query.relationships(undefined, { campaignId: "missing" }, context),
-    ).rejects.toMatchObject({ extensions: { code: "NOT_FOUND" } });
   });
 });

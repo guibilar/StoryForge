@@ -5,7 +5,7 @@ import {
   ForbiddenError,
   User,
 } from "@storyforge/domain";
-import { requireCampaignOwner } from "./guards";
+import { requireCampaignMember, requireCampaignOwner } from "./guards";
 import type { GraphQLContext } from "../../../graphql/context";
 import type { CampaignMemberService } from "../application/CampaignMemberService";
 
@@ -65,6 +65,41 @@ describe("requireCampaignOwner", () => {
     await expect(
       requireCampaignOwner(context, campaignId),
     ).resolves.toBeUndefined();
+    expect(getMembership).toHaveBeenCalledWith(campaignId, user.Id.toString());
+  });
+});
+
+describe("requireCampaignMember", () => {
+  it("throws AuthenticationError when logged out", async () => {
+    const context = makeContext(null, { getMembership: vi.fn() });
+
+    await expect(requireCampaignMember(context, campaignId)).rejects.toThrow(
+      AuthenticationError,
+    );
+  });
+
+  it("throws ForbiddenError when the user has no membership", async () => {
+    const context = makeContext(user, {
+      getMembership: vi.fn().mockResolvedValue(null),
+    });
+
+    await expect(requireCampaignMember(context, campaignId)).rejects.toThrow(
+      ForbiddenError,
+    );
+  });
+
+  it("resolves with the membership for any role", async () => {
+    const membership = CampaignMember.create({
+      campaignId,
+      userId: user.Id,
+      role: "PLAYER",
+    });
+    const getMembership = vi.fn().mockResolvedValue(membership);
+    const context = makeContext(user, { getMembership });
+
+    await expect(requireCampaignMember(context, campaignId)).resolves.toBe(
+      membership,
+    );
     expect(getMembership).toHaveBeenCalledWith(campaignId, user.Id.toString());
   });
 });

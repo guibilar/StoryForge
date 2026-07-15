@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Relationship, User } from "@storyforge/domain";
+import { CampaignMember, Relationship, User } from "@storyforge/domain";
 import { Mutation } from "./Mutation";
 import type { GraphQLContext } from "../../../../graphql/context";
 import type { RelationshipService } from "../../application/RelationshipService";
+import type { CampaignMemberService } from "../../../campaignMembers/application/CampaignMemberService";
 
 function makeRelationshipService(): RelationshipService {
   return {
@@ -15,11 +16,20 @@ function makeRelationshipService(): RelationshipService {
   } as unknown as RelationshipService;
 }
 
+function makeCampaignMemberService(): CampaignMemberService {
+  return { getMembership: vi.fn() } as unknown as CampaignMemberService;
+}
+
 function makeContext(
   relationshipService: RelationshipService,
+  campaignMemberService: CampaignMemberService,
   currentUser: User | null,
 ): GraphQLContext {
-  return { relationshipService, currentUser } as GraphQLContext;
+  return {
+    relationshipService,
+    campaignMemberService,
+    currentUser,
+  } as GraphQLContext;
 }
 
 const loggedOutUser = null;
@@ -28,11 +38,26 @@ const authenticatedUser = User.create({
   password: "hashed",
 });
 
+const membership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
+  role: "PLAYER",
+});
+
+const relationship = Relationship.create({
+  campaignId: "campaign-1",
+  sourceEntityId: "entity-1",
+  targetEntityId: "entity-2",
+  type: "ALLY",
+});
+
 describe("relationships Mutation", () => {
   let relationshipService: RelationshipService;
+  let campaignMemberService: CampaignMemberService;
 
   beforeEach(() => {
     relationshipService = makeRelationshipService();
+    campaignMemberService = makeCampaignMemberService();
   });
 
   describe("createRelationship", () => {
@@ -46,7 +71,11 @@ describe("relationships Mutation", () => {
     };
 
     it("rejects with UNAUTHENTICATED when logged out", async () => {
-      const context = makeContext(relationshipService, loggedOutUser);
+      const context = makeContext(
+        relationshipService,
+        campaignMemberService,
+        loggedOutUser,
+      );
 
       await expect(
         Mutation.createRelationship(undefined, args, context),
@@ -56,12 +85,32 @@ describe("relationships Mutation", () => {
       expect(relationshipService.createRelationship).not.toHaveBeenCalled();
     });
 
-    it("delegates to relationshipService when authenticated", async () => {
-      const relationship = { id: "relationship-1" } as unknown as Relationship;
+    it("rejects with FORBIDDEN when not a campaign member", async () => {
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+      const context = makeContext(
+        relationshipService,
+        campaignMemberService,
+        authenticatedUser,
+      );
+
+      await expect(
+        Mutation.createRelationship(undefined, args, context),
+      ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+      expect(relationshipService.createRelationship).not.toHaveBeenCalled();
+    });
+
+    it("delegates to relationshipService when the user is a campaign member", async () => {
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+        membership,
+      );
       vi.mocked(relationshipService.createRelationship).mockResolvedValue(
         relationship,
       );
-      const context = makeContext(relationshipService, authenticatedUser);
+      const context = makeContext(
+        relationshipService,
+        campaignMemberService,
+        authenticatedUser,
+      );
 
       const result = await Mutation.createRelationship(
         undefined,
@@ -80,7 +129,11 @@ describe("relationships Mutation", () => {
     const args = { input: { id: "relationship-1", type: "ENEMY" } };
 
     it("rejects with UNAUTHENTICATED when logged out", async () => {
-      const context = makeContext(relationshipService, loggedOutUser);
+      const context = makeContext(
+        relationshipService,
+        campaignMemberService,
+        loggedOutUser,
+      );
 
       await expect(
         Mutation.updateRelationship(undefined, args, context),
@@ -90,12 +143,44 @@ describe("relationships Mutation", () => {
       expect(relationshipService.updateRelationship).not.toHaveBeenCalled();
     });
 
-    it("delegates to relationshipService when authenticated", async () => {
-      const relationship = { id: "relationship-1" } as unknown as Relationship;
-      vi.mocked(relationshipService.updateRelationship).mockResolvedValue(
+    it("rejects with FORBIDDEN when not a member of the relationship's campaign", async () => {
+      vi.mocked(relationshipService.getRelationship).mockResolvedValue(
         relationship,
       );
-      const context = makeContext(relationshipService, authenticatedUser);
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+      const context = makeContext(
+        relationshipService,
+        campaignMemberService,
+        authenticatedUser,
+      );
+
+      await expect(
+        Mutation.updateRelationship(undefined, args, context),
+      ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+      expect(relationshipService.updateRelationship).not.toHaveBeenCalled();
+    });
+
+    it("delegates to relationshipService when the user is a campaign member", async () => {
+      vi.mocked(relationshipService.getRelationship).mockResolvedValue(
+        relationship,
+      );
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+        membership,
+      );
+      const updated = Relationship.create({
+        campaignId: "campaign-1",
+        sourceEntityId: "entity-1",
+        targetEntityId: "entity-2",
+        type: "ENEMY",
+      });
+      vi.mocked(relationshipService.updateRelationship).mockResolvedValue(
+        updated,
+      );
+      const context = makeContext(
+        relationshipService,
+        campaignMemberService,
+        authenticatedUser,
+      );
 
       const result = await Mutation.updateRelationship(
         undefined,
@@ -106,7 +191,7 @@ describe("relationships Mutation", () => {
       expect(relationshipService.updateRelationship).toHaveBeenCalledWith(
         args.input,
       );
-      expect(result).toBe(relationship);
+      expect(result).toBe(updated);
     });
   });
 
@@ -114,7 +199,11 @@ describe("relationships Mutation", () => {
     const args = { id: "relationship-1" };
 
     it("rejects with UNAUTHENTICATED when logged out", async () => {
-      const context = makeContext(relationshipService, loggedOutUser);
+      const context = makeContext(
+        relationshipService,
+        campaignMemberService,
+        loggedOutUser,
+      );
 
       await expect(
         Mutation.deleteRelationship(undefined, args, context),
@@ -124,11 +213,38 @@ describe("relationships Mutation", () => {
       expect(relationshipService.deleteRelationship).not.toHaveBeenCalled();
     });
 
-    it("delegates to relationshipService and returns true when authenticated", async () => {
+    it("rejects with FORBIDDEN when not a member of the relationship's campaign", async () => {
+      vi.mocked(relationshipService.getRelationship).mockResolvedValue(
+        relationship,
+      );
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+      const context = makeContext(
+        relationshipService,
+        campaignMemberService,
+        authenticatedUser,
+      );
+
+      await expect(
+        Mutation.deleteRelationship(undefined, args, context),
+      ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+      expect(relationshipService.deleteRelationship).not.toHaveBeenCalled();
+    });
+
+    it("delegates to relationshipService and returns true when the user is a campaign member", async () => {
+      vi.mocked(relationshipService.getRelationship).mockResolvedValue(
+        relationship,
+      );
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+        membership,
+      );
       vi.mocked(relationshipService.deleteRelationship).mockResolvedValue(
         undefined,
       );
-      const context = makeContext(relationshipService, authenticatedUser);
+      const context = makeContext(
+        relationshipService,
+        campaignMemberService,
+        authenticatedUser,
+      );
 
       const result = await Mutation.deleteRelationship(
         undefined,

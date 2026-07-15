@@ -47,6 +47,11 @@ export type Relationship = Prisma.RelationshipModel;
  */
 export type User = Prisma.UserModel;
 /**
+ * Model Note
+ *
+ */
+export type Note = Prisma.NoteModel;
+/**
  * Model CampaignMember
  *
  */

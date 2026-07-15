@@ -1,36 +1,32 @@
-import { EntityFilter } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
 import { requireCampaignMember } from "../../../campaignMembers/graphql/guards";
 
 export const Query = {
-  entity: async (
+  note: async (
     _parent: unknown,
     args: { id: string },
     context: GraphQLContext,
   ) => {
     try {
       requireCurrentUser(context);
-      const entity = await context.entityService.getEntity(args.id);
-      await requireCampaignMember(context, entity.CampaignId);
-      return entity;
+      const note = await context.noteService.getNote(args.id);
+      await requireCampaignMember(context, note.CampaignId);
+      return note;
     } catch (error) {
       toGraphQLError(error);
     }
   },
 
-  entities: async (
+  notes: async (
     _parent: unknown,
-    args: { campaignId: string; filter?: EntityFilter | null },
+    args: { campaignId: string },
     context: GraphQLContext,
   ) => {
     try {
       await requireCampaignMember(context, args.campaignId);
-      return await context.entityService.listEntities(
-        args.campaignId,
-        args.filter,
-      );
+      return await context.noteService.listNotes(args.campaignId);
     } catch (error) {
       toGraphQLError(error);
     }

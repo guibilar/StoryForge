@@ -60,18 +60,26 @@ tracks what's actually built, not just planned.
 
 - [x] Entity CRUD backend (SF-001): service, repository, GraphQL resolvers
       — `entity(id)`, `entities`, `createEntity`, `updateEntity`, `deleteEntity`
-      all guarded via `requireCurrentUser` (KAN-83)
+      (KAN-83). Upgraded to `requireCampaignMember` (any role) — `entities`
+      and `createEntity` check membership on the given `campaignId` directly;
+      `entity`/`updateEntity`/`deleteEntity` load the entity first to get its
+      `campaignId` since only `id` is given.
 - [x] Entity soft delete
 - [x] Duplicate-name validation per campaign
 - [x] Generic `type` field (Character/Location/Organization via type string, no type-specific schema)
 - [x] Portrait / image upload — `uploadEntityImage` mutation (GraphQL multipart
       request spec), `LocalImageStore` (validates JPEG/PNG/GIF/WEBP, 5MB limit,
-      writes to `UPLOADS_DIR/<entityId>/<uuid>.<ext>`), guarded via `requireCurrentUser`
+      writes to `UPLOADS_DIR/<entityId>/<uuid>.<ext>`), guarded via
+      `requireCampaignMember` (loads the entity first, same as above)
 - [x] Tags (KAN-37) — campaign-scoped `Tag`/`EntityTag` join model (reusable
       across entities in a campaign, name normalized trim+lowercase);
       `addTagToEntity`/`removeTagFromEntity` GraphQL mutations (find-or-create
       by name, idempotent attach/detach), `campaignTags` query, `Entity.tags`
-      field — all three guarded via `requireCurrentUser` (KAN-83)
+      field. `campaignTags` and both mutations now guarded via
+      `requireCampaignMember` (any role), not just `requireCurrentUser` —
+      the mutations resolve the entity first (`entityService.getEntity`) to
+      derive its `campaignId` before checking membership, since neither
+      mutation takes `campaignId` directly.
 - [x] Search / filtering — `entities(campaignId, filter: EntityFilter)`
       GraphQL query; `EntityFilter { type, nameContains, tagIds }`, AND-combined
       (`type` exact match, `nameContains` case-insensitive, `tagIds` any-match
@@ -91,7 +99,10 @@ tracks what's actually built, not just planned.
       `RelationshipMapper` under `apps/api/src/modules/relationships/`; GraphQL
       `relationship(id)`, `relationships(campaignId, entityId)` queries,
       `createRelationship`/`updateRelationship`/`deleteRelationship` mutations
-      (all five guarded via `requireCurrentUser`, KAN-83). Directional-only for v1 —
+      (all five guarded via `requireCurrentUser`, KAN-83; upgraded to
+      `requireCampaignMember` — `relationship`/`updateRelationship`/
+      `deleteRelationship` load the relationship first to get its
+      `campaignId` since only `id` is given). Directional-only for v1 —
       Ally/Enemy do not auto-create an inverse edge (deferred, not needed yet).
       No nested `sourceEntity`/`targetEntity` field resolvers — GraphQL type
       exposes raw IDs only. `type` is a validated free string (like
@@ -102,7 +113,21 @@ tracks what's actually built, not just planned.
 
 ## Notes & Assets
 
-- [ ] Rich text / markdown notes
+- [x] Rich text / markdown notes (KAN-43) — `Note` domain entity + `Note`
+      Prisma model (`campaignId`/`authorId` FKs, `Cascade`, `content` stored
+      as `Text`, soft delete like `Entity`); `NoteService`,
+      `PrismaNoteRepository`, `NoteMapper` under `apps/api/src/modules/notes/`;
+      GraphQL `note(id)`, `notes(campaignId)`, `createNote`, `updateNote`,
+      `deleteNote`, all guarded via a new `requireCampaignMember` guard
+      (`campaignMembers/graphql/guards.ts`, any role) rather than plain
+      `requireCurrentUser`. `entities`/`relationships`/`tags` were upgraded
+      to the same guard afterward, closing the gap across all of World
+      Building. `createNote`/`notes` check membership on the input `campaignId`;
+      `note`/`updateNote`/`deleteNote` first load the note to get its
+      `campaignId`, then check membership on that. `createNote` takes
+      `authorId` from the resolved membership, not client input. Markdown
+      stored as raw source only (client renders) — no stored-HTML sanitization
+      surface.
 - [ ] Attachments, images
 - [ ] Internal links between notes/entities
 - [ ] Nested notes

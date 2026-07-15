@@ -417,6 +417,7 @@ export const ModelName = {
   EntityTag: "EntityTag",
   Relationship: "Relationship",
   User: "User",
+  Note: "Note",
   CampaignMember: "CampaignMember",
 } as const;
 
@@ -446,6 +447,7 @@ export type TypeMap<
       | "entityTag"
       | "relationship"
       | "user"
+      | "note"
       | "campaignMember";
     txIsolationLevel: TransactionIsolationLevel;
   };
@@ -906,6 +908,82 @@ export type TypeMap<
         };
       };
     };
+    Note: {
+      payload: Prisma.$NotePayload<ExtArgs>;
+      fields: Prisma.NoteFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.NoteFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.NoteFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload>;
+        };
+        findFirst: {
+          args: Prisma.NoteFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.NoteFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload>;
+        };
+        findMany: {
+          args: Prisma.NoteFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload>[];
+        };
+        create: {
+          args: Prisma.NoteCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload>;
+        };
+        createMany: {
+          args: Prisma.NoteCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.NoteCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload>[];
+        };
+        delete: {
+          args: Prisma.NoteDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload>;
+        };
+        update: {
+          args: Prisma.NoteUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload>;
+        };
+        deleteMany: {
+          args: Prisma.NoteDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.NoteUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.NoteUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload>[];
+        };
+        upsert: {
+          args: Prisma.NoteUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotePayload>;
+        };
+        aggregate: {
+          args: Prisma.NoteAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNote>;
+        };
+        groupBy: {
+          args: Prisma.NoteGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.NoteGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.NoteCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.NoteCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
     CampaignMember: {
       payload: Prisma.$CampaignMemberPayload<ExtArgs>;
       fields: Prisma.CampaignMemberFieldRefs;
@@ -1096,6 +1174,20 @@ export const UserScalarFieldEnum = {
 
 export type UserScalarFieldEnum =
   (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum];
+
+export const NoteScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  authorId: "authorId",
+  title: "title",
+  content: "content",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+  deletedAt: "deletedAt",
+} as const;
+
+export type NoteScalarFieldEnum =
+  (typeof NoteScalarFieldEnum)[keyof typeof NoteScalarFieldEnum];
 
 export const CampaignMemberScalarFieldEnum = {
   id: "id",
@@ -1338,6 +1430,7 @@ export type GlobalOmitConfig = {
   entityTag?: Prisma.EntityTagOmit;
   relationship?: Prisma.RelationshipOmit;
   user?: Prisma.UserOmit;
+  note?: Prisma.NoteOmit;
   campaignMember?: Prisma.CampaignMemberOmit;
 };
 

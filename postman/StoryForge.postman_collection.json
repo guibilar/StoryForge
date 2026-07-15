@@ -1900,7 +1900,19 @@
               }
             }
           },
+          "description": "Skips itself when {{attachmentId}} is unset, since 'Upload Note Attachment' needs a file manually attached in the Postman UI and won't have produced an attachment in an automated run.",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "if (!pm.environment.get(\"attachmentId\")) {",
+                  "  console.warn(\"Skipping 'Delete Attachment': no attachmentId (attach a file to 'Upload Note Attachment' first).\");",
+                  "  pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {

@@ -9,16 +9,20 @@ import {
   NoteRepository,
   NotFoundError,
   UserId,
+  ValidationError,
 } from "@storyforge/domain";
 
 import { parseNoteLinks } from "./NoteLinkParser";
 import { NoteLinkResolver } from "./NoteLinkResolver";
+
+const MAX_NOTE_DEPTH = 5;
 
 export interface CreateNoteDto {
   campaignId: string;
   authorId: string;
   title: string;
   content?: string;
+  parentNoteId?: string;
 }
 
 export interface UpdateNoteDto {
@@ -39,11 +43,16 @@ export class NoteService {
   }
 
   async createNote(dto: CreateNoteDto): Promise<Note> {
+    const parentNoteId = dto.parentNoteId
+      ? (await this.resolveParent(dto.campaignId, dto.parentNoteId)).Id
+      : null;
+
     const note = Note.create({
       campaignId: dto.campaignId,
       authorId: UserId.fromString(dto.authorId),
       title: dto.title,
       content: dto.content,
+      parentNoteId,
     });
 
     await this.repository.create(note);
@@ -80,9 +89,24 @@ export class NoteService {
       throw new NotFoundError("Note not found.");
     }
 
-    note.delete();
+    await this.deleteWithDescendants(note);
+  }
 
+  /**
+   * Notes are soft-deleted (deletedAt), so the Postgres ON DELETE CASCADE on
+   * parentNoteId never fires — it only triggers on a real row DELETE. Cascade
+   * the subtree explicitly here instead, matching the product decision that
+   * deleting a parent Note takes its descendants down with it.
+   */
+  private async deleteWithDescendants(note: Note): Promise<void> {
+    note.delete();
     await this.repository.update(note);
+
+    const children = await this.repository.findChildren(note.Id.toString());
+
+    for (const child of children) {
+      await this.deleteWithDescendants(child);
+    }
   }
 
   async getNote(id: string): Promise<Note> {
@@ -97,6 +121,45 @@ export class NoteService {
 
   async listNotes(campaignId: string): Promise<Note[]> {
     return this.repository.findByCampaign(campaignId);
+  }
+
+  async listChildren(noteId: string): Promise<Note[]> {
+    return this.repository.findChildren(noteId);
+  }
+
+  async listRoots(campaignId: string): Promise<Note[]> {
+    return this.repository.findRoots(campaignId);
+  }
+
+  async getParent(note: Note): Promise<Note | null> {
+    if (!note.ParentNoteId) {
+      return null;
+    }
+
+    return this.repository.findById(note.ParentNoteId);
+  }
+
+  async moveNote(id: string, parentNoteId: string | null): Promise<Note> {
+    const note = await this.repository.findById(NoteId.fromString(id));
+
+    if (!note) {
+      throw new NotFoundError("Note not found.");
+    }
+
+    if (parentNoteId === null) {
+      note.moveTo(null);
+    } else {
+      const parent = await this.resolveParent(
+        note.CampaignId,
+        parentNoteId,
+        note.Id,
+      );
+      note.moveTo(parent.Id);
+    }
+
+    await this.repository.update(note);
+
+    return note;
   }
 
   async listLinkedEntities(noteId: string): Promise<Entity[]> {
@@ -142,6 +205,53 @@ export class NoteService {
     );
 
     await this.noteLinkRepository.replaceForNote(noteId, links);
+  }
+
+  /**
+   * Validates a candidate parent: must exist, must be in the same campaign,
+   * must not create a cycle (excludeNoteId appearing among its ancestors),
+   * and must not push the moved/created note past MAX_NOTE_DEPTH levels.
+   */
+  private async resolveParent(
+    campaignId: string,
+    parentNoteId: string,
+    excludeNoteId?: NoteId,
+  ): Promise<Note> {
+    const parent = await this.repository.findById(
+      NoteId.fromString(parentNoteId),
+    );
+
+    if (!parent) {
+      throw new NotFoundError("Parent note not found.");
+    }
+
+    if (parent.CampaignId !== campaignId) {
+      throw new ValidationError("Parent note must be in the same campaign.");
+    }
+
+    let ancestor: Note | null = parent;
+    let depth = 1;
+
+    while (ancestor) {
+      if (excludeNoteId && ancestor.Id.equals(excludeNoteId)) {
+        throw new ValidationError("Moving this note would create a cycle.");
+      }
+
+      if (depth >= MAX_NOTE_DEPTH) {
+        throw new ValidationError(
+          `Notes cannot be nested more than ${MAX_NOTE_DEPTH} levels deep.`,
+        );
+      }
+
+      if (!ancestor.ParentNoteId) {
+        break;
+      }
+
+      ancestor = await this.repository.findById(ancestor.ParentNoteId);
+      depth++;
+    }
+
+    return parent;
   }
 
   private async hydrateEntities(entityIds: string[]): Promise<Entity[]> {

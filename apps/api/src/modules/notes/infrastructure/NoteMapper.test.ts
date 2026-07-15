@@ -11,6 +11,7 @@ describe("NoteMapper", () => {
       authorId: "33333333-3333-3333-3333-333333333333",
       title: "Session 1 prep",
       content: "# Notes\n\nSome markdown.",
+      parentNoteId: null,
       createdAt: new Date("2024-01-01T00:00:00Z"),
       updatedAt: new Date("2024-02-01T00:00:00Z"),
       deletedAt: null,
@@ -23,9 +24,28 @@ describe("NoteMapper", () => {
     expect(note.AuthorId.toString()).toBe(record.authorId);
     expect(note.Title).toBe(record.title);
     expect(note.Content).toBe(record.content);
+    expect(note.ParentNoteId).toBeNull();
     expect(note.CreatedAt).toEqual(record.createdAt);
     expect(note.UpdatedAt).toEqual(record.updatedAt);
     expect(note.DeletedAt).toBeNull();
+  });
+
+  it("maps a parentNoteId when present", () => {
+    const record: PrismaNote = {
+      id: "11111111-1111-1111-1111-111111111111",
+      campaignId: "22222222-2222-2222-2222-222222222222",
+      authorId: "33333333-3333-3333-3333-333333333333",
+      title: "Scene 1",
+      content: "Some markdown.",
+      parentNoteId: "44444444-4444-4444-4444-444444444444",
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+      updatedAt: new Date("2024-02-01T00:00:00Z"),
+      deletedAt: null,
+    };
+
+    const note = NoteMapper.toDomain(record);
+
+    expect(note.ParentNoteId?.toString()).toBe(record.parentNoteId);
   });
 
   it("maps a domain note to a persistence shape", () => {
@@ -44,6 +64,7 @@ describe("NoteMapper", () => {
       authorId: note.AuthorId.toString(),
       title: note.Title,
       content: note.Content,
+      parentNoteId: null,
       createdAt: note.CreatedAt,
       updatedAt: note.UpdatedAt,
       deletedAt: note.DeletedAt,

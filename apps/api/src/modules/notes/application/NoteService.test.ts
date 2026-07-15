@@ -4,6 +4,7 @@ import {
   EntityRepository,
   EntityVisibility,
   Note,
+  NoteId,
   NoteLink,
   NoteLinkRepository,
   NoteRepository,
@@ -17,6 +18,8 @@ function makeRepository(): NoteRepository {
     findById: vi.fn(),
     findByCampaign: vi.fn(),
     findByTitle: vi.fn().mockResolvedValue([]),
+    findChildren: vi.fn().mockResolvedValue([]),
+    findRoots: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
   };
@@ -133,6 +136,46 @@ describe("NoteService", () => {
 
       expect(note.isDeleted()).toBe(true);
       expect(repository.update).toHaveBeenCalledWith(note);
+    });
+
+    it("cascades the soft-delete down the whole subtree", async () => {
+      const authorId = UserId.fromString(createDto.authorId);
+      const root = Note.create({
+        campaignId: createDto.campaignId,
+        authorId,
+        title: "Root",
+      });
+      const child = Note.create({
+        campaignId: createDto.campaignId,
+        authorId,
+        title: "Child",
+        parentNoteId: root.Id,
+      });
+      const grandchild = Note.create({
+        campaignId: createDto.campaignId,
+        authorId,
+        title: "Grandchild",
+        parentNoteId: child.Id,
+      });
+
+      vi.mocked(repository.findById).mockImplementation(async (id) => {
+        if (id.equals(root.Id)) return root;
+        if (id.equals(child.Id)) return child;
+        if (id.equals(grandchild.Id)) return grandchild;
+        return null;
+      });
+      vi.mocked(repository.findChildren).mockImplementation(async (noteId) => {
+        if (noteId === root.Id.toString()) return [child];
+        if (noteId === child.Id.toString()) return [grandchild];
+        return [];
+      });
+
+      await service.deleteNote(root.Id.toString());
+
+      expect(root.isDeleted()).toBe(true);
+      expect(child.isDeleted()).toBe(true);
+      expect(grandchild.isDeleted()).toBe(true);
+      expect(repository.update).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -314,6 +357,157 @@ describe("NoteService", () => {
       await expect(service.listEntityBacklinks("entity-1")).resolves.toEqual([
         sourceNote,
       ]);
+    });
+  });
+
+  describe("nesting", () => {
+    it("creates a note under a parent in the same campaign", async () => {
+      const parent = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: "Session 12",
+      });
+      vi.mocked(repository.findById).mockResolvedValue(parent);
+
+      const child = await service.createNote({
+        ...createDto,
+        title: "Scene 1",
+        parentNoteId: parent.Id.toString(),
+      });
+
+      expect(child.ParentNoteId?.equals(parent.Id)).toBe(true);
+    });
+
+    it("throws NotFoundError when the parent does not exist", async () => {
+      vi.mocked(repository.findById).mockResolvedValue(null);
+
+      await expect(
+        service.createNote({ ...createDto, parentNoteId: "missing" }),
+      ).rejects.toThrow(NotFoundError);
+    });
+
+    it("rejects a parent from a different campaign", async () => {
+      const parent = Note.create({
+        campaignId: "other-campaign",
+        authorId: UserId.fromString(createDto.authorId),
+        title: "Session 12",
+      });
+      vi.mocked(repository.findById).mockResolvedValue(parent);
+
+      await expect(
+        service.createNote({
+          ...createDto,
+          parentNoteId: parent.Id.toString(),
+        }),
+      ).rejects.toThrow("Parent note must be in the same campaign.");
+    });
+
+    it("moves a note under a new parent", async () => {
+      const note = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: "Scene 1",
+      });
+      const parent = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: "Session 12",
+      });
+      vi.mocked(repository.findById).mockImplementation(async (id) => {
+        if (id.equals(note.Id)) return note;
+        if (id.equals(parent.Id)) return parent;
+        return null;
+      });
+
+      const moved = await service.moveNote(
+        note.Id.toString(),
+        parent.Id.toString(),
+      );
+
+      expect(moved.ParentNoteId?.equals(parent.Id)).toBe(true);
+      expect(repository.update).toHaveBeenCalledWith(note);
+    });
+
+    it("detaches a note to root when moved to a null parent", async () => {
+      const parentId = NoteId.create();
+      const note = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: "Scene 1",
+        parentNoteId: parentId,
+      });
+      vi.mocked(repository.findById).mockResolvedValue(note);
+
+      const moved = await service.moveNote(note.Id.toString(), null);
+
+      expect(moved.ParentNoteId).toBeNull();
+    });
+
+    it("rejects moving a note under itself or its own descendant (cycle)", async () => {
+      const grandparent = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: "Grandparent",
+      });
+      const parent = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: "Parent",
+        parentNoteId: grandparent.Id,
+      });
+      const child = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: "Child",
+        parentNoteId: parent.Id,
+      });
+      vi.mocked(repository.findById).mockImplementation(async (id) => {
+        if (id.equals(grandparent.Id)) return grandparent;
+        if (id.equals(parent.Id)) return parent;
+        if (id.equals(child.Id)) return child;
+        return null;
+      });
+
+      // Moving "grandparent" under its own descendant "child" would create a cycle.
+      await expect(
+        service.moveNote(grandparent.Id.toString(), child.Id.toString()),
+      ).rejects.toThrow("Moving this note would create a cycle.");
+    });
+
+    it("rejects nesting deeper than the max depth", async () => {
+      const authorId = UserId.fromString(createDto.authorId);
+      let current = Note.create({
+        campaignId: createDto.campaignId,
+        authorId,
+        title: "Level 1",
+      });
+      const notesById = new Map([[current.Id.toString(), current]]);
+
+      for (let level = 2; level <= 5; level++) {
+        current = Note.create({
+          campaignId: createDto.campaignId,
+          authorId,
+          title: `Level ${level}`,
+          parentNoteId: current.Id,
+        });
+        notesById.set(current.Id.toString(), current);
+      }
+
+      const deepestParent = current;
+      const newNote = Note.create({
+        campaignId: createDto.campaignId,
+        authorId,
+        title: "Too deep",
+      });
+      notesById.set(newNote.Id.toString(), newNote);
+
+      vi.mocked(repository.findById).mockImplementation(
+        async (id) => notesById.get(id.toString()) ?? null,
+      );
+
+      await expect(
+        service.moveNote(newNote.Id.toString(), deepestParent.Id.toString()),
+      ).rejects.toThrow("Notes cannot be nested more than 5 levels deep.");
     });
   });
 });

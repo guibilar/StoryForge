@@ -31,4 +31,17 @@ export const Query = {
       toGraphQLError(error);
     }
   },
+
+  noteRoots: async (
+    _parent: unknown,
+    args: { campaignId: string },
+    context: GraphQLContext,
+  ) => {
+    try {
+      await requireCampaignMember(context, args.campaignId);
+      return await context.noteService.listRoots(args.campaignId);
+    } catch (error) {
+      toGraphQLError(error);
+    }
+  },
 };

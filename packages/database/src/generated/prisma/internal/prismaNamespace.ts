@@ -1335,6 +1335,7 @@ export const NoteScalarFieldEnum = {
   id: "id",
   campaignId: "campaignId",
   authorId: "authorId",
+  parentNoteId: "parentNoteId",
   title: "title",
   content: "content",
   createdAt: "createdAt",

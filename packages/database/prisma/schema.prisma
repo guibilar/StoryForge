@@ -135,12 +135,14 @@ model User {
 }
 
 model Note {
-  id         String @id @default(uuid())
-  campaignId String
-  authorId   String
+  id           String  @id @default(uuid())
+  campaignId   String
+  authorId     String
+  parentNoteId String?
 
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent   Note?    @relation("NoteParent", fields: [parentNoteId], references: [id], onDelete: Cascade)
 
   title   String
   content String @db.Text
@@ -150,11 +152,13 @@ model Note {
   deletedAt DateTime?
 
   attachments Attachment[]
+  children    Note[]       @relation("NoteParent")
 
   linksOut NoteLink[] @relation("NoteLinkSource")
   linksIn  NoteLink[] @relation("NoteLinkTargetNote")
 
   @@index([campaignId])
+  @@index([parentNoteId])
 }
 
 model NoteLink {

@@ -9,6 +9,7 @@ export interface CreateNoteProps {
   authorId: UserId;
   title: string;
   content?: string;
+  parentNoteId?: NoteId | null;
 }
 
 export interface RehydrateNoteProps {
@@ -17,6 +18,7 @@ export interface RehydrateNoteProps {
   authorId: UserId;
   title: string;
   content: string;
+  parentNoteId: NoteId | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -29,6 +31,7 @@ export class Note {
     private readonly authorIdValue: UserId,
     private titleValue: string,
     private contentValue: string,
+    private parentNoteIdValue: NoteId | null,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
     private deletedAtValue: Date | null,
@@ -44,6 +47,7 @@ export class Note {
       props.authorId,
       props.title,
       props.content ?? "",
+      props.parentNoteId ?? null,
       new Date(),
       new Date(),
       null,
@@ -57,6 +61,7 @@ export class Note {
       props.authorId,
       props.title,
       props.content,
+      props.parentNoteId,
       props.createdAt,
       props.updatedAt,
       props.deletedAt,
@@ -93,6 +98,24 @@ export class Note {
 
   get DeletedAt(): Date | null {
     return this.deletedAtValue;
+  }
+
+  get ParentNoteId(): NoteId | null {
+    return this.parentNoteIdValue;
+  }
+
+  /**
+   * Sets the immediate parent. Only guards against a note directly
+   * parenting itself — cycle and depth-cap checks require walking the
+   * ancestor chain via a repository, so those live in NoteService.
+   */
+  moveTo(parentId: NoteId | null): void {
+    if (parentId && parentId.equals(this.idValue)) {
+      throw new ValidationError("A note cannot be its own parent.");
+    }
+
+    this.parentNoteIdValue = parentId;
+    this.updatedAtValue = new Date();
   }
 
   changeTitle(title: string): void {

@@ -8,6 +8,10 @@ export interface NoteRepository {
 
   findByTitle(campaignId: string, title: string): Promise<Note[]>;
 
+  findChildren(noteId: string): Promise<Note[]>;
+
+  findRoots(campaignId: string): Promise<Note[]>;
+
   create(note: Note): Promise<void>;
 
   update(note: Note): Promise<void>;

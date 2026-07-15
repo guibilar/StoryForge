@@ -43,6 +43,7 @@ describe("Note", () => {
       authorId: validProps.authorId,
       title: validProps.title,
       content: validProps.content,
+      parentNoteId: null,
       createdAt,
       updatedAt,
       deletedAt: null,
@@ -107,5 +108,48 @@ describe("Note", () => {
     note.delete();
 
     expect(note.DeletedAt).toBe(firstDeletedAt);
+  });
+
+  it("creates with a parent note id", () => {
+    const parentId = NoteId.create();
+    const note = Note.create({ ...validProps, parentNoteId: parentId });
+
+    expect(note.ParentNoteId?.equals(parentId)).toBe(true);
+  });
+
+  it("defaults parentNoteId to null when omitted", () => {
+    const note = Note.create(validProps);
+
+    expect(note.ParentNoteId).toBeNull();
+  });
+
+  describe("moveTo", () => {
+    it("sets the parent note id", () => {
+      const note = Note.create(validProps);
+      const parentId = NoteId.create();
+
+      note.moveTo(parentId);
+
+      expect(note.ParentNoteId?.equals(parentId)).toBe(true);
+    });
+
+    it("clears the parent when moved to null", () => {
+      const note = Note.create({
+        ...validProps,
+        parentNoteId: NoteId.create(),
+      });
+
+      note.moveTo(null);
+
+      expect(note.ParentNoteId).toBeNull();
+    });
+
+    it("rejects a note becoming its own parent", () => {
+      const note = Note.create(validProps);
+
+      expect(() => note.moveTo(note.Id)).toThrow(
+        "A note cannot be its own parent.",
+      );
+    });
   });
 });

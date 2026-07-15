@@ -2,6 +2,7 @@ input CreateNoteInput {
   campaignId: ID!
   title: String!
   content: String
+  parentNoteId: ID
 }
 
 input UpdateNoteInput {
@@ -14,4 +15,5 @@ extend type Mutation {
   createNote(input: CreateNoteInput!): Note!
   updateNote(input: UpdateNoteInput!): Note!
   deleteNote(id: ID!): Boolean!
+  moveNote(id: ID!, parentNoteId: ID): Note!
 }

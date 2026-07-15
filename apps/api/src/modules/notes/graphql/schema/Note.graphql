@@ -4,6 +4,9 @@ type Note {
   authorId: ID!
   title: String!
   content: String!
+  parentNoteId: ID
+  parent: Note
+  children: [Note!]!
   createdAt: String!
   updatedAt: String!
   deletedAt: String

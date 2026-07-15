@@ -7,7 +7,14 @@ import type { UpdateNoteDto } from "../../application/NoteService";
 export const Mutation = {
   createNote: async (
     _parent: unknown,
-    args: { input: { campaignId: string; title: string; content?: string } },
+    args: {
+      input: {
+        campaignId: string;
+        title: string;
+        content?: string;
+        parentNoteId?: string;
+      };
+    },
     context: GraphQLContext,
   ) => {
     try {
@@ -50,6 +57,24 @@ export const Mutation = {
       await requireCampaignMember(context, note.CampaignId);
       await context.noteService.deleteNote(args.id);
       return true;
+    } catch (error) {
+      toGraphQLError(error);
+    }
+  },
+
+  moveNote: async (
+    _parent: unknown,
+    args: { id: string; parentNoteId?: string | null },
+    context: GraphQLContext,
+  ) => {
+    try {
+      requireCurrentUser(context);
+      const note = await context.noteService.getNote(args.id);
+      await requireCampaignMember(context, note.CampaignId);
+      return await context.noteService.moveNote(
+        args.id,
+        args.parentNoteId ?? null,
+      );
     } catch (error) {
       toGraphQLError(error);
     }

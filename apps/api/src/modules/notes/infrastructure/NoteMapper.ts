@@ -9,6 +9,9 @@ export class NoteMapper {
       authorId: UserId.fromString(record.authorId),
       title: record.title,
       content: record.content,
+      parentNoteId: record.parentNoteId
+        ? NoteId.fromString(record.parentNoteId)
+        : null,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
       deletedAt: record.deletedAt,
@@ -22,6 +25,7 @@ export class NoteMapper {
       authorId: note.AuthorId.toString(),
       title: note.Title,
       content: note.Content,
+      parentNoteId: note.ParentNoteId?.toString() ?? null,
       createdAt: note.CreatedAt,
       updatedAt: note.UpdatedAt,
       deletedAt: note.DeletedAt,

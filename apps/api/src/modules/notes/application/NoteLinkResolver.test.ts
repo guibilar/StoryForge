@@ -25,6 +25,8 @@ function makeNoteRepository(): NoteRepository {
     findById: vi.fn().mockResolvedValue(null),
     findByCampaign: vi.fn(),
     findByTitle: vi.fn().mockResolvedValue([]),
+    findChildren: vi.fn().mockResolvedValue([]),
+    findRoots: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
   };

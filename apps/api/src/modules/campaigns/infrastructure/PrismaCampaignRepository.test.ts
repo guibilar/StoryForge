@@ -6,15 +6,32 @@ import { PrismaCampaignRepository } from "./PrismaCampaignRepository";
 
 const repository = new PrismaCampaignRepository();
 const createdIds: string[] = [];
+const createdUserIds: string[] = [];
 
 function uniqueName(): string {
   return `test-campaign-${randomUUID()}`;
+}
+
+async function createUser(): Promise<string> {
+  const user = await prisma.user.create({
+    data: {
+      id: randomUUID(),
+      email: `test-user-${randomUUID()}@example.com`,
+      password: "hashed",
+    },
+  });
+  createdUserIds.push(user.id);
+  return user.id;
 }
 
 afterEach(async () => {
   if (createdIds.length > 0) {
     await prisma.campaign.deleteMany({ where: { id: { in: createdIds } } });
     createdIds.length = 0;
+  }
+  if (createdUserIds.length > 0) {
+    await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });
+    createdUserIds.length = 0;
   }
 });
 
@@ -79,13 +96,37 @@ describe("PrismaCampaignRepository", () => {
     expect(found?.ArchivedAt).toBeInstanceOf(Date);
   });
 
-  it("lists campaigns including the ones just created", async () => {
-    const campaign = Campaign.create({ name: uniqueName() });
-    createdIds.push(campaign.Id.toString());
-    await repository.create(campaign);
+  it("lists only campaigns the given user is a member of", async () => {
+    const memberUserId = await createUser();
+    const otherUserId = await createUser();
 
-    const campaigns = await repository.listCampaigns();
+    const memberCampaign = Campaign.create({ name: uniqueName() });
+    createdIds.push(memberCampaign.Id.toString());
+    await repository.create(memberCampaign);
+    await prisma.campaignMember.create({
+      data: {
+        id: randomUUID(),
+        campaignId: memberCampaign.Id.toString(),
+        userId: memberUserId,
+        role: "OWNER",
+      },
+    });
 
-    expect(campaigns.some((c) => c.Id.equals(campaign.Id))).toBe(true);
+    const otherCampaign = Campaign.create({ name: uniqueName() });
+    createdIds.push(otherCampaign.Id.toString());
+    await repository.create(otherCampaign);
+    await prisma.campaignMember.create({
+      data: {
+        id: randomUUID(),
+        campaignId: otherCampaign.Id.toString(),
+        userId: otherUserId,
+        role: "OWNER",
+      },
+    });
+
+    const campaigns = await repository.listCampaigns(memberUserId);
+
+    expect(campaigns.some((c) => c.Id.equals(memberCampaign.Id))).toBe(true);
+    expect(campaigns.some((c) => c.Id.equals(otherCampaign.Id))).toBe(false);
   });
 });

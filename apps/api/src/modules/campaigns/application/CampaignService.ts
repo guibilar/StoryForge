@@ -99,7 +99,7 @@ export class CampaignService {
     await this.campaignRepository.archive(campaign);
   }
 
-  async listCampaigns(): Promise<Campaign[]> {
-    return this.campaignRepository.listCampaigns();
+  async listCampaigns(userId: string): Promise<Campaign[]> {
+    return this.campaignRepository.listCampaigns(userId);
   }
 }

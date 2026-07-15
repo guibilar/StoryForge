@@ -47,8 +47,23 @@
               "script": {
                 "exec": [
                   "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns a token and user\", function () {",
+                  "  pm.expect(body.data.registerUser.token).to.be.a(\"string\");",
+                  "  pm.expect(body.data.registerUser.user.id).to.be.a(\"string\");",
+                  "  pm.expect(body.data.registerUser.user.email).to.eql(pm.environment.get(\"userEmail\"));",
+                  "});",
+                  "",
                   "const token = body?.data?.registerUser?.token;",
-                  "if (token) pm.environment.set('token', token);"
+                  "if (token) pm.environment.set(\"token\", token);"
                 ]
               }
             }
@@ -82,8 +97,22 @@
               "script": {
                 "exec": [
                   "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns a token and user\", function () {",
+                  "  pm.expect(body.data.login.token).to.be.a(\"string\");",
+                  "  pm.expect(body.data.login.user.email).to.eql(pm.environment.get(\"userEmail\"));",
+                  "});",
+                  "",
                   "const token = body?.data?.login?.token;",
-                  "if (token) pm.environment.set('token', token);"
+                  "if (token) pm.environment.set(\"token\", token);"
                 ]
               }
             }
@@ -107,7 +136,30 @@
                 "variables": ""
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns the current user\", function () {",
+                  "  pm.expect(body.data.me).to.not.be.null;",
+                  "  pm.expect(body.data.me.id).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -132,27 +184,29 @@
                 "variables": ""
               }
             }
-          }
-        },
-        {
-          "name": "Get Campaign",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}",
-            "body": {
-              "mode": "graphql",
-              "graphql": {
-                "query": "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    description\n    createdAt\n    updatedAt\n    archivedAt\n  }\n}",
-                "variables": "{\n  \"id\": \"{{campaignId}}\"\n}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns an array\", function () {",
+                  "  pm.expect(body.data.campaigns).to.be.an(\"array\");",
+                  "});"
+                ]
               }
             }
-          }
+          ]
         },
         {
           "name": "Create Campaign",
@@ -179,8 +233,65 @@
               "script": {
                 "exec": [
                   "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"creates the campaign\", function () {",
+                  "  pm.expect(body.data.createCampaign.id).to.be.a(\"string\");",
+                  "  pm.expect(body.data.createCampaign.name).to.eql(\"My Campaign\");",
+                  "});",
+                  "",
                   "const id = body?.data?.createCampaign?.id;",
-                  "if (id) pm.environment.set('campaignId', id);"
+                  "if (id) pm.environment.set(\"campaignId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    description\n    createdAt\n    updatedAt\n    archivedAt\n  }\n}",
+                "variables": "{\n  \"id\": \"{{campaignId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns the created campaign\", function () {",
+                  "  pm.expect(body.data.campaign).to.not.be.null;",
+                  "  pm.expect(body.data.campaign.id).to.eql(pm.environment.get(\"campaignId\"));",
+                  "});"
                 ]
               }
             }
@@ -204,7 +315,29 @@
                 "variables": "{\n  \"input\": {\n    \"id\": \"{{campaignId}}\",\n    \"name\": \"My Campaign (updated)\"\n  }\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"renames the campaign\", function () {",
+                  "  pm.expect(body.data.updateCampaign.name).to.eql(\"My Campaign (updated)\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Archive Campaign",
@@ -224,7 +357,29 @@
                 "variables": "{\n  \"id\": \"{{campaignId}}\"\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"archives the campaign\", function () {",
+                  "  pm.expect(body.data.archiveCampaign).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -249,7 +404,29 @@
                 "variables": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"filter\": null\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns an array\", function () {",
+                  "  pm.expect(body.data.entities).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "List Entities (Filtered)",
@@ -269,27 +446,29 @@
                 "variables": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"filter\": {\n    \"type\": \"npc\",\n    \"nameContains\": \"gob\",\n    \"tagIds\": []\n  }\n}"
               }
             }
-          }
-        },
-        {
-          "name": "Get Entity",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}",
-            "body": {
-              "mode": "graphql",
-              "graphql": {
-                "query": "query Entity($id: ID!) {\n  entity(id: $id) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    image\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
-                "variables": "{\n  \"id\": \"{{entityId}}\"\n}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns an array\", function () {",
+                  "  pm.expect(body.data.entities).to.be.an(\"array\");",
+                  "});"
+                ]
               }
             }
-          }
+          ]
         },
         {
           "name": "Create Entity",
@@ -316,8 +495,66 @@
               "script": {
                 "exec": [
                   "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"creates the entity\", function () {",
+                  "  pm.expect(body.data.createEntity.id).to.be.a(\"string\");",
+                  "  pm.expect(body.data.createEntity.name).to.eql(\"My Entity\");",
+                  "  pm.expect(body.data.createEntity.campaignId).to.eql(pm.environment.get(\"campaignId\"));",
+                  "});",
+                  "",
                   "const id = body?.data?.createEntity?.id;",
-                  "if (id) pm.environment.set('entityId', id);"
+                  "if (id) pm.environment.set(\"entityId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Entity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Entity($id: ID!) {\n  entity(id: $id) {\n    id\n    campaignId\n    type\n    name\n    description\n    icon\n    image\n    visibility\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
+                "variables": "{\n  \"id\": \"{{entityId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns the created entity\", function () {",
+                  "  pm.expect(body.data.entity).to.not.be.null;",
+                  "  pm.expect(body.data.entity.id).to.eql(pm.environment.get(\"entityId\"));",
+                  "});"
                 ]
               }
             }
@@ -341,27 +578,29 @@
                 "variables": "{\n  \"input\": {\n    \"id\": \"{{entityId}}\",\n    \"name\": \"My Entity (updated)\"\n  }\n}"
               }
             }
-          }
-        },
-        {
-          "name": "Delete Entity",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}",
-            "body": {
-              "mode": "graphql",
-              "graphql": {
-                "query": "mutation DeleteEntity($id: ID!) {\n  deleteEntity(id: $id)\n}",
-                "variables": "{\n  \"id\": \"{{entityId}}\"\n}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"renames the entity\", function () {",
+                  "  pm.expect(body.data.updateEntity.name).to.eql(\"My Entity (updated)\");",
+                  "});"
+                ]
               }
             }
-          }
+          ]
         },
         {
           "name": "Upload Entity Image",
@@ -389,7 +628,25 @@
               ]
             }
           },
-          "description": "Uses the GraphQL multipart request spec (https://github.com/jaydenseric/graphql-multipart-request-spec), which graphql-yoga supports natively. Select a PNG/JPEG/GIF/WEBP under 5MB for the '0' file field before sending."
+          "description": "Uses the GraphQL multipart request spec (https://github.com/jaydenseric/graphql-multipart-request-spec), which graphql-yoga supports natively. Select a PNG/JPEG/GIF/WEBP under 5MB for the '0' file field before sending.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// This request needs a file manually attached to the \"0\" form field in",
+                  "// the Postman UI, so it can't assert on GraphQL success in an automated",
+                  "// run \u2014 only that the server responded."
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -414,7 +671,29 @@
                 "variables": "{\n  \"campaignId\": \"{{campaignId}}\"\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns an array\", function () {",
+                  "  pm.expect(body.data.campaignTags).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Add Tag To Entity",
@@ -441,8 +720,23 @@
               "script": {
                 "exec": [
                   "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"attaches the tag\", function () {",
+                  "  const tags = body.data.addTagToEntity.tags;",
+                  "  pm.expect(tags).to.be.an(\"array\");",
+                  "  pm.expect(tags.some((tag) => tag.name === \"faction:thieves-guild\")).to.eql(true);",
+                  "});",
+                  "",
                   "const id = body?.data?.addTagToEntity?.tags?.[0]?.id;",
-                  "if (id) pm.environment.set('tagId', id);"
+                  "if (id) pm.environment.set(\"tagId\", id);"
                 ]
               }
             }
@@ -466,7 +760,31 @@
                 "variables": "{\n  \"entityId\": \"{{entityId}}\",\n  \"tagId\": \"{{tagId}}\"\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"detaches the tag\", function () {",
+                  "  const tags = body.data.removeTagFromEntity.tags;",
+                  "  pm.expect(tags).to.be.an(\"array\");",
+                  "  pm.expect(tags.some((tag) => tag.id === pm.environment.get(\"tagId\"))).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -498,8 +816,21 @@
               "script": {
                 "exec": [
                   "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"creates the target entity\", function () {",
+                  "  pm.expect(body.data.createEntity.id).to.be.a(\"string\");",
+                  "});",
+                  "",
                   "const id = body?.data?.createEntity?.id;",
-                  "if (id) pm.environment.set('targetEntityId', id);"
+                  "if (id) pm.environment.set(\"targetEntityId\", id);"
                 ]
               }
             }
@@ -530,8 +861,24 @@
               "script": {
                 "exec": [
                   "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"creates the relationship\", function () {",
+                  "  pm.expect(body.data.createRelationship.id).to.be.a(\"string\");",
+                  "  pm.expect(body.data.createRelationship.type).to.eql(\"ALLY\");",
+                  "  pm.expect(body.data.createRelationship.sourceEntityId).to.eql(pm.environment.get(\"entityId\"));",
+                  "  pm.expect(body.data.createRelationship.targetEntityId).to.eql(pm.environment.get(\"targetEntityId\"));",
+                  "});",
+                  "",
                   "const id = body?.data?.createRelationship?.id;",
-                  "if (id) pm.environment.set('relationshipId', id);"
+                  "if (id) pm.environment.set(\"relationshipId\", id);"
                 ]
               }
             }
@@ -555,7 +902,30 @@
                 "variables": "{\n  \"id\": \"{{relationshipId}}\"\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns the created relationship\", function () {",
+                  "  pm.expect(body.data.relationship).to.not.be.null;",
+                  "  pm.expect(body.data.relationship.id).to.eql(pm.environment.get(\"relationshipId\"));",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "List Relationships (By Campaign)",
@@ -575,7 +945,29 @@
                 "variables": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"entityId\": null\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns an array\", function () {",
+                  "  pm.expect(body.data.relationships).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "List Relationships (By Entity)",
@@ -595,7 +987,30 @@
                 "variables": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"entityId\": \"{{entityId}}\"\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns an array including the created relationship\", function () {",
+                  "  pm.expect(body.data.relationships).to.be.an(\"array\");",
+                  "  pm.expect(body.data.relationships.some((r) => r.id === pm.environment.get(\"relationshipId\"))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Update Relationship",
@@ -615,7 +1030,29 @@
                 "variables": "{\n  \"input\": {\n    \"id\": \"{{relationshipId}}\",\n    \"type\": \"ENEMY\",\n    \"description\": \"Turned hostile (updated from Postman)\"\n  }\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"changes the relationship type\", function () {",
+                  "  pm.expect(body.data.updateRelationship.type).to.eql(\"ENEMY\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Delete Relationship",
@@ -635,7 +1072,29 @@
                 "variables": "{\n  \"id\": \"{{relationshipId}}\"\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"deletes the relationship\", function () {",
+                  "  pm.expect(body.data.deleteRelationship).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -667,8 +1126,21 @@
               "script": {
                 "exec": [
                   "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"registers the member user\", function () {",
+                  "  pm.expect(body.data.registerUser.user.id).to.be.a(\"string\");",
+                  "});",
+                  "",
                   "const id = body?.data?.registerUser?.user?.id;",
-                  "if (id) pm.environment.set('memberUserId', id);"
+                  "if (id) pm.environment.set(\"memberUserId\", id);"
                 ]
               }
             }
@@ -692,7 +1164,31 @@
                 "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"email\": \"{{memberUserEmail}}\",\n    \"role\": \"PLAYER\"\n  }\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"adds the member with PLAYER role\", function () {",
+                  "  pm.expect(body.data.addCampaignMember.id).to.be.a(\"string\");",
+                  "  pm.expect(body.data.addCampaignMember.role).to.eql(\"PLAYER\");",
+                  "  pm.expect(body.data.addCampaignMember.userId).to.eql(pm.environment.get(\"memberUserId\"));",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "List Campaign Members",
@@ -712,7 +1208,31 @@
                 "variables": "{\n  \"id\": \"{{campaignId}}\"\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"includes the added member\", function () {",
+                  "  const members = body.data.campaign.members;",
+                  "  pm.expect(members).to.be.an(\"array\");",
+                  "  pm.expect(members.some((m) => m.userId === pm.environment.get(\"memberUserId\"))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Update Campaign Member Role",
@@ -732,7 +1252,29 @@
                 "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"userId\": \"{{memberUserId}}\",\n    \"role\": \"STORYTELLER\"\n  }\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"changes the member role\", function () {",
+                  "  pm.expect(body.data.updateCampaignMemberRole.role).to.eql(\"STORYTELLER\");",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Remove Campaign Member",
@@ -752,7 +1294,725 @@
                 "variables": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"userId\": \"{{memberUserId}}\"\n}"
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"removes the member\", function () {",
+                  "  pm.expect(body.data.removeCampaignMember).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Notes",
+      "item": [
+        {
+          "name": "Create Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    parentNoteId\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"title\": \"Session 12\",\n    \"content\": \"Session recap. Met [[My Entity]] at the tavern.\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"creates a root note\", function () {",
+                  "  pm.expect(body.data.createNote.id).to.be.a(\"string\");",
+                  "  pm.expect(body.data.createNote.parentNoteId).to.be.null;",
+                  "  pm.expect(body.data.createNote.campaignId).to.eql(pm.environment.get(\"campaignId\"));",
+                  "});",
+                  "",
+                  "const value = body?.data?.createNote?.id;",
+                  "if (value) pm.environment.set(\"noteId\", value);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Child Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    title\n    content\n    parentNoteId\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"title\": \"Scene 1\",\n    \"content\": \"First scene of the session.\",\n    \"parentNoteId\": \"{{noteId}}\"\n  }\n}"
+              }
+            }
+          },
+          "description": "Nests the note under {{noteId}} (KAN-46). Run 'Create Note' first.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"nests the note under the parent\", function () {",
+                  "  pm.expect(body.data.createNote.id).to.be.a(\"string\");",
+                  "  pm.expect(body.data.createNote.parentNoteId).to.eql(pm.environment.get(\"noteId\"));",
+                  "});",
+                  "",
+                  "const value = body?.data?.createNote?.id;",
+                  "if (value) pm.environment.set(\"childNoteId\", value);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetNote($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    parentNoteId\n    parent {\n      id\n      title\n    }\n    children {\n      id\n      title\n    }\n    linkedEntities {\n      id\n      name\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n    }\n    createdAt\n    updatedAt\n    deletedAt\n  }\n}",
+                "variables": "{\n  \"id\": \"{{noteId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns the note with its tree/link fields\", function () {",
+                  "  const note = body.data.note;",
+                  "  pm.expect(note).to.not.be.null;",
+                  "  pm.expect(note.id).to.eql(pm.environment.get(\"noteId\"));",
+                  "  pm.expect(note.children).to.be.an(\"array\");",
+                  "  pm.expect(note.children.some((c) => c.id === pm.environment.get(\"childNoteId\"))).to.eql(true);",
+                  "  pm.expect(note.linkedEntities).to.be.an(\"array\");",
+                  "  pm.expect(note.linkedNotes).to.be.an(\"array\");",
+                  "  pm.expect(note.backlinks).to.be.an(\"array\");",
+                  "  pm.expect(note.attachments).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Notes (By Campaign)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query ListNotes($campaignId: ID!) {\n  notes(campaignId: $campaignId) {\n    id\n    title\n    parentNoteId\n    createdAt\n  }\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns an array including the created note\", function () {",
+                  "  pm.expect(body.data.notes).to.be.an(\"array\");",
+                  "  pm.expect(body.data.notes.some((n) => n.id === pm.environment.get(\"noteId\"))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Root Notes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query ListRootNotes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    title\n    createdAt\n  }\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\"\n}"
+              }
+            }
+          },
+          "description": "Top-level notes only (parentNoteId: null) \u2014 KAN-46 tree entry point.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"only returns notes with no parent\", function () {",
+                  "  const roots = body.data.noteRoots;",
+                  "  pm.expect(roots).to.be.an(\"array\");",
+                  "  pm.expect(roots.some((n) => n.id === pm.environment.get(\"noteId\"))).to.eql(true);",
+                  "  pm.expect(roots.some((n) => n.id === pm.environment.get(\"childNoteId\"))).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    title\n    content\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"id\": \"{{noteId}}\",\n    \"title\": \"Session 12 (revised)\",\n    \"content\": \"Updated recap.\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"updates title and content\", function () {",
+                  "  pm.expect(body.data.updateNote.title).to.eql(\"Session 12 (revised)\");",
+                  "  pm.expect(body.data.updateNote.content).to.eql(\"Updated recap.\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Move Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation MoveNote($id: ID!, $parentNoteId: ID) {\n  moveNote(id: $id, parentNoteId: $parentNoteId) {\n    id\n    title\n    parentNoteId\n  }\n}",
+                "variables": "{\n  \"id\": \"{{childNoteId}}\",\n  \"parentNoteId\": null\n}"
+              }
+            }
+          },
+          "description": "Detaches {{childNoteId}} back to root. Pass an existing note id instead of null to re-nest it \u2014 moves are rejected if they would create a cycle or exceed the 5-level depth cap (KAN-46).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"detaches the note to root\", function () {",
+                  "  pm.expect(body.data.moveNote.id).to.eql(pm.environment.get(\"childNoteId\"));",
+                  "  pm.expect(body.data.moveNote.parentNoteId).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Note Links",
+      "item": [
+        {
+          "name": "Create Note With Entity Link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    title\n    content\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"title\": \"Tavern Encounter\",\n    \"content\": \"Met [[My Entity|entity:{{entityId}}]] at the tavern. Also mentions an unresolved [[Unknown Thing]].\"\n  }\n}"
+              }
+            }
+          },
+          "description": "Demonstrates both link forms (KAN-45): the explicit `[[Label|entity:<id>]]` syntax always resolves; a plain `[[Label]]` resolves by exact name match against an Entity (falling back to a Note title match) and is silently dropped if nothing matches \u2014 see 'Unknown Thing' above, which will not appear in linkedEntities/linkedNotes. Run 'Create Entity' first so {{entityId}} is set.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"creates the note\", function () {",
+                  "  pm.expect(body.data.createNote.id).to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "const value = body?.data?.createNote?.id;",
+                  "if (value) pm.environment.set(\"linkedNoteId\", value);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Note Links",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetNoteLinks($id: ID!) {\n  note(id: $id) {\n    id\n    title\n    linkedEntities {\n      id\n      name\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n  }\n}",
+                "variables": "{\n  \"id\": \"{{linkedNoteId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"resolves the explicit link, drops the unresolved one\", function () {",
+                  "  const note = body.data.note;",
+                  "  pm.expect(note.linkedEntities).to.be.an(\"array\").that.has.lengthOf(1);",
+                  "  pm.expect(note.linkedEntities[0].id).to.eql(pm.environment.get(\"entityId\"));",
+                  "  pm.expect(note.linkedNotes).to.be.an(\"array\").that.has.lengthOf(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Entity Backlinks",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetEntityBacklinks($id: ID!) {\n  entity(id: $id) {\n    id\n    name\n    backlinks {\n      id\n      title\n    }\n  }\n}",
+                "variables": "{\n  \"id\": \"{{entityId}}\"\n}"
+              }
+            }
+          },
+          "description": "Notes that link to this Entity via [[...]] syntax (KAN-45).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"lists the note that links to this entity\", function () {",
+                  "  const backlinks = body.data.entity.backlinks;",
+                  "  pm.expect(backlinks).to.be.an(\"array\");",
+                  "  pm.expect(backlinks.some((n) => n.id === pm.environment.get(\"linkedNoteId\"))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Attachments",
+      "item": [
+        {
+          "name": "Upload Note Attachment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "operations",
+                  "type": "text",
+                  "value": "{\n  \"query\": \"mutation UploadNoteAttachment($noteId: ID!, $file: Upload!) {\\n  uploadNoteAttachment(noteId: $noteId, file: $file) {\\n    id\\n    noteId\\n    url\\n    fileName\\n    mimeType\\n    sizeBytes\\n    createdAt\\n  }\\n}\",\n  \"variables\": { \"noteId\": \"{{noteId}}\", \"file\": null }\n}"
+                },
+                {
+                  "key": "map",
+                  "type": "text",
+                  "value": "{ \"0\": [\"variables.file\"] }"
+                },
+                {
+                  "key": "0",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "description": "Uses the GraphQL multipart request spec, same as 'Upload Entity Image'. Select a PNG/JPEG/GIF/WEBP under 5MB for the '0' file field before sending. Run 'Create Note' first so {{noteId}} is set.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// This request needs a file manually attached to the \"0\" form field in",
+                  "// the Postman UI, so it can't assert on GraphQL success in an automated",
+                  "// run \u2014 only that the server responded.",
+                  "",
+                  "const value = body?.data?.uploadNoteAttachment?.id;",
+                  "if (value) pm.environment.set(\"attachmentId\", value);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Note Attachments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query ListNoteAttachments($id: ID!) {\n  note(id: $id) {\n    id\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"id\": \"{{noteId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns an array\", function () {",
+                  "  pm.expect(body.data.note.attachments).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Attachment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteAttachment($id: ID!) {\n  deleteAttachment(id: $id)\n}",
+                "variables": "{\n  \"id\": \"{{attachmentId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"deletes the attachment\", function () {",
+                  "  pm.expect(body.data.deleteAttachment).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cleanup",
+      "description": "Destructive requests (delete/archive) that other folders' fixtures depend on \u2014 run these last so a full top-to-bottom collection run doesn't break downstream folders.",
+      "item": [
+        {
+          "name": "Delete Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteNote($id: ID!) {\n  deleteNote(id: $id)\n}",
+                "variables": "{\n  \"id\": \"{{noteId}}\"\n}"
+              }
+            }
+          },
+          "description": "Soft-delete. Cascades to every descendant note in the subtree (KAN-46) even though children stay attached at the DB level \u2014 see NoteService.deleteWithDescendants.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"cascades the delete to child notes (KAN-46)\", function () {",
+                  "  pm.expect(body.data.deleteNote).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Entity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteEntity($id: ID!) {\n  deleteEntity(id: $id)\n}",
+                "variables": "{\n  \"id\": \"{{entityId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"deletes the entity\", function () {",
+                  "  pm.expect(body.data.deleteEntity).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

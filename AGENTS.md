@@ -862,17 +862,23 @@ a lint/format violation is blocked locally before it reaches CI.
 
 Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
 `test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
-so workspace deps are built first). Current coverage (203 tests):
+so workspace deps are built first). Current coverage (365 tests):
 
 - **Domain unit tests** (`packages/domain/src/**/*.test.ts`) — `Campaign`,
-  `Entity`, `CampaignMember`, `User`, `Tag`, `Relationship`, `Id`, `DomainError`
-  subclasses. Pure logic, no mocks, no I/O.
+  `Entity`, `CampaignMember`, `User`, `Tag`, `Relationship`, `Note` (incl.
+  `moveTo`/nesting), `NoteLink`, `Id`, `DomainError` subclasses. Pure logic,
+  no mocks, no I/O.
 - **Application service tests** (`apps/api/src/modules/*/application/*.test.ts`)
   — `CampaignService`, `EntityService`, `AuthenticationService`, `TagService`,
-  `RelationshipService` against hand-rolled `vi.fn()` mocks of the repository
-  interfaces (`TagService` mocks both `TagRepository` and `EntityRepository`).
-  `AuthenticationService` uses real `bcrypt-ts`/`jsonwebtoken` (not mocked) so
-  the token roundtrip is actually verified, not assumed.
+  `RelationshipService`, `NoteService` (incl. link syncing, nesting/moveNote,
+  cycle- and depth-cap rejection, cascade soft-delete) against hand-rolled
+  `vi.fn()` mocks of the repository interfaces (`TagService` mocks both
+  `TagRepository` and `EntityRepository`). `AuthenticationService` uses real
+  `bcrypt-ts`/`jsonwebtoken` (not mocked) so the token roundtrip is actually
+  verified, not assumed. `NoteLinkParser`/`NoteLinkResolver`
+  (`apps/api/src/modules/notes/application/`) get their own pure-logic test
+  files despite living outside `packages/domain` — parsing is regex-only and
+  resolution only needs repository mocks, no Prisma.
 - **Mapper tests** (`apps/api/src/modules/*/infrastructure/*Mapper.test.ts`)
   — `toDomain`/`toPersistence` roundtrips against literal Prisma-shaped
   records.

@@ -15,11 +15,11 @@ tracks what's actually built, not just planned.
       to main; runs a `postgres:16` service container + `prisma migrate deploy`
       so Prisma repository integration tests run for real, not mocked)
 - [x] Husky hooks — pre-commit runs `pnpm test` then `pnpm lint-staged` (KAN-24)
-- [x] Test suite — 203 tests via Vitest across `packages/domain` (entities,
-      value objects, tags, relationships) and `apps/api` (application services
-      w/ mocked repos, Prisma mappers, GraphQL resolvers, and Prisma repository
-      integration tests against a real Postgres). See AGENTS.md "Testing"
-      section for layout and gotchas.
+- [x] Test suite — 365 tests via Vitest across `packages/domain` (entities,
+      value objects, tags, relationships, notes, note links) and `apps/api`
+      (application services w/ mocked repos, Prisma mappers, GraphQL
+      resolvers, and Prisma repository integration tests against a real
+      Postgres). See AGENTS.md "Testing" section for layout and gotchas.
 
 ## Authentication & Campaigns
 
@@ -143,8 +143,41 @@ tracks what's actually built, not just planned.
       get its `campaignId`, same pattern as `updateNote`/`deleteNote`).
       Images only for v1, enforced by a mime-type allowlist (jpeg/png/gif/webp)
       in both `LocalImageStore` and the `Attachment` domain entity.
-- [ ] Internal links between notes/entities
-- [ ] Nested notes
+- [x] Internal links between notes/entities (KAN-45) — wiki-style syntax,
+      decided over markdown-native links since it needs no renderer decision
+      up front: `[[Label]]` resolves by exact-name match against an `Entity`
+      in the same campaign, falling back to a `Note` title match if exactly
+      one note has that title (no match, or an ambiguous title shared by 2+
+      notes, silently drops the link rather than guessing);
+      `[[Label|entity:<id>]]` / `[[Label|note:<id>]]` disambiguate explicitly,
+      scoped to the same campaign. `NoteLink` join-table Prisma model
+      (`noteId`, `targetEntityId?`, `targetNoteId?`) populated by
+      `NoteLinkParser`/`NoteLinkResolver` (`apps/api/src/modules/notes/application/`)
+      and persisted transactionally by `NoteService` on every
+      `createNote`/`updateNote` (stale links removed on edit, not just
+      appended). GraphQL: `Note.linkedEntities`, `Note.linkedNotes`,
+      `Note.backlinks`, `Entity.backlinks`, all resolved via
+      `apps/api/src/modules/noteLinks/` (Prisma repo/mapper + resolvers
+      extending the `Note`/`Entity` types, mirroring how `attachments` extends
+      `Note` from outside the `notes` module). Client-side rendering into
+      clickable links is deferred — `apps/web` is still the unmodified Vite
+      scaffold, no Note UI exists yet to extend.
+- [x] Nested notes (KAN-46) — self-referential `Note.parentNoteId`
+      (`schema.prisma`, `onDelete: Cascade`); domain `Note.ParentNoteId` +
+      `moveTo(parentId)` (rejects a note becoming its own direct parent — the
+      only check pure domain logic can make without a repository).
+      `NoteService.resolveParent` walks the ancestor chain to reject: a
+      missing parent, a parent in a different campaign, cycles (moving a
+      note under its own descendant), and nesting past a 5-level depth cap
+      (all three: product decisions, not guessed). `createNote` accepts an
+      optional `parentNoteId`; new `moveNote(id, parentNoteId)` mutation
+      moves an existing note (`parentNoteId: null` detaches to root).
+      GraphQL: `Note.parent`, `Note.children`, `Note.parentNoteId`,
+      `noteRoots(campaignId)` query. Note: `deleteNote` is a soft delete
+      (`deletedAt`, never a real `DELETE FROM`), so the Postgres
+      `ON DELETE CASCADE` on `parentNoteId` never fires on its own —
+      `NoteService.deleteWithDescendants` cascades the soft-delete down the
+      subtree explicitly at the application layer instead.
 
 ## Sessions & Timeline
 

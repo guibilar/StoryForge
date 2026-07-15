@@ -85,6 +85,29 @@ describe("PrismaCampaignRepository", () => {
     expect(found?.Name).toBe(created.Name);
   });
 
+  it("hydrates campaign members on findById so the owner check can resolve", async () => {
+    const ownerId = await createUser();
+
+    const campaign = Campaign.create({ name: uniqueName() });
+    createdIds.push(campaign.Id.toString());
+    const created = await repository.create(campaign);
+    await prisma.campaignMember.create({
+      data: {
+        id: randomUUID(),
+        campaignId: created.Id.toString(),
+        userId: ownerId,
+        role: "OWNER",
+      },
+    });
+
+    const found = await repository.findById(created.Id);
+
+    expect(found?.Members).toHaveLength(1);
+    expect(found?.Members[0].Role).toBe("OWNER");
+    expect(found?.Members[0].UserId.toString()).toBe(ownerId);
+    expect(found?.Members.some((m) => m.Role === "OWNER")).toBe(true);
+  });
+
   it("archives a campaign", async () => {
     const campaign = Campaign.create({ name: uniqueName() });
     createdIds.push(campaign.Id.toString());

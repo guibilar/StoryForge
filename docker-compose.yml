@@ -1,0 +1,70 @@
+name: storyforge
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-storyforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-storyforge}
+      POSTGRES_DB: ${POSTGRES_DB:-storyforge}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-storyforge} -d ${POSTGRES_DB:-storyforge}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    image: storyforge-api:latest
+    command: ["pnpm", "--filter", "@storyforge/database", "run", "migrate:deploy"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-storyforge}:${POSTGRES_PASSWORD:-storyforge}@postgres:5432/${POSTGRES_DB:-storyforge}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    image: storyforge-api:latest
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-storyforge}:${POSTGRES_PASSWORD:-storyforge}@postgres:5432/${POSTGRES_DB:-storyforge}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set (see .env.example)}
+    volumes:
+      - api-uploads:/app/apps/api/uploads
+    ports:
+      - "${API_PORT:-4000}:4000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/graphql').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-8080}:80"
+
+volumes:
+  postgres-data:
+  api-uploads:

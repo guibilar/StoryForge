@@ -29,12 +29,28 @@ tracks what's actually built, not just planned.
 - [x] AuthenticationService (register/login, bcrypt hashing, JWT) (KAN-28)
 - [x] CampaignService (create/update/archive) (KAN-29) — `archiveCampaign`'s
       owner-check always fails: `CampaignMapper.toDomain` never hydrates
-      `campaignMembers`, so it's always empty
+      `campaignMembers`, so it's always empty (tracked in KAN-79; unaffected
+      by the CampaignMember work below, which uses its own repository)
 - [x] GraphQL: `login`, `registerUser`
 - [x] GraphQL: `campaigns`, `campaign(id)`, `createCampaign`, `updateCampaign`, `archiveCampaign`
-      — the three mutations are guarded (`requireCurrentUser`); the queries are not
+      — the three mutations are guarded (`requireCurrentUser`); the queries are not.
+      `createCampaign` now also persists the requesting user as an `OWNER`
+      `CampaignMember` row, so newly created campaigns always have an owner.
 - [x] GraphQL: `me` (returns `context.currentUser`, no guard — resolves to `null` when
       logged out rather than throwing)
+- [x] CampaignMember GraphQL surface (KAN-77) — `CampaignMemberService`,
+      `PrismaCampaignMemberRepository`, `CampaignMemberMapper` under
+      `apps/api/src/modules/campaignMembers/`; `CampaignMember` now carries its
+      own `campaignId` (previously only `userId`/`role`) so it has an
+      independent repository, mirroring how `Relationship`/`Tag` are
+      persisted outside the `Campaign` aggregate rather than through
+      `Campaign.addMember`/`removeMember` (which can't currently round-trip
+      through `CampaignMapper`'s empty-members gap — see KAN-79). `Campaign.members`
+      field resolver lists a campaign's members; `addCampaignMember`,
+      `removeCampaignMember`, `updateCampaignMemberRole` mutations, all
+      gated by a new `requireCampaignOwner` guard (`requireCurrentUser` +
+      an OWNER-role membership check, looked up directly via the repository)
+      mapped to a `ForbiddenError`/`FORBIDDEN` GraphQL error code.
 - [ ] Frontend: login, register, dashboard, campaign list, create-campaign dialog, protected routes
 
 ## World Building

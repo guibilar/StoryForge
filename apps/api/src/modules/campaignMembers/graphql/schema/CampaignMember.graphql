@@ -1,0 +1,14 @@
+enum CampaignRole {
+  OWNER
+  STORYTELLER
+  PLAYER
+}
+
+type CampaignMember {
+  id: ID!
+  campaignId: ID!
+  userId: ID!
+  role: CampaignRole!
+  createdAt: String!
+  updatedAt: String!
+}

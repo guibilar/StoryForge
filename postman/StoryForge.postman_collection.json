@@ -638,6 +638,123 @@
           }
         }
       ]
+    },
+    {
+      "name": "Campaign Members",
+      "item": [
+        {
+          "name": "Register Member User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation RegisterUser($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"email\": \"{{memberUserEmail}}\",\n    \"password\": \"password123\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const id = body?.data?.registerUser?.user?.id;",
+                  "if (id) pm.environment.set('memberUserId', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Campaign Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation AddCampaignMember($input: AddCampaignMemberInput!) {\n  addCampaignMember(input: $input) {\n    id\n    campaignId\n    userId\n    role\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"email\": \"{{memberUserEmail}}\",\n    \"role\": \"PLAYER\"\n  }\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "List Campaign Members",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    members {\n      id\n      campaignId\n      userId\n      role\n      createdAt\n      updatedAt\n    }\n  }\n}",
+                "variables": "{\n  \"id\": \"{{campaignId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Campaign Member Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateCampaignMemberRole($input: UpdateCampaignMemberRoleInput!) {\n  updateCampaignMemberRole(input: $input) {\n    id\n    userId\n    role\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"userId\": \"{{memberUserId}}\",\n    \"role\": \"STORYTELLER\"\n  }\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "Remove Campaign Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"userId\": \"{{memberUserId}}\"\n}"
+              }
+            }
+          }
+        }
+      ]
     }
   ]
 }

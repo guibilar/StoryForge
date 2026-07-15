@@ -13,8 +13,11 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      requireCurrentUser(context);
-      return await context.campaignService.createCampaign(args);
+      const currentUser = requireCurrentUser(context);
+      return await context.campaignService.createCampaign({
+        input: args.input,
+        ownerId: currentUser.Id.toString(),
+      });
     } catch (error) {
       toGraphQLError(error);
     }

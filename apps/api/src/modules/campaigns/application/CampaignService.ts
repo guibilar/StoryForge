@@ -1,5 +1,12 @@
 import { NotFoundError, ValidationError } from "@storyforge/domain";
-import { Campaign, CampaignId, CampaignRepository } from "@storyforge/domain";
+import {
+  Campaign,
+  CampaignId,
+  CampaignMember,
+  CampaignMemberRepository,
+  CampaignRepository,
+  UserId,
+} from "@storyforge/domain";
 
 export interface CreateCampaignDTO {
   name: string;
@@ -13,12 +20,17 @@ export interface UpdateCampaignDTO {
 }
 
 export class CampaignService {
-  constructor(private readonly campaignRepository: CampaignRepository) {}
+  constructor(
+    private readonly campaignRepository: CampaignRepository,
+    private readonly campaignMemberRepository: CampaignMemberRepository,
+  ) {}
 
   async createCampaign({
     input: dto,
+    ownerId,
   }: {
     input: CreateCampaignDTO;
+    ownerId: string;
   }): Promise<Campaign> {
     const existingCampaign = await this.campaignRepository.existsByName(
       dto.name,
@@ -30,8 +42,16 @@ export class CampaignService {
     }
 
     const campaign = Campaign.create(dto);
+    const created = await this.campaignRepository.create(campaign);
 
-    return await this.campaignRepository.create(campaign);
+    const owner = CampaignMember.create({
+      campaignId: created.Id.toString(),
+      userId: UserId.fromString(ownerId),
+      role: "OWNER",
+    });
+    await this.campaignMemberRepository.create(owner);
+
+    return created;
   }
 
   async getCampaignById(id: string): Promise<Campaign | null> {

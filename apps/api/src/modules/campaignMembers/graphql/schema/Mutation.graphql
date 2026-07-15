@@ -1,0 +1,19 @@
+input AddCampaignMemberInput {
+  campaignId: ID!
+  email: String!
+  role: CampaignRole!
+}
+
+input UpdateCampaignMemberRoleInput {
+  campaignId: ID!
+  userId: ID!
+  role: CampaignRole!
+}
+
+extend type Mutation {
+  addCampaignMember(input: AddCampaignMemberInput!): CampaignMember!
+  removeCampaignMember(campaignId: ID!, userId: ID!): Boolean!
+  updateCampaignMemberRole(
+    input: UpdateCampaignMemberRoleInput!
+  ): CampaignMember!
+}

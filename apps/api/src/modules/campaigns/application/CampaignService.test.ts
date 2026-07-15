@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   Campaign,
   CampaignMember,
+  CampaignMemberRepository,
   CampaignRepository,
   NotFoundError,
   UserId,
@@ -20,26 +21,58 @@ function makeRepository(): CampaignRepository {
   };
 }
 
+function makeCampaignMemberRepository(): CampaignMemberRepository {
+  return {
+    listByCampaign: vi.fn(),
+    findByCampaignAndUser: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  };
+}
+
 describe("CampaignService", () => {
   let repository: CampaignRepository;
+  let campaignMemberRepository: CampaignMemberRepository;
   let service: CampaignService;
 
   beforeEach(() => {
     repository = makeRepository();
-    service = new CampaignService(repository);
+    campaignMemberRepository = makeCampaignMemberRepository();
+    service = new CampaignService(repository, campaignMemberRepository);
   });
 
   describe("createCampaign", () => {
     it("creates the campaign when the name is free", async () => {
       vi.mocked(repository.existsByName).mockResolvedValue(false);
       vi.mocked(repository.create).mockImplementation(async (c) => c);
+      const ownerId = UserId.create().toString();
 
       const campaign = await service.createCampaign({
         input: { name: "New Campaign", description: "desc" },
+        ownerId,
       });
 
       expect(campaign.Name).toBe("New Campaign");
       expect(repository.create).toHaveBeenCalledTimes(1);
+    });
+
+    it("adds the requesting user as the campaign owner", async () => {
+      vi.mocked(repository.existsByName).mockResolvedValue(false);
+      vi.mocked(repository.create).mockImplementation(async (c) => c);
+      const ownerId = UserId.create().toString();
+
+      const campaign = await service.createCampaign({
+        input: { name: "New Campaign", description: "desc" },
+        ownerId,
+      });
+
+      expect(campaignMemberRepository.create).toHaveBeenCalledTimes(1);
+      const [member] = vi.mocked(campaignMemberRepository.create).mock
+        .calls[0] as [CampaignMember];
+      expect(member.CampaignId).toBe(campaign.Id.toString());
+      expect(member.UserId.toString()).toBe(ownerId);
+      expect(member.Role).toBe("OWNER");
     });
 
     it("rejects a duplicate name without touching create", async () => {
@@ -48,9 +81,11 @@ describe("CampaignService", () => {
       await expect(
         service.createCampaign({
           input: { name: "Taken", description: "desc" },
+          ownerId: UserId.create().toString(),
         }),
       ).rejects.toThrow(ValidationError);
       expect(repository.create).not.toHaveBeenCalled();
+      expect(campaignMemberRepository.create).not.toHaveBeenCalled();
     });
   });
 
@@ -103,7 +138,11 @@ describe("CampaignService", () => {
     it("throws when the campaign is already archived", async () => {
       const campaign = Campaign.create({ name: "Old Name" });
       campaign.addMember(
-        CampaignMember.create({ userId: UserId.create(), role: "OWNER" }),
+        CampaignMember.create({
+          campaignId: campaign.Id.toString(),
+          userId: UserId.create(),
+          role: "OWNER",
+        }),
       );
       campaign.archive();
       vi.mocked(repository.findById).mockResolvedValue(campaign);
@@ -126,7 +165,11 @@ describe("CampaignService", () => {
     it("archives when the campaign has an owner", async () => {
       const campaign = Campaign.create({ name: "Old Name" });
       campaign.addMember(
-        CampaignMember.create({ userId: UserId.create(), role: "OWNER" }),
+        CampaignMember.create({
+          campaignId: campaign.Id.toString(),
+          userId: UserId.create(),
+          role: "OWNER",
+        }),
       );
       vi.mocked(repository.findById).mockResolvedValue(campaign);
 

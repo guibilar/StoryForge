@@ -6,8 +6,13 @@ describe("CampaignMember", () => {
   it("creates a member with the given role and fresh timestamps", () => {
     const userId = UserId.create();
 
-    const member = CampaignMember.create({ userId, role: "PLAYER" });
+    const member = CampaignMember.create({
+      campaignId: "campaign-1",
+      userId,
+      role: "PLAYER",
+    });
 
+    expect(member.CampaignId).toBe("campaign-1");
     expect(member.UserId.equals(userId)).toBe(true);
     expect(member.Role).toBe("PLAYER");
     expect(member.CreatedAt).toBeInstanceOf(Date);
@@ -20,6 +25,7 @@ describe("CampaignMember", () => {
     const updatedAt = new Date("2024-02-01T00:00:00Z");
 
     const member = CampaignMember.rehydrate({
+      campaignId: "campaign-1",
       userId,
       role: "OWNER",
       createdAt,
@@ -32,6 +38,7 @@ describe("CampaignMember", () => {
 
   it("changes the role and bumps updatedAt", async () => {
     const member = CampaignMember.create({
+      campaignId: "campaign-1",
       userId: UserId.create(),
       role: "PLAYER",
     });

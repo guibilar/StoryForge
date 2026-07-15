@@ -55,7 +55,10 @@ describe("campaigns Mutation", () => {
 
       const result = await Mutation.createCampaign(undefined, args, context);
 
-      expect(campaignService.createCampaign).toHaveBeenCalledWith(args);
+      expect(campaignService.createCampaign).toHaveBeenCalledWith({
+        input: args.input,
+        ownerId: authenticatedUser.Id.toString(),
+      });
       expect(result).toBe(campaign);
     });
   });

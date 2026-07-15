@@ -10,7 +10,11 @@ import { ValidationError } from "../shared";
 const validProps = { name: "My Campaign", description: "A tale" };
 
 function makeMember() {
-  return CampaignMember.create({ userId: UserId.create(), role: "PLAYER" });
+  return CampaignMember.create({
+    campaignId: "campaign-1",
+    userId: UserId.create(),
+    role: "PLAYER",
+  });
 }
 
 function makeEntity() {

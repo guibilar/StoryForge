@@ -5,4 +5,5 @@ type Campaign {
   createdAt: String!
   updatedAt: String!
   archivedAt: String
+  members: [CampaignMember!]!
 }

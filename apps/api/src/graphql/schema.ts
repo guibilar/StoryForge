@@ -24,6 +24,10 @@ import {
   typeDefs as relationshipTypeDefs,
   resolvers as relationshipResolvers,
 } from "../modules/relationships/graphql";
+import {
+  typeDefs as campaignMemberTypeDefs,
+  resolvers as campaignMemberResolvers,
+} from "../modules/campaignMembers/graphql";
 
 const rootTypeDefs = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), "schema", "Root.graphql"),
@@ -38,6 +42,7 @@ export const schema = createSchema({
     ...campTypeDefs,
     ...tagTypeDefs,
     ...relationshipTypeDefs,
+    ...campaignMemberTypeDefs,
   ],
   resolvers: [
     entityResolvers,
@@ -45,5 +50,6 @@ export const schema = createSchema({
     campResolvers,
     tagResolvers,
     relationshipResolvers,
+    campaignMemberResolvers,
   ],
 });

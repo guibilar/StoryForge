@@ -3,11 +3,13 @@ import { UserId } from "../user";
 export type CampaignRole = "OWNER" | "STORYTELLER" | "PLAYER";
 
 export interface CreateCampaignMemberProps {
+  campaignId: string;
   userId: UserId;
   role: CampaignRole;
 }
 
 export interface RehydrateCampaignMemberProps {
+  campaignId: string;
   userId: UserId;
   role: CampaignRole;
   createdAt: Date;
@@ -16,6 +18,7 @@ export interface RehydrateCampaignMemberProps {
 
 export class CampaignMember {
   private constructor(
+    private readonly campaignIdValue: string,
     private readonly userIdValue: UserId,
     private roleValue: CampaignRole,
     private readonly createdAtValue: Date,
@@ -23,16 +26,27 @@ export class CampaignMember {
   ) {}
 
   static create(props: CreateCampaignMemberProps): CampaignMember {
-    return new CampaignMember(props.userId, props.role, new Date(), new Date());
+    return new CampaignMember(
+      props.campaignId,
+      props.userId,
+      props.role,
+      new Date(),
+      new Date(),
+    );
   }
 
   static rehydrate(props: RehydrateCampaignMemberProps): CampaignMember {
     return new CampaignMember(
+      props.campaignId,
       props.userId,
       props.role,
       props.createdAt,
       props.updatedAt,
     );
+  }
+
+  get CampaignId(): string {
+    return this.campaignIdValue;
   }
 
   get UserId(): UserId {

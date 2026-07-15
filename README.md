@@ -50,6 +50,25 @@ pnpm test
 at `DATABASE_URL` (no mocking) — a Postgres must be running and migrated
 (`pnpm --filter @storyforge/database migrate:deploy`) before running tests locally.
 
+## Docker
+
+A full stack (Postgres, API, web) can be run with Docker Compose:
+
+```bash
+cp .env.example .env   # set JWT_SECRET and Postgres credentials
+docker compose up --build
+```
+
+This builds `apps/api/Dockerfile` and `apps/web/Dockerfile`, runs Prisma migrations via a
+one-off `migrate` service before the API starts, and serves the web app through nginx on
+`WEB_PORT` (default `8080`), proxying `/graphql` and `/uploads` to the API. The API is also
+exposed directly on `API_PORT` (default `4000`). Uploaded files and Postgres data persist in
+named volumes (`api-uploads`, `postgres-data`).
+
+The API image runs the server via `tsx` against TypeScript source rather than the `tsc` build
+output — this repo's `moduleResolution: "Bundler"` setup emits extensionless relative imports
+that plain Node's ESM loader can't resolve, so `tsx` (same as `pnpm dev`) is used instead.
+
 ## API testing
 
 A Postman collection lives in `postman/` — `StoryForge.postman_collection.json` covers every

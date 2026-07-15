@@ -32,9 +32,8 @@ tracks what's actually built, not just planned.
       `campaignMembers` via an `include: { members: true }` query (KAN-79)
 - [x] GraphQL: `login`, `registerUser`
 - [x] GraphQL: `campaigns`, `campaign(id)`, `createCampaign`, `updateCampaign`, `archiveCampaign`
-      — the three mutations and `campaigns` are guarded (`requireCurrentUser`);
-      `campaigns` is also scoped to the caller's own `CampaignMember` rows
-      (KAN-78); `campaign(id)` remains unguarded.
+      — all five are guarded (`requireCurrentUser`, KAN-83); `campaigns` is
+      also scoped to the caller's own `CampaignMember` rows (KAN-78).
       `createCampaign` now also persists the requesting user as an `OWNER`
       `CampaignMember` row, so newly created campaigns always have an owner.
 - [x] GraphQL: `me` (returns `context.currentUser`, no guard — resolves to `null` when
@@ -60,6 +59,8 @@ tracks what's actually built, not just planned.
 ## World Building
 
 - [x] Entity CRUD backend (SF-001): service, repository, GraphQL resolvers
+      — `entity(id)`, `entities`, `createEntity`, `updateEntity`, `deleteEntity`
+      all guarded via `requireCurrentUser` (KAN-83)
 - [x] Entity soft delete
 - [x] Duplicate-name validation per campaign
 - [x] Generic `type` field (Character/Location/Organization via type string, no type-specific schema)
@@ -70,7 +71,7 @@ tracks what's actually built, not just planned.
       across entities in a campaign, name normalized trim+lowercase);
       `addTagToEntity`/`removeTagFromEntity` GraphQL mutations (find-or-create
       by name, idempotent attach/detach), `campaignTags` query, `Entity.tags`
-      field
+      field — all three guarded via `requireCurrentUser` (KAN-83)
 - [x] Search / filtering — `entities(campaignId, filter: EntityFilter)`
       GraphQL query; `EntityFilter { type, nameContains, tagIds }`, AND-combined
       (`type` exact match, `nameContains` case-insensitive, `tagIds` any-match
@@ -90,7 +91,7 @@ tracks what's actually built, not just planned.
       `RelationshipMapper` under `apps/api/src/modules/relationships/`; GraphQL
       `relationship(id)`, `relationships(campaignId, entityId)` queries,
       `createRelationship`/`updateRelationship`/`deleteRelationship` mutations
-      (all three guarded via `requireCurrentUser`). Directional-only for v1 —
+      (all five guarded via `requireCurrentUser`, KAN-83). Directional-only for v1 —
       Ally/Enemy do not auto-create an inverse edge (deferred, not needed yet).
       No nested `sourceEntity`/`targetEntity` field resolvers — GraphQL type
       exposes raw IDs only. `type` is a validated free string (like

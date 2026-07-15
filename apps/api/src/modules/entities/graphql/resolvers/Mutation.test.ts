@@ -40,6 +40,117 @@ const file = {
   arrayBuffer: async () => new ArrayBuffer(8),
 } as File;
 
+describe("entities Mutation.createEntity", () => {
+  it("rejects with UNAUTHENTICATED when logged out", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const context = makeContext(entityService, imageStorage, loggedOutUser);
+    const input = {
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    };
+
+    await expect(
+      Mutation.createEntity(undefined, { input }, context),
+    ).rejects.toMatchObject({
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+    expect(entityService.createEntity).not.toHaveBeenCalled();
+  });
+
+  it("delegates to entityService when authenticated", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const entity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    });
+    vi.mocked(entityService.createEntity).mockResolvedValue(entity);
+    const context = makeContext(entityService, imageStorage, authenticatedUser);
+    const input = {
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    };
+
+    const result = await Mutation.createEntity(undefined, { input }, context);
+
+    expect(entityService.createEntity).toHaveBeenCalledWith(input);
+    expect(result).toBe(entity);
+  });
+});
+
+describe("entities Mutation.updateEntity", () => {
+  it("rejects with UNAUTHENTICATED when logged out", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const context = makeContext(entityService, imageStorage, loggedOutUser);
+    const input = { id: "entity-1", name: "Renamed" };
+
+    await expect(
+      Mutation.updateEntity(undefined, { input }, context),
+    ).rejects.toMatchObject({
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+    expect(entityService.updateEntity).not.toHaveBeenCalled();
+  });
+
+  it("delegates to entityService when authenticated", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const entity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Renamed",
+      visibility: EntityVisibility.PUBLIC,
+    });
+    vi.mocked(entityService.updateEntity).mockResolvedValue(entity);
+    const context = makeContext(entityService, imageStorage, authenticatedUser);
+    const input = { id: "entity-1", name: "Renamed" };
+
+    const result = await Mutation.updateEntity(undefined, { input }, context);
+
+    expect(entityService.updateEntity).toHaveBeenCalledWith(input);
+    expect(result).toBe(entity);
+  });
+});
+
+describe("entities Mutation.deleteEntity", () => {
+  it("rejects with UNAUTHENTICATED when logged out", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const context = makeContext(entityService, imageStorage, loggedOutUser);
+
+    await expect(
+      Mutation.deleteEntity(undefined, { id: "entity-1" }, context),
+    ).rejects.toMatchObject({
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+    expect(entityService.deleteEntity).not.toHaveBeenCalled();
+  });
+
+  it("delegates to entityService and returns true when authenticated", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    vi.mocked(entityService.deleteEntity).mockResolvedValue(undefined);
+    const context = makeContext(entityService, imageStorage, authenticatedUser);
+
+    const result = await Mutation.deleteEntity(
+      undefined,
+      { id: "entity-1" },
+      context,
+    );
+
+    expect(entityService.deleteEntity).toHaveBeenCalledWith("entity-1");
+    expect(result).toBe(true);
+  });
+});
+
 describe("entities Mutation.uploadEntityImage", () => {
   it("rejects with UNAUTHENTICATED when logged out", async () => {
     const entityService = makeEntityService();

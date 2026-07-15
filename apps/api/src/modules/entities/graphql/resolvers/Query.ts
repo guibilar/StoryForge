@@ -1,6 +1,7 @@
 import { EntityFilter } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
+import { requireCurrentUser } from "../../../auth/graphql/guards";
 
 export const Query = {
   entity: async (
@@ -9,6 +10,7 @@ export const Query = {
     context: GraphQLContext,
   ) => {
     try {
+      requireCurrentUser(context);
       return await context.entityService.getEntity(args.id);
     } catch (error) {
       toGraphQLError(error);
@@ -21,6 +23,7 @@ export const Query = {
     context: GraphQLContext,
   ) => {
     try {
+      requireCurrentUser(context);
       return await context.entityService.listEntities(
         args.campaignId,
         args.filter,

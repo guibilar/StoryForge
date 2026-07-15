@@ -12,5 +12,5 @@ export interface CampaignRepository {
 
   archive(campaign: Campaign): Promise<void>;
 
-  listCampaigns(): Promise<Campaign[]>;
+  listCampaigns(userId: string): Promise<Campaign[]>;
 }

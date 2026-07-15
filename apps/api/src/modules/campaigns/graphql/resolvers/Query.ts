@@ -1,5 +1,6 @@
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
+import { requireCurrentUser } from "../../../auth/graphql/guards";
 
 export const Query = {
   campaign: async (
@@ -20,7 +21,10 @@ export const Query = {
     context: GraphQLContext,
   ) => {
     try {
-      return await context.campaignService.listCampaigns();
+      const currentUser = requireCurrentUser(context);
+      return await context.campaignService.listCampaigns(
+        currentUser.Id.toString(),
+      );
     } catch (error) {
       toGraphQLError(error);
     }

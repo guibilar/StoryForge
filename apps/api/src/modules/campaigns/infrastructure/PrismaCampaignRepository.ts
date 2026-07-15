@@ -28,8 +28,14 @@ export class PrismaCampaignRepository implements CampaignRepository {
     return count > 0;
   }
 
-  async listCampaigns(): Promise<Campaign[]> {
-    const records = await prisma.campaign.findMany();
+  async listCampaigns(userId: string): Promise<Campaign[]> {
+    const records = await prisma.campaign.findMany({
+      where: {
+        members: {
+          some: { userId },
+        },
+      },
+    });
 
     return records.map(CampaignMapper.toDomain);
   }

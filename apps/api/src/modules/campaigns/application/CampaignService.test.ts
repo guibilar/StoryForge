@@ -181,11 +181,13 @@ describe("CampaignService", () => {
   });
 
   describe("listCampaigns", () => {
-    it("delegates to the repository", async () => {
+    it("delegates to the repository, scoped to the given user", async () => {
       const campaigns = [Campaign.create({ name: "A" })];
       vi.mocked(repository.listCampaigns).mockResolvedValue(campaigns);
+      const userId = UserId.create().toString();
 
-      await expect(service.listCampaigns()).resolves.toBe(campaigns);
+      await expect(service.listCampaigns(userId)).resolves.toBe(campaigns);
+      expect(repository.listCampaigns).toHaveBeenCalledWith(userId);
     });
   });
 });

@@ -1,0 +1,10 @@
+query Campaign($id: ID!) {
+  campaign(id: $id) {
+    id
+    name
+    members {
+      userId
+      role
+    }
+  }
+}

@@ -17,3 +17,9 @@ export type {
 
 export { Modal } from "./components/Modal/Modal";
 export type { ModalProps } from "./components/Modal/Modal";
+
+export { Window } from "./components/Window/Window";
+export type { WindowProps } from "./components/Window/Window";
+
+export { Dock } from "./components/Dock/Dock";
+export type { DockProps, DockItem } from "./components/Dock/Dock";

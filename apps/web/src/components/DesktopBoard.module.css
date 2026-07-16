@@ -1,0 +1,45 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 0;
+}
+
+.resetBtn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 11px;
+  padding: 7px 10px;
+  border-radius: 6px;
+}
+
+.resetBtn:hover {
+  color: var(--text-h);
+  background: var(--accent-bg);
+}
+
+.board {
+  position: relative;
+  height: 70vh;
+  min-height: 480px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--code-bg);
+}
+
+.dock {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+}

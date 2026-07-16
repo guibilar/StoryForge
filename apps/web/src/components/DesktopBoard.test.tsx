@@ -1,0 +1,115 @@
+import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { DesktopBoard } from "./DesktopBoard";
+
+function mockRect(
+  el: HTMLElement,
+  rect: { left: number; top: number; width: number; height: number },
+) {
+  vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
+    ...rect,
+    right: rect.left + rect.width,
+    bottom: rect.top + rect.height,
+    x: rect.left,
+    y: rect.top,
+    toJSON() {},
+  } as DOMRect);
+}
+
+beforeEach(() => {
+  localStorage.clear();
+});
+
+describe("DesktopBoard", () => {
+  it("shows the default windows open/closed per the catalog defaults", () => {
+    render(<DesktopBoard campaignId="camp-1" />);
+
+    expect(screen.getByText("NPCs", { selector: "span" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Members", { selector: "span" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Sessions", { selector: "span" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Timeline", { selector: "span" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Notes", { selector: "span" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens a hidden window from the dock and closes it again", async () => {
+    const user = userEvent.setup();
+    render(<DesktopBoard campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("button", { name: "Notes" }));
+    expect(screen.getByText("Coming soon — KAN-85.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Close Notes" }));
+    expect(screen.queryByText("Coming soon — KAN-85.")).not.toBeInTheDocument();
+  });
+
+  it("persists the arrangement so a remount restores it", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<DesktopBoard campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("button", { name: "Notes" }));
+    unmount();
+
+    render(<DesktopBoard campaignId="camp-1" />);
+    expect(screen.getByText("Coming soon — KAN-85.")).toBeInTheDocument();
+  });
+
+  it("reset layout restores the defaults", async () => {
+    const user = userEvent.setup();
+    render(<DesktopBoard campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("button", { name: "Notes" }));
+    await user.click(screen.getByRole("button", { name: "Reset layout" }));
+
+    expect(screen.queryByText("Coming soon — KAN-85.")).not.toBeInTheDocument();
+  });
+
+  it("drags a window by its title bar and persists the new position", () => {
+    render(<DesktopBoard campaignId="camp-1" />);
+
+    const board = screen.getByTestId("desktop-board");
+    mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
+
+    const npcsTitle = screen.getByText("NPCs", { selector: "span" });
+    const windowEl = npcsTitle.closest("div[style]") as HTMLElement;
+    mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
+
+    act(() => {
+      npcsTitle.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          clientX: 50,
+          clientY: 50,
+        }),
+      );
+    });
+
+    expect(windowEl.style.left).toBe("28px");
+
+    act(() => {
+      window.dispatchEvent(
+        new PointerEvent("pointermove", { clientX: 150, clientY: 150 }),
+      );
+    });
+
+    expect(windowEl.style.left).toBe("128px");
+
+    act(() => {
+      window.dispatchEvent(new PointerEvent("pointerup"));
+    });
+
+    const stored = JSON.parse(
+      localStorage.getItem("storyforge:desktop:camp-1")!,
+    );
+    expect(stored.npcs.x).toBe(128);
+  });
+});

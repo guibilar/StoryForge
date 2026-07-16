@@ -32,3 +32,6 @@ apps/api/uploads/
 *.sln
 *.sw?
 .aider*
+
+*storybook.log
+storybook-static

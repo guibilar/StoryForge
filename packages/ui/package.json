@@ -19,7 +19,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:unit": "vitest run",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "peerDependencies": {
     "react": "^19.2.0",
@@ -36,6 +38,11 @@
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
     "vite": "^8.1.0",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.9",
+    "storybook": "^10.5.2",
+    "@storybook/react-vite": "^10.5.2",
+    "@storybook/addon-a11y": "^10.5.2",
+    "@storybook/addon-docs": "^10.5.2",
+    "eslint-plugin-storybook": "^10.5.2"
   }
 }

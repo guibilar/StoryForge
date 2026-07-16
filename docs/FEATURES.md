@@ -7,7 +7,14 @@ tracks what's actually built, not just planned.
 
 - [x] pnpm workspace + Turborepo
 - [x] TypeScript, ESLint, Prettier
-- [x] React + Vite frontend scaffold (default, unstyled)
+- [x] React + Vite frontend scaffold, routing (`react-router-dom`),
+      GraphQL client (`urql`), `ProtectedRoute`
+- [x] `packages/ui` (KAN-75) — shared component package: `Button`, `Input`,
+      `Form`/`FormField`/`Label`/`FormError`, `Link`, CSS Modules on a
+      theme-ready token system (`[data-theme]` palettes). Thin scope —
+      exactly what KAN-31 needed, not a full design system yet (no
+      tables/modals). No build step (source consumed directly by Vite).
+      First consumer: `LoginPage`.
 - [x] Fastify / graphql-yoga backend boots
 - [x] GraphQL setup (schema merge, context, error mapping)
 - [ ] Docker skeleton (`docker/` exists but is empty — no Dockerfile/compose yet)
@@ -55,7 +62,8 @@ tracks what's actually built, not just planned.
       gated by a new `requireCampaignOwner` guard (`requireCurrentUser` +
       an OWNER-role membership check, looked up directly via the repository)
       mapped to a `ForbiddenError`/`FORBIDDEN` GraphQL error code.
-- [ ] Frontend: login, register, dashboard, campaign list, create-campaign dialog, protected routes
+- [x] Frontend: protected routes (`ProtectedRoute` via `me` query), login page markup (`packages/ui`)
+- [ ] Frontend: login mutation wiring, register, dashboard, campaign list, create-campaign dialog
 
 ## World Building
 
@@ -257,8 +265,12 @@ tracks what's actually built, not just planned.
 
 ## Cross-cutting gaps (not tied to a single area)
 
-- [ ] Frontend tests — `apps/web` has no test infra yet (still Vite scaffold)
+- [x] Frontend unit/component tests — `apps/web` (Vitest + Testing Library,
+      `router.test.tsx`) and `packages/ui` (per-component tests)
+- [ ] Frontend end-to-end tests (real browser against a real backend) — see KAN-87
 - [ ] `packages/core` — purpose undefined, decide before adding files
 - [ ] `packages/shared` — empty, needed once a 2nd backend module or frontend utilities appear
-- [ ] `packages/ui` — empty, needed once frontend work starts
+- [x] `packages/ui` — thin scope built (KAN-75): Button, Input, Form, Link.
+      Tables, modals, layouts still not started — pick up alongside the
+      ticket that needs them
 - [ ] Repository implementations currently live in `apps/api/src/modules/entities/infrastructure` instead of `packages/database` — documented deviation from target architecture in AGENTS.md

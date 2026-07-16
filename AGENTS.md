@@ -90,8 +90,9 @@ Known gaps between target and current code:
 - There is no top-level `plugins/` directory. `packages/vtm-plugin` is a
   placeholder for the future Vampire plugin but is currently empty.
 - There is no `scripts/` directory.
-- `packages/core`, `packages/plugin-sdk`, `packages/shared`, and
-  `packages/ui` exist as workspace entries but contain no source yet.
+- `packages/core`, `packages/plugin-sdk`, and `packages/shared` exist as
+  workspace entries but contain no source yet. `packages/ui` (KAN-75) now
+  has real source — see below, this bullet is stale for that one package.
 
 ---
 
@@ -313,16 +314,64 @@ Core depends only on interfaces.
 
 ---
 
-## packages/ui (not started)
+## packages/ui (KAN-75 — thin scope: Button, Input, Form, Link)
 
-Empty. Will contain shared React components:
+`@storyforge/ui`, consumed by `apps/web` today. Deliberately not a full
+design system yet — built to exactly what KAN-31 (auth screens) needed,
+per the ticket's own DoD ("not a speculative component library built
+ahead of need"). Tables, modals, and layout primitives are still
+unbuilt — pick them up when the ticket that needs them (KAN-39/81
+tables, KAN-82 modal, KAN-80 shell) lands, following the same pattern.
 
-- Design system
-- Tables
-- Forms
-- Inputs
-- Modals
-- Layouts
+**No build step.** `main`/`types` point straight at `src/index.ts` (no
+`dist/`), same "just-in-time package" pattern as `packages/database` —
+Vite in `apps/web` transforms the TSX/CSS-Modules source directly. No
+`build` script in `package.json`; `turbo build` skips it. Has its own
+`lint`, `test` (Vitest + Testing Library, mirrors `apps/web`'s config),
+and `typecheck` (`tsc --noEmit`) scripts, all wired into the root
+`pnpm turbo run lint build test` (CI runs this — see Testing section).
+
+**Styling: CSS Modules on CSS-custom-property tokens**, not Tailwind,
+not a headless lib like Radix (yet). Every component's `.module.css`
+only ever references `var(--accent)` etc. — never a hardcoded color.
+
+**Theming**: `src/tokens/tokens.css` (exposed via the `./tokens.css`
+subpath export) defines the palette as `[data-theme="light"]` /
+`[data-theme="dark"]` attribute blocks, with `prefers-color-scheme` as
+the fallback when no `data-theme` is set on the document. This is the
+mechanism that used to live directly in `apps/web/src/index.css`
+(same custom-property names, moved not renamed). Adding a third named
+palette later is purely additive — one more `[data-theme="..."]` block
+in that one file, zero component changes. No theme-switcher UI exists
+yet (out of scope for KAN-75) — a future one just needs
+`document.documentElement.setAttribute("data-theme", "...")`.
+
+**Components** (`src/components/`, one directory each, barrel-exported
+from `src/index.ts`):
+
+- `Button` — native `<button>` props + `variant?: "primary" | "secondary"`.
+- `Input` — native `<input>` props + `invalid?: boolean` (sets `aria-invalid` + error styling).
+- `Form` family (`src/components/Form/`) — `Form` (styled `<form>`), `Label`,
+  `FormField` (`{label, htmlFor, error?, children}`, wires label/input/error
+  association), `FormError` (form-level error banner). Not a form-state
+  library — no react-hook-form, this is markup only.
+- `Link` — polymorphic via a plain `as?: ElementType` prop (default `"a"`),
+  no `react-router-dom` dependency in this package itself. Consumers do
+  `<Link as={RouterLink} to="/x">` in `apps/web`.
+
+Usage from `apps/web`:
+
+```tsx
+import { Button, Form, FormField, Input } from "@storyforge/ui";
+```
+
+(`apps/web/src/pages/LoginPage.tsx` is the first real consumer — static
+form markup only, no mutation wired yet, that's still KAN-31.)
+
+React is a `peerDependency` only (not a devDependency of this package)
+— deliberately, to avoid a second physical React copy under
+`packages/ui` causing "Invalid hook call" once Vite bundles this
+package's source into `apps/web`.
 
 ---
 
@@ -454,16 +503,31 @@ repositories.
 
 ## apps/web
 
-Currently the default Vite + React scaffold (`App.tsx`, default
-`vite.svg`/`react.svg` assets) — no real UI, pages, or GraphQL client
-have been built yet.
+No longer the default Vite scaffold — routing and a GraphQL client are
+wired, and the first real page exists:
 
-Target responsibilities (not yet realized):
+- `react-router-dom` v7 (`src/router.tsx`/`src/routes/routeConfig.tsx`):
+  `/login` (public), `/dashboard` and `/campaigns/:id` (both behind
+  `ProtectedRoute`).
+- `ProtectedRoute` (`src/routes/ProtectedRoute.tsx`) — runs the `me`
+  GraphQL query via `urql`, redirects to `/login` if `data.me` is null.
+- `urql` client (`src/lib/urqlClient.ts`), `Provider` wired in `main.tsx`.
+- `LoginPage` (`src/pages/LoginPage.tsx`) — real form markup built on
+  `@storyforge/ui` (KAN-75): `Form`/`FormField`/`Input`/`Button`. No
+  submit/mutation logic wired yet (`onSubmit` just calls
+  `preventDefault()`, marked `TODO(KAN-31)`) — that's still open.
+- `DashboardPage`, `CampaignDesktopPage` (`src/pages/`) — still one-line
+  stubs (`<h1>Dashboard</h1>` / `<h1>Campaign</h1>`), not built out yet.
+- No `/register` route exists yet.
+- `src/index.css` now only holds `apps/web`-shell layout/typography
+  rules; design tokens (colors, fonts, shadows) live in
+  `@storyforge/ui/tokens.css`, imported once in `main.tsx`.
 
-- React application
-- Pages
-- UI extension rendering
-- GraphQL client
+Target responsibilities not yet realized: UI extension rendering
+(plugin-contributed UI), the rest of KAN-31 (register page, dashboard
+content, campaign list, real login/register mutation wiring), and every
+other Campaign Desktop window (NPCs, Timeline, Members, Sessions, Notes
+— KAN-39/49/81/84/85) and the desktop shell itself (KAN-80).
 
 No business logic.
 
@@ -917,7 +981,12 @@ Gotchas learned building this out, worth knowing before adding more:
   once from `src`, once from the stale `dist` copy with no way to load env
   files relative to it.
 
-No test infra yet for `apps/web` (still the Vite scaffold) or the compiler
+`apps/web` and `packages/ui` have Vitest + Testing Library test infra
+(component/unit level — `apps/web/src/router.test.tsx`, per-component
+`*.test.tsx` files under `packages/ui/src/components/`), run via the
+same root `pnpm turbo run lint build test` as everything else. No
+frontend end-to-end (real browser, real backend) test infra exists yet
+— see KAN-87 (frontend e2e tests). No test infra for the compiler
 (not started).
 
 ---

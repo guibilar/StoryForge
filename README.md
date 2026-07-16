@@ -17,7 +17,7 @@ GraphQL API, Prisma ORM, and TypeScript throughout.
 - TypeScript, pnpm workspaces, Turborepo
 - API: Fastify/graphql-yoga (GraphQL)
 - DB: Prisma + Postgres
-- Web: React (Vite) — not built out yet, see [Status](#status)
+- Web: React (Vite), `react-router-dom`, `urql` — early stage, see [Status](#status)
 
 ## Repo layout
 
@@ -27,12 +27,15 @@ apps/
                tags,relationships,notes,noteLinks,attachments,sessions,events}/, each
                split into application/ (services), graphql/ (schema + resolvers),
                infrastructure/ (Prisma repositories)
-  web/         React app (default Vite scaffold, not started)
+  web/         React app — routing, urql GraphQL client, login page. Most
+               pages/windows still stubs, see docs/FEATURES.md
 
 packages/
   database/    Prisma schema, generated client, DB connection
   domain/      Campaign, Entity, User, CampaignMember, Tag, Relationship, Note,
                NoteLink, Attachment, Session, Event aggregates + shared errors
+  ui/          Shared React components (Button, Input, Form, Link) consumed
+               by apps/web — thin scope, see AGENTS.md "packages/ui"
 
 docs/
 ```
@@ -93,5 +96,7 @@ GraphQL): `User` (auth), `Campaign`, `CampaignMember`, `Entity` (incl. image upl
 `Tag`, `Relationship`, `Note` (incl. nesting and wiki-style `NoteLink`s), `Attachment`,
 `Session`, and `Event` (incl. many-to-many participants via `EventParticipant`).
 Auth guarding is partial — see `AGENTS.md` "apps/api" section for which mutations require
-a logged-in user. The web app is still the default Vite scaffold — no real UI yet. The
-plugin compiler and RPG-system plugin packages have not been started.
+a logged-in user. The web app has routing, a GraphQL client, and a real login page built
+on the new `packages/ui` shared component package (KAN-75) — most other pages (register,
+dashboard, campaign desktop and its windows) are still stubs. The plugin compiler and
+RPG-system plugin packages have not been started.

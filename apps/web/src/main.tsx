@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { Provider } from "urql";
+import "@storyforge/ui/tokens.css";
 import "./index.css";
 import { router } from "./router";
 import { urqlClient } from "./lib/urqlClient";

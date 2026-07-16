@@ -57,6 +57,18 @@ describe("useDesktopLayout", () => {
     expect(localStorage.getItem("storyforge:desktop:camp-1")).toBeNull();
   });
 
+  it("resize updates size without persisting until something else does", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() => result.current.resize("npcs", 400, 300));
+
+    expect(result.current.layout.npcs).toMatchObject({
+      width: 400,
+      height: 300,
+    });
+    expect(localStorage.getItem("storyforge:desktop:camp-1")).toBeNull();
+  });
+
   it("persists toggle to localStorage, readable by a fresh hook instance", () => {
     const { result, unmount } = renderHook(() =>
       useDesktopLayout("camp-1", DEFAULTS),

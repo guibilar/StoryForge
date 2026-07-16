@@ -11,10 +11,8 @@ export interface DesktopBoardProps {
 
 export function DesktopBoard({ campaignId }: DesktopBoardProps) {
   const boardRef = useRef<HTMLDivElement>(null);
-  const { layout, bringToFront, toggle, startDrag, reset } = useDesktopLayout(
-    campaignId,
-    DEFAULT_LAYOUT,
-  );
+  const { layout, bringToFront, toggle, startDrag, startResize, reset } =
+    useDesktopLayout(campaignId, DEFAULT_LAYOUT);
 
   const dockItems = WINDOW_CATALOG.map((entry) => ({
     id: entry.id,
@@ -57,6 +55,14 @@ export function DesktopBoard({ campaignId }: DesktopBoardProps) {
                 const windowEl = event.currentTarget
                   .parentElement as HTMLElement;
                 startDrag(entry.id, event, boardRef.current, windowEl);
+              }}
+              onResizeHandlePointerDown={(event) => {
+                if (!boardRef.current) {
+                  return;
+                }
+                const windowEl = event.currentTarget
+                  .parentElement as HTMLElement;
+                startResize(entry.id, event, boardRef.current, windowEl);
               }}
             >
               {entry.render()}

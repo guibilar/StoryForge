@@ -8,6 +8,7 @@ export interface WindowProps {
   style?: CSSProperties;
   onClose: () => void;
   onTitleBarPointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
+  onResizeHandlePointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
   onPointerDownCapture?: (event: PointerEvent<HTMLDivElement>) => void;
   className?: string;
   children: ReactNode;
@@ -18,6 +19,7 @@ export function Window({
   style,
   onClose,
   onTitleBarPointerDown,
+  onResizeHandlePointerDown,
   onPointerDownCapture,
   className,
   children,
@@ -40,6 +42,11 @@ export function Window({
         </button>
       </div>
       <div className={styles.body}>{children}</div>
+      <div
+        className={styles.resizeHandle}
+        aria-label={`Resize ${title}`}
+        onPointerDown={onResizeHandlePointerDown}
+      />
     </div>
   );
 }

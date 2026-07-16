@@ -5,6 +5,7 @@ import { Button } from "@storyforge/ui";
 
 import { CampaignsDocument, LogoutDocument, MeDocument } from "../gql/graphql";
 import { CreateCampaignDialog } from "../components/CreateCampaignDialog";
+import { ManageCampaignModal } from "../components/ManageCampaignModal";
 import styles from "./DashboardPage.module.css";
 
 export function DashboardPage() {
@@ -15,9 +16,15 @@ export function DashboardPage() {
   });
   const [, logout] = useMutation(LogoutDocument);
   const [isCreateOpen, setCreateOpen] = useState(false);
+  const [managingCampaignId, setManagingCampaignId] = useState<string | null>(
+    null,
+  );
 
   const currentUserId = meData?.me?.id;
   const campaigns = campaignsData?.campaigns ?? [];
+  const managingCampaign = campaigns.find(
+    (campaign) => campaign.id === managingCampaignId,
+  );
 
   async function handleLogout() {
     await logout({});
@@ -26,6 +33,11 @@ export function DashboardPage() {
 
   function handleCreated() {
     setCreateOpen(false);
+    reexecuteCampaigns({ requestPolicy: "network-only" });
+  }
+
+  function handleManageClosed() {
+    setManagingCampaignId(null);
     reexecuteCampaigns({ requestPolicy: "network-only" });
   }
 
@@ -62,8 +74,10 @@ export function DashboardPage() {
                   Enter campaign
                 </Button>
                 {role === "OWNER" ? (
-                  // TODO(KAN-82): wire this button to the manage-campaign modal
-                  <Button variant="secondary" disabled>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setManagingCampaignId(campaign.id)}
+                  >
                     Manage
                   </Button>
                 ) : null}
@@ -78,6 +92,16 @@ export function DashboardPage() {
         onClose={() => setCreateOpen(false)}
         onCreated={handleCreated}
       />
+
+      {managingCampaign ? (
+        <ManageCampaignModal
+          open
+          campaign={managingCampaign}
+          onClose={() => setManagingCampaignId(null)}
+          onUpdated={handleManageClosed}
+          onArchived={handleManageClosed}
+        />
+      ) : null}
     </main>
   );
 }

@@ -76,8 +76,12 @@ tracks what's actually built, not just planned.
       data-driven (`WINDOW_CATALOG`) so each real window (KAN-39/81/84/49/85)
       can plug in without touching the shell — today every entry is a
       `ComingSoonPanel` placeholder.
-- [ ] Manage-campaign modal (KAN-82) — "Manage" button exists on
-      owner-owned dashboard cards but is disabled, not wired yet
+- [x] Manage-campaign modal (KAN-82) — "Manage" button on owner-owned
+      dashboard cards opens `ManageCampaignModal` (name field, description
+      textarea, wired to `updateCampaign`); Archive is a destructive text
+      action separate from Cancel/Save, gated behind an inline confirm step
+      (no undo — `archiveCampaign` has no unarchive mutation). Both actions
+      close the modal and refetch the dashboard's campaign list.
 
 ## World Building
 

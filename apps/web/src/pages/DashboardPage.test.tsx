@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -6,10 +6,12 @@ import { useMutation, useQuery } from "urql";
 
 import { DashboardPage } from "./DashboardPage";
 import {
+  ArchiveCampaignDocument,
   CampaignsDocument,
   CreateCampaignDocument,
   LogoutDocument,
   MeDocument,
+  UpdateCampaignDocument,
 } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
@@ -46,7 +48,16 @@ const campaigns = [
   },
 ];
 
-function setupMocks({ logout = vi.fn() } = {}) {
+function setupMocks({
+  logout = vi.fn(),
+  reexecuteCampaigns = vi.fn(),
+  updateCampaign = vi
+    .fn()
+    .mockResolvedValue({ data: { updateCampaign: { id: "c1" } } }),
+  archiveCampaign = vi
+    .fn()
+    .mockResolvedValue({ data: { archiveCampaign: true } }),
+} = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === MeDocument) {
       return [
@@ -60,7 +71,10 @@ function setupMocks({ logout = vi.fn() } = {}) {
     }
 
     if (args.query === CampaignsDocument) {
-      return [{ data: { campaigns }, fetching: false, stale: false }, vi.fn()];
+      return [
+        { data: { campaigns }, fetching: false, stale: false },
+        reexecuteCampaigns,
+      ];
     }
 
     throw new Error("Unexpected query in test");
@@ -75,10 +89,18 @@ function setupMocks({ logout = vi.fn() } = {}) {
       return [{ fetching: false, stale: false }, vi.fn()];
     }
 
+    if (document === UpdateCampaignDocument) {
+      return [{ fetching: false, stale: false }, updateCampaign];
+    }
+
+    if (document === ArchiveCampaignDocument) {
+      return [{ fetching: false, stale: false }, archiveCampaign];
+    }
+
     throw new Error("Unexpected mutation in test");
   }) as never);
 
-  return { logout };
+  return { logout, reexecuteCampaigns, updateCampaign, archiveCampaign };
 }
 
 function renderDashboard() {
@@ -109,13 +131,61 @@ describe("DashboardPage", () => {
     expect(screen.getByText(/2 members.*PLAYER/)).toBeInTheDocument();
   });
 
-  it("shows a disabled Manage button only on owner-owned cards", () => {
+  it("shows an enabled Manage button only on owner-owned cards", () => {
     setupMocks();
     renderDashboard();
 
     const manageButtons = screen.getAllByRole("button", { name: "Manage" });
     expect(manageButtons).toHaveLength(1);
-    expect(manageButtons[0]).toBeDisabled();
+    expect(manageButtons[0]).toBeEnabled();
+  });
+
+  it("opens the manage-campaign modal prefilled with the campaign's data", async () => {
+    setupMocks();
+    const user = userEvent.setup();
+    renderDashboard();
+
+    await user.click(screen.getByRole("button", { name: "Manage" }));
+
+    const heading = screen.getByRole("heading", { name: "Manage campaign" });
+    expect(heading).toBeInTheDocument();
+    const dialog = within(heading.closest("dialog") as HTMLElement);
+    expect(dialog.getByLabelText("Name")).toHaveValue("Owned Campaign");
+  });
+
+  it("closes the manage-campaign modal and refetches after saving", async () => {
+    const { updateCampaign, reexecuteCampaigns } = setupMocks();
+    const user = userEvent.setup();
+    renderDashboard();
+
+    await user.click(screen.getByRole("button", { name: "Manage" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(updateCampaign).toHaveBeenCalled();
+    expect(reexecuteCampaigns).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+    expect(
+      screen.queryByRole("heading", { name: "Manage campaign" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("closes the manage-campaign modal and refetches after archiving", async () => {
+    const { archiveCampaign, reexecuteCampaigns } = setupMocks();
+    const user = userEvent.setup();
+    renderDashboard();
+
+    await user.click(screen.getByRole("button", { name: "Manage" }));
+    await user.click(screen.getByRole("button", { name: "Archive campaign" }));
+    await user.click(screen.getByRole("button", { name: "Confirm archive" }));
+
+    expect(archiveCampaign).toHaveBeenCalledWith({ id: "c1" });
+    expect(reexecuteCampaigns).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+    expect(
+      screen.queryByRole("heading", { name: "Manage campaign" }),
+    ).not.toBeInTheDocument();
   });
 
   it("logs out and navigates to /login", async () => {

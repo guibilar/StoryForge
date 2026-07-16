@@ -31,6 +31,12 @@ export type RegisterUserInput = {
   password: string;
 };
 
+export type UpdateCampaignInput = {
+  description?: string | null | undefined;
+  id: string | number;
+  name?: string | null | undefined;
+};
+
 export type UpdateCampaignMemberRoleInput = {
   campaignId: string | number;
   role: CampaignRole;
@@ -48,6 +54,12 @@ export type AddCampaignMemberMutation = {
     user: { id: string; email: string };
   };
 };
+
+export type ArchiveCampaignMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type ArchiveCampaignMutation = { archiveCampaign: boolean };
 
 export type CampaignQueryVariables = Exact<{
   id: string | number;
@@ -119,6 +131,19 @@ export type RemoveCampaignMemberMutationVariables = Exact<{
 }>;
 
 export type RemoveCampaignMemberMutation = { removeCampaignMember: boolean };
+
+export type UpdateCampaignMutationVariables = Exact<{
+  input: UpdateCampaignInput;
+}>;
+
+export type UpdateCampaignMutation = {
+  updateCampaign: {
+    id: string;
+    name: string;
+    description: string | null;
+    archivedAt: string | null;
+  };
+};
 
 export type UpdateCampaignMemberRoleMutationVariables = Exact<{
   input: UpdateCampaignMemberRoleInput;
@@ -193,6 +218,48 @@ export const AddCampaignMemberDocument = {
 } as unknown as DocumentNode<
   AddCampaignMemberMutation,
   AddCampaignMemberMutationVariables
+>;
+export const ArchiveCampaignDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "ArchiveCampaign" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "archiveCampaign" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ArchiveCampaignMutation,
+  ArchiveCampaignMutationVariables
 >;
 export const CampaignDocument = {
   kind: "Document",
@@ -611,6 +678,63 @@ export const RemoveCampaignMemberDocument = {
 } as unknown as DocumentNode<
   RemoveCampaignMemberMutation,
   RemoveCampaignMemberMutationVariables
+>;
+export const UpdateCampaignDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateCampaign" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateCampaignInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateCampaign" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "archivedAt" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateCampaignMutation,
+  UpdateCampaignMutationVariables
 >;
 export const UpdateCampaignMemberRoleDocument = {
   kind: "Document",

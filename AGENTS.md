@@ -314,14 +314,14 @@ Core depends only on interfaces.
 
 ---
 
-## packages/ui (KAN-75 — thin scope: Button, Input, Form, Link)
+## packages/ui (KAN-75/KAN-31 — thin scope: Button, Input, Form, Link, Modal)
 
 `@storyforge/ui`, consumed by `apps/web` today. Deliberately not a full
-design system yet — built to exactly what KAN-31 (auth screens) needed,
-per the ticket's own DoD ("not a speculative component library built
-ahead of need"). Tables, modals, and layout primitives are still
-unbuilt — pick them up when the ticket that needs them (KAN-39/81
-tables, KAN-82 modal, KAN-80 shell) lands, following the same pattern.
+design system yet — built to exactly what KAN-31 (auth + campaign screens)
+needed, per KAN-75's DoD ("not a speculative component library built
+ahead of need"). Tables and layout primitives are still unbuilt — pick
+them up when the ticket that needs them (KAN-39/81 tables, KAN-80 shell)
+lands, following the same pattern.
 
 **No build step.** `main`/`types` point straight at `src/index.ts` (no
 `dist/`), same "just-in-time package" pattern as `packages/database` —
@@ -358,15 +358,23 @@ from `src/index.ts`):
 - `Link` — polymorphic via a plain `as?: ElementType` prop (default `"a"`),
   no `react-router-dom` dependency in this package itself. Consumers do
   `<Link as={RouterLink} to="/x">` in `apps/web`.
+- `Modal` — wraps a native `<dialog>` (`open`/`onClose` props). Calls
+  `showModal()`/`close()` imperatively via a ref when available, falling
+  back to toggling the `open` attribute directly when they aren't (jsdom,
+  used in tests, doesn't implement `HTMLDialogElement.showModal`/`close`).
+  Clicking the backdrop (`event.target === dialogRef.current`, the standard
+  native-`<dialog>` trick) and native cancel (Escape) both call `onClose`.
+  First consumer: KAN-31's create-campaign dialog; KAN-82's manage-campaign
+  modal should reuse it rather than building its own.
 
 Usage from `apps/web`:
 
 ```tsx
-import { Button, Form, FormField, Input } from "@storyforge/ui";
+import { Button, Form, FormField, Input, Modal } from "@storyforge/ui";
 ```
 
-(`apps/web/src/pages/LoginPage.tsx` is the first real consumer — static
-form markup only, no mutation wired yet, that's still KAN-31.)
+(`apps/web/src/pages/LoginPage.tsx`, `RegisterPage.tsx`, and
+`DashboardPage.tsx` are the real consumers, wired up in KAN-31.)
 
 React is a `peerDependency` only (not a devDependency of this package)
 — deliberately, to avoid a second physical React copy under

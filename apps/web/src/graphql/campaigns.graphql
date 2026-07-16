@@ -1,0 +1,12 @@
+query Campaigns {
+  campaigns {
+    id
+    name
+    description
+    archivedAt
+    members {
+      userId
+      role
+    }
+  }
+}

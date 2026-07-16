@@ -3,12 +3,16 @@ import { createServer, IncomingMessage, ServerResponse } from "node:http";
 
 import { schema } from "./schema";
 import { createContext } from "./context";
-import { UPLOADS_DIR } from "../config/env";
+import { UPLOADS_DIR, WEB_ORIGIN } from "../config/env";
 import { isUploadsRequest, serveUpload } from "./uploadsStaticHandler";
 
-export const yoga = createYoga({
+export const yoga = createYoga<{ req: IncomingMessage; res: ServerResponse }>({
   schema,
   context: createContext,
+  cors: {
+    origin: WEB_ORIGIN,
+    credentials: true,
+  },
 });
 
 function requestListener(req: IncomingMessage, res: ServerResponse): void {

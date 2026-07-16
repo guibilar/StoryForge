@@ -8,7 +8,9 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      return await context.authenticationService.login(args.input);
+      const result = await context.authenticationService.login(args.input);
+      context.setAuthCookie(result.token);
+      return result;
     } catch (error) {
       toGraphQLError(error);
     }
@@ -20,9 +22,16 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      return await context.authenticationService.register(args.input);
+      const result = await context.authenticationService.register(args.input);
+      context.setAuthCookie(result.token);
+      return result;
     } catch (error) {
       toGraphQLError(error);
     }
+  },
+
+  logout: (_parent: unknown, _args: unknown, context: GraphQLContext) => {
+    context.clearAuthCookie();
+    return true;
   },
 };

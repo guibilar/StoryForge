@@ -14,3 +14,6 @@ export type {
   FormFieldProps,
   FormErrorProps,
 } from "./components/Form";
+
+export { Modal } from "./components/Modal/Modal";
+export type { ModalProps } from "./components/Modal/Modal";

@@ -1,0 +1,12 @@
+mutation CreateCampaign($input: CreateCampaignDTO!) {
+  createCampaign(input: $input) {
+    id
+    name
+    description
+    archivedAt
+    members {
+      userId
+      role
+    }
+  }
+}

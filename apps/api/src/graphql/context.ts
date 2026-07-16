@@ -1,6 +1,13 @@
 import { YogaInitialContext } from "graphql-yoga";
 import jwt from "jsonwebtoken";
+import type { IncomingMessage, ServerResponse } from "node:http";
 
+import {
+  AUTH_COOKIE_MAX_AGE,
+  AUTH_COOKIE_NAME,
+  parseCookie,
+  serializeCookie,
+} from "./cookies";
 import { EntityService } from "../modules/entities/application/EntityService";
 import { PrismaEntityRepository } from "../modules/entities/infrastructure/PrismaEntityRepository";
 import { AuthenticationService } from "../modules/auth/application/AuthenticationService";
@@ -27,12 +34,16 @@ import { EventService } from "../modules/events/application/EventService";
 import { PrismaEventRepository } from "../modules/events/infrastructure/PrismaEventRepository";
 
 export interface GraphQLContext extends YogaInitialContext {
+  req: IncomingMessage;
+  res: ServerResponse;
   requestId: string;
   entityService: EntityService;
   authenticationService: AuthenticationService;
   campaignService: CampaignService;
   currentUserId: string | null;
   currentUser: User | null;
+  setAuthCookie: (token: string) => void;
+  clearAuthCookie: () => void;
   imageStorage: LocalImageStore;
   tagService: TagService;
   relationshipService: RelationshipService;
@@ -79,14 +90,15 @@ const eventService = new EventService(
   new PrismaSessionRepository(),
 );
 
-function getCurrentUserId(request: Request): string | null {
+export function getCurrentUserId(request: Request): string | null {
   const authHeader = request.headers.get("authorization");
+  const token = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : parseCookie(request.headers.get("cookie"), AUTH_COOKIE_NAME);
 
-  if (!authHeader?.startsWith("Bearer ")) {
+  if (!token) {
     return null;
   }
-
-  const token = authHeader.slice("Bearer ".length);
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
@@ -101,8 +113,21 @@ function getCurrentUserId(request: Request): string | null {
   }
 }
 
+function appendSetCookie(res: ServerResponse, cookie: string): void {
+  const existing = res.getHeader("Set-Cookie");
+  const cookies = existing
+    ? (Array.isArray(existing) ? existing : [existing]).map(String)
+    : [];
+
+  cookies.push(cookie);
+  res.setHeader("Set-Cookie", cookies);
+}
+
 export async function createContext(
-  initialContext: YogaInitialContext,
+  initialContext: YogaInitialContext & {
+    req: IncomingMessage;
+    res: ServerResponse;
+  },
 ): Promise<GraphQLContext> {
   const currentUserId = getCurrentUserId(initialContext.request);
   const currentUser = currentUserId
@@ -116,6 +141,18 @@ export async function createContext(
     campaignService,
     currentUserId,
     currentUser,
+    setAuthCookie: (token: string) =>
+      appendSetCookie(
+        initialContext.res,
+        serializeCookie(AUTH_COOKIE_NAME, token, {
+          maxAge: AUTH_COOKIE_MAX_AGE,
+        }),
+      ),
+    clearAuthCookie: () =>
+      appendSetCookie(
+        initialContext.res,
+        serializeCookie(AUTH_COOKIE_NAME, "", { maxAge: 0 }),
+      ),
     imageStorage,
     tagService,
     relationshipService,

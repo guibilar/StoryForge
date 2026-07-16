@@ -16,4 +16,5 @@ type AuthPayload {
 extend type Mutation {
   login(input: LoginInput!): AuthPayload!
   registerUser(input: RegisterUserInput!): AuthPayload!
+  logout: Boolean!
 }

@@ -1,8 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { useMutation } from "urql";
 
 import { routes } from "./routes/routeConfig";
+
+vi.mock("urql", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("urql")>();
+  return { ...actual, useMutation: vi.fn() };
+});
+
+vi.mocked(useMutation).mockReturnValue([
+  { fetching: false, stale: false } as never,
+  vi.fn() as never,
+]);
 
 describe("router", () => {
   it("renders the login page at /login", () => {

@@ -10,32 +10,32 @@ import {
   Link,
 } from "@storyforge/ui";
 
-import { LoginDocument } from "../gql/graphql";
+import { RegisterDocument } from "../gql/graphql";
 import { formatGraphQLError } from "../lib/graphqlError";
 
-export function LoginPage() {
+export function RegisterPage() {
   const navigate = useNavigate();
-  const [{ error, fetching }, login] = useMutation(LoginDocument);
+  const [{ error, fetching }, register] = useMutation(RegisterDocument);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const form = new FormData(event.currentTarget);
-    const result = await login({
+    const result = await register({
       input: {
         email: String(form.get("email")),
         password: String(form.get("password")),
       },
     });
 
-    if (result.data?.login) {
+    if (result.data?.registerUser) {
       navigate("/dashboard");
     }
   }
 
   return (
     <main>
-      <h1>Log in</h1>
+      <h1>Register</h1>
       <Form onSubmit={handleSubmit}>
         <FormError>{formatGraphQLError(error)}</FormError>
         <FormField label="Email" htmlFor="email">
@@ -52,18 +52,18 @@ export function LoginPage() {
             id="password"
             name="password"
             type="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             required
           />
         </FormField>
         <Button type="submit" disabled={fetching}>
-          Log in
+          Register
         </Button>
       </Form>
       <p>
-        Need an account?{" "}
-        <Link as={RouterLink} to="/register">
-          Register
+        Already have an account?{" "}
+        <Link as={RouterLink} to="/login">
+          Log in
         </Link>
       </p>
     </main>

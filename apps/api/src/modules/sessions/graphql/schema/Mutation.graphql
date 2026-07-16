@@ -1,0 +1,17 @@
+input CreateSessionInput {
+  campaignId: ID!
+  date: String!
+  summary: String
+}
+
+input UpdateSessionInput {
+  id: ID!
+  date: String
+  summary: String
+}
+
+extend type Mutation {
+  createSession(input: CreateSessionInput!): Session!
+  updateSession(input: UpdateSessionInput!): Session!
+  deleteSession(id: ID!): Boolean!
+}

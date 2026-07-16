@@ -38,6 +38,7 @@ model Campaign {
   tags          Tag[]
   relationships Relationship[]
   notes         Note[]
+  sessions      Session[]
 }
 
 model Entity {
@@ -66,6 +67,23 @@ model Entity {
   backlinks NoteLink[] @relation("NoteLinkTargetEntity")
 
   @@unique([campaignId, name])
+  @@index([campaignId])
+}
+
+model Session {
+  id            String @id @default(uuid())
+  campaignId    String
+  sessionNumber Int
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  date    DateTime
+  summary String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campaignId, sessionNumber])
   @@index([campaignId])
 }
 

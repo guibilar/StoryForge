@@ -9,6 +9,7 @@
  */
 export type * from "./models/Campaign";
 export type * from "./models/Entity";
+export type * from "./models/Session";
 export type * from "./models/Tag";
 export type * from "./models/EntityTag";
 export type * from "./models/Relationship";

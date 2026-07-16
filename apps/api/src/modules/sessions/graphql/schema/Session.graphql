@@ -1,0 +1,9 @@
+type Session {
+  id: ID!
+  campaignId: ID!
+  sessionNumber: Int!
+  date: String!
+  summary: String
+  createdAt: String!
+  updatedAt: String!
+}

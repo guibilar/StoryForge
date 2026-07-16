@@ -1,0 +1,4 @@
+extend type Query {
+  session(id: ID!): Session
+  sessions(campaignId: ID!): [Session!]!
+}

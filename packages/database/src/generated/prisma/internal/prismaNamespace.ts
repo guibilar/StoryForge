@@ -413,6 +413,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never
 export const ModelName = {
   Campaign: "Campaign",
   Entity: "Entity",
+  Session: "Session",
   Tag: "Tag",
   EntityTag: "EntityTag",
   Relationship: "Relationship",
@@ -445,6 +446,7 @@ export type TypeMap<
     modelProps:
       | "campaign"
       | "entity"
+      | "session"
       | "tag"
       | "entityTag"
       | "relationship"
@@ -604,6 +606,82 @@ export type TypeMap<
           args: Prisma.EntityCountArgs<ExtArgs>;
           result:
             | runtime.Types.Utils.Optional<Prisma.EntityCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    Session: {
+      payload: Prisma.$SessionPayload<ExtArgs>;
+      fields: Prisma.SessionFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.SessionFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.SessionFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload>;
+        };
+        findFirst: {
+          args: Prisma.SessionFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.SessionFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload>;
+        };
+        findMany: {
+          args: Prisma.SessionFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload>[];
+        };
+        create: {
+          args: Prisma.SessionCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload>;
+        };
+        createMany: {
+          args: Prisma.SessionCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.SessionCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload>[];
+        };
+        delete: {
+          args: Prisma.SessionDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload>;
+        };
+        update: {
+          args: Prisma.SessionUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload>;
+        };
+        deleteMany: {
+          args: Prisma.SessionDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.SessionUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.SessionUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload>[];
+        };
+        upsert: {
+          args: Prisma.SessionUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionPayload>;
+        };
+        aggregate: {
+          args: Prisma.SessionAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSession>;
+        };
+        groupBy: {
+          args: Prisma.SessionGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.SessionGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.SessionCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.SessionCountAggregateOutputType>
             | number;
         };
       };
@@ -1284,6 +1362,19 @@ export const EntityScalarFieldEnum = {
 export type EntityScalarFieldEnum =
   (typeof EntityScalarFieldEnum)[keyof typeof EntityScalarFieldEnum];
 
+export const SessionScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  sessionNumber: "sessionNumber",
+  date: "date",
+  summary: "summary",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type SessionScalarFieldEnum =
+  (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum];
+
 export const TagScalarFieldEnum = {
   id: "id",
   campaignId: "campaignId",
@@ -1623,6 +1714,7 @@ export type PrismaClientOptions = (
 export type GlobalOmitConfig = {
   campaign?: Prisma.CampaignOmit;
   entity?: Prisma.EntityOmit;
+  session?: Prisma.SessionOmit;
   tag?: Prisma.TagOmit;
   entityTag?: Prisma.EntityTagOmit;
   relationship?: Prisma.RelationshipOmit;

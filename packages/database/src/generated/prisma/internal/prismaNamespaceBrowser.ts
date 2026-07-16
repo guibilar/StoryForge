@@ -56,6 +56,7 @@ export const AnyNull = runtime.AnyNull;
 export const ModelName = {
   Campaign: "Campaign",
   Entity: "Entity",
+  Session: "Session",
   Tag: "Tag",
   EntityTag: "EntityTag",
   Relationship: "Relationship",
@@ -110,6 +111,19 @@ export const EntityScalarFieldEnum = {
 
 export type EntityScalarFieldEnum =
   (typeof EntityScalarFieldEnum)[keyof typeof EntityScalarFieldEnum];
+
+export const SessionScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  sessionNumber: "sessionNumber",
+  date: "date",
+  summary: "summary",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type SessionScalarFieldEnum =
+  (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum];
 
 export const TagScalarFieldEnum = {
   id: "id",

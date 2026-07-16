@@ -1,6 +1,8 @@
 packages:
   - "apps/*"
   - "packages/*"
+overrides:
+  "@graphql-tools/schema": "10.0.34"
 allowBuilds:
   "@prisma/engines": false
   bcrypt: false

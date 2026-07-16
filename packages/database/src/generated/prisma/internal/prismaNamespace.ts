@@ -414,6 +414,8 @@ export const ModelName = {
   Campaign: "Campaign",
   Entity: "Entity",
   Session: "Session",
+  Event: "Event",
+  EventParticipant: "EventParticipant",
   Tag: "Tag",
   EntityTag: "EntityTag",
   Relationship: "Relationship",
@@ -447,6 +449,8 @@ export type TypeMap<
       | "campaign"
       | "entity"
       | "session"
+      | "event"
+      | "eventParticipant"
       | "tag"
       | "entityTag"
       | "relationship"
@@ -682,6 +686,158 @@ export type TypeMap<
           args: Prisma.SessionCountArgs<ExtArgs>;
           result:
             | runtime.Types.Utils.Optional<Prisma.SessionCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    Event: {
+      payload: Prisma.$EventPayload<ExtArgs>;
+      fields: Prisma.EventFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.EventFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.EventFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>;
+        };
+        findFirst: {
+          args: Prisma.EventFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.EventFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>;
+        };
+        findMany: {
+          args: Prisma.EventFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>[];
+        };
+        create: {
+          args: Prisma.EventCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>;
+        };
+        createMany: {
+          args: Prisma.EventCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.EventCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>[];
+        };
+        delete: {
+          args: Prisma.EventDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>;
+        };
+        update: {
+          args: Prisma.EventUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>;
+        };
+        deleteMany: {
+          args: Prisma.EventDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.EventUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.EventUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>[];
+        };
+        upsert: {
+          args: Prisma.EventUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventPayload>;
+        };
+        aggregate: {
+          args: Prisma.EventAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEvent>;
+        };
+        groupBy: {
+          args: Prisma.EventGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.EventGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.EventCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.EventCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    EventParticipant: {
+      payload: Prisma.$EventParticipantPayload<ExtArgs>;
+      fields: Prisma.EventParticipantFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.EventParticipantFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.EventParticipantFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>;
+        };
+        findFirst: {
+          args: Prisma.EventParticipantFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.EventParticipantFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>;
+        };
+        findMany: {
+          args: Prisma.EventParticipantFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>[];
+        };
+        create: {
+          args: Prisma.EventParticipantCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>;
+        };
+        createMany: {
+          args: Prisma.EventParticipantCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.EventParticipantCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>[];
+        };
+        delete: {
+          args: Prisma.EventParticipantDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>;
+        };
+        update: {
+          args: Prisma.EventParticipantUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>;
+        };
+        deleteMany: {
+          args: Prisma.EventParticipantDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.EventParticipantUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.EventParticipantUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>[];
+        };
+        upsert: {
+          args: Prisma.EventParticipantUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventParticipantPayload>;
+        };
+        aggregate: {
+          args: Prisma.EventParticipantAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventParticipant>;
+        };
+        groupBy: {
+          args: Prisma.EventParticipantGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.EventParticipantGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.EventParticipantCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.EventParticipantCountAggregateOutputType>
             | number;
         };
       };
@@ -1375,6 +1531,31 @@ export const SessionScalarFieldEnum = {
 export type SessionScalarFieldEnum =
   (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum];
 
+export const EventScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  sessionId: "sessionId",
+  title: "title",
+  description: "description",
+  occurredAt: "occurredAt",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type EventScalarFieldEnum =
+  (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum];
+
+export const EventParticipantScalarFieldEnum = {
+  id: "id",
+  eventId: "eventId",
+  entityId: "entityId",
+  role: "role",
+  createdAt: "createdAt",
+} as const;
+
+export type EventParticipantScalarFieldEnum =
+  (typeof EventParticipantScalarFieldEnum)[keyof typeof EventParticipantScalarFieldEnum];
+
 export const TagScalarFieldEnum = {
   id: "id",
   campaignId: "campaignId",
@@ -1715,6 +1896,8 @@ export type GlobalOmitConfig = {
   campaign?: Prisma.CampaignOmit;
   entity?: Prisma.EntityOmit;
   session?: Prisma.SessionOmit;
+  event?: Prisma.EventOmit;
+  eventParticipant?: Prisma.EventParticipantOmit;
   tag?: Prisma.TagOmit;
   entityTag?: Prisma.EntityTagOmit;
   relationship?: Prisma.RelationshipOmit;

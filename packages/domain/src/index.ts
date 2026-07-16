@@ -1,4 +1,5 @@
 export * from "./entity";
+export * from "./event";
 export * from "./session";
 export * from "./shared";
 export * from "./user";

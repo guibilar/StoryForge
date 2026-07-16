@@ -200,6 +200,7 @@ export type CampaignWhereInput = {
   relationships?: Prisma.RelationshipListRelationFilter;
   notes?: Prisma.NoteListRelationFilter;
   sessions?: Prisma.SessionListRelationFilter;
+  events?: Prisma.EventListRelationFilter;
 };
 
 export type CampaignOrderByWithRelationInput = {
@@ -215,6 +216,7 @@ export type CampaignOrderByWithRelationInput = {
   relationships?: Prisma.RelationshipOrderByRelationAggregateInput;
   notes?: Prisma.NoteOrderByRelationAggregateInput;
   sessions?: Prisma.SessionOrderByRelationAggregateInput;
+  events?: Prisma.EventOrderByRelationAggregateInput;
 };
 
 export type CampaignWhereUniqueInput = Prisma.AtLeast<
@@ -235,6 +237,7 @@ export type CampaignWhereUniqueInput = Prisma.AtLeast<
     relationships?: Prisma.RelationshipListRelationFilter;
     notes?: Prisma.NoteListRelationFilter;
     sessions?: Prisma.SessionListRelationFilter;
+    events?: Prisma.EventListRelationFilter;
   },
   "id"
 >;
@@ -285,6 +288,7 @@ export type CampaignCreateInput = {
   relationships?: Prisma.RelationshipCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateInput = {
@@ -300,6 +304,7 @@ export type CampaignUncheckedCreateInput = {
   relationships?: Prisma.RelationshipUncheckedCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUpdateInput = {
@@ -316,6 +321,7 @@ export type CampaignUpdateInput = {
   relationships?: Prisma.RelationshipUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateInput = {
@@ -332,6 +338,7 @@ export type CampaignUncheckedUpdateInput = {
   relationships?: Prisma.RelationshipUncheckedUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateManyInput = {
@@ -463,6 +470,32 @@ export type CampaignUpdateOneRequiredWithoutSessionsNestedInput = {
   >;
 };
 
+export type CampaignCreateNestedOneWithoutEventsInput = {
+  create?: Prisma.XOR<
+    Prisma.CampaignCreateWithoutEventsInput,
+    Prisma.CampaignUncheckedCreateWithoutEventsInput
+  >;
+  connectOrCreate?: Prisma.CampaignCreateOrConnectWithoutEventsInput;
+  connect?: Prisma.CampaignWhereUniqueInput;
+};
+
+export type CampaignUpdateOneRequiredWithoutEventsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.CampaignCreateWithoutEventsInput,
+    Prisma.CampaignUncheckedCreateWithoutEventsInput
+  >;
+  connectOrCreate?: Prisma.CampaignCreateOrConnectWithoutEventsInput;
+  upsert?: Prisma.CampaignUpsertWithoutEventsInput;
+  connect?: Prisma.CampaignWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.CampaignUpdateToOneWithWhereWithoutEventsInput,
+      Prisma.CampaignUpdateWithoutEventsInput
+    >,
+    Prisma.CampaignUncheckedUpdateWithoutEventsInput
+  >;
+};
+
 export type CampaignCreateNestedOneWithoutTagsInput = {
   create?: Prisma.XOR<
     Prisma.CampaignCreateWithoutTagsInput,
@@ -579,6 +612,7 @@ export type CampaignCreateWithoutEntitiesInput = {
   relationships?: Prisma.RelationshipCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutEntitiesInput = {
@@ -593,6 +627,7 @@ export type CampaignUncheckedCreateWithoutEntitiesInput = {
   relationships?: Prisma.RelationshipUncheckedCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutEntitiesInput = {
@@ -636,6 +671,7 @@ export type CampaignUpdateWithoutEntitiesInput = {
   relationships?: Prisma.RelationshipUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutEntitiesInput = {
@@ -651,6 +687,7 @@ export type CampaignUncheckedUpdateWithoutEntitiesInput = {
   relationships?: Prisma.RelationshipUncheckedUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutSessionsInput = {
@@ -665,6 +702,7 @@ export type CampaignCreateWithoutSessionsInput = {
   tags?: Prisma.TagCreateNestedManyWithoutCampaignInput;
   relationships?: Prisma.RelationshipCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutSessionsInput = {
@@ -679,6 +717,7 @@ export type CampaignUncheckedCreateWithoutSessionsInput = {
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutCampaignInput;
   relationships?: Prisma.RelationshipUncheckedCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutSessionsInput = {
@@ -722,6 +761,7 @@ export type CampaignUpdateWithoutSessionsInput = {
   tags?: Prisma.TagUpdateManyWithoutCampaignNestedInput;
   relationships?: Prisma.RelationshipUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutSessionsInput = {
@@ -737,6 +777,97 @@ export type CampaignUncheckedUpdateWithoutSessionsInput = {
   tags?: Prisma.TagUncheckedUpdateManyWithoutCampaignNestedInput;
   relationships?: Prisma.RelationshipUncheckedUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
+};
+
+export type CampaignCreateWithoutEventsInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  archivedAt?: Date | string | null;
+  entities?: Prisma.EntityCreateNestedManyWithoutCampaignInput;
+  members?: Prisma.CampaignMemberCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagCreateNestedManyWithoutCampaignInput;
+  relationships?: Prisma.RelationshipCreateNestedManyWithoutCampaignInput;
+  notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
+  sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
+};
+
+export type CampaignUncheckedCreateWithoutEventsInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  archivedAt?: Date | string | null;
+  entities?: Prisma.EntityUncheckedCreateNestedManyWithoutCampaignInput;
+  members?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagUncheckedCreateNestedManyWithoutCampaignInput;
+  relationships?: Prisma.RelationshipUncheckedCreateNestedManyWithoutCampaignInput;
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
+};
+
+export type CampaignCreateOrConnectWithoutEventsInput = {
+  where: Prisma.CampaignWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.CampaignCreateWithoutEventsInput,
+    Prisma.CampaignUncheckedCreateWithoutEventsInput
+  >;
+};
+
+export type CampaignUpsertWithoutEventsInput = {
+  update: Prisma.XOR<
+    Prisma.CampaignUpdateWithoutEventsInput,
+    Prisma.CampaignUncheckedUpdateWithoutEventsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.CampaignCreateWithoutEventsInput,
+    Prisma.CampaignUncheckedCreateWithoutEventsInput
+  >;
+  where?: Prisma.CampaignWhereInput;
+};
+
+export type CampaignUpdateToOneWithWhereWithoutEventsInput = {
+  where?: Prisma.CampaignWhereInput;
+  data: Prisma.XOR<
+    Prisma.CampaignUpdateWithoutEventsInput,
+    Prisma.CampaignUncheckedUpdateWithoutEventsInput
+  >;
+};
+
+export type CampaignUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  archivedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  entities?: Prisma.EntityUpdateManyWithoutCampaignNestedInput;
+  members?: Prisma.CampaignMemberUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUpdateManyWithoutCampaignNestedInput;
+  relationships?: Prisma.RelationshipUpdateManyWithoutCampaignNestedInput;
+  notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
+  sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
+};
+
+export type CampaignUncheckedUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  archivedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  entities?: Prisma.EntityUncheckedUpdateManyWithoutCampaignNestedInput;
+  members?: Prisma.CampaignMemberUncheckedUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUncheckedUpdateManyWithoutCampaignNestedInput;
+  relationships?: Prisma.RelationshipUncheckedUpdateManyWithoutCampaignNestedInput;
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutTagsInput = {
@@ -751,6 +882,7 @@ export type CampaignCreateWithoutTagsInput = {
   relationships?: Prisma.RelationshipCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutTagsInput = {
@@ -765,6 +897,7 @@ export type CampaignUncheckedCreateWithoutTagsInput = {
   relationships?: Prisma.RelationshipUncheckedCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutTagsInput = {
@@ -808,6 +941,7 @@ export type CampaignUpdateWithoutTagsInput = {
   relationships?: Prisma.RelationshipUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutTagsInput = {
@@ -823,6 +957,7 @@ export type CampaignUncheckedUpdateWithoutTagsInput = {
   relationships?: Prisma.RelationshipUncheckedUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutRelationshipsInput = {
@@ -837,6 +972,7 @@ export type CampaignCreateWithoutRelationshipsInput = {
   tags?: Prisma.TagCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutRelationshipsInput = {
@@ -851,6 +987,7 @@ export type CampaignUncheckedCreateWithoutRelationshipsInput = {
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutRelationshipsInput = {
@@ -894,6 +1031,7 @@ export type CampaignUpdateWithoutRelationshipsInput = {
   tags?: Prisma.TagUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutRelationshipsInput = {
@@ -909,6 +1047,7 @@ export type CampaignUncheckedUpdateWithoutRelationshipsInput = {
   tags?: Prisma.TagUncheckedUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutNotesInput = {
@@ -923,6 +1062,7 @@ export type CampaignCreateWithoutNotesInput = {
   tags?: Prisma.TagCreateNestedManyWithoutCampaignInput;
   relationships?: Prisma.RelationshipCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutNotesInput = {
@@ -937,6 +1077,7 @@ export type CampaignUncheckedCreateWithoutNotesInput = {
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutCampaignInput;
   relationships?: Prisma.RelationshipUncheckedCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutNotesInput = {
@@ -980,6 +1121,7 @@ export type CampaignUpdateWithoutNotesInput = {
   tags?: Prisma.TagUpdateManyWithoutCampaignNestedInput;
   relationships?: Prisma.RelationshipUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutNotesInput = {
@@ -995,6 +1137,7 @@ export type CampaignUncheckedUpdateWithoutNotesInput = {
   tags?: Prisma.TagUncheckedUpdateManyWithoutCampaignNestedInput;
   relationships?: Prisma.RelationshipUncheckedUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutMembersInput = {
@@ -1009,6 +1152,7 @@ export type CampaignCreateWithoutMembersInput = {
   relationships?: Prisma.RelationshipCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutMembersInput = {
@@ -1023,6 +1167,7 @@ export type CampaignUncheckedCreateWithoutMembersInput = {
   relationships?: Prisma.RelationshipUncheckedCreateNestedManyWithoutCampaignInput;
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutMembersInput = {
@@ -1066,6 +1211,7 @@ export type CampaignUpdateWithoutMembersInput = {
   relationships?: Prisma.RelationshipUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutMembersInput = {
@@ -1081,6 +1227,7 @@ export type CampaignUncheckedUpdateWithoutMembersInput = {
   relationships?: Prisma.RelationshipUncheckedUpdateManyWithoutCampaignNestedInput;
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 /**
@@ -1094,6 +1241,7 @@ export type CampaignCountOutputType = {
   relationships: number;
   notes: number;
   sessions: number;
+  events: number;
 };
 
 export type CampaignCountOutputTypeSelect<
@@ -1106,6 +1254,7 @@ export type CampaignCountOutputTypeSelect<
   relationships?: boolean | CampaignCountOutputTypeCountRelationshipsArgs;
   notes?: boolean | CampaignCountOutputTypeCountNotesArgs;
   sessions?: boolean | CampaignCountOutputTypeCountSessionsArgs;
+  events?: boolean | CampaignCountOutputTypeCountEventsArgs;
 };
 
 /**
@@ -1181,6 +1330,16 @@ export type CampaignCountOutputTypeCountSessionsArgs<
   where?: Prisma.SessionWhereInput;
 };
 
+/**
+ * CampaignCountOutputType without action
+ */
+export type CampaignCountOutputTypeCountEventsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.EventWhereInput;
+};
+
 export type CampaignSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -1198,6 +1357,7 @@ export type CampaignSelect<
     relationships?: boolean | Prisma.Campaign$relationshipsArgs<ExtArgs>;
     notes?: boolean | Prisma.Campaign$notesArgs<ExtArgs>;
     sessions?: boolean | Prisma.Campaign$sessionsArgs<ExtArgs>;
+    events?: boolean | Prisma.Campaign$eventsArgs<ExtArgs>;
     _count?: boolean | Prisma.CampaignCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["campaign"]
@@ -1259,6 +1419,7 @@ export type CampaignInclude<
   relationships?: boolean | Prisma.Campaign$relationshipsArgs<ExtArgs>;
   notes?: boolean | Prisma.Campaign$notesArgs<ExtArgs>;
   sessions?: boolean | Prisma.Campaign$sessionsArgs<ExtArgs>;
+  events?: boolean | Prisma.Campaign$eventsArgs<ExtArgs>;
   _count?: boolean | Prisma.CampaignCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type CampaignIncludeCreateManyAndReturn<
@@ -1282,6 +1443,7 @@ export type $CampaignPayload<
     relationships: Prisma.$RelationshipPayload<ExtArgs>[];
     notes: Prisma.$NotePayload<ExtArgs>[];
     sessions: Prisma.$SessionPayload<ExtArgs>[];
+    events: Prisma.$EventPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1901,6 +2063,17 @@ export interface Prisma__CampaignClient<
   ): Prisma.PrismaPromise<
     | runtime.Types.Result.GetResult<
         Prisma.$SessionPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  events<T extends Prisma.Campaign$eventsArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Campaign$eventsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$EventPayload<ExtArgs>,
         T,
         "findMany",
         GlobalOmitOptions
@@ -2579,6 +2752,35 @@ export type Campaign$sessionsArgs<
   take?: number;
   skip?: number;
   distinct?: Prisma.SessionScalarFieldEnum | Prisma.SessionScalarFieldEnum[];
+};
+
+/**
+ * Campaign.events
+ */
+export type Campaign$eventsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Event
+   */
+  select?: Prisma.EventSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Event
+   */
+  omit?: Prisma.EventOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventInclude<ExtArgs> | null;
+  where?: Prisma.EventWhereInput;
+  orderBy?:
+    | Prisma.EventOrderByWithRelationInput
+    | Prisma.EventOrderByWithRelationInput[];
+  cursor?: Prisma.EventWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.EventScalarFieldEnum | Prisma.EventScalarFieldEnum[];
 };
 
 /**

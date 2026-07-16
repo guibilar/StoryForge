@@ -242,6 +242,7 @@ export type EntityWhereInput = {
   relationshipsAsSource?: Prisma.RelationshipListRelationFilter;
   relationshipsAsTarget?: Prisma.RelationshipListRelationFilter;
   backlinks?: Prisma.NoteLinkListRelationFilter;
+  eventParticipations?: Prisma.EventParticipantListRelationFilter;
 };
 
 export type EntityOrderByWithRelationInput = {
@@ -261,6 +262,7 @@ export type EntityOrderByWithRelationInput = {
   relationshipsAsSource?: Prisma.RelationshipOrderByRelationAggregateInput;
   relationshipsAsTarget?: Prisma.RelationshipOrderByRelationAggregateInput;
   backlinks?: Prisma.NoteLinkOrderByRelationAggregateInput;
+  eventParticipations?: Prisma.EventParticipantOrderByRelationAggregateInput;
 };
 
 export type EntityWhereUniqueInput = Prisma.AtLeast<
@@ -288,6 +290,7 @@ export type EntityWhereUniqueInput = Prisma.AtLeast<
     relationshipsAsSource?: Prisma.RelationshipListRelationFilter;
     relationshipsAsTarget?: Prisma.RelationshipListRelationFilter;
     backlinks?: Prisma.NoteLinkListRelationFilter;
+    eventParticipations?: Prisma.EventParticipantListRelationFilter;
   },
   "id" | "campaignId_name"
 >;
@@ -352,6 +355,7 @@ export type EntityCreateInput = {
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
   backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityUncheckedCreateInput = {
@@ -370,6 +374,7 @@ export type EntityUncheckedCreateInput = {
   relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
   backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityUpdateInput = {
@@ -390,6 +395,7 @@ export type EntityUpdateInput = {
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
   backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateInput = {
@@ -410,6 +416,7 @@ export type EntityUncheckedUpdateInput = {
   relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
   backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityCreateManyInput = {
@@ -614,6 +621,32 @@ export type EnumVisibilityFieldUpdateOperationsInput = {
   set?: $Enums.Visibility;
 };
 
+export type EntityCreateNestedOneWithoutEventParticipationsInput = {
+  create?: Prisma.XOR<
+    Prisma.EntityCreateWithoutEventParticipationsInput,
+    Prisma.EntityUncheckedCreateWithoutEventParticipationsInput
+  >;
+  connectOrCreate?: Prisma.EntityCreateOrConnectWithoutEventParticipationsInput;
+  connect?: Prisma.EntityWhereUniqueInput;
+};
+
+export type EntityUpdateOneRequiredWithoutEventParticipationsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.EntityCreateWithoutEventParticipationsInput,
+    Prisma.EntityUncheckedCreateWithoutEventParticipationsInput
+  >;
+  connectOrCreate?: Prisma.EntityCreateOrConnectWithoutEventParticipationsInput;
+  upsert?: Prisma.EntityUpsertWithoutEventParticipationsInput;
+  connect?: Prisma.EntityWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.EntityUpdateToOneWithWhereWithoutEventParticipationsInput,
+      Prisma.EntityUpdateWithoutEventParticipationsInput
+    >,
+    Prisma.EntityUncheckedUpdateWithoutEventParticipationsInput
+  >;
+};
+
 export type EntityCreateNestedOneWithoutTagsInput = {
   create?: Prisma.XOR<
     Prisma.EntityCreateWithoutTagsInput,
@@ -735,6 +768,7 @@ export type EntityCreateWithoutCampaignInput = {
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
   backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityUncheckedCreateWithoutCampaignInput = {
@@ -752,6 +786,7 @@ export type EntityUncheckedCreateWithoutCampaignInput = {
   relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
   backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityCreateOrConnectWithoutCampaignInput = {
@@ -814,6 +849,110 @@ export type EntityScalarWhereInput = {
   deletedAt?: Prisma.DateTimeNullableFilter<"Entity"> | Date | string | null;
 };
 
+export type EntityCreateWithoutEventParticipationsInput = {
+  id?: string;
+  type: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  image?: string | null;
+  visibility?: $Enums.Visibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
+  relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
+  relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
+};
+
+export type EntityUncheckedCreateWithoutEventParticipationsInput = {
+  id?: string;
+  campaignId: string;
+  type: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  image?: string | null;
+  visibility?: $Enums.Visibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
+  relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
+  relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
+};
+
+export type EntityCreateOrConnectWithoutEventParticipationsInput = {
+  where: Prisma.EntityWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.EntityCreateWithoutEventParticipationsInput,
+    Prisma.EntityUncheckedCreateWithoutEventParticipationsInput
+  >;
+};
+
+export type EntityUpsertWithoutEventParticipationsInput = {
+  update: Prisma.XOR<
+    Prisma.EntityUpdateWithoutEventParticipationsInput,
+    Prisma.EntityUncheckedUpdateWithoutEventParticipationsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.EntityCreateWithoutEventParticipationsInput,
+    Prisma.EntityUncheckedCreateWithoutEventParticipationsInput
+  >;
+  where?: Prisma.EntityWhereInput;
+};
+
+export type EntityUpdateToOneWithWhereWithoutEventParticipationsInput = {
+  where?: Prisma.EntityWhereInput;
+  data: Prisma.XOR<
+    Prisma.EntityUpdateWithoutEventParticipationsInput,
+    Prisma.EntityUncheckedUpdateWithoutEventParticipationsInput
+  >;
+};
+
+export type EntityUpdateWithoutEventParticipationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
+  relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
+  relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
+};
+
+export type EntityUncheckedUpdateWithoutEventParticipationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
+  relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
+  relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
+};
+
 export type EntityCreateWithoutTagsInput = {
   id?: string;
   type: string;
@@ -829,6 +968,7 @@ export type EntityCreateWithoutTagsInput = {
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
   backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityUncheckedCreateWithoutTagsInput = {
@@ -846,6 +986,7 @@ export type EntityUncheckedCreateWithoutTagsInput = {
   relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
   backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityCreateOrConnectWithoutTagsInput = {
@@ -893,6 +1034,7 @@ export type EntityUpdateWithoutTagsInput = {
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
   backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateWithoutTagsInput = {
@@ -912,6 +1054,7 @@ export type EntityUncheckedUpdateWithoutTagsInput = {
   relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
   backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityCreateWithoutRelationshipsAsSourceInput = {
@@ -929,6 +1072,7 @@ export type EntityCreateWithoutRelationshipsAsSourceInput = {
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
   backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityUncheckedCreateWithoutRelationshipsAsSourceInput = {
@@ -946,6 +1090,7 @@ export type EntityUncheckedCreateWithoutRelationshipsAsSourceInput = {
   tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
   backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityCreateOrConnectWithoutRelationshipsAsSourceInput = {
@@ -971,6 +1116,7 @@ export type EntityCreateWithoutRelationshipsAsTargetInput = {
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityUncheckedCreateWithoutRelationshipsAsTargetInput = {
@@ -988,6 +1134,7 @@ export type EntityUncheckedCreateWithoutRelationshipsAsTargetInput = {
   tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
   backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityCreateOrConnectWithoutRelationshipsAsTargetInput = {
@@ -1035,6 +1182,7 @@ export type EntityUpdateWithoutRelationshipsAsSourceInput = {
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
   backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateWithoutRelationshipsAsSourceInput = {
@@ -1054,6 +1202,7 @@ export type EntityUncheckedUpdateWithoutRelationshipsAsSourceInput = {
   tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
   backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUpsertWithoutRelationshipsAsTargetInput = {
@@ -1093,6 +1242,7 @@ export type EntityUpdateWithoutRelationshipsAsTargetInput = {
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateWithoutRelationshipsAsTargetInput = {
@@ -1112,6 +1262,7 @@ export type EntityUncheckedUpdateWithoutRelationshipsAsTargetInput = {
   tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
   backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityCreateWithoutBacklinksInput = {
@@ -1129,6 +1280,7 @@ export type EntityCreateWithoutBacklinksInput = {
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
+  eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityUncheckedCreateWithoutBacklinksInput = {
@@ -1146,6 +1298,7 @@ export type EntityUncheckedCreateWithoutBacklinksInput = {
   tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutEntityInput;
 };
 
 export type EntityCreateOrConnectWithoutBacklinksInput = {
@@ -1193,6 +1346,7 @@ export type EntityUpdateWithoutBacklinksInput = {
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
+  eventParticipations?: Prisma.EventParticipantUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateWithoutBacklinksInput = {
@@ -1212,6 +1366,7 @@ export type EntityUncheckedUpdateWithoutBacklinksInput = {
   tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityCreateManyCampaignInput = {
@@ -1244,6 +1399,7 @@ export type EntityUpdateWithoutCampaignInput = {
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
   backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateWithoutCampaignInput = {
@@ -1263,6 +1419,7 @@ export type EntityUncheckedUpdateWithoutCampaignInput = {
   relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
   backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutEntityNestedInput;
 };
 
 export type EntityUncheckedUpdateManyWithoutCampaignInput = {
@@ -1289,6 +1446,7 @@ export type EntityCountOutputType = {
   relationshipsAsSource: number;
   relationshipsAsTarget: number;
   backlinks: number;
+  eventParticipations: number;
 };
 
 export type EntityCountOutputTypeSelect<
@@ -1301,6 +1459,8 @@ export type EntityCountOutputTypeSelect<
   relationshipsAsTarget?:
     boolean | EntityCountOutputTypeCountRelationshipsAsTargetArgs;
   backlinks?: boolean | EntityCountOutputTypeCountBacklinksArgs;
+  eventParticipations?:
+    boolean | EntityCountOutputTypeCountEventParticipationsArgs;
 };
 
 /**
@@ -1356,6 +1516,16 @@ export type EntityCountOutputTypeCountBacklinksArgs<
   where?: Prisma.NoteLinkWhereInput;
 };
 
+/**
+ * EntityCountOutputType without action
+ */
+export type EntityCountOutputTypeCountEventParticipationsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.EventParticipantWhereInput;
+};
+
 export type EntitySelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -1379,6 +1549,8 @@ export type EntitySelect<
     relationshipsAsTarget?:
       boolean | Prisma.Entity$relationshipsAsTargetArgs<ExtArgs>;
     backlinks?: boolean | Prisma.Entity$backlinksArgs<ExtArgs>;
+    eventParticipations?:
+      boolean | Prisma.Entity$eventParticipationsArgs<ExtArgs>;
     _count?: boolean | Prisma.EntityCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["entity"]
@@ -1468,6 +1640,8 @@ export type EntityInclude<
   relationshipsAsTarget?:
     boolean | Prisma.Entity$relationshipsAsTargetArgs<ExtArgs>;
   backlinks?: boolean | Prisma.Entity$backlinksArgs<ExtArgs>;
+  eventParticipations?:
+    boolean | Prisma.Entity$eventParticipationsArgs<ExtArgs>;
   _count?: boolean | Prisma.EntityCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type EntityIncludeCreateManyAndReturn<
@@ -1494,6 +1668,7 @@ export type $EntityPayload<
     relationshipsAsSource: Prisma.$RelationshipPayload<ExtArgs>[];
     relationshipsAsTarget: Prisma.$RelationshipPayload<ExtArgs>[];
     backlinks: Prisma.$NoteLinkPayload<ExtArgs>[];
+    eventParticipations: Prisma.$EventParticipantPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -2114,6 +2289,19 @@ export interface Prisma__EntityClient<
   ): Prisma.PrismaPromise<
     | runtime.Types.Result.GetResult<
         Prisma.$NoteLinkPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  eventParticipations<
+    T extends Prisma.Entity$eventParticipationsArgs<ExtArgs> = {},
+  >(
+    args?: Prisma.Subset<T, Prisma.Entity$eventParticipationsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$EventParticipantPayload<ExtArgs>,
         T,
         "findMany",
         GlobalOmitOptions
@@ -2743,6 +2931,37 @@ export type Entity$backlinksArgs<
   take?: number;
   skip?: number;
   distinct?: Prisma.NoteLinkScalarFieldEnum | Prisma.NoteLinkScalarFieldEnum[];
+};
+
+/**
+ * Entity.eventParticipations
+ */
+export type Entity$eventParticipationsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the EventParticipant
+   */
+  select?: Prisma.EventParticipantSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the EventParticipant
+   */
+  omit?: Prisma.EventParticipantOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventParticipantInclude<ExtArgs> | null;
+  where?: Prisma.EventParticipantWhereInput;
+  orderBy?:
+    | Prisma.EventParticipantOrderByWithRelationInput
+    | Prisma.EventParticipantOrderByWithRelationInput[];
+  cursor?: Prisma.EventParticipantWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    | Prisma.EventParticipantScalarFieldEnum
+    | Prisma.EventParticipantScalarFieldEnum[];
 };
 
 /**

@@ -1,0 +1,12 @@
+type Event {
+  id: ID!
+  campaignId: ID!
+  sessionId: ID
+  session: Session
+  title: String!
+  description: String
+  occurredAt: String!
+  participants: [Entity!]!
+  createdAt: String!
+  updatedAt: String!
+}

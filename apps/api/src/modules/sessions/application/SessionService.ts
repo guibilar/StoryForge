@@ -78,6 +78,10 @@ export class SessionService {
     return session;
   }
 
+  async findSession(id: string): Promise<Session | null> {
+    return this.repository.findById(SessionId.fromString(id));
+  }
+
   async listSessions(campaignId: string): Promise<Session[]> {
     return this.repository.findByCampaign(campaignId);
   }

@@ -114,6 +114,24 @@ describe("SessionService", () => {
     });
   });
 
+  describe("findSession", () => {
+    it("returns null when the session does not exist", async () => {
+      vi.mocked(repository.findById).mockResolvedValue(null);
+
+      await expect(service.findSession("missing")).resolves.toBeNull();
+    });
+
+    it("returns the session when found", async () => {
+      vi.mocked(repository.findMaxSessionNumber).mockResolvedValue(0);
+      const session = await service.createSession(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(session);
+
+      await expect(service.findSession(session.Id.toString())).resolves.toBe(
+        session,
+      );
+    });
+  });
+
   describe("listSessions", () => {
     it("delegates to the repository", async () => {
       vi.mocked(repository.findMaxSessionNumber).mockResolvedValue(0);

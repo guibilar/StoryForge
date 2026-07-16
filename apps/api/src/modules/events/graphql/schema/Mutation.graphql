@@ -1,0 +1,23 @@
+input CreateEventInput {
+  campaignId: ID!
+  sessionId: ID
+  title: String!
+  description: String
+  occurredAt: String!
+}
+
+input UpdateEventInput {
+  id: ID!
+  sessionId: ID
+  title: String
+  description: String
+  occurredAt: String
+}
+
+extend type Mutation {
+  createEvent(input: CreateEventInput!): Event!
+  updateEvent(input: UpdateEventInput!): Event!
+  deleteEvent(id: ID!): Boolean!
+  attachParticipant(eventId: ID!, entityId: ID!, role: String): Event!
+  detachParticipant(eventId: ID!, entityId: ID!): Event!
+}

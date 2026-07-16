@@ -23,6 +23,8 @@ import { PrismaAttachmentRepository } from "../modules/attachments/infrastructur
 import { PrismaNoteLinkRepository } from "../modules/noteLinks/infrastructure/PrismaNoteLinkRepository";
 import { SessionService } from "../modules/sessions/application/SessionService";
 import { PrismaSessionRepository } from "../modules/sessions/infrastructure/PrismaSessionRepository";
+import { EventService } from "../modules/events/application/EventService";
+import { PrismaEventRepository } from "../modules/events/infrastructure/PrismaEventRepository";
 
 export interface GraphQLContext extends YogaInitialContext {
   requestId: string;
@@ -38,6 +40,7 @@ export interface GraphQLContext extends YogaInitialContext {
   noteService: NoteService;
   attachmentService: AttachmentService;
   sessionService: SessionService;
+  eventService: EventService;
 }
 
 const entityService = new EntityService(new PrismaEntityRepository());
@@ -69,6 +72,11 @@ const attachmentService = new AttachmentService(
   new PrismaAttachmentRepository(),
 );
 const sessionService = new SessionService(new PrismaSessionRepository());
+const eventService = new EventService(
+  new PrismaEventRepository(),
+  new PrismaEntityRepository(),
+  new PrismaSessionRepository(),
+);
 
 function getCurrentUserId(request: Request): string | null {
   const authHeader = request.headers.get("authorization");
@@ -114,5 +122,6 @@ export async function createContext(
     noteService,
     attachmentService,
     sessionService,
+    eventService,
   };
 }

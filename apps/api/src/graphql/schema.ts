@@ -44,6 +44,10 @@ import {
   typeDefs as sessionTypeDefs,
   resolvers as sessionResolvers,
 } from "../modules/sessions/graphql";
+import {
+  typeDefs as eventTypeDefs,
+  resolvers as eventResolvers,
+} from "../modules/events/graphql";
 
 const rootTypeDefs = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), "schema", "Root.graphql"),
@@ -63,6 +67,7 @@ export const schema = createSchema({
     ...attachmentTypeDefs,
     ...noteLinkTypeDefs,
     ...sessionTypeDefs,
+    ...eventTypeDefs,
   ],
   resolvers: [
     entityResolvers,
@@ -75,5 +80,6 @@ export const schema = createSchema({
     attachmentResolvers,
     noteLinkResolvers,
     sessionResolvers,
+    eventResolvers,
   ],
 });

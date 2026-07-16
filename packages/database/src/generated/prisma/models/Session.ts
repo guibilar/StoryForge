@@ -240,6 +240,7 @@ export type SessionWhereInput = {
     Prisma.CampaignScalarRelationFilter,
     Prisma.CampaignWhereInput
   >;
+  events?: Prisma.EventListRelationFilter;
 };
 
 export type SessionOrderByWithRelationInput = {
@@ -251,6 +252,7 @@ export type SessionOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   campaign?: Prisma.CampaignOrderByWithRelationInput;
+  events?: Prisma.EventOrderByRelationAggregateInput;
 };
 
 export type SessionWhereUniqueInput = Prisma.AtLeast<
@@ -270,6 +272,7 @@ export type SessionWhereUniqueInput = Prisma.AtLeast<
       Prisma.CampaignScalarRelationFilter,
       Prisma.CampaignWhereInput
     >;
+    events?: Prisma.EventListRelationFilter;
   },
   "id" | "campaignId_sessionNumber"
 >;
@@ -315,6 +318,7 @@ export type SessionCreateInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   campaign: Prisma.CampaignCreateNestedOneWithoutSessionsInput;
+  events?: Prisma.EventCreateNestedManyWithoutSessionInput;
 };
 
 export type SessionUncheckedCreateInput = {
@@ -325,6 +329,7 @@ export type SessionUncheckedCreateInput = {
   summary?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSessionInput;
 };
 
 export type SessionUpdateInput = {
@@ -335,6 +340,7 @@ export type SessionUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutSessionsNestedInput;
+  events?: Prisma.EventUpdateManyWithoutSessionNestedInput;
 };
 
 export type SessionUncheckedUpdateInput = {
@@ -345,6 +351,7 @@ export type SessionUncheckedUpdateInput = {
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  events?: Prisma.EventUncheckedUpdateManyWithoutSessionNestedInput;
 };
 
 export type SessionCreateManyInput = {
@@ -427,6 +434,11 @@ export type SessionMinOrderByAggregateInput = {
 
 export type SessionSumOrderByAggregateInput = {
   sessionNumber?: Prisma.SortOrder;
+};
+
+export type SessionNullableScalarRelationFilter = {
+  is?: Prisma.SessionWhereInput | null;
+  isNot?: Prisma.SessionWhereInput | null;
 };
 
 export type SessionCreateNestedManyWithoutCampaignInput = {
@@ -527,6 +539,34 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number;
 };
 
+export type SessionCreateNestedOneWithoutEventsInput = {
+  create?: Prisma.XOR<
+    Prisma.SessionCreateWithoutEventsInput,
+    Prisma.SessionUncheckedCreateWithoutEventsInput
+  >;
+  connectOrCreate?: Prisma.SessionCreateOrConnectWithoutEventsInput;
+  connect?: Prisma.SessionWhereUniqueInput;
+};
+
+export type SessionUpdateOneWithoutEventsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.SessionCreateWithoutEventsInput,
+    Prisma.SessionUncheckedCreateWithoutEventsInput
+  >;
+  connectOrCreate?: Prisma.SessionCreateOrConnectWithoutEventsInput;
+  upsert?: Prisma.SessionUpsertWithoutEventsInput;
+  disconnect?: Prisma.SessionWhereInput | boolean;
+  delete?: Prisma.SessionWhereInput | boolean;
+  connect?: Prisma.SessionWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.SessionUpdateToOneWithWhereWithoutEventsInput,
+      Prisma.SessionUpdateWithoutEventsInput
+    >,
+    Prisma.SessionUncheckedUpdateWithoutEventsInput
+  >;
+};
+
 export type SessionCreateWithoutCampaignInput = {
   id?: string;
   sessionNumber: number;
@@ -534,6 +574,7 @@ export type SessionCreateWithoutCampaignInput = {
   summary?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  events?: Prisma.EventCreateNestedManyWithoutSessionInput;
 };
 
 export type SessionUncheckedCreateWithoutCampaignInput = {
@@ -543,6 +584,7 @@ export type SessionUncheckedCreateWithoutCampaignInput = {
   summary?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSessionInput;
 };
 
 export type SessionCreateOrConnectWithoutCampaignInput = {
@@ -601,6 +643,74 @@ export type SessionScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Session"> | Date | string;
 };
 
+export type SessionCreateWithoutEventsInput = {
+  id?: string;
+  sessionNumber: number;
+  date: Date | string;
+  summary?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  campaign: Prisma.CampaignCreateNestedOneWithoutSessionsInput;
+};
+
+export type SessionUncheckedCreateWithoutEventsInput = {
+  id?: string;
+  campaignId: string;
+  sessionNumber: number;
+  date: Date | string;
+  summary?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type SessionCreateOrConnectWithoutEventsInput = {
+  where: Prisma.SessionWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.SessionCreateWithoutEventsInput,
+    Prisma.SessionUncheckedCreateWithoutEventsInput
+  >;
+};
+
+export type SessionUpsertWithoutEventsInput = {
+  update: Prisma.XOR<
+    Prisma.SessionUpdateWithoutEventsInput,
+    Prisma.SessionUncheckedUpdateWithoutEventsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.SessionCreateWithoutEventsInput,
+    Prisma.SessionUncheckedCreateWithoutEventsInput
+  >;
+  where?: Prisma.SessionWhereInput;
+};
+
+export type SessionUpdateToOneWithWhereWithoutEventsInput = {
+  where?: Prisma.SessionWhereInput;
+  data: Prisma.XOR<
+    Prisma.SessionUpdateWithoutEventsInput,
+    Prisma.SessionUncheckedUpdateWithoutEventsInput
+  >;
+};
+
+export type SessionUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  sessionNumber?: Prisma.IntFieldUpdateOperationsInput | number;
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  campaign?: Prisma.CampaignUpdateOneRequiredWithoutSessionsNestedInput;
+};
+
+export type SessionUncheckedUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  sessionNumber?: Prisma.IntFieldUpdateOperationsInput | number;
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
 export type SessionCreateManyCampaignInput = {
   id?: string;
   sessionNumber: number;
@@ -617,6 +727,7 @@ export type SessionUpdateWithoutCampaignInput = {
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  events?: Prisma.EventUpdateManyWithoutSessionNestedInput;
 };
 
 export type SessionUncheckedUpdateWithoutCampaignInput = {
@@ -626,6 +737,7 @@ export type SessionUncheckedUpdateWithoutCampaignInput = {
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  events?: Prisma.EventUncheckedUpdateManyWithoutSessionNestedInput;
 };
 
 export type SessionUncheckedUpdateManyWithoutCampaignInput = {
@@ -635,6 +747,44 @@ export type SessionUncheckedUpdateManyWithoutCampaignInput = {
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+/**
+ * Count Type SessionCountOutputType
+ */
+
+export type SessionCountOutputType = {
+  events: number;
+};
+
+export type SessionCountOutputTypeSelect<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  events?: boolean | SessionCountOutputTypeCountEventsArgs;
+};
+
+/**
+ * SessionCountOutputType without action
+ */
+export type SessionCountOutputTypeDefaultArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the SessionCountOutputType
+   */
+  select?: Prisma.SessionCountOutputTypeSelect<ExtArgs> | null;
+};
+
+/**
+ * SessionCountOutputType without action
+ */
+export type SessionCountOutputTypeCountEventsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.EventWhereInput;
 };
 
 export type SessionSelect<
@@ -650,6 +800,8 @@ export type SessionSelect<
     createdAt?: boolean;
     updatedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    events?: boolean | Prisma.Session$eventsArgs<ExtArgs>;
+    _count?: boolean | Prisma.SessionCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["session"]
 >;
@@ -716,6 +868,8 @@ export type SessionInclude<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  events?: boolean | Prisma.Session$eventsArgs<ExtArgs>;
+  _count?: boolean | Prisma.SessionCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type SessionIncludeCreateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
@@ -737,6 +891,7 @@ export type $SessionPayload<
   name: "Session";
   objects: {
     campaign: Prisma.$CampaignPayload<ExtArgs>;
+    events: Prisma.$EventPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1311,6 +1466,17 @@ export interface Prisma__SessionClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  events<T extends Prisma.Session$eventsArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Session$eventsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$EventPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1817,6 +1983,35 @@ export type SessionDeleteManyArgs<
    * Limit how many Sessions to delete.
    */
   limit?: number;
+};
+
+/**
+ * Session.events
+ */
+export type Session$eventsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Event
+   */
+  select?: Prisma.EventSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Event
+   */
+  omit?: Prisma.EventOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventInclude<ExtArgs> | null;
+  where?: Prisma.EventWhereInput;
+  orderBy?:
+    | Prisma.EventOrderByWithRelationInput
+    | Prisma.EventOrderByWithRelationInput[];
+  cursor?: Prisma.EventWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.EventScalarFieldEnum | Prisma.EventScalarFieldEnum[];
 };
 
 /**

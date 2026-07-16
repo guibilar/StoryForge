@@ -1,0 +1,145 @@
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { useMutation } from "urql";
+import {
+  Button,
+  Form,
+  FormError,
+  FormField,
+  Input,
+  Modal,
+} from "@storyforge/ui";
+
+import {
+  ArchiveCampaignDocument,
+  UpdateCampaignDocument,
+} from "../gql/graphql";
+import { formatGraphQLError } from "../lib/graphqlError";
+import styles from "./ManageCampaignModal.module.css";
+
+export interface ManageCampaignModalProps {
+  open: boolean;
+  campaign: { id: string; name: string; description?: string | null };
+  onClose: () => void;
+  onUpdated: () => void;
+  onArchived: () => void;
+}
+
+export function ManageCampaignModal({
+  open,
+  campaign,
+  onClose,
+  onUpdated,
+  onArchived,
+}: ManageCampaignModalProps) {
+  const [{ error, fetching }, updateCampaign] = useMutation(
+    UpdateCampaignDocument,
+  );
+  const [{ error: archiveError, fetching: archiving }, archiveCampaign] =
+    useMutation(ArchiveCampaignDocument);
+  const [confirmingArchive, setConfirmingArchive] = useState(false);
+
+  function handleClose() {
+    setConfirmingArchive(false);
+    onClose();
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const description = String(data.get("description") ?? "").trim();
+
+    const result = await updateCampaign({
+      input: {
+        id: campaign.id,
+        name: String(data.get("name")),
+        description: description || null,
+      },
+    });
+
+    if (result.data?.updateCampaign) {
+      onUpdated();
+    }
+  }
+
+  async function handleArchive() {
+    const result = await archiveCampaign({ id: campaign.id });
+    if (result.data?.archiveCampaign) {
+      setConfirmingArchive(false);
+      onArchived();
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={handleClose}>
+      <h2>Manage campaign</h2>
+      <Form onSubmit={handleSubmit}>
+        <FormError>{formatGraphQLError(error)}</FormError>
+        <FormField label="Name" htmlFor="manage-campaign-name">
+          <Input
+            id="manage-campaign-name"
+            name="name"
+            defaultValue={campaign.name}
+            required
+          />
+        </FormField>
+        <FormField label="Description" htmlFor="manage-campaign-description">
+          <textarea
+            id="manage-campaign-description"
+            name="description"
+            defaultValue={campaign.description ?? ""}
+            rows={4}
+            className={styles.textarea}
+          />
+        </FormField>
+        <div className={styles.actions}>
+          <Button type="button" variant="secondary" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={fetching}>
+            Save
+          </Button>
+        </div>
+      </Form>
+
+      <div className={styles.archiveSection}>
+        {confirmingArchive ? (
+          <>
+            <FormError>{formatGraphQLError(archiveError)}</FormError>
+            <p className={styles.confirmText}>
+              Archive &quot;{campaign.name}&quot;? It will disappear from the
+              dashboard and can&apos;t be reopened.
+            </p>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.textAction}
+                onClick={() => setConfirmingArchive(false)}
+              >
+                Never mind
+              </button>
+              <button
+                type="button"
+                className={styles.destructiveAction}
+                onClick={handleArchive}
+                disabled={archiving}
+              >
+                Confirm archive
+              </button>
+            </div>
+          </>
+        ) : (
+          <button
+            type="button"
+            className={styles.destructiveAction}
+            onClick={() => setConfirmingArchive(true)}
+          >
+            Archive campaign
+          </button>
+        )}
+      </div>
+    </Modal>
+  );
+}

@@ -1,0 +1,3 @@
+mutation ArchiveCampaign($id: ID!) {
+  archiveCampaign(id: $id)
+}

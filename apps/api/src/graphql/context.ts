@@ -15,7 +15,7 @@ import { PrismaUserRepository } from "../modules/auth/infrastructure/PrismaUserR
 import { JWT_SECRET } from "../config/env";
 import { CampaignService } from "../modules/campaigns/application/CampaignService";
 import { PrismaCampaignRepository } from "../modules/campaigns/infrastructure/PrismaCampaignRepository";
-import { User, UserId } from "@storyforge/domain";
+import { User, UserId, UserRepository } from "@storyforge/domain";
 import { LocalImageStore } from "../modules/entities/infrastructure/LocalImageStore";
 import { TagService } from "../modules/tags/application/TagService";
 import { PrismaTagRepository } from "../modules/tags/infrastructure/PrismaTagRepository";
@@ -42,6 +42,7 @@ export interface GraphQLContext extends YogaInitialContext {
   campaignService: CampaignService;
   currentUserId: string | null;
   currentUser: User | null;
+  userRepository: UserRepository;
   setAuthCookie: (token: string) => void;
   clearAuthCookie: () => void;
   imageStorage: LocalImageStore;
@@ -141,6 +142,7 @@ export async function createContext(
     campaignService,
     currentUserId,
     currentUser,
+    userRepository,
     setAuthCookie: (token: string) =>
       appendSetCookie(
         initialContext.res,

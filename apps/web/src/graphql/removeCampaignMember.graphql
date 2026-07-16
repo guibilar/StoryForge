@@ -1,0 +1,3 @@
+mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {
+  removeCampaignMember(campaignId: $campaignId, userId: $userId)
+}

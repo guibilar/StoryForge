@@ -2,19 +2,22 @@ import { useRef } from "react";
 import { Dock, Window } from "@storyforge/ui";
 
 import { useDesktopLayout } from "../hooks/useDesktopLayout";
-import { DEFAULT_LAYOUT, WINDOW_CATALOG } from "../lib/windowCatalog";
+import { DEFAULT_LAYOUT, visibleWindowCatalog } from "../lib/windowCatalog";
+import type { CampaignRole } from "../gql/graphql";
 import styles from "./DesktopBoard.module.css";
 
 export interface DesktopBoardProps {
   campaignId: string;
+  role?: CampaignRole;
 }
 
-export function DesktopBoard({ campaignId }: DesktopBoardProps) {
+export function DesktopBoard({ campaignId, role }: DesktopBoardProps) {
   const boardRef = useRef<HTMLDivElement>(null);
   const { layout, bringToFront, toggle, startDrag, startResize, reset } =
     useDesktopLayout(campaignId, DEFAULT_LAYOUT);
+  const catalog = visibleWindowCatalog(role);
 
-  const dockItems = WINDOW_CATALOG.map((entry) => ({
+  const dockItems = catalog.map((entry) => ({
     id: entry.id,
     title: entry.title,
     open: !layout[entry.id].hidden,
@@ -29,7 +32,7 @@ export function DesktopBoard({ campaignId }: DesktopBoardProps) {
       </div>
 
       <div className={styles.board} ref={boardRef} data-testid="desktop-board">
-        {WINDOW_CATALOG.map((entry) => {
+        {catalog.map((entry) => {
           const windowLayout = layout[entry.id];
           if (windowLayout.hidden) {
             return null;

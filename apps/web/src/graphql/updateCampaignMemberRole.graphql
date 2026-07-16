@@ -1,0 +1,6 @@
+mutation UpdateCampaignMemberRole($input: UpdateCampaignMemberRoleInput!) {
+  updateCampaignMemberRole(input: $input) {
+    userId
+    role
+  }
+}

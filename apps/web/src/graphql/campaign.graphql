@@ -5,6 +5,10 @@ query Campaign($id: ID!) {
     members {
       userId
       role
+      user {
+        id
+        email
+      }
     }
   }
 }

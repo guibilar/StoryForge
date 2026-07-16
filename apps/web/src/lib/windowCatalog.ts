@@ -2,12 +2,17 @@ import { createElement } from "react";
 import type { ReactNode } from "react";
 
 import { ComingSoonPanel } from "../components/ComingSoonPanel";
+import { MembersWindow } from "../components/MembersWindow";
 import type { LayoutMap } from "../hooks/useDesktopLayout";
+import type { CampaignRole } from "../gql/graphql";
 
 export interface WindowCatalogEntry {
   id: string;
   title: string;
   render: () => ReactNode;
+  // When set, the window is hidden from the dock/board for any viewer whose
+  // role isn't in this list. Undefined means visible to every campaign member.
+  visibleToRoles?: CampaignRole[];
 }
 
 // Data-driven so KAN-39/81/84/49/85 can each replace their entry's `render`
@@ -21,7 +26,10 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
   {
     id: "members",
     title: "Members",
-    render: () => createElement(ComingSoonPanel, { ticket: "KAN-81" }),
+    render: () => createElement(MembersWindow),
+    // Owner: full CRUD. Storyteller: read-only. Player visibility is an open
+    // question per KAN-81/KAN-62, so Players don't see this window at all.
+    visibleToRoles: ["OWNER", "STORYTELLER"],
   },
   {
     id: "sessions",
@@ -39,6 +47,15 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
     render: () => createElement(ComingSoonPanel, { ticket: "KAN-85" }),
   },
 ];
+
+export function visibleWindowCatalog(
+  role: CampaignRole | undefined,
+): WindowCatalogEntry[] {
+  return WINDOW_CATALOG.filter(
+    (entry) =>
+      !entry.visibleToRoles || (role && entry.visibleToRoles.includes(role)),
+  );
+}
 
 export const DEFAULT_LAYOUT: LayoutMap = {
   npcs: { x: 28, y: 24, width: 310, height: 280, hidden: false, z: 2 },

@@ -26,3 +26,8 @@
   font-size: 14px;
   margin: 8px 0 12px;
 }
+
+.actions {
+  display: flex;
+  gap: 8px;
+}

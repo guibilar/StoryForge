@@ -57,12 +57,17 @@ export function DashboardPage() {
                 {campaign.members.length === 1 ? "member" : "members"}
                 {role ? ` · ${role}` : ""}
               </p>
-              {role === "OWNER" ? (
-                // TODO(KAN-82): wire this button to the manage-campaign modal
-                <Button variant="secondary" disabled>
-                  Manage
+              <div className={styles.actions}>
+                <Button onClick={() => navigate(`/campaigns/${campaign.id}`)}>
+                  Enter campaign
                 </Button>
-              ) : null}
+                {role === "OWNER" ? (
+                  // TODO(KAN-82): wire this button to the manage-campaign modal
+                  <Button variant="secondary" disabled>
+                    Manage
+                  </Button>
+                ) : null}
+              </div>
             </li>
           );
         })}

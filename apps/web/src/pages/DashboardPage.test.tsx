@@ -129,6 +129,21 @@ describe("DashboardPage", () => {
     expect(navigateMock).toHaveBeenCalledWith("/login");
   });
 
+  it("navigates to the campaign desktop when Enter campaign is clicked", async () => {
+    setupMocks();
+    const user = userEvent.setup();
+    renderDashboard();
+
+    const enterButtons = screen.getAllByRole("button", {
+      name: "Enter campaign",
+    });
+    expect(enterButtons).toHaveLength(2);
+
+    await user.click(enterButtons[0]);
+
+    expect(navigateMock).toHaveBeenCalledWith("/campaigns/c1");
+  });
+
   it("opens the create-campaign dialog", async () => {
     setupMocks();
     const user = userEvent.setup();

@@ -50,6 +50,26 @@ describe("Window", () => {
     expect(onTitleBarPointerDown).toHaveBeenCalledTimes(1);
   });
 
+  it("forwards pointer down on the resize handle for resize handling", () => {
+    const onResizeHandlePointerDown = vi.fn();
+    render(
+      <Window
+        title="NPCs"
+        onClose={vi.fn()}
+        onResizeHandlePointerDown={onResizeHandlePointerDown}
+      >
+        <p>Body content</p>
+      </Window>,
+    );
+
+    const handle = screen.getByLabelText("Resize NPCs");
+    handle.dispatchEvent(
+      new Event("pointerdown", { bubbles: true, cancelable: true }),
+    );
+
+    expect(onResizeHandlePointerDown).toHaveBeenCalledTimes(1);
+  });
+
   it("applies inline style for position/size", () => {
     render(
       <Window

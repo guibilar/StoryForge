@@ -12,6 +12,9 @@ export interface WindowLayout {
 
 export type LayoutMap = Record<string, WindowLayout>;
 
+const MIN_WIDTH = 200;
+const MIN_HEIGHT = 150;
+
 function storageKey(campaignId: string): string {
   return `storyforge:desktop:${campaignId}`;
 }
@@ -81,6 +84,13 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     setLayout((current) => ({ ...current, [id]: { ...current[id], x, y } }));
   }, []);
 
+  const resize = useCallback((id: string, width: number, height: number) => {
+    setLayout((current) => ({
+      ...current,
+      [id]: { ...current[id], width, height },
+    }));
+  }, []);
+
   const persist = useCallback(() => {
     setLayout((current) => persistLayout(current));
   }, [persistLayout]);
@@ -129,5 +139,55 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     [bringToFront, move, persist],
   );
 
-  return { layout, bringToFront, toggle, move, startDrag, reset };
+  const startResize = useCallback(
+    (
+      id: string,
+      event: ReactPointerEvent,
+      boardEl: HTMLElement,
+      windowEl: HTMLElement,
+    ) => {
+      bringToFront(id);
+      const boardRect = boardEl.getBoundingClientRect();
+      const windowRect = windowEl.getBoundingClientRect();
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const startWidth = windowRect.width;
+      const startHeight = windowRect.height;
+
+      function handleMove(moveEvent: PointerEvent) {
+        const rawWidth = startWidth + (moveEvent.clientX - startX);
+        const rawHeight = startHeight + (moveEvent.clientY - startY);
+        const width = Math.max(
+          MIN_WIDTH,
+          Math.min(rawWidth, boardRect.right - windowRect.left),
+        );
+        const height = Math.max(
+          MIN_HEIGHT,
+          Math.min(rawHeight, boardRect.bottom - windowRect.top),
+        );
+        resize(id, width, height);
+      }
+
+      function handleUp() {
+        window.removeEventListener("pointermove", handleMove);
+        window.removeEventListener("pointerup", handleUp);
+        persist();
+      }
+
+      window.addEventListener("pointermove", handleMove);
+      window.addEventListener("pointerup", handleUp);
+    },
+    [bringToFront, resize, persist],
+  );
+
+  return {
+    layout,
+    bringToFront,
+    toggle,
+    move,
+    resize,
+    startDrag,
+    startResize,
+    reset,
+  };
 }

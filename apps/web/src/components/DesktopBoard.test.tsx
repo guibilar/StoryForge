@@ -112,4 +112,93 @@ describe("DesktopBoard", () => {
     );
     expect(stored.npcs.x).toBe(128);
   });
+
+  it("resizes a window by its handle and persists the new size", () => {
+    render(<DesktopBoard campaignId="camp-1" />);
+
+    const board = screen.getByTestId("desktop-board");
+    mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
+
+    const npcsTitle = screen.getByText("NPCs", { selector: "span" });
+    const windowEl = npcsTitle.closest("div[style]") as HTMLElement;
+    mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
+
+    const handle = screen.getByLabelText("Resize NPCs");
+
+    act(() => {
+      handle.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          clientX: 338,
+          clientY: 304,
+        }),
+      );
+    });
+
+    expect(windowEl.style.width).toBe("310px");
+
+    act(() => {
+      window.dispatchEvent(
+        new PointerEvent("pointermove", { clientX: 438, clientY: 404 }),
+      );
+    });
+
+    expect(windowEl.style.width).toBe("410px");
+    expect(windowEl.style.height).toBe("380px");
+
+    act(() => {
+      window.dispatchEvent(new PointerEvent("pointerup"));
+    });
+
+    const stored = JSON.parse(
+      localStorage.getItem("storyforge:desktop:camp-1")!,
+    );
+    expect(stored.npcs.width).toBe(410);
+    expect(stored.npcs.height).toBe(380);
+  });
+
+  it("clamps resize to the minimum size and the board bounds", () => {
+    render(<DesktopBoard campaignId="camp-1" />);
+
+    const board = screen.getByTestId("desktop-board");
+    mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
+
+    const npcsTitle = screen.getByText("NPCs", { selector: "span" });
+    const windowEl = npcsTitle.closest("div[style]") as HTMLElement;
+    mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
+
+    const handle = screen.getByLabelText("Resize NPCs");
+
+    act(() => {
+      handle.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          clientX: 338,
+          clientY: 304,
+        }),
+      );
+    });
+
+    act(() => {
+      window.dispatchEvent(
+        new PointerEvent("pointermove", { clientX: -900, clientY: -900 }),
+      );
+    });
+
+    expect(windowEl.style.width).toBe("200px");
+    expect(windowEl.style.height).toBe("150px");
+
+    act(() => {
+      window.dispatchEvent(
+        new PointerEvent("pointermove", { clientX: 5000, clientY: 5000 }),
+      );
+    });
+
+    expect(windowEl.style.width).toBe("972px");
+    expect(windowEl.style.height).toBe("776px");
+
+    act(() => {
+      window.dispatchEvent(new PointerEvent("pointerup"));
+    });
+  });
 });

@@ -24,15 +24,15 @@ GraphQL API, Prisma ORM, and TypeScript throughout.
 ```
 apps/
   api/         GraphQL server — src/modules/{auth,campaigns,campaignMembers,entities,
-               tags,relationships,notes,noteLinks,attachments}/, each split into
-               application/ (services), graphql/ (schema + resolvers), infrastructure/
-               (Prisma repositories)
+               tags,relationships,notes,noteLinks,attachments,sessions,events}/, each
+               split into application/ (services), graphql/ (schema + resolvers),
+               infrastructure/ (Prisma repositories)
   web/         React app (default Vite scaffold, not started)
 
 packages/
   database/    Prisma schema, generated client, DB connection
   domain/      Campaign, Entity, User, CampaignMember, Tag, Relationship, Note,
-               NoteLink, Attachment aggregates + shared errors
+               NoteLink, Attachment, Session, Event aggregates + shared errors
 
 docs/
 ```
@@ -81,16 +81,17 @@ that plain Node's ESM loader can't resolve, so `tsx` (same as `pnpm dev`) is use
 ## API testing
 
 A Postman collection lives in `postman/` — `StoryForge.postman_collection.json` covers every
-query/mutation (auth, campaigns, entities, tags, relationships, notes, attachments) and
-`StoryForge.postman_environment.json` holds `baseUrl`, `token`, and test IDs. Import both, run
-Auth > Login or Register first (it stores the JWT in `{{token}}` automatically), then run the
-rest.
+query/mutation (auth, campaigns, entities, tags, relationships, notes, attachments, sessions,
+events) and `StoryForge.postman_environment.json` holds `baseUrl`, `token`, and test IDs. Import
+both, run Auth > Login or Register first (it stores the JWT in `{{token}}` automatically), then
+run the rest.
 
 ## Status
 
 Early stage, API-first. Implemented full-stack (domain → service → Prisma repository →
 GraphQL): `User` (auth), `Campaign`, `CampaignMember`, `Entity` (incl. image upload),
-`Tag`, `Relationship`, `Note` (incl. nesting and wiki-style `NoteLink`s), and `Attachment`.
+`Tag`, `Relationship`, `Note` (incl. nesting and wiki-style `NoteLink`s), `Attachment`,
+`Session`, and `Event` (incl. many-to-many participants via `EventParticipant`).
 Auth guarding is partial — see `AGENTS.md` "apps/api" section for which mutations require
 a logged-in user. The web app is still the default Vite scaffold — no real UI yet. The
 plugin compiler and RPG-system plugin packages have not been started.

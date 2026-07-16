@@ -15,11 +15,12 @@ tracks what's actually built, not just planned.
       to main; runs a `postgres:16` service container + `prisma migrate deploy`
       so Prisma repository integration tests run for real, not mocked)
 - [x] Husky hooks — pre-commit runs `pnpm test` then `pnpm lint-staged` (KAN-24)
-- [x] Test suite — 365 tests via Vitest across `packages/domain` (entities,
-      value objects, tags, relationships, notes, note links) and `apps/api`
-      (application services w/ mocked repos, Prisma mappers, GraphQL
-      resolvers, and Prisma repository integration tests against a real
-      Postgres). See AGENTS.md "Testing" section for layout and gotchas.
+- [x] Test suite — 475 tests via Vitest across `packages/domain` (entities,
+      value objects, tags, relationships, notes, note links, sessions,
+      events) and `apps/api` (application services w/ mocked repos, Prisma
+      mappers, GraphQL resolvers, and Prisma repository integration tests
+      against a real Postgres). See AGENTS.md "Testing" section for layout
+      and gotchas.
 
 ## Authentication & Campaigns
 
@@ -181,8 +182,36 @@ tracks what's actually built, not just planned.
 
 ## Sessions & Timeline
 
-- [ ] Session model (number, date, summary)
-- [ ] Event model (timeline, participants, related entities)
+- [x] Session model (number, date, summary) (KAN-47) — `Session` domain
+      entity + Prisma model (`campaignId` FK, `Cascade`; `sessionNumber`
+      server-assigned, auto-incremented per campaign via
+      `findMaxSessionNumber`, never client-supplied; `date`, `summary`
+      nullable `Text`); `SessionService`, `PrismaSessionRepository`,
+      `SessionMapper` under `apps/api/src/modules/sessions/`. GraphQL
+      `session(id)`, `sessions(campaignId)`, `createSession`,
+      `updateSession`, `deleteSession`, guarded via `requireCampaignMember`.
+      Hard delete (no `deletedAt`) — no restore requirement, no dangling
+      references possible for a leaf model.
+- [x] Event model (timeline, participants, related entities) (KAN-48) —
+      `Event` domain entity + Prisma model (`campaignId` FK `Cascade`;
+      `sessionId` **nullable** FK to `Session`, `onDelete: SetNull` — an
+      Event can exist with no Session, e.g. backstory/pre-campaign events,
+      and deleting a Session unlinks rather than destroys its Events;
+      `title`, `description`, `occurredAt` — the in-fiction date, distinct
+      from `Session.date`). Participants are many-to-many via an
+      `EventParticipant` join table (`eventId`, `entityId`, optional
+      `role`), mirroring the `Entity`↔`Tag` join pattern: persistence-only
+      (no domain aggregate for the join row), idempotent attach/detach.
+      `EventService` (`apps/api/src/modules/events/`) takes `EventRepository`,
+      `EntityRepository`, and `SessionRepository` — validates a provided
+      `sessionId` exists and belongs to the same campaign, and an
+      `entityId` exists before attaching it as a participant. GraphQL
+      `event(id)`, `events(campaignId)`, `eventsBySession(sessionId)`,
+      `createEvent`, `updateEvent`, `deleteEvent`, `attachParticipant`,
+      `detachParticipant`; `Event.session` and `Event.participants` are
+      field resolvers (mirroring `Note.parent`'s lazy service-call
+      pattern), not Prisma includes. Hard delete, same rationale as
+      Session.
 - [ ] Timeline UI (ordering, filters, search)
 
 ## Maps

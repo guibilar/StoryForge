@@ -1938,6 +1938,509 @@
       ]
     },
     {
+      "name": "Sessions",
+      "description": "Session CRUD (KAN-47). sessionNumber is server-assigned (auto-increments per campaign) \u2014 never sent by the client. Hard delete, see Cleanup > Delete Session.",
+      "item": [
+        {
+          "name": "Create Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateSession($input: CreateSessionInput!) {\n  createSession(input: $input) {\n    id\n    campaignId\n    sessionNumber\n    date\n    summary\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"date\": \"2024-01-01T19:00:00.000Z\",\n    \"summary\": \"The party arrives in Ravenhollow and meets the tavern keeper.\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"creates a session with an auto-assigned number\", function () {",
+                  "  pm.expect(body.data.createSession.id).to.be.a(\"string\");",
+                  "  pm.expect(body.data.createSession.sessionNumber).to.be.a(\"number\");",
+                  "  pm.expect(body.data.createSession.campaignId).to.eql(pm.environment.get(\"campaignId\"));",
+                  "});",
+                  "",
+                  "const value = body?.data?.createSession?.id;",
+                  "if (value) pm.environment.set(\"sessionId\", value);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetSession($id: ID!) {\n  session(id: $id) {\n    id\n    campaignId\n    sessionNumber\n    date\n    summary\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"id\": \"{{sessionId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns the session\", function () {",
+                  "  pm.expect(body.data.session).to.not.be.null;",
+                  "  pm.expect(body.data.session.id).to.eql(pm.environment.get(\"sessionId\"));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Sessions (By Campaign)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query ListSessions($campaignId: ID!) {\n  sessions(campaignId: $campaignId) {\n    id\n    sessionNumber\n    date\n    summary\n  }\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"includes the created session, ordered by sessionNumber\", function () {",
+                  "  const sessions = body.data.sessions;",
+                  "  pm.expect(sessions).to.be.an(\"array\");",
+                  "  pm.expect(sessions.some((s) => s.id === pm.environment.get(\"sessionId\"))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateSession($input: UpdateSessionInput!) {\n  updateSession(input: $input) {\n    id\n    summary\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"id\": \"{{sessionId}}\",\n    \"summary\": \"Updated: the party also fought off a pack of wolves on the road.\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"updates the summary\", function () {",
+                  "  pm.expect(body.data.updateSession.summary).to.eql(",
+                  "    \"Updated: the party also fought off a pack of wolves on the road.\",",
+                  "  );",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "description": "Event CRUD + participant attach/detach (KAN-48). sessionId is a nullable FK to Session (onDelete: SetNull \u2014 deleting the session unlinks the event rather than deleting it). Hard delete, see Cleanup > Delete Event.",
+      "item": [
+        {
+          "name": "Create Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateEvent($input: CreateEventInput!) {\n  createEvent(input: $input) {\n    id\n    campaignId\n    sessionId\n    title\n    description\n    occurredAt\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"campaignId\": \"{{campaignId}}\",\n    \"sessionId\": \"{{sessionId}}\",\n    \"title\": \"Goblin ambush on the north road\",\n    \"description\": \"The party was ambushed by a pack of goblins while traveling north.\",\n    \"occurredAt\": \"1024-01-01T00:00:00.000Z\"\n  }\n}"
+              }
+            }
+          },
+          "description": "occurredAt is the in-fiction date (KAN-48), independent of Session.date (the real-world play date). sessionId is optional \u2014 omit it for backstory/pre-campaign events. Run 'Sessions > Create Session' first so {{sessionId}} is set.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"creates an event linked to the session\", function () {",
+                  "  pm.expect(body.data.createEvent.id).to.be.a(\"string\");",
+                  "  pm.expect(body.data.createEvent.sessionId).to.eql(pm.environment.get(\"sessionId\"));",
+                  "  pm.expect(body.data.createEvent.campaignId).to.eql(pm.environment.get(\"campaignId\"));",
+                  "});",
+                  "",
+                  "const value = body?.data?.createEvent?.id;",
+                  "if (value) pm.environment.set(\"eventId\", value);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Attach Participant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation AttachParticipant($eventId: ID!, $entityId: ID!, $role: String) {\n  attachParticipant(eventId: $eventId, entityId: $entityId, role: $role) {\n    id\n  }\n}",
+                "variables": "{\n  \"eventId\": \"{{eventId}}\",\n  \"entityId\": \"{{entityId}}\",\n  \"role\": \"witness\"\n}"
+              }
+            }
+          },
+          "description": "Many-to-many via EventParticipant (KAN-48), idempotent (re-attaching the same pair is a no-op). Run 'Entities > Create Entity' and 'Events > Create Event' first.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"attaches the participant and returns the event\", function () {",
+                  "  pm.expect(body.data.attachParticipant.id).to.eql(pm.environment.get(\"eventId\"));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetEvent($id: ID!) {\n  event(id: $id) {\n    id\n    campaignId\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    title\n    description\n    occurredAt\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"id\": \"{{eventId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"returns the event with its session and participants\", function () {",
+                  "  const event = body.data.event;",
+                  "  pm.expect(event).to.not.be.null;",
+                  "  pm.expect(event.session).to.not.be.null;",
+                  "  pm.expect(event.session.id).to.eql(pm.environment.get(\"sessionId\"));",
+                  "  pm.expect(event.participants).to.be.an(\"array\");",
+                  "  pm.expect(event.participants.some((p) => p.id === pm.environment.get(\"entityId\"))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Events (By Campaign)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query ListEvents($campaignId: ID!) {\n  events(campaignId: $campaignId) {\n    id\n    title\n    occurredAt\n  }\n}",
+                "variables": "{\n  \"campaignId\": \"{{campaignId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"includes the created event, ordered by occurredAt\", function () {",
+                  "  const events = body.data.events;",
+                  "  pm.expect(events).to.be.an(\"array\");",
+                  "  pm.expect(events.some((e) => e.id === pm.environment.get(\"eventId\"))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Events (By Session)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query ListEventsBySession($sessionId: ID!) {\n  eventsBySession(sessionId: $sessionId) {\n    id\n    title\n  }\n}",
+                "variables": "{\n  \"sessionId\": \"{{sessionId}}\"\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"includes the created event\", function () {",
+                  "  const events = body.data.eventsBySession;",
+                  "  pm.expect(events).to.be.an(\"array\");",
+                  "  pm.expect(events.some((e) => e.id === pm.environment.get(\"eventId\"))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateEvent($input: UpdateEventInput!) {\n  updateEvent(input: $input) {\n    id\n    title\n    updatedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"id\": \"{{eventId}}\",\n    \"title\": \"Goblin ambush on the north road (survived)\"\n  }\n}"
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"updates the title\", function () {",
+                  "  pm.expect(body.data.updateEvent.title).to.eql(",
+                  "    \"Goblin ambush on the north road (survived)\",",
+                  "  );",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detach Participant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DetachParticipant($eventId: ID!, $entityId: ID!) {\n  detachParticipant(eventId: $eventId, entityId: $entityId) {\n    id\n  }\n}",
+                "variables": "{\n  \"eventId\": \"{{eventId}}\",\n  \"entityId\": \"{{entityId}}\"\n}"
+              }
+            }
+          },
+          "description": "Idempotent \u2014 detaching an already-detached pair is a no-op, not an error.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"detaches the participant and returns the event\", function () {",
+                  "  pm.expect(body.data.detachParticipant.id).to.eql(pm.environment.get(\"eventId\"));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Cleanup",
       "description": "Destructive requests (delete/archive) that other folders' fixtures depend on \u2014 run these last so a full top-to-bottom collection run doesn't break downstream folders.",
       "item": [
@@ -1978,6 +2481,92 @@
                   "",
                   "pm.test(\"cascades the delete to child notes (KAN-46)\", function () {",
                   "  pm.expect(body.data.deleteNote).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteEvent($id: ID!) {\n  deleteEvent(id: $id)\n}",
+                "variables": "{\n  \"id\": \"{{eventId}}\"\n}"
+              }
+            }
+          },
+          "description": "Hard delete (KAN-48), unlike Note's soft delete or Entity's soft delete.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"deletes the event\", function () {",
+                  "  pm.expect(body.data.deleteEvent).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteSession($id: ID!) {\n  deleteSession(id: $id)\n}",
+                "variables": "{\n  \"id\": \"{{sessionId}}\"\n}"
+              }
+            }
+          },
+          "description": "Hard delete (KAN-47). Run 'Delete Event' first \u2014 not required by the schema (Event.sessionId is SetNull on session delete), but keeps cleanup order matching creation order.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no GraphQL errors\", function () {",
+                  "  pm.expect(body.errors, JSON.stringify(body.errors)).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"deletes the session\", function () {",
+                  "  pm.expect(body.data.deleteSession).to.eql(true);",
                   "});"
                 ]
               }

@@ -57,7 +57,11 @@ export function CampaignDesktopPage() {
         </p>
       </header>
 
-      {isMobile ? <MobileDesktop /> : <DesktopBoard campaignId={campaign.id} />}
+      {isMobile ? (
+        <MobileDesktop role={role} />
+      ) : (
+        <DesktopBoard campaignId={campaign.id} role={role} />
+      )}
     </main>
   );
 }

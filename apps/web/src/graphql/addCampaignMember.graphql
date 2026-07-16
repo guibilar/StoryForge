@@ -1,0 +1,10 @@
+mutation AddCampaignMember($input: AddCampaignMemberInput!) {
+  addCampaignMember(input: $input) {
+    userId
+    role
+    user {
+      id
+      email
+    }
+  }
+}

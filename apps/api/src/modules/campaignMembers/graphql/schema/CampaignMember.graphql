@@ -8,6 +8,7 @@ type CampaignMember {
   id: ID!
   campaignId: ID!
   userId: ID!
+  user: User!
   role: CampaignRole!
   createdAt: String!
   updatedAt: String!

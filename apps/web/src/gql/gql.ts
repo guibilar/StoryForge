@@ -14,16 +14,21 @@ import type { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-  "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    members {\n      userId\n      role\n    }\n  }\n}": typeof types.CampaignDocument;
+  "mutation AddCampaignMember($input: AddCampaignMemberInput!) {\n  addCampaignMember(input: $input) {\n    userId\n    role\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.AddCampaignMemberDocument;
+  "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    members {\n      userId\n      role\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.CampaignDocument;
   "query Campaigns {\n  campaigns {\n    id\n    name\n    description\n    archivedAt\n    members {\n      userId\n      role\n    }\n  }\n}": typeof types.CampaignsDocument;
   "mutation CreateCampaign($input: CreateCampaignDTO!) {\n  createCampaign(input: $input) {\n    id\n    name\n    description\n    archivedAt\n    members {\n      userId\n      role\n    }\n  }\n}": typeof types.CreateCampaignDocument;
   "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.LoginDocument;
   "mutation Logout {\n  logout\n}": typeof types.LogoutDocument;
   "query Me {\n  me {\n    id\n    email\n  }\n}": typeof types.MeDocument;
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.RegisterDocument;
+  "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}": typeof types.RemoveCampaignMemberDocument;
+  "mutation UpdateCampaignMemberRole($input: UpdateCampaignMemberRoleInput!) {\n  updateCampaignMemberRole(input: $input) {\n    userId\n    role\n  }\n}": typeof types.UpdateCampaignMemberRoleDocument;
 };
 const documents: Documents = {
-  "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    members {\n      userId\n      role\n    }\n  }\n}":
+  "mutation AddCampaignMember($input: AddCampaignMemberInput!) {\n  addCampaignMember(input: $input) {\n    userId\n    role\n    user {\n      id\n      email\n    }\n  }\n}":
+    types.AddCampaignMemberDocument,
+  "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    members {\n      userId\n      role\n      user {\n        id\n        email\n      }\n    }\n  }\n}":
     types.CampaignDocument,
   "query Campaigns {\n  campaigns {\n    id\n    name\n    description\n    archivedAt\n    members {\n      userId\n      role\n    }\n  }\n}":
     types.CampaignsDocument,
@@ -35,6 +40,10 @@ const documents: Documents = {
   "query Me {\n  me {\n    id\n    email\n  }\n}": types.MeDocument,
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}":
     types.RegisterDocument,
+  "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}":
+    types.RemoveCampaignMemberDocument,
+  "mutation UpdateCampaignMemberRole($input: UpdateCampaignMemberRoleInput!) {\n  updateCampaignMemberRole(input: $input) {\n    userId\n    role\n  }\n}":
+    types.UpdateCampaignMemberRoleDocument,
 };
 
 /**
@@ -55,8 +64,14 @@ export function graphql(source: string): unknown;
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    members {\n      userId\n      role\n    }\n  }\n}",
-): (typeof documents)["query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    members {\n      userId\n      role\n    }\n  }\n}"];
+  source: "mutation AddCampaignMember($input: AddCampaignMemberInput!) {\n  addCampaignMember(input: $input) {\n    userId\n    role\n    user {\n      id\n      email\n    }\n  }\n}",
+): (typeof documents)["mutation AddCampaignMember($input: AddCampaignMemberInput!) {\n  addCampaignMember(input: $input) {\n    userId\n    role\n    user {\n      id\n      email\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    members {\n      userId\n      role\n      user {\n        id\n        email\n      }\n    }\n  }\n}",
+): (typeof documents)["query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    members {\n      userId\n      role\n      user {\n        id\n        email\n      }\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -93,6 +108,18 @@ export function graphql(
 export function graphql(
   source: "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}",
 ): (typeof documents)["mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}",
+): (typeof documents)["mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: "mutation UpdateCampaignMemberRole($input: UpdateCampaignMemberRoleInput!) {\n  updateCampaignMemberRole(input: $input) {\n    userId\n    role\n  }\n}",
+): (typeof documents)["mutation UpdateCampaignMemberRole($input: UpdateCampaignMemberRoleInput!) {\n  updateCampaignMemberRole(input: $input) {\n    userId\n    role\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

@@ -1,8 +1,61 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
+import { useMutation, useQuery } from "urql";
 
 import { DesktopBoard } from "./DesktopBoard";
+import { CampaignDocument, MeDocument } from "../gql/graphql";
+
+vi.mock("urql", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("urql")>();
+  return { ...actual, useMutation: vi.fn(), useQuery: vi.fn() };
+});
+
+const CURRENT_USER_ID = "user-1";
+
+vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
+  if (args.query === MeDocument) {
+    return [
+      {
+        data: { me: { id: CURRENT_USER_ID, email: "owner@example.com" } },
+        fetching: false,
+        stale: false,
+      },
+      vi.fn(),
+    ];
+  }
+
+  if (args.query === CampaignDocument) {
+    return [
+      {
+        data: {
+          campaign: {
+            id: "camp-1",
+            name: "Campaign",
+            members: [
+              {
+                userId: CURRENT_USER_ID,
+                role: "OWNER",
+                user: { id: CURRENT_USER_ID, email: "owner@example.com" },
+              },
+            ],
+          },
+        },
+        fetching: false,
+        stale: false,
+      },
+      vi.fn(),
+    ];
+  }
+
+  throw new Error("Unexpected query in test");
+}) as never);
+
+vi.mocked(useMutation).mockImplementation((() => [
+  { fetching: false, stale: false },
+  vi.fn(),
+]) as never);
 
 function mockRect(
   el: HTMLElement,
@@ -24,7 +77,11 @@ beforeEach(() => {
 
 describe("DesktopBoard", () => {
   it("shows the default windows open/closed per the catalog defaults", () => {
-    render(<DesktopBoard campaignId="camp-1" />);
+    render(
+      <MemoryRouter>
+        <DesktopBoard campaignId="camp-1" role="OWNER" />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText("NPCs", { selector: "span" })).toBeInTheDocument();
     expect(

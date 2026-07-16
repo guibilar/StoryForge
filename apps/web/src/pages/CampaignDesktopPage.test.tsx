@@ -1,15 +1,20 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useQuery } from "urql";
+import { useMutation, useQuery } from "urql";
 
 import { CampaignDesktopPage } from "./CampaignDesktopPage";
 import { CampaignDocument, MeDocument } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useQuery: vi.fn() };
+  return { ...actual, useQuery: vi.fn(), useMutation: vi.fn() };
 });
+
+vi.mocked(useMutation).mockImplementation((() => [
+  { fetching: false, stale: false },
+  vi.fn(),
+]) as never);
 
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
@@ -35,11 +40,21 @@ function setupMocks({
   campaign = {
     id: "camp-1",
     name: "The Sabbat War",
-    members: [{ userId: CURRENT_USER_ID, role: "OWNER" }],
+    members: [
+      {
+        userId: CURRENT_USER_ID,
+        role: "OWNER",
+        user: { id: CURRENT_USER_ID, email: "me@example.com" },
+      },
+    ],
   } as {
     id: string;
     name: string;
-    members: { userId: string; role: string }[];
+    members: {
+      userId: string;
+      role: string;
+      user: { id: string; email: string };
+    }[];
   } | null,
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {

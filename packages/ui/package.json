@@ -18,6 +18,7 @@
   "scripts": {
     "lint": "eslint .",
     "test": "vitest run",
+    "test:unit": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {

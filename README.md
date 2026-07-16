@@ -66,6 +66,12 @@ pnpm test
 at `DATABASE_URL` (no mocking) — a Postgres must be running and migrated
 (`pnpm --filter @storyforge/database migrate:deploy`) before running tests locally.
 
+Use `pnpm test:unit` to run everything except those integration tests (no
+Postgres required) — this is what the Husky pre-commit hook runs. Use
+`pnpm test:integration` to run just the Prisma repository tests. CI runs the
+full `pnpm test` suite (unit + integration) against the `postgres:16` service
+container.
+
 ## Docker
 
 A full stack (Postgres, API, web) can be run with Docker Compose:

@@ -17,6 +17,14 @@
     "test": {
       "dependsOn": ["^build"],
       "env": ["DATABASE_URL", "JWT_SECRET"]
+    },
+    "test:unit": {
+      "dependsOn": ["^build"],
+      "env": ["DATABASE_URL", "JWT_SECRET"]
+    },
+    "test:integration": {
+      "dependsOn": ["^build"],
+      "env": ["DATABASE_URL", "JWT_SECRET"]
     }
   }
 }

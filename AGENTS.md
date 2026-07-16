@@ -971,11 +971,14 @@ Avoid `any`.
 
 Pre-commit hooks are wired via Husky: `.husky/pre-commit`, `core.hooksPath`
 set to `.husky/_`, `prepare: "husky"` in root `package.json`. The hook runs
-`pnpm test` then `pnpm lint-staged` — the latter isn't a defined root
+`pnpm test:unit` then `pnpm lint-staged` — the latter isn't a defined root
 script, but `pnpm` resolves it straight from `node_modules/.bin`. `lint-staged`
 config (root `package.json`) runs `eslint --fix` + `prettier --write` on
 staged `*.{js,ts,tsx,jsx}` and `prettier --write` on staged `*.{json,md}`, so
-a lint/format violation is blocked locally before it reaches CI.
+a lint/format violation is blocked locally before it reaches CI. `test:unit`
+excludes the Prisma repository integration tests (see Testing section) so
+the hook never needs a live Postgres — CI still runs the full suite
+(unit + integration) via `pnpm turbo run lint build test`.
 
 ---
 
@@ -984,7 +987,20 @@ a lint/format violation is blocked locally before it reaches CI.
 Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
 `test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
 so workspace deps are built first). Current coverage (503 tests: 126
-`packages/domain` + 377 `apps/api`):
+`packages/domain` + 377 `apps/api`).
+
+Every package also exposes a `test:unit` script (turbo task `test:unit`)
+that runs the same suite minus the Prisma repository integration tests —
+that's what `.husky/pre-commit` runs, so committing never requires a live
+Postgres. `apps/api` additionally exposes `test:integration`
+(turbo task `test:integration`) to run just the Prisma repository tests.
+The split is driven by filename: integration tests are named
+`*.integration.test.ts` and picked up via dedicated Vitest configs
+(`apps/api/vitest.unit.config.ts` excludes them, `vitest.integration.config.ts`
+includes only them, both `mergeConfig`-extending the base `vitest.config.ts`).
+The plain `test` script/task is untouched and still runs everything
+(unit + integration) in one pass — that's what CI's
+`pnpm turbo run lint build test` uses, unchanged.
 
 - **Domain unit tests** (`packages/domain/src/**/*.test.ts`) — `Campaign`,
   `Entity`, `CampaignMember`, `User`, `Tag`, `Relationship`, `Note` (incl.
@@ -1009,7 +1025,7 @@ so workspace deps are built first). Current coverage (503 tests: 126
   hand-rolled `EntityService` mock, asserting argument pass-through
   (including `entities(campaignId, filter)`) and `toGraphQLError` mapping.
 - **Prisma repository integration tests**
-  (`apps/api/src/modules/*/infrastructure/Prisma*Repository.test.ts`) — hit a
+  (`apps/api/src/modules/*/infrastructure/Prisma*Repository.integration.test.ts`) — hit a
   **real** Postgres (the same one `DATABASE_URL` points at — locally that's
   the `my-postgres` docker container, in CI it's the `postgres:16` service
   container declared in `.github/workflows/ci.yml`), not a mock. Each test

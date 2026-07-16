@@ -65,6 +65,23 @@ describe("PrismaEntityRepository", () => {
     expect(found).toBeNull();
   });
 
+  it("returns null for a soft-deleted entity", async () => {
+    const campaignId = await createCampaign();
+    const entity = Entity.create({
+      campaignId,
+      type: "npc",
+      name: uniqueName(),
+      visibility: EntityVisibility.PUBLIC,
+    });
+    await repository.create(entity);
+    entity.delete();
+    await repository.update(entity);
+
+    const found = await repository.findById(entity.Id);
+
+    expect(found).toBeNull();
+  });
+
   it("lists entities for a campaign, excluding soft-deleted ones", async () => {
     const campaignId = await createCampaign();
     const kept = Entity.create({
@@ -104,6 +121,32 @@ describe("PrismaEntityRepository", () => {
     await expect(
       repository.existsByName(campaignId, uniqueName()),
     ).resolves.toBe(false);
+  });
+
+  it("allows recreating a name that only a soft-deleted entity holds", async () => {
+    const campaignId = await createCampaign();
+    const name = uniqueName();
+    const deleted = Entity.create({
+      campaignId,
+      type: "npc",
+      name,
+      visibility: EntityVisibility.PUBLIC,
+    });
+    await repository.create(deleted);
+    deleted.delete();
+    await repository.update(deleted);
+
+    await expect(repository.existsByName(campaignId, name)).resolves.toBe(
+      false,
+    );
+
+    const recreated = Entity.create({
+      campaignId,
+      type: "npc",
+      name,
+      visibility: EntityVisibility.PUBLIC,
+    });
+    await expect(repository.create(recreated)).resolves.not.toThrow();
   });
 
   it("updates an entity", async () => {

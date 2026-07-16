@@ -1,6 +1,11 @@
-import { Campaign, CampaignRepository, CampaignId } from "@storyforge/domain";
+import {
+  Campaign,
+  CampaignRepository,
+  CampaignId,
+  ValidationError,
+} from "@storyforge/domain";
 
-import { prisma } from "@storyforge/database";
+import { prisma, Prisma } from "@storyforge/database";
 import { CampaignMapper } from "./CampaignMapper";
 
 export class PrismaCampaignRepository implements CampaignRepository {
@@ -43,11 +48,23 @@ export class PrismaCampaignRepository implements CampaignRepository {
   }
 
   async create(entity: Campaign): Promise<Campaign> {
-    const record = await prisma.campaign.create({
-      data: CampaignMapper.toPersistence(entity),
-      include: { members: true },
-    });
-    return CampaignMapper.toDomain(record);
+    try {
+      const record = await prisma.campaign.create({
+        data: CampaignMapper.toPersistence(entity),
+        include: { members: true },
+      });
+      return CampaignMapper.toDomain(record);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ValidationError(
+          `A campaign with the name "${entity.Name}" already exists.`,
+        );
+      }
+      throw error;
+    }
   }
 
   async update(entity: Campaign): Promise<Campaign> {

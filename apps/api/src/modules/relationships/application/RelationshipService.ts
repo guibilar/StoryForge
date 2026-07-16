@@ -1,4 +1,6 @@
 import {
+  EntityId,
+  EntityRepository,
   NotFoundError,
   Relationship,
   RelationshipId,
@@ -21,9 +23,15 @@ export interface UpdateRelationshipDto {
 }
 
 export class RelationshipService {
-  constructor(private readonly repository: RelationshipRepository) {}
+  constructor(
+    private readonly repository: RelationshipRepository,
+    private readonly entityRepository: EntityRepository,
+  ) {}
 
   async createRelationship(dto: CreateRelationshipDto): Promise<Relationship> {
+    await this.validateEntityInCampaign(dto.campaignId, dto.sourceEntityId);
+    await this.validateEntityInCampaign(dto.campaignId, dto.targetEntityId);
+
     const exists = await this.repository.existsByEdge(
       dto.campaignId,
       dto.sourceEntityId,
@@ -100,5 +108,22 @@ export class RelationshipService {
 
   async listRelationshipsByEntity(entityId: string): Promise<Relationship[]> {
     return this.repository.findByEntity(entityId);
+  }
+
+  private async validateEntityInCampaign(
+    campaignId: string,
+    entityId: string,
+  ): Promise<void> {
+    const entity = await this.entityRepository.findById(
+      EntityId.fromString(entityId),
+    );
+
+    if (!entity) {
+      throw new NotFoundError(`Entity with ID "${entityId}" not found.`);
+    }
+
+    if (entity.CampaignId !== campaignId) {
+      throw new ValidationError("Entity does not belong to this campaign.");
+    }
   }
 }

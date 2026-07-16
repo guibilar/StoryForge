@@ -56,6 +56,7 @@ const tagService = new TagService(
 );
 const relationshipService = new RelationshipService(
   new PrismaRelationshipRepository(),
+  new PrismaEntityRepository(),
 );
 const campaignMemberService = new CampaignMemberService(
   campaignMemberRepository,

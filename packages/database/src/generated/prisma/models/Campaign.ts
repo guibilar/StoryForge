@@ -222,10 +222,10 @@ export type CampaignOrderByWithRelationInput = {
 export type CampaignWhereUniqueInput = Prisma.AtLeast<
   {
     id?: string;
+    name?: string;
     AND?: Prisma.CampaignWhereInput | Prisma.CampaignWhereInput[];
     OR?: Prisma.CampaignWhereInput[];
     NOT?: Prisma.CampaignWhereInput | Prisma.CampaignWhereInput[];
-    name?: Prisma.StringFilter<"Campaign"> | string;
     description?: Prisma.StringNullableFilter<"Campaign"> | string | null;
     createdAt?: Prisma.DateTimeFilter<"Campaign"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Campaign"> | Date | string;
@@ -239,7 +239,7 @@ export type CampaignWhereUniqueInput = Prisma.AtLeast<
     sessions?: Prisma.SessionListRelationFilter;
     events?: Prisma.EventListRelationFilter;
   },
-  "id"
+  "id" | "name"
 >;
 
 export type CampaignOrderByWithAggregationInput = {

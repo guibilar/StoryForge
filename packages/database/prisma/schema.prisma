@@ -26,7 +26,7 @@ enum Visibility {
 
 model Campaign {
   id          String  @id @default(uuid())
-  name        String
+  name        String  @unique
   description String?
 
   createdAt  DateTime  @default(now())
@@ -69,7 +69,10 @@ model Entity {
 
   eventParticipations EventParticipant[]
 
-  @@unique([campaignId, name])
+  // Actual uniqueness is a partial index excluding soft-deleted rows
+  // (see migration 20260715120000_partial_unique_soft_delete) — Prisma's
+  // declarative @@unique can't express a WHERE deletedAt IS NULL clause.
+  @@index([campaignId, name])
   @@index([campaignId])
 }
 
@@ -177,7 +180,10 @@ model Relationship {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  @@unique([campaignId, sourceEntityId, targetEntityId, type])
+  // Actual uniqueness is a partial index excluding soft-deleted rows
+  // (see migration 20260715120000_partial_unique_soft_delete) — Prisma's
+  // declarative @@unique can't express a WHERE deletedAt IS NULL clause.
+  @@index([campaignId, sourceEntityId, targetEntityId, type])
   @@index([campaignId])
   @@index([sourceEntityId])
   @@index([targetEntityId])

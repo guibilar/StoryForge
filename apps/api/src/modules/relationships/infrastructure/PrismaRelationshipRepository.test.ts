@@ -64,6 +64,25 @@ describe("PrismaRelationshipRepository", () => {
     expect(found).toBeNull();
   });
 
+  it("returns null for a soft-deleted relationship", async () => {
+    const campaignId = await createCampaign();
+    const a = await createEntity(campaignId);
+    const b = await createEntity(campaignId);
+    const relationship = Relationship.create({
+      campaignId,
+      sourceEntityId: a,
+      targetEntityId: b,
+      type: "ALLY",
+    });
+    await repository.create(relationship);
+    relationship.delete();
+    await repository.update(relationship);
+
+    const found = await repository.findById(relationship.Id);
+
+    expect(found).toBeNull();
+  });
+
   it("lists relationships for a campaign, excluding soft-deleted ones", async () => {
     const campaignId = await createCampaign();
     const a = await createEntity(campaignId);
@@ -143,6 +162,33 @@ describe("PrismaRelationshipRepository", () => {
     await expect(
       repository.existsByEdge(campaignId, a, b, "ALLY"),
     ).resolves.toBe(false);
+  });
+
+  it("ignores a soft-deleted edge, allowing the same edge to be recreated", async () => {
+    const campaignId = await createCampaign();
+    const a = await createEntity(campaignId);
+    const b = await createEntity(campaignId);
+    const relationship = Relationship.create({
+      campaignId,
+      sourceEntityId: a,
+      targetEntityId: b,
+      type: "ALLY",
+    });
+    await repository.create(relationship);
+    relationship.delete();
+    await repository.update(relationship);
+
+    await expect(
+      repository.existsByEdge(campaignId, a, b, "ALLY"),
+    ).resolves.toBe(false);
+
+    const recreated = Relationship.create({
+      campaignId,
+      sourceEntityId: a,
+      targetEntityId: b,
+      type: "ALLY",
+    });
+    await expect(repository.create(recreated)).resolves.not.toThrow();
   });
 
   it("updates a relationship", async () => {

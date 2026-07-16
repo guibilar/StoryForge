@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  Entity,
+  EntityRepository,
+  EntityVisibility,
   NotFoundError,
   Relationship,
   RelationshipRepository,
@@ -18,6 +21,17 @@ function makeRepository(): RelationshipRepository {
   };
 }
 
+function makeEntityRepository(): EntityRepository {
+  return {
+    findById: vi.fn(),
+    findByCampaign: vi.fn(),
+    existsByName: vi.fn(),
+    findByName: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  };
+}
+
 const createDto = {
   campaignId: "campaign-1",
   sourceEntityId: "entity-1",
@@ -25,13 +39,33 @@ const createDto = {
   type: "ALLY",
 };
 
+const sourceEntity = Entity.create({
+  campaignId: "campaign-1",
+  type: "npc",
+  name: "Source",
+  visibility: EntityVisibility.PUBLIC,
+});
+const targetEntity = Entity.create({
+  campaignId: "campaign-1",
+  type: "npc",
+  name: "Target",
+  visibility: EntityVisibility.PUBLIC,
+});
+
 describe("RelationshipService", () => {
   let repository: RelationshipRepository;
+  let entityRepository: EntityRepository;
   let service: RelationshipService;
 
   beforeEach(() => {
     repository = makeRepository();
-    service = new RelationshipService(repository);
+    entityRepository = makeEntityRepository();
+    vi.mocked(entityRepository.findById).mockImplementation(async (id) => {
+      if (id.toString() === "entity-1") return sourceEntity;
+      if (id.toString() === "entity-2") return targetEntity;
+      return null;
+    });
+    service = new RelationshipService(repository, entityRepository);
   });
 
   describe("createRelationship", () => {
@@ -46,6 +80,25 @@ describe("RelationshipService", () => {
 
     it("rejects a duplicate edge in the campaign", async () => {
       vi.mocked(repository.existsByEdge).mockResolvedValue(true);
+
+      await expect(service.createRelationship(createDto)).rejects.toThrow(
+        ValidationError,
+      );
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it("rejects when the source entity belongs to a different campaign", async () => {
+      vi.mocked(entityRepository.findById).mockImplementation(async (id) => {
+        if (id.toString() === "entity-1")
+          return Entity.create({
+            campaignId: "other-campaign",
+            type: "npc",
+            name: "Source",
+            visibility: EntityVisibility.PUBLIC,
+          });
+        if (id.toString() === "entity-2") return targetEntity;
+        return null;
+      });
 
       await expect(service.createRelationship(createDto)).rejects.toThrow(
         ValidationError,

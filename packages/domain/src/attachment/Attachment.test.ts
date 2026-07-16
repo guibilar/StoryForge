@@ -46,6 +46,12 @@ describe("Attachment", () => {
     ).toThrow("Attachment file name cannot exceed 255 characters.");
   });
 
+  it.each(["", "   "])("rejects an empty file name %j", (fileName) => {
+    expect(() => Attachment.create({ ...validProps, fileName })).toThrow(
+      "Attachment file name cannot be empty.",
+    );
+  });
+
   it.each(["application/pdf", "text/plain", "image/svg+xml"])(
     "rejects a disallowed mime type %j",
     (mimeType) => {

@@ -268,7 +268,6 @@ export type EntityOrderByWithRelationInput = {
 export type EntityWhereUniqueInput = Prisma.AtLeast<
   {
     id?: string;
-    campaignId_name?: Prisma.EntityCampaignIdNameCompoundUniqueInput;
     AND?: Prisma.EntityWhereInput | Prisma.EntityWhereInput[];
     OR?: Prisma.EntityWhereInput[];
     NOT?: Prisma.EntityWhereInput | Prisma.EntityWhereInput[];
@@ -292,7 +291,7 @@ export type EntityWhereUniqueInput = Prisma.AtLeast<
     backlinks?: Prisma.NoteLinkListRelationFilter;
     eventParticipations?: Prisma.EventParticipantListRelationFilter;
   },
-  "id" | "campaignId_name"
+  "id"
 >;
 
 export type EntityOrderByWithAggregationInput = {
@@ -472,11 +471,6 @@ export type EntityListRelationFilter = {
 
 export type EntityOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder;
-};
-
-export type EntityCampaignIdNameCompoundUniqueInput = {
-  campaignId: string;
-  name: string;
 };
 
 export type EntityCountOrderByAggregateInput = {

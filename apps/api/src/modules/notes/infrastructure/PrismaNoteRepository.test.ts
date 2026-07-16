@@ -72,6 +72,23 @@ describe("PrismaNoteRepository", () => {
     expect(found).toBeNull();
   });
 
+  it("returns null for a soft-deleted note", async () => {
+    const campaignId = await createCampaign();
+    const authorId = await createUser();
+    const note = Note.create({
+      campaignId,
+      authorId: UserId.fromString(authorId),
+      title: uniqueTitle(),
+    });
+    await repository.create(note);
+    note.delete();
+    await repository.update(note);
+
+    const found = await repository.findById(note.Id);
+
+    expect(found).toBeNull();
+  });
+
   it("lists notes for a campaign, excluding soft-deleted ones", async () => {
     const campaignId = await createCampaign();
     const authorId = await createUser();

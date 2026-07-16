@@ -62,9 +62,9 @@ function makeSession(overrides?: Partial<{ campaignId: string }>): Session {
   });
 }
 
-function makeEntity(): Entity {
+function makeEntity(overrides?: Partial<{ campaignId: string }>): Entity {
   return Entity.create({
-    campaignId: "campaign-1",
+    campaignId: overrides?.campaignId ?? "campaign-1",
     type: "npc",
     name: "Goblin",
     visibility: EntityVisibility.PUBLIC,
@@ -264,6 +264,18 @@ describe("EventService", () => {
       await expect(
         service.attachParticipant(event.Id.toString(), "missing-entity"),
       ).rejects.toThrow(NotFoundError);
+      expect(repository.attachParticipant).not.toHaveBeenCalled();
+    });
+
+    it("throws ValidationError when the entity belongs to a different campaign", async () => {
+      const event = await service.createEvent(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(event);
+      const entity = makeEntity({ campaignId: "other-campaign" });
+      vi.mocked(entityRepository.findById).mockResolvedValue(entity);
+
+      await expect(
+        service.attachParticipant(event.Id.toString(), entity.Id.toString()),
+      ).rejects.toThrow(ValidationError);
       expect(repository.attachParticipant).not.toHaveBeenCalled();
     });
 

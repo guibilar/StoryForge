@@ -2,6 +2,10 @@ import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
 import {
+  requireCampaignMember,
+  requireCampaignOwner,
+} from "../../../campaignMembers/graphql/guards";
+import {
   CreateCampaignDTO,
   UpdateCampaignDTO,
 } from "../../application/CampaignService";
@@ -29,7 +33,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      requireCurrentUser(context);
+      await requireCampaignMember(context, args.input.id);
       return await context.campaignService.updateCampaign(args);
     } catch (error) {
       toGraphQLError(error);
@@ -42,7 +46,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      requireCurrentUser(context);
+      await requireCampaignOwner(context, args.id);
       await context.campaignService.archiveCampaign(args.id);
       return true;
     } catch (error) {

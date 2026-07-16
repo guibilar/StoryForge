@@ -252,7 +252,6 @@ export type RelationshipOrderByWithRelationInput = {
 export type RelationshipWhereUniqueInput = Prisma.AtLeast<
   {
     id?: string;
-    campaignId_sourceEntityId_targetEntityId_type?: Prisma.RelationshipCampaignIdSourceEntityIdTargetEntityIdTypeCompoundUniqueInput;
     AND?: Prisma.RelationshipWhereInput | Prisma.RelationshipWhereInput[];
     OR?: Prisma.RelationshipWhereInput[];
     NOT?: Prisma.RelationshipWhereInput | Prisma.RelationshipWhereInput[];
@@ -278,7 +277,7 @@ export type RelationshipWhereUniqueInput = Prisma.AtLeast<
       Prisma.EntityWhereInput
     >;
   },
-  "id" | "campaignId_sourceEntityId_targetEntityId_type"
+  "id"
 >;
 
 export type RelationshipOrderByWithAggregationInput = {
@@ -416,14 +415,6 @@ export type RelationshipListRelationFilter = {
 export type RelationshipOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder;
 };
-
-export type RelationshipCampaignIdSourceEntityIdTargetEntityIdTypeCompoundUniqueInput =
-  {
-    campaignId: string;
-    sourceEntityId: string;
-    targetEntityId: string;
-    type: string;
-  };
 
 export type RelationshipCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;

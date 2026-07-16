@@ -2,16 +2,18 @@ import {
   Relationship,
   RelationshipId,
   RelationshipRepository,
+  ValidationError,
 } from "@storyforge/domain";
 
-import { prisma } from "@storyforge/database";
+import { prisma, Prisma } from "@storyforge/database";
 import { RelationshipMapper } from "./RelationshipMapper";
 
 export class PrismaRelationshipRepository implements RelationshipRepository {
   async findById(id: RelationshipId): Promise<Relationship | null> {
-    const record = await prisma.relationship.findUnique({
+    const record = await prisma.relationship.findFirst({
       where: {
         id: id.toString(),
+        deletedAt: null,
       },
     });
 
@@ -57,16 +59,34 @@ export class PrismaRelationshipRepository implements RelationshipRepository {
     type: string,
   ): Promise<boolean> {
     const count = await prisma.relationship.count({
-      where: { campaignId, sourceEntityId, targetEntityId, type },
+      where: {
+        campaignId,
+        sourceEntityId,
+        targetEntityId,
+        type,
+        deletedAt: null,
+      },
     });
 
     return count > 0;
   }
 
   async create(relationship: Relationship): Promise<void> {
-    await prisma.relationship.create({
-      data: RelationshipMapper.toPersistence(relationship),
-    });
+    try {
+      await prisma.relationship.create({
+        data: RelationshipMapper.toPersistence(relationship),
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ValidationError(
+          "A relationship of this type already exists between these entities.",
+        );
+      }
+      throw error;
+    }
   }
 
   async update(relationship: Relationship): Promise<void> {

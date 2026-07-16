@@ -3,6 +3,7 @@ import {
   EntityFilter,
   EntityId,
   EntityRepository,
+  ValidationError,
 } from "@storyforge/domain";
 
 import { prisma, Prisma } from "@storyforge/database";
@@ -10,9 +11,10 @@ import { EntityMapper } from "./EntityMapper";
 
 export class PrismaEntityRepository implements EntityRepository {
   async findById(id: EntityId): Promise<Entity | null> {
-    const record = await prisma.entity.findUnique({
+    const record = await prisma.entity.findFirst({
       where: {
         id: id.toString(),
+        deletedAt: null,
       },
     });
 
@@ -86,9 +88,21 @@ export class PrismaEntityRepository implements EntityRepository {
   }
 
   async create(entity: Entity): Promise<void> {
-    await prisma.entity.create({
-      data: EntityMapper.toPersistence(entity),
-    });
+    try {
+      await prisma.entity.create({
+        data: EntityMapper.toPersistence(entity),
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ValidationError(
+          `An entity with the name "${entity.Name}" already exists.`,
+        );
+      }
+      throw error;
+    }
   }
 
   async update(entity: Entity): Promise<void> {

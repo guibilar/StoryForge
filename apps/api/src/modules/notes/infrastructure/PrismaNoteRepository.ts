@@ -5,9 +5,10 @@ import { NoteMapper } from "./NoteMapper";
 
 export class PrismaNoteRepository implements NoteRepository {
   async findById(id: NoteId): Promise<Note | null> {
-    const record = await prisma.note.findUnique({
+    const record = await prisma.note.findFirst({
       where: {
         id: id.toString(),
+        deletedAt: null,
       },
     });
 

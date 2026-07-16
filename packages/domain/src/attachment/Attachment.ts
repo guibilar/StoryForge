@@ -88,6 +88,10 @@ export class Attachment {
   }
 
   private validateFileName(fileName: string): void {
+    if (!fileName.trim()) {
+      throw new ValidationError("Attachment file name cannot be empty.");
+    }
+
     if (fileName.length > 255) {
       throw new ValidationError(
         "Attachment file name cannot exceed 255 characters.",

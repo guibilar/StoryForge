@@ -107,6 +107,10 @@ export class EventService {
       throw new NotFoundError("Entity not found.");
     }
 
+    if (entity.CampaignId !== event.CampaignId) {
+      throw new ValidationError("Entity does not belong to this campaign.");
+    }
+
     await this.repository.attachParticipant(event.Id, entityId, role);
 
     return event;

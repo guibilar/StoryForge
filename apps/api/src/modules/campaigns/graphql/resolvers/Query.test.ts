@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Campaign, User } from "@storyforge/domain";
+import { Campaign, CampaignMember, User } from "@storyforge/domain";
 import { Query } from "./Query";
 import type { GraphQLContext } from "../../../../graphql/context";
 import type { CampaignService } from "../../application/CampaignService";
+import type { CampaignMemberService } from "../../../campaignMembers/application/CampaignMemberService";
 
 function makeCampaignService(): CampaignService {
   return {
@@ -14,11 +15,20 @@ function makeCampaignService(): CampaignService {
   } as unknown as CampaignService;
 }
 
+function makeCampaignMemberService(): CampaignMemberService {
+  return { getMembership: vi.fn() } as unknown as CampaignMemberService;
+}
+
 function makeContext(
   campaignService: CampaignService,
+  campaignMemberService: CampaignMemberService,
   currentUser: User | null,
 ): GraphQLContext {
-  return { campaignService, currentUser } as GraphQLContext;
+  return {
+    campaignService,
+    campaignMemberService,
+    currentUser,
+  } as GraphQLContext;
 }
 
 const loggedOutUser = null;
@@ -27,16 +37,28 @@ const authenticatedUser = User.create({
   password: "hashed",
 });
 
+const membership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
+  role: "PLAYER",
+});
+
 describe("campaigns Query", () => {
   let campaignService: CampaignService;
+  let campaignMemberService: CampaignMemberService;
 
   beforeEach(() => {
     campaignService = makeCampaignService();
+    campaignMemberService = makeCampaignMemberService();
   });
 
   describe("campaign", () => {
     it("rejects with UNAUTHENTICATED when logged out", async () => {
-      const context = makeContext(campaignService, loggedOutUser);
+      const context = makeContext(
+        campaignService,
+        campaignMemberService,
+        loggedOutUser,
+      );
 
       await expect(
         Query.campaign(undefined, { id: "campaign-1" }, context),
@@ -46,10 +68,33 @@ describe("campaigns Query", () => {
       expect(campaignService.getCampaignById).not.toHaveBeenCalled();
     });
 
+    it("rejects with FORBIDDEN when not a campaign member", async () => {
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+      const context = makeContext(
+        campaignService,
+        campaignMemberService,
+        authenticatedUser,
+      );
+
+      await expect(
+        Query.campaign(undefined, { id: "campaign-1" }, context),
+      ).rejects.toMatchObject({
+        extensions: { code: "FORBIDDEN" },
+      });
+      expect(campaignService.getCampaignById).not.toHaveBeenCalled();
+    });
+
     it("delegates to campaignService when authenticated", async () => {
       const campaign = { id: "campaign-1" } as unknown as Campaign;
       vi.mocked(campaignService.getCampaignById).mockResolvedValue(campaign);
-      const context = makeContext(campaignService, authenticatedUser);
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+        membership,
+      );
+      const context = makeContext(
+        campaignService,
+        campaignMemberService,
+        authenticatedUser,
+      );
 
       const result = await Query.campaign(
         undefined,
@@ -66,7 +111,11 @@ describe("campaigns Query", () => {
 
   describe("campaigns", () => {
     it("rejects with UNAUTHENTICATED when logged out", async () => {
-      const context = makeContext(campaignService, loggedOutUser);
+      const context = makeContext(
+        campaignService,
+        campaignMemberService,
+        loggedOutUser,
+      );
 
       await expect(
         Query.campaigns(undefined, {}, context),
@@ -79,7 +128,11 @@ describe("campaigns Query", () => {
     it("scopes the result to the current user's memberships", async () => {
       const campaigns = [Campaign.create({ name: "A" })];
       vi.mocked(campaignService.listCampaigns).mockResolvedValue(campaigns);
-      const context = makeContext(campaignService, authenticatedUser);
+      const context = makeContext(
+        campaignService,
+        campaignMemberService,
+        authenticatedUser,
+      );
 
       const result = await Query.campaigns(undefined, {}, context);
 

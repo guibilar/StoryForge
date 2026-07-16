@@ -9,12 +9,13 @@ tracks what's actually built, not just planned.
 - [x] TypeScript, ESLint, Prettier
 - [x] React + Vite frontend scaffold, routing (`react-router-dom`),
       GraphQL client (`urql`), `ProtectedRoute`
-- [x] `packages/ui` (KAN-75) — shared component package: `Button`, `Input`,
-      `Form`/`FormField`/`Label`/`FormError`, `Link`, CSS Modules on a
-      theme-ready token system (`[data-theme]` palettes). Thin scope —
-      exactly what KAN-31 needed, not a full design system yet (no
-      tables/modals). No build step (source consumed directly by Vite).
-      First consumer: `LoginPage`.
+- [x] `packages/ui` (KAN-75, KAN-80) — shared component package: `Button`,
+      `Input`, `Form`/`FormField`/`Label`/`FormError`, `Link`, `Modal`,
+      `Window`, `Dock`; CSS Modules on a theme-ready token system
+      (`[data-theme]` palettes). Thin scope — exactly what each landed
+      ticket needed, not a full design system yet (no tables). No build
+      step (source consumed directly by Vite). Consumers: `LoginPage`,
+      `RegisterPage`, `DashboardPage`, `DesktopBoard`.
 - [x] Fastify / graphql-yoga backend boots
 - [x] GraphQL setup (schema merge, context, error mapping)
 - [ ] Docker skeleton (`docker/` exists but is empty — no Dockerfile/compose yet)
@@ -22,12 +23,13 @@ tracks what's actually built, not just planned.
       to main; runs a `postgres:16` service container + `prisma migrate deploy`
       so Prisma repository integration tests run for real, not mocked)
 - [x] Husky hooks — pre-commit runs `pnpm test` then `pnpm lint-staged` (KAN-24)
-- [x] Test suite — 475 tests via Vitest across `packages/domain` (entities,
+- [x] Test suite — 503 tests via Vitest across `packages/domain` (entities,
       value objects, tags, relationships, notes, note links, sessions,
       events) and `apps/api` (application services w/ mocked repos, Prisma
       mappers, GraphQL resolvers, and Prisma repository integration tests
-      against a real Postgres). See AGENTS.md "Testing" section for layout
-      and gotchas.
+      against a real Postgres), plus 60 more across `apps/web` and
+      `packages/ui` (component/page-level). See AGENTS.md "Testing" section
+      for layout and gotchas.
 
 ## Authentication & Campaigns
 
@@ -62,8 +64,20 @@ tracks what's actually built, not just planned.
       gated by a new `requireCampaignOwner` guard (`requireCurrentUser` +
       an OWNER-role membership check, looked up directly via the repository)
       mapped to a `ForbiddenError`/`FORBIDDEN` GraphQL error code.
-- [x] Frontend: protected routes (`ProtectedRoute` via `me` query), login page markup (`packages/ui`)
-- [ ] Frontend: login mutation wiring, register, dashboard, campaign list, create-campaign dialog
+- [x] Frontend: protected routes (`ProtectedRoute` via `me` query), login +
+      register pages wired to their mutations, dashboard (campaign list,
+      create-campaign dialog, "Enter campaign" navigation to
+      `/campaigns/:id`), all built on `packages/ui`
+- [x] Frontend: Campaign Desktop shell (KAN-80) — draggable/closable/
+      reopenable windows on a per-campaign board (`DesktopBoard`), dock to
+      reopen closed windows, layout (position/size/open-state) persisted to
+      `localStorage` per campaign, single-panel tab-switcher fallback below
+      the mobile breakpoint (`MobileDesktop`). Window content is
+      data-driven (`WINDOW_CATALOG`) so each real window (KAN-39/81/84/49/85)
+      can plug in without touching the shell — today every entry is a
+      `ComingSoonPanel` placeholder.
+- [ ] Manage-campaign modal (KAN-82) — "Manage" button exists on
+      owner-owned dashboard cards but is disabled, not wired yet
 
 ## World Building
 
@@ -266,11 +280,13 @@ tracks what's actually built, not just planned.
 ## Cross-cutting gaps (not tied to a single area)
 
 - [x] Frontend unit/component tests — `apps/web` (Vitest + Testing Library,
-      `router.test.tsx`) and `packages/ui` (per-component tests)
+      `router.test.tsx`, page tests, `DesktopBoard`/`MobileDesktop` tests)
+      and `packages/ui` (per-component tests, incl. `Window`/`Dock`)
 - [ ] Frontend end-to-end tests (real browser against a real backend) — see KAN-87
 - [ ] `packages/core` — purpose undefined, decide before adding files
 - [ ] `packages/shared` — empty, needed once a 2nd backend module or frontend utilities appear
-- [x] `packages/ui` — thin scope built (KAN-75): Button, Input, Form, Link.
-      Tables, modals, layouts still not started — pick up alongside the
-      ticket that needs them
+- [x] `packages/ui` — thin scope built (KAN-75, KAN-80): Button, Input,
+      Form, Link, Modal, Window, Dock. Tables and general layout
+      primitives still not started — pick up alongside the ticket that
+      needs them
 - [ ] Repository implementations currently live in `apps/api/src/modules/entities/infrastructure` instead of `packages/database` — documented deviation from target architecture in AGENTS.md

@@ -42,7 +42,8 @@ packages/
     domain/                 Entity aggregate + shared errors implemented
     plugin-sdk/             empty — not started
     shared/                 empty — not started
-    ui/                     empty — not started
+    ui/                     shared React components (Button, Input, Form, Link,
+                             Modal, Window, Dock) — see packages/ui below
     vtm-plugin/             empty — not started (Vampire plugin placeholder)
 
 docs/
@@ -314,14 +315,14 @@ Core depends only on interfaces.
 
 ---
 
-## packages/ui (KAN-75/KAN-31 — thin scope: Button, Input, Form, Link, Modal)
+## packages/ui (KAN-75/KAN-31/KAN-80 — thin scope: Button, Input, Form, Link, Modal, Window, Dock)
 
 `@storyforge/ui`, consumed by `apps/web` today. Deliberately not a full
-design system yet — built to exactly what KAN-31 (auth + campaign screens)
-needed, per KAN-75's DoD ("not a speculative component library built
-ahead of need"). Tables and layout primitives are still unbuilt — pick
-them up when the ticket that needs them (KAN-39/81 tables, KAN-80 shell)
-lands, following the same pattern.
+design system yet — built to exactly what each landed ticket needed
+(KAN-31 auth + campaign screens, KAN-80 desktop shell), per KAN-75's DoD
+("not a speculative component library built ahead of need"). Tables are
+still unbuilt — pick them up when KAN-39/81 (NPCs/Members list views) need
+them, following the same pattern.
 
 **No build step.** `main`/`types` point straight at `src/index.ts` (no
 `dist/`), same "just-in-time package" pattern as `packages/database` —
@@ -366,15 +367,35 @@ from `src/index.ts`):
   native-`<dialog>` trick) and native cancel (Escape) both call `onClose`.
   First consumer: KAN-31's create-campaign dialog; KAN-82's manage-campaign
   modal should reuse it rather than building its own.
+- `Window` (KAN-80) — chrome for one desktop window: title bar (`title`,
+  a close button calling `onClose`) + body (`children`). Drag and
+  z-index-to-front are not implemented inside `Window` itself — it just
+  exposes `onTitleBarPointerDown`/`onPointerDownCapture` passthrough props
+  so the consumer's own pointer-event logic (`apps/web`'s
+  `useDesktopLayout` hook) can drive position/z-index externally. Pure
+  presentational component, no internal state.
+- `Dock` (KAN-80) — row of toggle buttons, one per `DockItem {id, title,
+open}`, calling `onToggle(id)` on click; `open` renders a filled dot
+  indicator. Used to reopen windows closed via `Window`'s × button.
 
 Usage from `apps/web`:
 
 ```tsx
-import { Button, Form, FormField, Input, Modal } from "@storyforge/ui";
+import {
+  Button,
+  Dock,
+  Form,
+  FormField,
+  Input,
+  Link,
+  Modal,
+  Window,
+} from "@storyforge/ui";
 ```
 
-(`apps/web/src/pages/LoginPage.tsx`, `RegisterPage.tsx`, and
-`DashboardPage.tsx` are the real consumers, wired up in KAN-31.)
+Real consumers: `LoginPage.tsx`, `RegisterPage.tsx`, `DashboardPage.tsx`
+(KAN-31 — `Button`/`Form`/`Input`/`Link`/`Modal`), and `DesktopBoard.tsx`
+(KAN-80 — `Window`/`Dock`, see `apps/web` section below).
 
 React is a `peerDependency` only (not a devDependency of this package)
 — deliberately, to avoid a second physical React copy under
@@ -511,31 +532,59 @@ repositories.
 
 ## apps/web
 
-No longer the default Vite scaffold — routing and a GraphQL client are
-wired, and the first real page exists:
+No longer the default Vite scaffold — routing, a GraphQL client, full
+auth flow, and the campaign desktop shell are all wired:
 
 - `react-router-dom` v7 (`src/router.tsx`/`src/routes/routeConfig.tsx`):
-  `/login` (public), `/dashboard` and `/campaigns/:id` (both behind
-  `ProtectedRoute`).
+  `/login`, `/register` (both public), `/dashboard` and `/campaigns/:id`
+  (both behind `ProtectedRoute`).
 - `ProtectedRoute` (`src/routes/ProtectedRoute.tsx`) — runs the `me`
   GraphQL query via `urql`, redirects to `/login` if `data.me` is null.
 - `urql` client (`src/lib/urqlClient.ts`), `Provider` wired in `main.tsx`.
-- `LoginPage` (`src/pages/LoginPage.tsx`) — real form markup built on
-  `@storyforge/ui` (KAN-75): `Form`/`FormField`/`Input`/`Button`. No
-  submit/mutation logic wired yet (`onSubmit` just calls
-  `preventDefault()`, marked `TODO(KAN-31)`) — that's still open.
-- `DashboardPage`, `CampaignDesktopPage` (`src/pages/`) — still one-line
-  stubs (`<h1>Dashboard</h1>` / `<h1>Campaign</h1>`), not built out yet.
-- No `/register` route exists yet.
-- `src/index.css` now only holds `apps/web`-shell layout/typography
-  rules; design tokens (colors, fonts, shadows) live in
+- `LoginPage`/`RegisterPage` (`src/pages/`) — built on `@storyforge/ui`
+  (KAN-75): `Form`/`FormField`/`Input`/`Button`/`Link`. Fully wired to the
+  `login`/`registerUser` mutations; on success, `navigate("/dashboard")`.
+- `DashboardPage` (`src/pages/DashboardPage.tsx`) — lists the caller's
+  campaigns (`campaigns` query) with member count and the caller's role
+  per card; "New campaign" opens `CreateCampaignDialog` (a `Modal` +
+  `createCampaign` mutation, re-fetches the list on success); each card
+  has an "Enter campaign" button (`navigate('/campaigns/${id}')`) and,
+  for the `OWNER` role, a disabled "Manage" button
+  (`TODO(KAN-82)`, not wired yet).
+- `CampaignDesktopPage` (`src/pages/CampaignDesktopPage.tsx`, KAN-80) —
+  loads the campaign via the `campaign(id)`/`me` queries, resolves the
+  caller's role from `campaign.members`, then renders `DesktopBoard`
+  (viewport ≥768px) or `MobileDesktop` (<768px) via `useMediaQuery`:
+  - `DesktopBoard` (`src/components/DesktopBoard.tsx`) — renders one
+    `@storyforge/ui` `Window` per entry in `WINDOW_CATALOG`
+    (`src/lib/windowCatalog.ts`), positioned/sized/z-ordered from
+    `useDesktopLayout` (`src/hooks/useDesktopLayout.ts`). That hook owns
+    drag (pointer-event based, clamped to the board's bounds),
+    bring-to-front on click/drag-start, close/reopen (`toggle`), and
+    persists the full layout to `localStorage` under
+    `storyforge:desktop:<campaignId>` on every drag-end and toggle — so
+    arrangement survives a page reload, scoped per campaign. A `Dock`
+    lists every catalog entry and toggles visibility; a "Reset layout"
+    button clears storage and restores `DEFAULT_LAYOUT`.
+  - `MobileDesktop` (`src/components/MobileDesktop.tsx`) — the same
+    `WINDOW_CATALOG`, rendered as a single active panel with a tab bar
+    instead of draggable windows. No layout persistence (nothing to
+    persist — just an `activeId` selection).
+  - `WINDOW_CATALOG` (`src/lib/windowCatalog.ts`) is data-driven —
+    `{id, title, render}` entries — specifically so KAN-39/81/84/49/85
+    can each swap their entry's `render` for a real component without
+    touching `DesktopBoard`/`MobileDesktop`. Today every entry renders
+    `ComingSoonPanel` (`src/components/ComingSoonPanel.tsx`), a one-line
+    placeholder naming the tracking ticket.
+- `src/index.css` only holds `apps/web`-shell layout/typography rules;
+  design tokens (colors, fonts, shadows) live in
   `@storyforge/ui/tokens.css`, imported once in `main.tsx`.
 
 Target responsibilities not yet realized: UI extension rendering
-(plugin-contributed UI), the rest of KAN-31 (register page, dashboard
-content, campaign list, real login/register mutation wiring), and every
-other Campaign Desktop window (NPCs, Timeline, Members, Sessions, Notes
-— KAN-39/49/81/84/85) and the desktop shell itself (KAN-80).
+(plugin-contributed UI), the manage-campaign modal (KAN-82), and the
+real content for every Campaign Desktop window (NPCs, Timeline, Members,
+Sessions, Notes — KAN-39/49/81/84/85), which today are all
+`ComingSoonPanel` placeholders inside the KAN-80 shell.
 
 No business logic.
 
@@ -934,7 +983,8 @@ a lint/format violation is blocked locally before it reaches CI.
 
 Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
 `test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
-so workspace deps are built first). Current coverage (365 tests):
+so workspace deps are built first). Current coverage (503 tests: 126
+`packages/domain` + 377 `apps/api`):
 
 - **Domain unit tests** (`packages/domain/src/**/*.test.ts`) — `Campaign`,
   `Entity`, `CampaignMember`, `User`, `Tag`, `Relationship`, `Note` (incl.
@@ -990,8 +1040,12 @@ Gotchas learned building this out, worth knowing before adding more:
   files relative to it.
 
 `apps/web` and `packages/ui` have Vitest + Testing Library test infra
-(component/unit level — `apps/web/src/router.test.tsx`, per-component
-`*.test.tsx` files under `packages/ui/src/components/`), run via the
+(component/unit level, 60 tests total: 35 `apps/web` + 25 `packages/ui`)
+— `apps/web/src/router.test.tsx`, page-level tests per page
+(`LoginPage`/`RegisterPage`/`DashboardPage`/`CampaignDesktopPage.test.tsx`),
+component-level tests for the KAN-80 shell (`DesktopBoard.test.tsx`,
+`MobileDesktop.test.tsx`), and per-component `*.test.tsx` files under
+`packages/ui/src/components/` (including `Window`/`Dock`) — run via the
 same root `pnpm turbo run lint build test` as everything else. No
 frontend end-to-end (real browser, real backend) test infra exists yet
 — see KAN-87 (frontend e2e tests). No test infra for the compiler

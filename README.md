@@ -27,15 +27,19 @@ apps/
                tags,relationships,notes,noteLinks,attachments,sessions,events}/, each
                split into application/ (services), graphql/ (schema + resolvers),
                infrastructure/ (Prisma repositories)
-  web/         React app — routing, urql GraphQL client, login page. Most
-               pages/windows still stubs, see docs/FEATURES.md
+  web/         React app — routing, urql GraphQL client, full auth flow
+               (login/register/dashboard), and the campaign desktop shell
+               (KAN-80: draggable windows, dock, layout persistence, mobile
+               tab fallback). Window contents are still placeholders, see
+               docs/FEATURES.md
 
 packages/
   database/    Prisma schema, generated client, DB connection
   domain/      Campaign, Entity, User, CampaignMember, Tag, Relationship, Note,
                NoteLink, Attachment, Session, Event aggregates + shared errors
-  ui/          Shared React components (Button, Input, Form, Link) consumed
-               by apps/web — thin scope, see AGENTS.md "packages/ui"
+  ui/          Shared React components (Button, Input, Form, Link, Modal,
+               Window, Dock) consumed by apps/web — thin scope, see
+               AGENTS.md "packages/ui"
 
 docs/
 ```
@@ -96,7 +100,10 @@ GraphQL): `User` (auth), `Campaign`, `CampaignMember`, `Entity` (incl. image upl
 `Tag`, `Relationship`, `Note` (incl. nesting and wiki-style `NoteLink`s), `Attachment`,
 `Session`, and `Event` (incl. many-to-many participants via `EventParticipant`).
 Auth guarding is partial — see `AGENTS.md` "apps/api" section for which mutations require
-a logged-in user. The web app has routing, a GraphQL client, and a real login page built
-on the new `packages/ui` shared component package (KAN-75) — most other pages (register,
-dashboard, campaign desktop and its windows) are still stubs. The plugin compiler and
-RPG-system plugin packages have not been started.
+a logged-in user. The web app has a complete auth flow (register, login, dashboard —
+built on `packages/ui`, KAN-75) and the campaign desktop shell (KAN-80): a per-campaign
+board of draggable/closable windows with a dock to reopen them, layout persisted to
+`localStorage`, and a single-panel tab fallback below the mobile breakpoint. Every window
+(NPCs, Members, Sessions, Timeline, Notes) is still a placeholder pending its own ticket
+(KAN-39/81/84/49/85). The plugin compiler and RPG-system plugin packages have not been
+started.

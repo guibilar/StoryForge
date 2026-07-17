@@ -1,7 +1,7 @@
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
-import { requireCampaignMember } from "../../../campaignMembers/graphql/guards";
+import { requireCampaignWriter } from "../../../campaignMembers/graphql/guards";
 import {
   CreateRelationshipDto,
   UpdateRelationshipDto,
@@ -14,7 +14,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      await requireCampaignMember(context, args.input.campaignId);
+      await requireCampaignWriter(context, args.input.campaignId);
       return await context.relationshipService.createRelationship(args.input);
     } catch (error) {
       toGraphQLError(error);
@@ -31,7 +31,7 @@ export const Mutation = {
       const relationship = await context.relationshipService.getRelationship(
         args.input.id,
       );
-      await requireCampaignMember(context, relationship.CampaignId);
+      await requireCampaignWriter(context, relationship.CampaignId);
       return await context.relationshipService.updateRelationship(args.input);
     } catch (error) {
       toGraphQLError(error);
@@ -48,7 +48,7 @@ export const Mutation = {
       const relationship = await context.relationshipService.getRelationship(
         args.id,
       );
-      await requireCampaignMember(context, relationship.CampaignId);
+      await requireCampaignWriter(context, relationship.CampaignId);
       await context.relationshipService.deleteRelationship(args.id);
       return true;
     } catch (error) {

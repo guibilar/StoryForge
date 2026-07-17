@@ -91,3 +91,21 @@ describe("User", () => {
     expect(() => user.changeEmail("invalid")).toThrow(ValidationError);
   });
 });
+
+describe("User.validatePlainPassword", () => {
+  it("rejects empty, too-short, and too-long raw passwords", () => {
+    expect(() => User.validatePlainPassword("")).toThrow(
+      "Password cannot be empty.",
+    );
+    expect(() => User.validatePlainPassword("abc")).toThrow(
+      "Password must be at least 6 characters long.",
+    );
+    expect(() => User.validatePlainPassword("a".repeat(256))).toThrow(
+      "Password cannot exceed 255 characters.",
+    );
+  });
+
+  it("accepts a valid raw password", () => {
+    expect(() => User.validatePlainPassword("secret1")).not.toThrow();
+  });
+});

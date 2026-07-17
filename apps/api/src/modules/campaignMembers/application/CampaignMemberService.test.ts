@@ -184,6 +184,20 @@ describe("CampaignMemberService", () => {
         userId,
       );
     });
+
+    it("rejects removing the OWNER so the campaign is never orphaned", async () => {
+      const userId = UserId.create();
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(
+        CampaignMember.create({ campaignId, userId, role: "OWNER" }),
+      );
+
+      await expect(
+        service.removeMember(campaignId, userId.toString()),
+      ).rejects.toThrow(ValidationError);
+      expect(campaignMemberRepository.delete).not.toHaveBeenCalled();
+    });
   });
 
   describe("updateMemberRole", () => {
@@ -269,6 +283,27 @@ describe("CampaignMemberService", () => {
           campaignId,
           userId: userId.toString(),
           role: "OWNER",
+        }),
+      ).rejects.toThrow(ValidationError);
+      expect(campaignMemberRepository.update).not.toHaveBeenCalled();
+    });
+
+    it("rejects demoting the OWNER so the campaign is never orphaned", async () => {
+      const userId = UserId.create();
+      const member = CampaignMember.create({
+        campaignId,
+        userId,
+        role: "OWNER",
+      });
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(member);
+
+      await expect(
+        service.updateMemberRole({
+          campaignId,
+          userId: userId.toString(),
+          role: "PLAYER",
         }),
       ).rejects.toThrow(ValidationError);
       expect(campaignMemberRepository.update).not.toHaveBeenCalled();

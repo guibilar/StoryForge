@@ -39,6 +39,20 @@ describe("resolveUploadPath", () => {
 
     expect(resolved).toBeNull();
   });
+
+  it("returns null instead of throwing on malformed percent-encoding", () => {
+    expect(resolveUploadPath("/uploads/entity-1/%zz.png", uploadsDir)).toBeNull();
+    expect(resolveUploadPath("/uploads/%", uploadsDir)).toBeNull();
+  });
+
+  it("ignores a query string", () => {
+    const resolved = resolveUploadPath(
+      "/uploads/entity-1/a.png?v=123",
+      uploadsDir,
+    );
+
+    expect(resolved).toBe(`${uploadsDir}${sep}entity-1${sep}a.png`);
+  });
 });
 
 describe("contentTypeFor", () => {

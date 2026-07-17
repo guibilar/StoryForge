@@ -1,7 +1,7 @@
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
-import { requireCampaignMember } from "../../../campaignMembers/graphql/guards";
+import { requireCampaignWriter } from "../../../campaignMembers/graphql/guards";
 
 export const Mutation = {
   addTagToEntity: async (
@@ -12,7 +12,7 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const entity = await context.entityService.getEntity(args.entityId);
-      await requireCampaignMember(context, entity.CampaignId);
+      await requireCampaignWriter(context, entity.CampaignId);
       return await context.tagService.addTagToEntity(args.entityId, args.name);
     } catch (error) {
       toGraphQLError(error);
@@ -27,7 +27,7 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const entity = await context.entityService.getEntity(args.entityId);
-      await requireCampaignMember(context, entity.CampaignId);
+      await requireCampaignWriter(context, entity.CampaignId);
       return await context.tagService.removeTagFromEntity(
         args.entityId,
         args.tagId,

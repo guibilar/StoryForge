@@ -58,6 +58,12 @@ const authenticatedUser = User.create({
 const membership = CampaignMember.create({
   campaignId: "campaign-1",
   userId: authenticatedUser.Id,
+  role: "STORYTELLER",
+});
+
+const playerMembership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
   role: "PLAYER",
 });
 
@@ -98,6 +104,31 @@ describe("tags Mutation.addTagToEntity", () => {
     const campaignMemberService = makeCampaignMemberService();
     vi.mocked(entityService.getEntity).mockResolvedValue(entity);
     vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      tagService,
+      entityService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Mutation.addTagToEntity(
+        undefined,
+        { entityId: "entity-1", name: "villain" },
+        context,
+      ),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(tagService.addTagToEntity).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when the member's role cannot write", async () => {
+    const tagService = makeTagService();
+    const entityService = makeEntityService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(entityService.getEntity).mockResolvedValue(entity);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
     const context = makeContext(
       tagService,
       entityService,

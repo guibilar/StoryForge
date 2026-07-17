@@ -19,13 +19,24 @@ export function isUploadsRequest(url: string): boolean {
 /**
  * Resolves a request URL to an absolute path under uploadsDir, rejecting
  * any path that would traverse outside of it (e.g. via `..` segments).
- * Returns null when the resolved path escapes uploadsDir.
+ * Returns null when the resolved path escapes uploadsDir, or when the URL
+ * carries malformed percent-encoding (decodeURIComponent would throw, and
+ * this runs synchronously in the http request listener — an uncaught throw
+ * there kills the process).
  */
 export function resolveUploadPath(
   url: string,
   uploadsDir: string,
 ): string | null {
-  const relative = decodeURIComponent(url.slice(UPLOADS_PREFIX.length));
+  const pathname = url.split("?", 1)[0];
+
+  let relative: string;
+  try {
+    relative = decodeURIComponent(pathname.slice(UPLOADS_PREFIX.length));
+  } catch {
+    return null;
+  }
+
   const root = resolve(uploadsDir);
   const target = normalize(join(root, relative));
 

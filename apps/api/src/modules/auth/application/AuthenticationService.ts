@@ -29,6 +29,10 @@ export class AuthenticationService {
   constructor(private readonly userRepository: UserRepository) {}
 
   async register(dto: RegisterDto): Promise<AuthResult> {
+    // Must run against the raw input: User.create only ever sees the bcrypt
+    // hash (always 60 chars), which passes the length rules for any input.
+    User.validatePlainPassword(dto.password);
+
     const exists = await this.userRepository.existsByEmail(dto.email);
 
     if (exists) {

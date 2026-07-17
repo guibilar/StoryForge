@@ -10,7 +10,7 @@ const meta = {
   argTypes: {
     variant: {
       control: "radio",
-      options: ["primary", "secondary"],
+      options: ["primary", "secondary", "ghost", "text", "destructive", "tab"],
     },
   },
   args: {
@@ -39,5 +39,34 @@ export const Disabled: Story = {
   args: {
     children: "Save changes",
     disabled: true,
+  },
+};
+
+export const Ghost: Story = {
+  args: {
+    children: "Reset layout",
+    variant: "ghost",
+  },
+};
+
+export const Text: Story = {
+  args: {
+    children: "Never mind",
+    variant: "text",
+  },
+};
+
+export const Destructive: Story = {
+  args: {
+    children: "Archive campaign",
+    variant: "destructive",
+  },
+};
+
+export const Tab: Story = {
+  args: {
+    children: "Notes",
+    variant: "tab",
+    "aria-pressed": true,
   },
 };

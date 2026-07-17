@@ -4,11 +4,14 @@ import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
 import {
   Button,
+  Checkbox,
   Form,
   FormError,
   FormField,
   Input,
   Modal,
+  Select,
+  Textarea,
 } from "@storyforge/ui";
 
 import {
@@ -241,7 +244,7 @@ export function TimelineWindow() {
   return (
     <div className={styles.wrap}>
       <div className={styles.filters}>
-        <input
+        <Input
           type="search"
           className={styles.searchInput}
           placeholder="Search title or description…"
@@ -249,7 +252,7 @@ export function TimelineWindow() {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
         />
-        <select
+        <Select
           className={styles.participantSelect}
           aria-label="Filter by participant"
           value={filterParticipantId}
@@ -261,7 +264,7 @@ export function TimelineWindow() {
               {entity.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <ol className={styles.timeline}>
@@ -352,14 +355,13 @@ export function TimelineWindow() {
                 />
               </FormField>
               <FormField label="Description" htmlFor="event-description">
-                <textarea
+                <Textarea
                   id="event-description"
                   name="description"
                   defaultValue={
                     modal.mode === "edit" ? (modal.event.description ?? "") : ""
                   }
                   rows={3}
-                  className={styles.textarea}
                 />
               </FormField>
               <FormField label="Order (in-fiction)" htmlFor="event-occurredAt">
@@ -374,7 +376,7 @@ export function TimelineWindow() {
                 />
               </FormField>
               <FormField label="Logged in session" htmlFor="event-sessionId">
-                <select
+                <Select
                   id="event-sessionId"
                   name="sessionId"
                   defaultValue={
@@ -388,7 +390,7 @@ export function TimelineWindow() {
                       #{session.sessionNumber} — {session.date}
                     </option>
                   ))}
-                </select>
+                </Select>
               </FormField>
               <FormField label="Participants" htmlFor="event-participants">
                 <div
@@ -396,14 +398,12 @@ export function TimelineWindow() {
                   id="event-participants"
                 >
                   {entities.map((entity) => (
-                    <label key={entity.id} className={styles.checkPill}>
-                      <input
-                        type="checkbox"
-                        checked={selectedParticipantIds.includes(entity.id)}
-                        onChange={() => toggleParticipant(entity.id)}
-                      />
-                      {entity.name}
-                    </label>
+                    <Checkbox
+                      key={entity.id}
+                      label={entity.name}
+                      checked={selectedParticipantIds.includes(entity.id)}
+                      onChange={() => toggleParticipant(entity.id)}
+                    />
                   ))}
                 </div>
               </FormField>

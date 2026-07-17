@@ -2,7 +2,16 @@ import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import { Button, Form, FormError, FormField, Modal } from "@storyforge/ui";
+import {
+  Button,
+  Checkbox,
+  Form,
+  FormError,
+  FormField,
+  Input,
+  Modal,
+  Textarea,
+} from "@storyforge/ui";
 
 import {
   AttachSessionAttendeeDocument,
@@ -264,39 +273,35 @@ export function SessionsWindow() {
             <Form onSubmit={handleSubmit}>
               <FormError>{formError}</FormError>
               <FormField label="Date" htmlFor="session-date">
-                <input
+                <Input
                   id="session-date"
                   name="date"
                   type="date"
                   defaultValue={
                     modal.mode === "edit" ? formatDate(modal.session.date) : ""
                   }
-                  className={styles.dateInput}
                   required
                 />
               </FormField>
               <FormField label="Recap" htmlFor="session-summary">
-                <textarea
+                <Textarea
                   id="session-summary"
                   name="summary"
                   defaultValue={
                     modal.mode === "edit" ? (modal.session.summary ?? "") : ""
                   }
                   rows={4}
-                  className={styles.textarea}
                 />
               </FormField>
               <FormField label="Attendees" htmlFor="session-attendees">
                 <div className={styles.attendeeChecks} id="session-attendees">
                   {members.map((member) => (
-                    <label key={member.userId} className={styles.checkPill}>
-                      <input
-                        type="checkbox"
-                        checked={selectedAttendeeIds.includes(member.userId)}
-                        onChange={() => toggleAttendee(member.userId)}
-                      />
-                      {member.user.email}
-                    </label>
+                    <Checkbox
+                      key={member.userId}
+                      label={member.user.email}
+                      checked={selectedAttendeeIds.includes(member.userId)}
+                      onChange={() => toggleAttendee(member.userId)}
+                    />
                   ))}
                 </div>
               </FormField>

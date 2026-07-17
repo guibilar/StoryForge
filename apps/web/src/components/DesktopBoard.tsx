@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Dock, Window } from "@storyforge/ui";
+import { Button, Dock, Window } from "@storyforge/ui";
 
 import { useDesktopLayout } from "../hooks/useDesktopLayout";
 import { DEFAULT_LAYOUT, visibleWindowCatalog } from "../lib/windowCatalog";
@@ -26,9 +26,9 @@ export function DesktopBoard({ campaignId, role }: DesktopBoardProps) {
   return (
     <div className={styles.wrap}>
       <div className={styles.toolbar}>
-        <button type="button" className={styles.resetBtn} onClick={reset}>
+        <Button type="button" variant="ghost" onClick={reset}>
           Reset layout
-        </button>
+        </Button>
       </div>
 
       <div className={styles.board} ref={boardRef} data-testid="desktop-board">

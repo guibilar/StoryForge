@@ -21,6 +21,18 @@ describe("Button", () => {
     );
   });
 
+  it("applies the tab variant class and reflects aria-pressed", () => {
+    render(
+      <Button variant="tab" aria-pressed>
+        Notes
+      </Button>,
+    );
+
+    const button = screen.getByRole("button", { name: "Notes" });
+    expect(button.className).toMatch(/tab/);
+    expect(button).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("forwards a ref to the underlying button element", () => {
     const ref = createRef<HTMLButtonElement>();
     render(<Button ref={ref}>Submit</Button>);

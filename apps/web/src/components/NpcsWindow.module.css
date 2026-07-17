@@ -58,35 +58,6 @@
   flex-shrink: 0;
 }
 
-.textarea {
-  font: inherit;
-  font-size: 15px;
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text-h);
-  box-sizing: border-box;
-  resize: vertical;
-}
-
-.textarea:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-  border-color: var(--accent-border);
-}
-
-.visibilitySelect {
-  font: inherit;
-  font-size: 14px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-  color: var(--text);
-  padding: 6px 8px;
-}
-
 .modalActions {
   display: flex;
   justify-content: flex-end;

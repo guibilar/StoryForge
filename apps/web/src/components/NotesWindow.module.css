@@ -102,31 +102,12 @@
 
 .select {
   width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 10px;
-  font: inherit;
-  color: var(--text-h);
-  background: var(--bg);
 }
 
 .recipientChecks {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.checkPill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 5px 10px;
-  font-size: 12px;
-  color: var(--text-h);
-  background: var(--bg);
-  cursor: pointer;
 }
 
 .hint {

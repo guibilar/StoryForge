@@ -1,7 +1,14 @@
 import type { FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import { Button, Form, FormError, FormField, Input } from "@storyforge/ui";
+import {
+  Button,
+  Form,
+  FormError,
+  FormField,
+  Input,
+  Select,
+} from "@storyforge/ui";
 
 import {
   AddCampaignMemberDocument,
@@ -105,8 +112,7 @@ export function MembersWindow() {
           <li key={member.userId} className={styles.row}>
             <span className={styles.email}>{member.user.email}</span>
             {isOwner ? (
-              <select
-                className={styles.roleSelect}
+              <Select
                 aria-label={`Role for ${member.user.email}`}
                 value={member.role}
                 disabled={updateRoleState.fetching}
@@ -122,7 +128,7 @@ export function MembersWindow() {
                     {role}
                   </option>
                 ))}
-              </select>
+              </Select>
             ) : (
               <span className={styles.role}>{member.role}</span>
             )}
@@ -147,18 +153,13 @@ export function MembersWindow() {
             <Input id="member-email" name="email" type="email" required />
           </FormField>
           <FormField label="Role" htmlFor="member-role">
-            <select
-              id="member-role"
-              name="role"
-              defaultValue="PLAYER"
-              className={styles.roleSelect}
-            >
+            <Select id="member-role" name="role" defaultValue="PLAYER">
               {ROLES.map((role) => (
                 <option key={role} value={role}>
                   {role}
                 </option>
               ))}
-            </select>
+            </Select>
           </FormField>
           <Button type="submit" disabled={addState.fetching}>
             Add member

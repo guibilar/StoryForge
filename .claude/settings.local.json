@@ -59,7 +59,11 @@
       "Bash(xargs -I{} sh -c 'echo ==={}===; grep -n -A20 \"model CampaignMember\" {}')",
       "Bash(grep *)",
       "Bash(npx vitest *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(pnpm codegen *)",
+      "Bash(pnpm vitest *)",
+      "Bash(pnpm exec *)",
+      "Skill(run)"
     ]
   }
 }

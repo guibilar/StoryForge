@@ -13,11 +13,13 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint .",
     "dev": "tsx watch src/test.ts",
-    "dev:debug": "tsx watch --inspect=9230 src/test.ts"
+    "dev:debug": "tsx watch --inspect=9230 src/test.ts",
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "bcrypt-ts": "^8.0.1",
     "dotenv": "^17.4.2",
     "pg": "^8.22.0"
   },

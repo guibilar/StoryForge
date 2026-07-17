@@ -1,10 +1,7 @@
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
-import {
-  requireCampaignMember,
-  requireCampaignOwner,
-} from "../../../campaignMembers/graphql/guards";
+import { requireCampaignRole } from "../../../campaignMembers/graphql/guards";
 import {
   CreateCampaignDTO,
   UpdateCampaignDTO,
@@ -33,7 +30,11 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      await requireCampaignMember(context, args.input.id);
+      await requireCampaignRole(
+        context,
+        args.input.id,
+        "MANAGE_CAMPAIGN_SETTINGS",
+      );
       return await context.campaignService.updateCampaign(args);
     } catch (error) {
       toGraphQLError(error);
@@ -46,7 +47,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      await requireCampaignOwner(context, args.id);
+      await requireCampaignRole(context, args.id, "MANAGE_CAMPAIGN_SETTINGS");
       await context.campaignService.archiveCampaign(args.id);
       return true;
     } catch (error) {

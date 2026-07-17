@@ -1,12 +1,13 @@
 import {
+  canViewVisibility,
   EntityFilter,
-  EntityVisibility,
+  filterByVisibility,
   ForbiddenError,
 } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
-import { requireCampaignMember } from "../../../campaignMembers/graphql/guards";
+import { requireCampaignRole } from "../../../campaignMembers/graphql/guards";
 
 export const Query = {
   entity: async (
@@ -17,15 +18,13 @@ export const Query = {
     try {
       requireCurrentUser(context);
       const entity = await context.entityService.getEntity(args.id);
-      const membership = await requireCampaignMember(
+      const membership = await requireCampaignRole(
         context,
         entity.CampaignId,
+        "VIEW_ENTITY",
       );
 
-      if (
-        membership.Role === "PLAYER" &&
-        entity.Visibility !== EntityVisibility.PUBLIC
-      ) {
+      if (!canViewVisibility(entity.Visibility, membership.Role)) {
         throw new ForbiddenError("You cannot view this entity.");
       }
 
@@ -41,19 +40,17 @@ export const Query = {
     context: GraphQLContext,
   ) => {
     try {
-      const membership = await requireCampaignMember(context, args.campaignId);
+      const membership = await requireCampaignRole(
+        context,
+        args.campaignId,
+        "VIEW_ENTITY",
+      );
       const entities = await context.entityService.listEntities(
         args.campaignId,
         args.filter,
       );
 
-      if (membership.Role === "PLAYER") {
-        return entities.filter(
-          (entity) => entity.Visibility === EntityVisibility.PUBLIC,
-        );
-      }
-
-      return entities;
+      return filterByVisibility(entities, membership.Role);
     } catch (error) {
       toGraphQLError(error);
     }

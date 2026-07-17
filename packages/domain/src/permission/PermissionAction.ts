@@ -1,0 +1,2 @@
+export type PermissionAction =
+  "VIEW_ENTITY" | "EDIT_ENTITY" | "MANAGE_MEMBERS" | "MANAGE_CAMPAIGN_SETTINGS";

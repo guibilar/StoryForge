@@ -36,6 +36,29 @@ export class User {
     );
   }
 
+  /**
+   * Validates a plain-text (pre-hash) password. The instance-level
+   * validatePassword only ever sees the already-hashed value (bcrypt output
+   * is always 60 chars, so it passes every rule regardless of what the user
+   * typed) — callers hashing a user-supplied password must run this against
+   * the raw input first.
+   */
+  static validatePlainPassword(password: string): void {
+    const trimmed = password.trim();
+
+    if (!trimmed) {
+      throw new ValidationError("Password cannot be empty.");
+    }
+
+    if (trimmed.length < 6) {
+      throw new ValidationError("Password must be at least 6 characters long.");
+    }
+
+    if (trimmed.length > 255) {
+      throw new ValidationError("Password cannot exceed 255 characters.");
+    }
+  }
+
   static rehydrate(props: RehydrateUserProps): User {
     return new User(
       props.id,
@@ -89,18 +112,6 @@ export class User {
   }
 
   private validatePassword(password: string): void {
-    const trimmed = password.trim();
-
-    if (!trimmed) {
-      throw new ValidationError("Password cannot be empty.");
-    }
-
-    if (trimmed.length < 6) {
-      throw new ValidationError("Password must be at least 6 characters long.");
-    }
-
-    if (trimmed.length > 255) {
-      throw new ValidationError("Password cannot exceed 255 characters.");
-    }
+    User.validatePlainPassword(password);
   }
 }

@@ -35,11 +35,14 @@ export class PrismaCampaignRepository implements CampaignRepository {
   }
 
   async listCampaigns(userId: string): Promise<Campaign[]> {
+    // Archived campaigns are hidden from the dashboard list (the archive
+    // confirm dialog promises exactly that); they stay reachable by id.
     const records = await prisma.campaign.findMany({
       where: {
         members: {
           some: { userId },
         },
+        archivedAt: null,
       },
       include: { members: true },
     });

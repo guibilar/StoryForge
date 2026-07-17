@@ -39,6 +39,24 @@ describe("AuthenticationService", () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
+    it("rejects an empty password before hashing it", async () => {
+      vi.mocked(repository.existsByEmail).mockResolvedValue(false);
+
+      await expect(
+        service.register({ email: "new@example.com", password: "" }),
+      ).rejects.toThrow(ValidationError);
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it("rejects a password shorter than 6 characters before hashing it", async () => {
+      vi.mocked(repository.existsByEmail).mockResolvedValue(false);
+
+      await expect(
+        service.register({ email: "new@example.com", password: "abc" }),
+      ).rejects.toThrow(ValidationError);
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
     it("creates the user with a hashed password and returns a valid token", async () => {
       vi.mocked(repository.existsByEmail).mockResolvedValue(false);
 

@@ -152,4 +152,26 @@ describe("PrismaCampaignRepository", () => {
     expect(campaigns.some((c) => c.Id.equals(memberCampaign.Id))).toBe(true);
     expect(campaigns.some((c) => c.Id.equals(otherCampaign.Id))).toBe(false);
   });
+
+  it("excludes archived campaigns from the list", async () => {
+    const memberUserId = await createUser();
+
+    const campaign = Campaign.create({ name: uniqueName() });
+    createdIds.push(campaign.Id.toString());
+    await repository.create(campaign);
+    await prisma.campaignMember.create({
+      data: {
+        id: randomUUID(),
+        campaignId: campaign.Id.toString(),
+        userId: memberUserId,
+        role: "OWNER",
+      },
+    });
+
+    await repository.archive(campaign);
+
+    const campaigns = await repository.listCampaigns(memberUserId);
+
+    expect(campaigns.some((c) => c.Id.equals(campaign.Id))).toBe(false);
+  });
 });

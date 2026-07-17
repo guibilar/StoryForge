@@ -35,8 +35,10 @@ export function MembersWindow() {
   );
 
   const [addState, addMember] = useMutation(AddCampaignMemberDocument);
-  const [, removeMember] = useMutation(RemoveCampaignMemberDocument);
-  const [, updateRole] = useMutation(UpdateCampaignMemberRoleDocument);
+  const [removeState, removeMember] = useMutation(RemoveCampaignMemberDocument);
+  const [updateRoleState, updateRole] = useMutation(
+    UpdateCampaignMemberRoleDocument,
+  );
 
   const currentUserId = meData?.me?.id;
   const members = campaignData?.campaign?.members ?? [];
@@ -91,8 +93,13 @@ export function MembersWindow() {
     return <p>{formatGraphQLError(error) ?? "Unable to load members."}</p>;
   }
 
+  const manageError =
+    formatGraphQLError(updateRoleState.error) ??
+    formatGraphQLError(removeState.error);
+
   return (
     <div className={styles.wrap}>
+      <FormError>{manageError}</FormError>
       <ul className={styles.list}>
         {members.map((member) => (
           <li key={member.userId} className={styles.row}>

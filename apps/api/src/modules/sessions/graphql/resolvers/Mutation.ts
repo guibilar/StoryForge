@@ -1,7 +1,11 @@
 import type { GraphQLContext } from "../../../../graphql/context";
+import {
+  parseOptionalDate,
+  parseRequiredDate,
+} from "../../../../graphql/dateInput";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
-import { requireCampaignMember } from "../../../campaignMembers/graphql/guards";
+import { requireCampaignWriter } from "../../../campaignMembers/graphql/guards";
 
 export interface CreateSessionInput {
   campaignId: string;
@@ -11,7 +15,7 @@ export interface CreateSessionInput {
 
 export interface UpdateSessionInput {
   id: string;
-  date?: string;
+  date?: string | null;
   summary?: string | null;
 }
 
@@ -22,10 +26,10 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      await requireCampaignMember(context, args.input.campaignId);
+      await requireCampaignWriter(context, args.input.campaignId);
       return await context.sessionService.createSession({
         campaignId: args.input.campaignId,
-        date: new Date(args.input.date),
+        date: parseRequiredDate(args.input.date, "date"),
         summary: args.input.summary,
       });
     } catch (error) {
@@ -41,11 +45,10 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const session = await context.sessionService.getSession(args.input.id);
-      await requireCampaignMember(context, session.CampaignId);
+      await requireCampaignWriter(context, session.CampaignId);
       return await context.sessionService.updateSession({
         id: args.input.id,
-        date:
-          args.input.date === undefined ? undefined : new Date(args.input.date),
+        date: parseOptionalDate(args.input.date, "date"),
         summary: args.input.summary,
       });
     } catch (error) {
@@ -61,7 +64,7 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const session = await context.sessionService.getSession(args.id);
-      await requireCampaignMember(context, session.CampaignId);
+      await requireCampaignWriter(context, session.CampaignId);
       await context.sessionService.deleteSession(args.id);
       return true;
     } catch (error) {

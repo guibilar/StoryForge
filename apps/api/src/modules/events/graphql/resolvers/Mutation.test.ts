@@ -44,6 +44,12 @@ const authenticatedUser = User.create({
 const membership = CampaignMember.create({
   campaignId: "campaign-1",
   userId: authenticatedUser.Id,
+  role: "STORYTELLER",
+});
+
+const playerMembership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
   role: "PLAYER",
 });
 
@@ -82,6 +88,29 @@ describe("events Mutation.createEvent", () => {
     const eventService = makeEventService();
     const campaignMemberService = makeCampaignMemberService();
     vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      eventService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = {
+      campaignId: "campaign-1",
+      title: "Goblin ambush",
+      occurredAt: "2024-01-01T00:00:00Z",
+    };
+
+    await expect(
+      Mutation.createEvent(undefined, { input }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(eventService.createEvent).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when the member's role cannot write", async () => {
+    const eventService = makeEventService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
     const context = makeContext(
       eventService,
       campaignMemberService,

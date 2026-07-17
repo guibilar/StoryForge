@@ -82,6 +82,15 @@ export class CampaignMemberService {
       );
     }
 
+    // Only one OWNER can exist per campaign (see assertNoOtherOwner), so
+    // removing an OWNER always leaves the campaign with no one able to
+    // manage members or settings, or to archive it.
+    if (existing.Role === "OWNER") {
+      throw new ValidationError(
+        "The campaign owner cannot be removed. A campaign must always have an owner.",
+      );
+    }
+
     await this.campaignMemberRepository.delete(campaignId, target);
   }
 
@@ -100,6 +109,14 @@ export class CampaignMemberService {
 
     if (dto.role === "OWNER" && member.Role !== "OWNER") {
       await this.assertNoOtherOwner(dto.campaignId);
+    }
+
+    // Same invariant as removeMember: demoting the sole OWNER would orphan
+    // the campaign (nobody left with MANAGE_MEMBERS/MANAGE_CAMPAIGN_SETTINGS).
+    if (member.Role === "OWNER" && dto.role !== "OWNER") {
+      throw new ValidationError(
+        "The campaign owner cannot be demoted. A campaign must always have an owner.",
+      );
     }
 
     member.changeRole(dto.role);

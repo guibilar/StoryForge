@@ -3,6 +3,7 @@ import { useQuery } from "urql";
 import { Link } from "@storyforge/ui";
 
 import { CampaignDocument, MeDocument } from "../gql/graphql";
+import { AppCommandPalette } from "../components/AppCommandPalette";
 import { DesktopBoard } from "../components/DesktopBoard";
 import { EntitySidebar } from "../components/EntitySidebar";
 import { MobileDesktop } from "../components/MobileDesktop";
@@ -75,6 +76,7 @@ export function CampaignDesktopPage() {
             <DesktopBoard role={role} />
           </div>
         )}
+        <AppCommandPalette campaignId={campaign.id} role={role} />
       </DesktopWindowsContext.Provider>
     </main>
   );

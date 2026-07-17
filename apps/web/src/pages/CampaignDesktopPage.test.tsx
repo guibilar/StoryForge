@@ -8,6 +8,7 @@ import {
   CampaignDocument,
   EntitiesDocument,
   MeDocument,
+  NotesDocument,
   SessionsDocument,
 } from "../gql/graphql";
 
@@ -88,6 +89,13 @@ function setupMocks({
     if (args.query === SessionsDocument) {
       return [
         { data: { sessions: [] }, fetching: false, stale: false },
+        vi.fn(),
+      ];
+    }
+
+    if (args.query === NotesDocument) {
+      return [
+        { data: { noteRoots: [] }, fetching: false, stale: false },
         vi.fn(),
       ];
     }

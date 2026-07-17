@@ -1,26 +1,14 @@
-import type { FormEvent } from "react";
 import { useState } from "react";
-import { useMutation, useQuery } from "urql";
-import {
-  Button,
-  Form,
-  FormError,
-  FormField,
-  Input,
-  Modal,
-  Select,
-  Textarea,
-} from "@storyforge/ui";
+import { useQuery } from "urql";
+import { Button } from "@storyforge/ui";
 
-import {
-  CreateEntityDocument,
-  CreateNoteDocument,
-  EntitiesDocument,
-} from "../gql/graphql";
-import type { CampaignRole, EntityVisibility } from "../gql/graphql";
+import { EntitiesDocument } from "../gql/graphql";
+import type { CampaignRole } from "../gql/graphql";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { CreateEntityModal } from "./CreateEntityModal";
+import { CreateNoteModal } from "./CreateNoteModal";
 import type { EntitySummary } from "./EntityWindow";
 import styles from "./EntitySidebar.module.css";
 
@@ -39,8 +27,6 @@ const WORLD_NAV: { id: string; label: string }[] = [
   { id: "members", label: "Members" },
   { id: "relationships", label: "Relationship Graph" },
 ];
-
-const VISIBILITIES: EntityVisibility[] = ["PUBLIC", "STORYTELLER", "PRIVATE"];
 
 type QuickAction = "entity" | "note" | null;
 
@@ -63,9 +49,6 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
     variables: { campaignId },
   });
 
-  const [createEntityState, createEntity] = useMutation(CreateEntityDocument);
-  const [createNoteState, createNote] = useMutation(CreateNoteDocument);
-
   const [quickAction, setQuickAction] = useState<QuickAction>(null);
 
   const isWriter =
@@ -75,62 +58,6 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
 
   function closeQuickAction() {
     setQuickAction(null);
-  }
-
-  async function handleCreateEntity(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const name = String(form.get("name") ?? "").trim();
-    const type = String(form.get("type") ?? "").trim();
-    const description = String(form.get("description") ?? "").trim();
-    const visibility = String(
-      form.get("visibility") ?? "PUBLIC",
-    ) as EntityVisibility;
-
-    if (!name || !type) {
-      return;
-    }
-
-    const result = await createEntity({
-      input: {
-        campaignId,
-        type,
-        name,
-        description: description || null,
-        visibility,
-      },
-    });
-    if (result.data?.createEntity) {
-      closeQuickAction();
-      reexecuteEntities({ requestPolicy: "network-only" });
-    }
-  }
-
-  async function handleCreateNote(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const title = String(form.get("title") ?? "").trim();
-    const content = String(form.get("content") ?? "").trim();
-
-    if (!title) {
-      return;
-    }
-
-    // Kept deliberately minimal (title + content only, visibility fixed to
-    // SHARED) — a quick way to stub a note. Refine it via the Notes window,
-    // which has the full editor/visibility/recipients UI.
-    const result = await createNote({
-      input: {
-        campaignId,
-        title,
-        content: content || null,
-        visibility: "SHARED",
-      },
-    });
-    if (result.data?.createNote) {
-      closeQuickAction();
-      toggle("notes");
-    }
   }
 
   return (
@@ -205,80 +132,17 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
         </div>
       ) : null}
 
-      <Modal open={quickAction === "entity"} onClose={closeQuickAction}>
-        <h2>New Entity</h2>
-        <Form onSubmit={handleCreateEntity}>
-          <FormError>{formatGraphQLError(createEntityState.error)}</FormError>
-          <FormField label="Name" htmlFor="sidebar-entity-name">
-            <Input id="sidebar-entity-name" name="name" required />
-          </FormField>
-          <FormField label="Type" htmlFor="sidebar-entity-type">
-            <Input
-              id="sidebar-entity-type"
-              name="type"
-              placeholder="e.g. Character, Location, Item"
-              required
-            />
-          </FormField>
-          <FormField label="Description" htmlFor="sidebar-entity-description">
-            <Textarea
-              id="sidebar-entity-description"
-              name="description"
-              rows={3}
-            />
-          </FormField>
-          <FormField label="Visibility" htmlFor="sidebar-entity-visibility">
-            <Select
-              id="sidebar-entity-visibility"
-              name="visibility"
-              defaultValue="PUBLIC"
-            >
-              {VISIBILITIES.map((visibility) => (
-                <option key={visibility} value={visibility}>
-                  {visibility}
-                </option>
-              ))}
-            </Select>
-          </FormField>
-          <div className={styles.modalActions}>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={closeQuickAction}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={createEntityState.fetching}>
-              Create
-            </Button>
-          </div>
-        </Form>
-      </Modal>
-
-      <Modal open={quickAction === "note"} onClose={closeQuickAction}>
-        <h2>New Note</h2>
-        <Form onSubmit={handleCreateNote}>
-          <FormError>{formatGraphQLError(createNoteState.error)}</FormError>
-          <FormField label="Title" htmlFor="sidebar-note-title">
-            <Input id="sidebar-note-title" name="title" required />
-          </FormField>
-          <FormField label="Content" htmlFor="sidebar-note-content">
-            <Textarea id="sidebar-note-content" name="content" rows={5} />
-          </FormField>
-          <div className={styles.modalActions}>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={closeQuickAction}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={createNoteState.fetching}>
-              Create
-            </Button>
-          </div>
-        </Form>
-      </Modal>
+      <CreateEntityModal
+        open={quickAction === "entity"}
+        campaignId={campaignId}
+        onClose={closeQuickAction}
+        onCreated={() => reexecuteEntities({ requestPolicy: "network-only" })}
+      />
+      <CreateNoteModal
+        open={quickAction === "note"}
+        campaignId={campaignId}
+        onClose={closeQuickAction}
+      />
     </nav>
   );
 }

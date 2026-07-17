@@ -1,0 +1,12 @@
+# layout/recentEntityIds are JSON-encoded strings, not a custom JSON scalar
+# — this schema has no custom scalars anywhere (dates are plain ISO strings
+# too), so this follows that existing convention rather than introducing the
+# first one just for this field.
+type WorkspaceState {
+  id: ID!
+  campaignId: ID!
+  layout: String!
+  recentEntityIds: String!
+  createdAt: String!
+  updatedAt: String!
+}

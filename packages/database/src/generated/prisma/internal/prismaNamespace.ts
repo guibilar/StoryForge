@@ -426,6 +426,7 @@ export const ModelName = {
   NoteLink: "NoteLink",
   Attachment: "Attachment",
   CampaignMember: "CampaignMember",
+  WorkspaceState: "WorkspaceState",
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -462,7 +463,8 @@ export type TypeMap<
       | "noteRecipient"
       | "noteLink"
       | "attachment"
-      | "campaignMember";
+      | "campaignMember"
+      | "workspaceState";
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
@@ -1606,6 +1608,82 @@ export type TypeMap<
         };
       };
     };
+    WorkspaceState: {
+      payload: Prisma.$WorkspaceStatePayload<ExtArgs>;
+      fields: Prisma.WorkspaceStateFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.WorkspaceStateFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.WorkspaceStateFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload>;
+        };
+        findFirst: {
+          args: Prisma.WorkspaceStateFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.WorkspaceStateFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload>;
+        };
+        findMany: {
+          args: Prisma.WorkspaceStateFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload>[];
+        };
+        create: {
+          args: Prisma.WorkspaceStateCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload>;
+        };
+        createMany: {
+          args: Prisma.WorkspaceStateCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.WorkspaceStateCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload>[];
+        };
+        delete: {
+          args: Prisma.WorkspaceStateDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload>;
+        };
+        update: {
+          args: Prisma.WorkspaceStateUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload>;
+        };
+        deleteMany: {
+          args: Prisma.WorkspaceStateDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.WorkspaceStateUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.WorkspaceStateUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload>[];
+        };
+        upsert: {
+          args: Prisma.WorkspaceStateUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceStatePayload>;
+        };
+        aggregate: {
+          args: Prisma.WorkspaceStateAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWorkspaceState>;
+        };
+        groupBy: {
+          args: Prisma.WorkspaceStateGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.WorkspaceStateGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.WorkspaceStateCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.WorkspaceStateCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
   };
 } & {
   other: {
@@ -1831,12 +1909,32 @@ export const CampaignMemberScalarFieldEnum = {
 export type CampaignMemberScalarFieldEnum =
   (typeof CampaignMemberScalarFieldEnum)[keyof typeof CampaignMemberScalarFieldEnum];
 
+export const WorkspaceStateScalarFieldEnum = {
+  id: "id",
+  userId: "userId",
+  campaignId: "campaignId",
+  layout: "layout",
+  recentEntityIds: "recentEntityIds",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type WorkspaceStateScalarFieldEnum =
+  (typeof WorkspaceStateScalarFieldEnum)[keyof typeof WorkspaceStateScalarFieldEnum];
+
 export const SortOrder = {
   asc: "asc",
   desc: "desc",
 } as const;
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull,
+} as const;
+
+export type JsonNullValueInput =
+  (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput];
 
 export const QueryMode = {
   default: "default",
@@ -1851,6 +1949,15 @@ export const NullsOrder = {
 } as const;
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder];
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull,
+} as const;
+
+export type JsonNullValueFilter =
+  (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter];
 
 /**
  * Field references
@@ -1948,6 +2055,22 @@ export type EnumCampaignRoleFieldRefInput<$PrismaModel> = FieldRefInputType<
 export type ListEnumCampaignRoleFieldRefInput<$PrismaModel> = FieldRefInputType<
   $PrismaModel,
   "CampaignRole[]"
+>;
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  "Json"
+>;
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  "QueryMode"
 >;
 
 /**
@@ -2099,6 +2222,7 @@ export type GlobalOmitConfig = {
   noteLink?: Prisma.NoteLinkOmit;
   attachment?: Prisma.AttachmentOmit;
   campaignMember?: Prisma.CampaignMemberOmit;
+  workspaceState?: Prisma.WorkspaceStateOmit;
 };
 
 /* Types for Logging */

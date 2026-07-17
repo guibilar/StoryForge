@@ -1,0 +1,7 @@
+extend type Query {
+  """
+  The current user's saved workspace state for this campaign (window layout
+  + recently-opened entities), or null if they've never saved one.
+  """
+  myWorkspaceState(campaignId: ID!): WorkspaceState
+}

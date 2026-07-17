@@ -1,0 +1,13 @@
+input SaveWorkspaceStateInput {
+  campaignId: ID!
+  layout: String!
+  recentEntityIds: String!
+}
+
+extend type Mutation {
+  """
+  Overwrites the current user's saved workspace state for this campaign.
+  Insert-or-update — there's only ever one per (user, campaign).
+  """
+  saveWorkspaceState(input: SaveWorkspaceStateInput!): WorkspaceState!
+}

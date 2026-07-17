@@ -22,4 +22,5 @@ export type * from "./models/NoteRecipient";
 export type * from "./models/NoteLink";
 export type * from "./models/Attachment";
 export type * from "./models/CampaignMember";
+export type * from "./models/WorkspaceState";
 export type * from "./commonInputTypes";

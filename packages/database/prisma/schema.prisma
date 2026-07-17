@@ -41,13 +41,14 @@ model Campaign {
   updatedAt  DateTime  @updatedAt
   archivedAt DateTime?
 
-  entities      Entity[]
-  members       CampaignMember[]
-  tags          Tag[]
-  relationships Relationship[]
-  notes         Note[]
-  sessions      Session[]
-  events        Event[]
+  entities        Entity[]
+  members         CampaignMember[]
+  tags            Tag[]
+  relationships   Relationship[]
+  notes           Note[]
+  sessions        Session[]
+  events          Event[]
+  workspaceStates WorkspaceState[]
 }
 
 model Entity {
@@ -228,6 +229,7 @@ model User {
   notes               Note[]
   sessionAttendances  SessionAttendee[]
   noteRecipiencies    NoteRecipient[]
+  workspaceStates     WorkspaceState[]
 }
 
 model Note {
@@ -250,7 +252,7 @@ model Note {
   deletedAt DateTime?
 
   attachments Attachment[]
-  children    Note[]       @relation("NoteParent")
+  children    Note[]          @relation("NoteParent")
   recipients  NoteRecipient[]
 
   linksOut NoteLink[] @relation("NoteLinkSource")
@@ -285,7 +287,7 @@ model NoteLink {
   targetEntity   Entity? @relation("NoteLinkTargetEntity", fields: [targetEntityId], references: [id], onDelete: Cascade)
 
   targetNoteId String?
-  targetNote   Note?    @relation("NoteLinkTargetNote", fields: [targetNoteId], references: [id], onDelete: Cascade)
+  targetNote   Note?   @relation("NoteLinkTargetNote", fields: [targetNoteId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
@@ -327,5 +329,27 @@ model CampaignMember {
   // index (see migration 20260716120000_campaign_member_single_owner) —
   // Prisma's declarative @@unique can't express a WHERE role = 'OWNER'
   // clause.
+  @@index([campaignId])
+}
+
+// Optional server-persisted upgrade path for what KAN-100/101 keep in
+// localStorage (recently-opened entities, saved window layout) — see
+// KAN-103. One row per (user, campaign): the client always overwrites the
+// whole thing, there's no history/audit need, so no soft-delete here.
+model WorkspaceState {
+  id         String @id @default(uuid())
+  userId     String
+  campaignId String
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  layout          Json
+  recentEntityIds Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, campaignId])
   @@index([campaignId])
 }

@@ -91,3 +91,8 @@ export type Attachment = Prisma.AttachmentModel;
  *
  */
 export type CampaignMember = Prisma.CampaignMemberModel;
+/**
+ * Model WorkspaceState
+ *
+ */
+export type WorkspaceState = Prisma.WorkspaceStateModel;

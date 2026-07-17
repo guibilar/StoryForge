@@ -11,7 +11,9 @@
 export const CampaignRole = {
   OWNER: "OWNER",
   STORYTELLER: "STORYTELLER",
+  CO_STORYTELLER: "CO_STORYTELLER",
   PLAYER: "PLAYER",
+  OBSERVER: "OBSERVER",
 } as const;
 
 export type CampaignRole = (typeof CampaignRole)[keyof typeof CampaignRole];

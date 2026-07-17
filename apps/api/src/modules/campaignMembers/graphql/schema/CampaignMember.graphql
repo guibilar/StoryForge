@@ -1,7 +1,9 @@
 enum CampaignRole {
   OWNER
   STORYTELLER
+  CO_STORYTELLER
   PLAYER
+  OBSERVER
 }
 
 type CampaignMember {

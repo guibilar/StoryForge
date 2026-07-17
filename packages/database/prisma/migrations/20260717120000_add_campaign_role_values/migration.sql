@@ -1,0 +1,3 @@
+-- AlterEnum
+ALTER TYPE "CampaignRole" ADD VALUE 'CO_STORYTELLER';
+ALTER TYPE "CampaignRole" ADD VALUE 'OBSERVER';

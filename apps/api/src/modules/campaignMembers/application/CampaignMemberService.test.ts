@@ -106,6 +106,55 @@ describe("CampaignMemberService", () => {
       expect(member.Role).toBe("PLAYER");
       expect(campaignMemberRepository.create).toHaveBeenCalledWith(member);
     });
+
+    it.each(["STORYTELLER", "CO_STORYTELLER", "PLAYER", "OBSERVER"] as const)(
+      "creates the member with role %s",
+      async (role) => {
+        const user = User.create({ email: dto.email, password: "hashed" });
+        vi.mocked(userRepository.findByEmail).mockResolvedValue(user);
+        vi.mocked(
+          campaignMemberRepository.findByCampaignAndUser,
+        ).mockResolvedValue(null);
+
+        const member = await service.addMember({ ...dto, role });
+
+        expect(member.Role).toBe(role);
+      },
+    );
+
+    it("rejects adding an OWNER when the campaign already has one", async () => {
+      const user = User.create({ email: dto.email, password: "hashed" });
+      vi.mocked(userRepository.findByEmail).mockResolvedValue(user);
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(null);
+      vi.mocked(campaignMemberRepository.listByCampaign).mockResolvedValue([
+        CampaignMember.create({
+          campaignId,
+          userId: UserId.create(),
+          role: "OWNER",
+        }),
+      ]);
+
+      await expect(
+        service.addMember({ ...dto, role: "OWNER" }),
+      ).rejects.toThrow(ValidationError);
+      expect(campaignMemberRepository.create).not.toHaveBeenCalled();
+    });
+
+    it("allows adding an OWNER when the campaign has no owner yet", async () => {
+      const user = User.create({ email: dto.email, password: "hashed" });
+      vi.mocked(userRepository.findByEmail).mockResolvedValue(user);
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(null);
+      vi.mocked(campaignMemberRepository.listByCampaign).mockResolvedValue([]);
+
+      const member = await service.addMember({ ...dto, role: "OWNER" });
+
+      expect(member.Role).toBe("OWNER");
+      expect(campaignMemberRepository.create).toHaveBeenCalledWith(member);
+    });
   });
 
   describe("removeMember", () => {
@@ -170,6 +219,80 @@ describe("CampaignMemberService", () => {
       });
 
       expect(updated.Role).toBe("STORYTELLER");
+      expect(campaignMemberRepository.update).toHaveBeenCalledWith(member);
+    });
+
+    it.each(["CO_STORYTELLER", "OBSERVER"] as const)(
+      "changes the role to %s",
+      async (role) => {
+        const userId = UserId.create();
+        const member = CampaignMember.create({
+          campaignId,
+          userId,
+          role: "PLAYER",
+        });
+        vi.mocked(
+          campaignMemberRepository.findByCampaignAndUser,
+        ).mockResolvedValue(member);
+
+        const updated = await service.updateMemberRole({
+          campaignId,
+          userId: userId.toString(),
+          role,
+        });
+
+        expect(updated.Role).toBe(role);
+      },
+    );
+
+    it("rejects promoting a member to OWNER when the campaign already has one", async () => {
+      const userId = UserId.create();
+      const member = CampaignMember.create({
+        campaignId,
+        userId,
+        role: "PLAYER",
+      });
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(member);
+      vi.mocked(campaignMemberRepository.listByCampaign).mockResolvedValue([
+        CampaignMember.create({
+          campaignId,
+          userId: UserId.create(),
+          role: "OWNER",
+        }),
+        member,
+      ]);
+
+      await expect(
+        service.updateMemberRole({
+          campaignId,
+          userId: userId.toString(),
+          role: "OWNER",
+        }),
+      ).rejects.toThrow(ValidationError);
+      expect(campaignMemberRepository.update).not.toHaveBeenCalled();
+    });
+
+    it("allows re-affirming the role of the existing OWNER", async () => {
+      const userId = UserId.create();
+      const member = CampaignMember.create({
+        campaignId,
+        userId,
+        role: "OWNER",
+      });
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(member);
+
+      const updated = await service.updateMemberRole({
+        campaignId,
+        userId: userId.toString(),
+        role: "OWNER",
+      });
+
+      expect(updated.Role).toBe("OWNER");
+      expect(campaignMemberRepository.listByCampaign).not.toHaveBeenCalled();
       expect(campaignMemberRepository.update).toHaveBeenCalledWith(member);
     });
   });

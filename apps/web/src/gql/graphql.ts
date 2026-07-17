@@ -14,7 +14,8 @@ export type AddCampaignMemberInput = {
   role: CampaignRole;
 };
 
-export type CampaignRole = "OWNER" | "PLAYER" | "STORYTELLER";
+export type CampaignRole =
+  "CO_STORYTELLER" | "OBSERVER" | "OWNER" | "PLAYER" | "STORYTELLER";
 
 export type CreateCampaignDto = {
   description?: string | null | undefined;

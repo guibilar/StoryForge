@@ -215,6 +215,7 @@ async function main(): Promise<void> {
       title: "Session 1 prep",
       content:
         "Party lands in [[Port Blackwater]]. [[Gruk the Orc]] offers to guide them to [[The Sunken Spire]] for a price. Do not reveal [[Whisper]] yet.",
+      visibility: "PRIVATE",
     },
   });
 
@@ -240,6 +241,41 @@ async function main(): Promise<void> {
       title: "My character's suspicions",
       content:
         "Something about Gruk's story doesn't add up. Keep an eye on him.",
+    },
+  });
+
+  await prisma.note.create({
+    data: {
+      id: randomUUID(),
+      campaignId: campaign.id,
+      authorId: users.gm.id,
+      title: "Table rules",
+      content:
+        "We start at 7pm sharp. Snacks rotate alphabetically. No phones during boss fights.",
+      visibility: "SHARED",
+    },
+  });
+
+  const handoutNote = await prisma.note.create({
+    data: {
+      id: randomUUID(),
+      campaignId: campaign.id,
+      authorId: users.gm.id,
+      title: "Handout: the amulet's whisper",
+      content:
+        'As you touch the [[Amulet of Whispers]], a voice only you can hear says: *"The orc knows the way down."* Share this with the party — or don\'t.',
+      visibility: "TARGETED",
+      recipients: {
+        create: [{ id: randomUUID(), userId: users.player1.id }],
+      },
+    },
+  });
+
+  await prisma.noteLink.create({
+    data: {
+      id: randomUUID(),
+      noteId: handoutNote.id,
+      targetEntityId: amulet.id,
     },
   });
 

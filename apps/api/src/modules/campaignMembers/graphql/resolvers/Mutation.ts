@@ -1,6 +1,6 @@
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
-import { requireCampaignOwner } from "../guards";
+import { requireCampaignRole } from "../guards";
 import {
   AddCampaignMemberDto,
   UpdateCampaignMemberRoleDto,
@@ -13,7 +13,11 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      await requireCampaignOwner(context, args.input.campaignId);
+      await requireCampaignRole(
+        context,
+        args.input.campaignId,
+        "MANAGE_MEMBERS",
+      );
       return await context.campaignMemberService.addMember(args.input);
     } catch (error) {
       toGraphQLError(error);
@@ -26,7 +30,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      await requireCampaignOwner(context, args.campaignId);
+      await requireCampaignRole(context, args.campaignId, "MANAGE_MEMBERS");
       await context.campaignMemberService.removeMember(
         args.campaignId,
         args.userId,
@@ -43,7 +47,11 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      await requireCampaignOwner(context, args.input.campaignId);
+      await requireCampaignRole(
+        context,
+        args.input.campaignId,
+        "MANAGE_MEMBERS",
+      );
       return await context.campaignMemberService.updateMemberRole(args.input);
     } catch (error) {
       toGraphQLError(error);

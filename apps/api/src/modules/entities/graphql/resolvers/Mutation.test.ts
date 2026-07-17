@@ -62,6 +62,18 @@ const playerMembership = CampaignMember.create({
   role: "PLAYER",
 });
 
+const coStorytellerMembership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
+  role: "CO_STORYTELLER",
+});
+
+const observerMembership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
+  role: "OBSERVER",
+});
+
 const file = {
   name: "portrait.png",
   type: "image/png",
@@ -175,6 +187,65 @@ describe("entities Mutation.createEntity", () => {
 
     expect(entityService.createEntity).toHaveBeenCalledWith(input);
     expect(result).toBe(entity);
+  });
+
+  it("delegates to entityService when the campaign member is a Co-Storyteller", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      coStorytellerMembership,
+    );
+    const entity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    });
+    vi.mocked(entityService.createEntity).mockResolvedValue(entity);
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = {
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    };
+
+    const result = await Mutation.createEntity(undefined, { input }, context);
+
+    expect(entityService.createEntity).toHaveBeenCalledWith(input);
+    expect(result).toBe(entity);
+  });
+
+  it("rejects with FORBIDDEN when the campaign member is an Observer", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      observerMembership,
+    );
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = {
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    };
+
+    await expect(
+      Mutation.createEntity(undefined, { input }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(entityService.createEntity).not.toHaveBeenCalled();
   });
 });
 

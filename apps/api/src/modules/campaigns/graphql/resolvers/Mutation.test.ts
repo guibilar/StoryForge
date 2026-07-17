@@ -43,6 +43,12 @@ const ownerMembership = CampaignMember.create({
   role: "OWNER",
 });
 
+const storytellerMembership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
+  role: "STORYTELLER",
+});
+
 describe("campaigns Mutation", () => {
   let campaignService: CampaignService;
   let campaignMemberService: CampaignMemberService;
@@ -123,6 +129,24 @@ describe("campaigns Mutation", () => {
       expect(campaignService.updateCampaign).not.toHaveBeenCalled();
     });
 
+    it("rejects with FORBIDDEN when the caller is a member but not the owner", async () => {
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+        storytellerMembership,
+      );
+      const context = makeContext(
+        campaignService,
+        campaignMemberService,
+        authenticatedUser,
+      );
+
+      await expect(
+        Mutation.updateCampaign(undefined, args, context),
+      ).rejects.toMatchObject({
+        extensions: { code: "FORBIDDEN" },
+      });
+      expect(campaignService.updateCampaign).not.toHaveBeenCalled();
+    });
+
     it("delegates to campaignService when authenticated", async () => {
       const campaign = { id: "campaign-1" } as unknown as Campaign;
       vi.mocked(campaignService.updateCampaign).mockResolvedValue(campaign);
@@ -162,6 +186,24 @@ describe("campaigns Mutation", () => {
 
     it("rejects with FORBIDDEN when not the campaign owner", async () => {
       vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+      const context = makeContext(
+        campaignService,
+        campaignMemberService,
+        authenticatedUser,
+      );
+
+      await expect(
+        Mutation.archiveCampaign(undefined, args, context),
+      ).rejects.toMatchObject({
+        extensions: { code: "FORBIDDEN" },
+      });
+      expect(campaignService.archiveCampaign).not.toHaveBeenCalled();
+    });
+
+    it("rejects with FORBIDDEN when the caller is a member but not the owner", async () => {
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+        storytellerMembership,
+      );
       const context = makeContext(
         campaignService,
         campaignMemberService,

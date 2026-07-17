@@ -2,6 +2,7 @@ mutation CreateNote($input: CreateNoteInput!) {
   createNote(input: $input) {
     id
     campaignId
+    authorId
     title
     content
     visibility

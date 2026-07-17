@@ -26,6 +26,7 @@ import styles from "./NotesWindow.module.css";
 
 interface NoteRow {
   id: string;
+  authorId: string;
   title: string;
   content: string;
   visibility: NoteVisibility;
@@ -36,13 +37,17 @@ type ModalState = { mode: "create" } | { mode: "edit"; note: NoteRow } | null;
 
 const VISIBILITY_OPTIONS: Array<{ value: NoteVisibility; label: string }> = [
   { value: "SHARED", label: "Shared with everyone" },
-  { value: "PRIVATE", label: "Private (Storytellers only)" },
+  { value: "PRIVATE", label: "Private (you and Storytellers)" },
   { value: "TARGETED", label: "Handout for specific players" },
 ];
 
 function previewOf(content: string): string {
   const flat = content.replace(/\s+/g, " ").trim();
   return flat.length > 120 ? `${flat.slice(0, 120)}…` : flat;
+}
+
+function sameIds(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((id) => b.includes(id));
 }
 
 export function NotesWindow() {
@@ -83,12 +88,34 @@ export function NotesWindow() {
     myRole === "OWNER" ||
     myRole === "STORYTELLER" ||
     myRole === "CO_STORYTELLER";
+  // KAN-90: players author notes too — but only edit/delete their own, and
+  // never targeted handouts (the API enforces both; the UI mirrors it).
+  const canCreate = isWriter || myRole === "PLAYER";
+  const authorableOptions = isWriter
+    ? VISIBILITY_OPTIONS
+    : VISIBILITY_OPTIONS.filter((option) => option.value !== "TARGETED");
+  // Keep the select renderable when editing a note whose current level the
+  // role can't author (a player's note a Storyteller turned into a handout).
+  const visibilityOptions = authorableOptions.some(
+    (option) => option.value === modalVisibility,
+  )
+    ? authorableOptions
+    : [
+        ...authorableOptions,
+        ...VISIBILITY_OPTIONS.filter(
+          (option) => option.value === modalVisibility,
+        ),
+      ];
   const notes: NoteRow[] = notesData?.noteRoots ?? [];
   const recipientOptions = members.filter(
     (member) => member.userId !== currentUserId,
   );
   const missingRecipients =
     modalVisibility === "TARGETED" && modalRecipientIds.length === 0;
+
+  function canModify(note: NoteRow): boolean {
+    return isWriter || (myRole === "PLAYER" && note.authorId === currentUserId);
+  }
 
   function refetch() {
     reexecuteNotes({ requestPolicy: "network-only" });
@@ -156,12 +183,22 @@ export function NotesWindow() {
       return;
     }
 
-    const visibilityInput = {
-      visibility: modalVisibility,
-      ...(modalVisibility === "TARGETED"
-        ? { recipientIds: modalRecipientIds }
-        : {}),
-    };
+    // Only send visibility/recipients when they changed: an author whose
+    // role can't set the note's current level (e.g. a player renaming a note
+    // a Storyteller turned into a handout) must still be able to save.
+    const visibilityUnchanged =
+      modal.mode === "edit" &&
+      modalVisibility === modal.note.visibility &&
+      (modalVisibility !== "TARGETED" ||
+        sameIds(modalRecipientIds, modal.note.recipientIds));
+    const visibilityInput = visibilityUnchanged
+      ? {}
+      : {
+          visibility: modalVisibility,
+          ...(modalVisibility === "TARGETED"
+            ? { recipientIds: modalRecipientIds }
+            : {}),
+        };
 
     if (modal.mode === "create") {
       const result = await createNote({
@@ -223,8 +260,10 @@ export function NotesWindow() {
             <button
               type="button"
               className={styles.info}
-              onClick={() => (isWriter ? openEditModal(note) : undefined)}
-              disabled={!isWriter}
+              onClick={() =>
+                canModify(note) ? openEditModal(note) : undefined
+              }
+              disabled={!canModify(note)}
             >
               <span className={styles.titleLine}>
                 <span className={styles.title}>{note.title}</span>
@@ -232,7 +271,7 @@ export function NotesWindow() {
               </span>
               <span className={styles.preview}>{previewOf(note.content)}</span>
             </button>
-            {isWriter ? (
+            {canModify(note) ? (
               <div className={styles.actions}>
                 {confirmingDeleteId === note.id ? (
                   <>
@@ -271,7 +310,7 @@ export function NotesWindow() {
         ) : null}
       </ul>
 
-      {isWriter ? (
+      {canCreate ? (
         <Button type="button" onClick={openCreateModal}>
           + New note
         </Button>
@@ -311,7 +350,7 @@ export function NotesWindow() {
                     setModalVisibility(event.target.value as NoteVisibility)
                   }
                 >
-                  {VISIBILITY_OPTIONS.map((option) => (
+                  {visibilityOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>

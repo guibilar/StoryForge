@@ -23,7 +23,7 @@ type Documents = {
   "mutation CreateCampaign($input: CreateCampaignDTO!) {\n  createCampaign(input: $input) {\n    id\n    name\n    description\n    archivedAt\n    members {\n      userId\n      role\n    }\n  }\n}": typeof types.CreateCampaignDocument;
   "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    name\n    description\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}": typeof types.CreateEntityDocument;
   "mutation CreateEvent($input: CreateEventInput!) {\n  createEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.CreateEventDocument;
-  "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.CreateNoteDocument;
+  "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.CreateNoteDocument;
   "mutation CreateSession($input: CreateSessionInput!) {\n  createSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.CreateSessionDocument;
   "mutation DeleteEntity($id: ID!) {\n  deleteEntity(id: $id)\n}": typeof types.DeleteEntityDocument;
   "mutation DeleteEvent($id: ID!) {\n  deleteEvent(id: $id)\n}": typeof types.DeleteEventDocument;
@@ -36,7 +36,7 @@ type Documents = {
   "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.LoginDocument;
   "mutation Logout {\n  logout\n}": typeof types.LogoutDocument;
   "query Me {\n  me {\n    id\n    email\n  }\n}": typeof types.MeDocument;
-  "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.NotesDocument;
+  "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.NotesDocument;
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.RegisterDocument;
   "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}": typeof types.RemoveCampaignMemberDocument;
   "query Sessions($campaignId: ID!) {\n  sessions(campaignId: $campaignId) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.SessionsDocument;
@@ -44,7 +44,7 @@ type Documents = {
   "mutation UpdateCampaignMemberRole($input: UpdateCampaignMemberRoleInput!) {\n  updateCampaignMemberRole(input: $input) {\n    userId\n    role\n  }\n}": typeof types.UpdateCampaignMemberRoleDocument;
   "mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}": typeof types.UpdateEntityDocument;
   "mutation UpdateEvent($input: UpdateEventInput!) {\n  updateEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateEventDocument;
-  "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateNoteDocument;
+  "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateNoteDocument;
   "mutation UpdateSession($input: UpdateSessionInput!) {\n  updateSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.UpdateSessionDocument;
 };
 const documents: Documents = {
@@ -66,7 +66,7 @@ const documents: Documents = {
     types.CreateEntityDocument,
   "mutation CreateEvent($input: CreateEventInput!) {\n  createEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}":
     types.CreateEventDocument,
-  "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
+  "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
     types.CreateNoteDocument,
   "mutation CreateSession($input: CreateSessionInput!) {\n  createSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}":
     types.CreateSessionDocument,
@@ -90,7 +90,7 @@ const documents: Documents = {
     types.LoginDocument,
   "mutation Logout {\n  logout\n}": types.LogoutDocument,
   "query Me {\n  me {\n    id\n    email\n  }\n}": types.MeDocument,
-  "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
+  "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
     types.NotesDocument,
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}":
     types.RegisterDocument,
@@ -106,7 +106,7 @@ const documents: Documents = {
     types.UpdateEntityDocument,
   "mutation UpdateEvent($input: UpdateEventInput!) {\n  updateEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}":
     types.UpdateEventDocument,
-  "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
+  "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
     types.UpdateNoteDocument,
   "mutation UpdateSession($input: UpdateSessionInput!) {\n  updateSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}":
     types.UpdateSessionDocument,
@@ -184,8 +184,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}",
-): (typeof documents)["mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}"];
+  source: "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}",
+): (typeof documents)["mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -262,8 +262,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}",
-): (typeof documents)["query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}"];
+  source: "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}",
+): (typeof documents)["query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -310,8 +310,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}",
-): (typeof documents)["mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}"];
+  source: "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}",
+): (typeof documents)["mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

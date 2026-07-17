@@ -243,6 +243,7 @@ export type CreateNoteMutation = {
   createNote: {
     id: string;
     campaignId: string;
+    authorId: string;
     title: string;
     content: string;
     visibility: NoteVisibility;
@@ -370,6 +371,7 @@ export type NotesQuery = {
   noteRoots: Array<{
     id: string;
     campaignId: string;
+    authorId: string;
     title: string;
     content: string;
     visibility: NoteVisibility;
@@ -470,6 +472,7 @@ export type UpdateNoteMutation = {
   updateNote: {
     id: string;
     campaignId: string;
+    authorId: string;
     title: string;
     content: string;
     visibility: NoteVisibility;
@@ -1167,6 +1170,7 @@ export const CreateNoteDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "authorId" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "content" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
@@ -1922,6 +1926,7 @@ export const NotesDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "authorId" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "content" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
@@ -2455,6 +2460,7 @@ export const UpdateNoteDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "authorId" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "content" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },

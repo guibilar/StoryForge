@@ -35,3 +35,40 @@ export function filterNotesByVisibility(
 ): Note[] {
   return notes.filter((note) => canViewNote(note, userId, role));
 }
+
+/**
+ * Storyteller-tier roles may edit any note they can view; players only the
+ * notes they authored. Observers can never edit (they also cannot create,
+ * so the author check can never be true for them).
+ */
+export function canEditNote(
+  note: Note,
+  userId: UserId,
+  role: CampaignRole,
+): boolean {
+  if (!canViewNote(note, userId, role)) {
+    return false;
+  }
+
+  if (STORYTELLER_ROLES.has(role)) {
+    return true;
+  }
+
+  return role === "PLAYER" && note.AuthorId.equals(userId);
+}
+
+/**
+ * Players may author SHARED and PRIVATE notes (a PRIVATE player note is a
+ * journal the Storyteller side can still read); TARGETED handouts remain a
+ * Storyteller-tier tool.
+ */
+export function canAuthorNoteVisibility(
+  role: CampaignRole,
+  visibility: NoteVisibility,
+): boolean {
+  if (STORYTELLER_ROLES.has(role)) {
+    return true;
+  }
+
+  return role === "PLAYER" && visibility !== NoteVisibility.TARGETED;
+}

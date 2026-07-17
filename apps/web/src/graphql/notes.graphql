@@ -2,6 +2,7 @@ query Notes($campaignId: ID!) {
   noteRoots(campaignId: $campaignId) {
     id
     campaignId
+    authorId
     title
     content
     visibility

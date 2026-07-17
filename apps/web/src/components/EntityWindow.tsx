@@ -5,7 +5,7 @@ import type { TabItem } from "@storyforge/ui";
 
 import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
 import type { EntityVisibility } from "../gql/graphql";
-import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import styles from "./EntityWindow.module.css";
 
@@ -29,8 +29,6 @@ const TABS: TabItem[] = [
   { id: "relationships", label: "Relationships" },
   { id: "notes", label: "Notes" },
 ];
-
-const DEFAULT_ENTITY_WINDOW = { width: 380, height: 420 };
 
 export function EntityWindow({ entity, campaignId }: EntityWindowProps) {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
@@ -74,7 +72,7 @@ function RelationshipsTab({
   campaignId: string;
   entity: EntitySummary;
 }) {
-  const { openWindow, dynamicWindows } = useDesktopWindows();
+  const openEntityWindow = useOpenEntityWindow(campaignId);
 
   const [{ data: entitiesData, fetching: entitiesFetching }] = useQuery({
     query: EntitiesDocument,
@@ -112,26 +110,12 @@ function RelationshipsTab({
     if (!counterpart) {
       return;
     }
-    const offset = (Object.keys(dynamicWindows).length % 6) * 24;
-    openWindow({
-      id: `entity:${counterpart.id}`,
-      title: counterpart.name,
-      render: () => (
-        <EntityWindow
-          entity={{
-            id: counterpart.id,
-            name: counterpart.name,
-            type: counterpart.type,
-            description: counterpart.description,
-            visibility: counterpart.visibility,
-          }}
-          campaignId={campaignId}
-        />
-      ),
-      x: 140 + offset,
-      y: 80 + offset,
-      width: DEFAULT_ENTITY_WINDOW.width,
-      height: DEFAULT_ENTITY_WINDOW.height,
+    openEntityWindow({
+      id: counterpart.id,
+      name: counterpart.name,
+      type: counterpart.type,
+      description: counterpart.description,
+      visibility: counterpart.visibility,
     });
   }
 

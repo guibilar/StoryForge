@@ -19,8 +19,8 @@ import {
 } from "../gql/graphql";
 import type { CampaignRole, EntityVisibility } from "../gql/graphql";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
-import { EntityWindow } from "./EntityWindow";
 import type { EntitySummary } from "./EntityWindow";
 import styles from "./EntitySidebar.module.css";
 
@@ -41,7 +41,6 @@ const WORLD_NAV: { id: string; label: string }[] = [
 ];
 
 const VISIBILITIES: EntityVisibility[] = ["PUBLIC", "STORYTELLER", "PRIVATE"];
-const DEFAULT_ENTITY_WINDOW = { width: 380, height: 420 };
 
 type QuickAction = "entity" | "note" | null;
 
@@ -56,7 +55,8 @@ function groupByType(entities: EntitySummary[]): [string, EntitySummary[]][] {
 }
 
 export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
-  const { layout, toggle, openWindow, dynamicWindows } = useDesktopWindows();
+  const { layout, toggle } = useDesktopWindows();
+  const openEntityWindow = useOpenEntityWindow(campaignId);
 
   const [{ data, fetching, error }, reexecuteEntities] = useQuery({
     query: EntitiesDocument,
@@ -72,23 +72,6 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
     role === "OWNER" || role === "STORYTELLER" || role === "CO_STORYTELLER";
   const entities: EntitySummary[] = data?.entities ?? [];
   const groups = groupByType(entities);
-
-  function openEntityWindow(entity: EntitySummary) {
-    // A cascade offset so opening several entity windows in a row doesn't
-    // stack them exactly on top of each other. openWindow itself restores
-    // the saved position instead of this default if the window was already
-    // opened (and possibly moved) before, so this only matters the first time.
-    const offset = (Object.keys(dynamicWindows).length % 6) * 24;
-    openWindow({
-      id: `entity:${entity.id}`,
-      title: entity.name,
-      render: () => <EntityWindow entity={entity} campaignId={campaignId} />,
-      x: 140 + offset,
-      y: 80 + offset,
-      width: DEFAULT_ENTITY_WINDOW.width,
-      height: DEFAULT_ENTITY_WINDOW.height,
-    });
-  }
 
   function closeQuickAction() {
     setQuickAction(null);

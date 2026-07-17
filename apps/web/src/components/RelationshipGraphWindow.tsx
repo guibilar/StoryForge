@@ -12,6 +12,7 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
+import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { buildCategoryColorMap } from "../lib/categoryColor";
 import styles from "./RelationshipGraphWindow.module.css";
@@ -28,6 +29,7 @@ function circlePosition(index: number, total: number) {
 
 export function RelationshipGraphWindow() {
   const { id: campaignId } = useParams<{ id: string }>();
+  const openEntityWindow = useOpenEntityWindow(campaignId ?? "");
 
   const [
     { data: entitiesData, fetching: entitiesFetching, error: entitiesError },
@@ -127,8 +129,11 @@ export function RelationshipGraphWindow() {
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
-        onNodeClick={() => {
-          // No entity detail page exists yet, so clicking is a no-op stub.
+        onNodeClick={(_event, node) => {
+          const entity = entities.find((candidate) => candidate.id === node.id);
+          if (entity) {
+            openEntityWindow(entity);
+          }
         }}
       >
         <Background />

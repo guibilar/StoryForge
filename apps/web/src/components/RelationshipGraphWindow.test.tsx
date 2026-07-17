@@ -1,9 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useQuery } from "urql";
 
 import { RelationshipGraphWindow } from "./RelationshipGraphWindow";
+import { useDesktopWindows } from "../lib/DesktopWindowsContext";
 import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
@@ -14,6 +15,12 @@ vi.mock("urql", async (importOriginal) => {
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useParams: () => ({ id: "camp-1" }) };
+});
+
+vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("../lib/DesktopWindowsContext")>();
+  return { ...actual, useDesktopWindows: vi.fn() };
 });
 
 // @xyflow/react measures each node via a ResizeObserver callback and reads
@@ -136,6 +143,22 @@ function setupMocks({
   }) as never);
 }
 
+function setupDesktopWindows() {
+  const openWindow = vi.fn();
+  vi.mocked(useDesktopWindows).mockReturnValue({
+    layout: {},
+    bringToFront: vi.fn(),
+    toggle: vi.fn(),
+    startDrag: vi.fn(),
+    startResize: vi.fn(),
+    reset: vi.fn(),
+    dynamicWindows: {},
+    openWindow,
+    closeWindow: vi.fn(),
+  });
+  return { openWindow };
+}
+
 function renderWindow() {
   render(
     <MemoryRouter>
@@ -199,6 +222,7 @@ describe("RelationshipGraphWindow", () => {
 
   it("renders a node per entity labelled with name and type", () => {
     setupMocks();
+    setupDesktopWindows();
     renderWindow();
 
     expect(screen.getByText("Goblin (NPC)")).toBeInTheDocument();
@@ -207,6 +231,7 @@ describe("RelationshipGraphWindow", () => {
 
   it("renders an edge label per relationship type", async () => {
     setupMocks();
+    setupDesktopWindows();
     renderWindow();
 
     expect(await screen.findByText("MemberOf")).toBeInTheDocument();
@@ -214,10 +239,28 @@ describe("RelationshipGraphWindow", () => {
 
   it("shows an empty state when the campaign has no entities", () => {
     setupMocks({ entitiesResult: [], relationshipsResult: [] });
+    setupDesktopWindows();
     renderWindow();
 
     expect(
       screen.getByText("No entities yet — add some NPCs to see the graph."),
     ).toBeInTheDocument();
+  });
+
+  it("opens the clicked entity's window", () => {
+    // fireEvent.click (a bare "click" DOM event) rather than userEvent.click
+    // — userEvent's full pointerdown/mousedown/mouseup sequence trips over
+    // @xyflow/react's d3-zoom pane handlers under jsdom (d3-drag reads
+    // event.view.document, which jsdom leaves null on synthetic mousedown).
+    // onNodeClick only needs the "click" itself.
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    renderWindow();
+
+    fireEvent.click(screen.getByText("Goblin (NPC)"));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "entity:ent-1", title: "Goblin" }),
+    );
   });
 });

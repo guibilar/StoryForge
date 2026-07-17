@@ -451,29 +451,38 @@ Current implementation:
   only supports v15/v16 as a peer; do not bump to a v17 prerelease
   without confirming yoga supports it (a stray `^17` pin previously broke
   introspection's default arguments in confusing ways).
-- Three vertical-slice modules so far (also `src/modules/campaigns/`,
-  same layout, not detailed here):
+- Eleven vertical-slice modules under `src/modules/` today: `auth`,
+  `campaigns`, `campaignMembers`, `entities`, `tags`, `relationships`,
+  `notes`, `noteLinks`, `sessions`, `events`, `attachments`. All follow the
+  same `application/` (service, use cases) → `graphql/` (schema +
+  resolvers) → `infrastructure/` (Prisma repository + mapper) layout; only
+  the two most load-bearing are detailed below. See `docs/FEATURES.md` for
+  current per-module status — that file is kept in sync with what's
+  actually built, this section isn't re-derived from it automatically.
   - `src/modules/entities/`, split into `application/` (`EntityService.ts`
     — create/update/delete/get/list use cases), `graphql/` (schema +
-    resolvers, fully implemented — `createEntity`/`updateEntity`/
-    `deleteEntity` mutations and `entity`/`entities` queries, all
-    unguarded — `entities(campaignId, filter: EntityFilter)` takes an
-    optional `EntityFilter { type, nameContains, tagIds }` input, passed
-    unchanged through `EntityService.listEntities` down to
-    `PrismaEntityRepository.findByCampaign`, which AND-combines an exact
-    `type` match, case-insensitive `nameContains`, and an any-match
+    resolvers, fully implemented — `entities(campaignId, filter:
+EntityFilter)` takes an optional `EntityFilter { type, nameContains,
+tagIds }` input, passed unchanged through `EntityService.listEntities`
+    down to `PrismaEntityRepository.findByCampaign`, which AND-combines an
+    exact `type` match, case-insensitive `nameContains`, and an any-match
     `tagIds` filter via the `EntityTag` join — always excludes
     soft-deleted rows), and `infrastructure/` (`PrismaEntityRepository`,
     `EntityMapper`, `LocalImageStore`). Also owns image upload:
     `uploadEntityImage(entityId, file: Upload!)` mutation over the
     [GraphQL multipart request spec](https://github.com/jaydenseric/graphql-multipart-request-spec)
-    (native `graphql-yoga` support, no extra deps) — the one entities
-    mutation that _is_ guarded (`requireCurrentUser`).
+    (native `graphql-yoga` support, no extra deps).
     `LocalImageStore.save()` validates MIME type (JPEG/PNG/GIF/WEBP),
     filename length, and a 5MB size cap, then writes to
     `UPLOADS_DIR/<entityId>/<uuid>.<ext>` and returns that path as
     `Entity.image`. `UPLOADS_DIR` defaults to `<cwd>/uploads` if unset
-    (`src/config/env.ts`).
+    (`src/config/env.ts`). Reads (`entity`/`entities`) require
+    `requireCampaignMember` (any role); writes (`createEntity`/
+    `updateEntity`/`deleteEntity`/`uploadEntityImage`) require
+    `requireCampaignWriter` (OWNER/STORYTELLER only, KAN-39). Player reads
+    are additionally filtered to `Visibility: PUBLIC` — `entities` drops
+    non-public results, `entity(id)` throws `FORBIDDEN` for a non-public
+    entity.
   - `src/modules/campaigns/`, same layout: `application/`
     (`CampaignService.ts` — create/update/archive/list; `archiveCampaign`
     additionally requires an `OWNER`-role `CampaignMember` to exist —
@@ -481,9 +490,10 @@ Current implementation:
     `include: { members: true }` query, so this check is reachable
     (KAN-79)), `graphql/` (`createCampaign`/`updateCampaign`/
     `archiveCampaign` mutations, guarded via `requireCurrentUser`;
-    `campaigns` query also guarded and scoped to the caller's own
-    `CampaignMember` rows (KAN-78); `campaign(id)` remains unguarded),
-    `infrastructure/` (`PrismaCampaignRepository`, `CampaignMapper`).
+    `campaigns` query scoped to the caller's own `CampaignMember` rows via
+    `requireCurrentUser` (KAN-78); `campaign(id)` requires
+    `requireCampaignMember`), `infrastructure/` (`PrismaCampaignRepository`,
+    `CampaignMapper`).
   - `src/modules/auth/` (KAN-28), same layout: `application/`
     (`AuthenticationService.ts` — `register`/`login`, bcrypt hashing via
     `bcrypt-ts`, JWT issuance via `jsonwebtoken` with a minimal
@@ -493,16 +503,27 @@ user }`), `infrastructure/` (`PrismaUserRepository`, `UserMapper`).
     Session strategy is JWT (stateless, no session table) — decided
     explicitly over server-side sessions and refresh-token pairs; revisit
     only if revocation-before-expiry becomes a real requirement.
+  - `src/modules/campaignMembers/` (KAN-77) owns `CampaignMember` as its
+    own aggregate (not nested under `Campaign`) and the shared guard
+    library other modules build on (`graphql/guards.ts`):
+    `requireCampaignMember` (any role, throws `ForbiddenError` if no
+    membership), `requireCampaignOwner` (OWNER only — gates
+    `addCampaignMember`/`removeCampaignMember`/`updateCampaignMemberRole`),
+    and `requireCampaignWriter` (OWNER/STORYTELLER, built on top of
+    `requireCampaignMember` the same way `requireCampaignOwner` is —
+    added for entities' KAN-39, ahead of the general KAN-62 permission
+    system).
   - `src/modules/tags/` (KAN-37), same layout: `application/`
     (`TagService.ts` — `addTagToEntity`/`removeTagFromEntity` (find-or-create
     the campaign-scoped `Tag` by normalized name, then idempotently
     attach/detach the `EntityTag` link), `listCampaignTags`, `listEntityTags`;
     takes both `TagRepository` and `EntityRepository` since it needs to
     resolve `campaignId` from `entityId` and validate the entity exists),
-    `graphql/` (`addTagToEntity`/`removeTagFromEntity` mutations —
-    unguarded, matching `createEntity`/`updateEntity`/`deleteEntity`, not
-    `uploadEntityImage`'s `requireCurrentUser` — `campaignTags` query; plus
-    `Entity.tags` field resolver added directly to
+    `graphql/` (`addTagToEntity`/`removeTagFromEntity` mutations and
+    `campaignTags` query, all guarded via `requireCampaignMember` — the
+    mutations resolve the entity first via `entityService.getEntity` to
+    derive its `campaignId`, since neither takes `campaignId` directly;
+    plus `Entity.tags` field resolver added directly to
     `modules/entities/graphql/resolvers/Entity.ts`, the one `Entity` field
     that needs `context`), `infrastructure/` (`PrismaTagRepository`,
     `TagMapper`).
@@ -516,15 +537,25 @@ user }`), `infrastructure/` (`PrismaUserRepository`, `UserMapper`).
   workflow env var instead (see Testing section).
 
 Not yet implemented: a DI container, an event bus, service
-registration/wiring beyond manual instantiation. Auth gating is now
-partially wired: `requireCurrentUser` (`modules/auth/graphql/guards.ts`)
-throws `AuthenticationError` when `context.currentUser` is null, and is
-called at the top of `createCampaign`/`updateCampaign`/`archiveCampaign`
-and `uploadEntityImage`. It is _not_ applied consistently — `createEntity`/
-`updateEntity`/`deleteEntity` and every query resolver (`entity`/
-`entities`/`campaign`/`campaigns`/`campaignTags`) remain unguarded. Treat
-this as inconsistent-by-history, not intentional design, when adding new
-mutations.
+registration/wiring beyond manual instantiation. Auth/permission gating
+is now a four-tier guard hierarchy, all in
+`modules/auth/graphql/guards.ts` (`requireCurrentUser`) and
+`modules/campaignMembers/graphql/guards.ts` (the rest), applied at the
+top of every campaign-scoped resolver across every module:
+`requireCurrentUser` — authenticated, no campaign check (used directly by
+a few resolvers, e.g. `campaigns`, and as the base every other guard
+calls internally); `requireCampaignMember` — authenticated + any-role
+membership in the target campaign (the default for reads and for writes
+with no role restriction); `requireCampaignOwner` — OWNER-role membership
+only (Members management, campaign settings); `requireCampaignWriter` —
+OWNER/STORYTELLER membership (entity writes, KAN-39). The old
+"inconsistently applied" gap (some mutations/queries fully unguarded) has
+been closed module by module — treat any resolver missing one of these
+four guards as a bug, not as an accepted gap, when touching this code.
+The remaining real gap is KAN-62: today `requireCampaignMember`/
+`requireCampaignWriter` only check role membership, not a generalized
+per-action permission map, and `Entity.visibility`-based read filtering
+only exists for entities (KAN-39), not yet for notes/sessions/timeline.
 
 No business logic belongs here — resolvers call services, services call
 repositories.
@@ -550,8 +581,10 @@ auth flow, and the campaign desktop shell are all wired:
   per card; "New campaign" opens `CreateCampaignDialog` (a `Modal` +
   `createCampaign` mutation, re-fetches the list on success); each card
   has an "Enter campaign" button (`navigate('/campaigns/${id}')`) and,
-  for the `OWNER` role, a disabled "Manage" button
-  (`TODO(KAN-82)`, not wired yet).
+  for the `OWNER` role, a "Manage" button opening `ManageCampaignModal`
+  (KAN-82 — name/description edit via `updateCampaign`, plus an
+  archive flow gated behind an inline confirm step; both actions
+  refetch the dashboard's campaign list on success).
 - `CampaignDesktopPage` (`src/pages/CampaignDesktopPage.tsx`, KAN-80) —
   loads the campaign via the `campaign(id)`/`me` queries, resolves the
   caller's role from `campaign.members`, then renders `DesktopBoard`
@@ -1129,10 +1162,10 @@ The core application currently implements only:
 - **Authentication** — `User` aggregate + `AuthenticationService`
   (register/login, bcrypt hashing, JWT issuance), wired end-to-end through
   `login`/`registerUser` GraphQL mutations (KAN-28), plus a `me` query
-  (`context.currentUser`, resolves to `null` when logged out). Gating via
-  `requireCurrentUser` now protects `createCampaign`/`updateCampaign`/
-  `archiveCampaign`, `campaigns`, and `uploadEntityImage` — see apps/api
-  notes above for which resolvers remain unguarded.
+  (`context.currentUser`, resolves to `null` when logged out). Every
+  campaign-scoped resolver across every module is now gated by one of the
+  four guards described in the apps/api notes above (`requireCurrentUser`
+  → `requireCampaignMember`/`requireCampaignOwner`/`requireCampaignWriter`).
 - **Campaign** — the top-level container. Everything belongs to a
   Campaign. Domain entity + `CampaignService` (create/update/archive,
   KAN-29) now implemented, same domain → service → Prisma repository

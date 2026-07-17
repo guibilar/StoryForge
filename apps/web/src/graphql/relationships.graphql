@@ -1,0 +1,8 @@
+query Relationships($campaignId: ID!) {
+  relationships(campaignId: $campaignId) {
+    id
+    sourceEntityId
+    targetEntityId
+    type
+  }
+}

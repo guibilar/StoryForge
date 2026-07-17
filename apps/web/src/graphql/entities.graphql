@@ -3,6 +3,7 @@ query Entities($campaignId: ID!, $filter: EntityFilter) {
     id
     name
     description
+    type
     visibility
     tags {
       id

@@ -156,7 +156,7 @@ tracks what's actually built, not just planned.
       via `EntityTag` join), all fields optional
 - [x] Frontend: NPCs window (KAN-39) — `NpcsWindow` plugged into the Campaign
       Desktop's `npcs` catalog slot; lists `entities(campaignId, filter:
-  {type: "NPC"})` with visibility/tag chips, a `Modal`-based create/edit
+{type: "NPC"})` with visibility/tag chips, a `Modal`-based create/edit
       form (name, description, visibility), and per-row delete with an
       inline confirm step. Owner/Storyteller get full CRUD; Players get the
       same list read-only (no mutation UI rendered), matching the new
@@ -186,7 +186,19 @@ tracks what's actually built, not just planned.
       `Entity.type`), not a closed enum — KAN-41 originally made it a TS/Prisma
       enum, reverted so future plugins (e.g. the VTM plugin's Sire/Childe/Ghoul
       relationship types) can define their own values without a core migration.
-- [ ] Graph visualization (React Flow)
+- [x] Graph visualization (React Flow) (KAN-42) — `RelationshipGraphWindow` in
+      the Campaign Desktop's `relationships` catalog slot, built on
+      `@xyflow/react` (the current maintained package — `reactflow` was
+      renamed upstream). Fetches `entities(campaignId)` and
+      `relationships(campaignId)`, maps them to nodes/edges with a
+      deterministic circular layout (no dagre dependency), colors nodes by
+      `Entity.type` and edges by `Relationship.type` from a fixed validated
+      8-hue categorical palette (assigned in first-seen order since both
+      `type` fields are open-ended free strings, not enums) — the type name
+      is always shown as a text label too so color is never the only cue.
+      Pan/zoom via React Flow defaults; clicking a node is a no-op stub (no
+      entity detail page exists yet). View-only for v1 — visible to every
+      campaign role, no create/edit UI.
 
 ## Notes & Assets
 

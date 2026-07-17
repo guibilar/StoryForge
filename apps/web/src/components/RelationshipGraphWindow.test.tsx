@@ -155,6 +155,7 @@ function setupDesktopWindows() {
     dynamicWindows: {},
     openWindow,
     closeWindow: vi.fn(),
+    recentIds: [],
   });
   return { openWindow };
 }

@@ -96,7 +96,7 @@ function setupQueries() {
   }) as never);
 }
 
-function setupDesktopWindows() {
+function setupDesktopWindows({ recentIds = [] as string[] } = {}) {
   const toggle = vi.fn();
   const openWindow = vi.fn();
   vi.mocked(useDesktopWindows).mockReturnValue({
@@ -109,6 +109,7 @@ function setupDesktopWindows() {
     dynamicWindows: {},
     openWindow,
     closeWindow: vi.fn(),
+    recentIds,
   });
   return { toggle, openWindow };
 }
@@ -183,6 +184,45 @@ describe("AppCommandPalette", () => {
       expect.objectContaining({ id: "entity:e-1", title: "Carlos Mendoza" }),
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows a Recent section for previously-opened entities", async () => {
+    const user = userEvent.setup();
+    setupQueries();
+    setupDesktopWindows({ recentIds: ["e-1"] });
+    render(<AppCommandPalette campaignId="camp-1" role="OWNER" />);
+
+    await user.keyboard("{Meta>}k{/Meta}");
+
+    // "Carlos Mendoza" now appears twice — once under Recent, once under
+    // Entities — since recentIds and the full entity list overlap.
+    expect(screen.getAllByText("Carlos Mendoza")).toHaveLength(2);
+  });
+
+  it("opens the entity's window from the Recent section (distinct item id from the Entities section)", async () => {
+    const user = userEvent.setup();
+    setupQueries();
+    const { openWindow } = setupDesktopWindows({ recentIds: ["e-1"] });
+    render(<AppCommandPalette campaignId="camp-1" role="OWNER" />);
+
+    await user.keyboard("{Meta>}k{/Meta}");
+    const [recentResult] = screen.getAllByText("Carlos Mendoza");
+    await user.click(recentResult);
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "entity:e-1", title: "Carlos Mendoza" }),
+    );
+  });
+
+  it("does not show a Recent section when nothing has been opened yet", async () => {
+    const user = userEvent.setup();
+    setupQueries();
+    setupDesktopWindows({ recentIds: [] });
+    render(<AppCommandPalette campaignId="camp-1" role="OWNER" />);
+
+    await user.keyboard("{Meta>}k{/Meta}");
+
+    expect(screen.getAllByText("Carlos Mendoza")).toHaveLength(1);
   });
 
   it("toggles the Notes window when a note result is selected", async () => {

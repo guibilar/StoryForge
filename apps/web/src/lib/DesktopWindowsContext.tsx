@@ -43,6 +43,9 @@ export interface DesktopWindowsApi {
   dynamicWindows: Record<string, DynamicWindowEntry>;
   openWindow: (request: OpenWindowRequest) => void;
   closeWindow: (id: string) => void;
+  // Most-recent-first entity ids opened via openWindow, capped at 10 — see
+  // useRecentEntities.ts. Raw entity ids, not entity:{id} window ids.
+  recentIds: string[];
 }
 
 export const DesktopWindowsContext = createContext<DesktopWindowsApi | null>(

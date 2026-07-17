@@ -63,7 +63,7 @@ export function AppCommandPalette({
   campaignId,
   role,
 }: AppCommandPaletteProps) {
-  const { toggle } = useDesktopWindows();
+  const { toggle, recentIds } = useDesktopWindows();
   const openEntityWindow = useOpenEntityWindow(campaignId);
 
   const [open, setOpen] = useState(false);
@@ -116,6 +116,28 @@ export function AppCommandPalette({
     setActiveId(null);
   }
 
+  // Cross-referenced against `entities` rather than fetched separately —
+  // recentIds only stores ids (KAN-100), the name/type still comes from the
+  // same entities query every other section already uses.
+  const recentEntities = useMemo(
+    () =>
+      recentIds
+        .map((id) => entities.find((entity) => entity.id === id))
+        .filter((entity): entity is EntitySummary => Boolean(entity)),
+    [recentIds, entities],
+  );
+  // Prefixed "recent:" rather than reusing "entity:" — the same entity can
+  // legitimately appear in both the Recent and Entities sections at once,
+  // and CommandPalette's flattened keyboard nav needs every item id unique.
+  const recentMatches = useMemo(
+    () =>
+      rank(query, recentEntities, (entity) => ({
+        id: `recent:${entity.id}`,
+        label: entity.name,
+        sublabel: entity.type,
+      })),
+    [query, recentEntities],
+  );
   const entityMatches = useMemo(
     () =>
       rank(query, entities, (entity) => ({
@@ -169,6 +191,14 @@ export function AppCommandPalette({
 
   const sections: CommandPaletteSection[] = [
     {
+      label: "Recent",
+      items: recentMatches.map(({ id, label, sublabel }) => ({
+        id,
+        label,
+        sublabel,
+      })),
+    },
+    {
       label: "Actions",
       items: actionItems.map(({ id, label, sublabel }) => ({
         id,
@@ -207,7 +237,7 @@ export function AppCommandPalette({
     const kind = id.slice(0, separatorIndex);
     const value = id.slice(separatorIndex + 1);
 
-    if (kind === "entity") {
+    if (kind === "entity" || kind === "recent") {
       const entity = entities.find((candidate) => candidate.id === value);
       if (entity) {
         openEntityWindow(entity);

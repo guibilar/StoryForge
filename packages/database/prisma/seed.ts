@@ -71,7 +71,7 @@ async function main(): Promise<void> {
         data: {
           id: randomUUID(),
           campaignId: campaign.id,
-          type: "npc",
+          type: "NPC",
           name: "Gruk the Orc",
           description: "A dockside enforcer with a soft spot for stray cats.",
           visibility: "PUBLIC",
@@ -81,7 +81,7 @@ async function main(): Promise<void> {
         data: {
           id: randomUUID(),
           campaignId: campaign.id,
-          type: "npc",
+          type: "NPC",
           name: "Whisper",
           description:
             "A cloaked figure orchestrating the spire's cult from the shadows.",

@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "urql";
 import {
   Button,
@@ -38,6 +38,15 @@ export function ManageCampaignModal({
   const [{ error: archiveError, fetching: archiving }, archiveCampaign] =
     useMutation(ArchiveCampaignDocument);
   const [confirmingArchive, setConfirmingArchive] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const openRef = useRef(open);
+
+  useEffect(() => {
+    openRef.current = open;
+    if (open) {
+      formRef.current?.reset();
+    }
+  }, [open, campaign]);
 
   function handleClose() {
     setConfirmingArchive(false);
@@ -49,15 +58,20 @@ export function ManageCampaignModal({
 
     const form = event.currentTarget;
     const data = new FormData(form);
+    const name = String(data.get("name") ?? "").trim();
     const description = String(data.get("description") ?? "").trim();
 
     const result = await updateCampaign({
       input: {
         id: campaign.id,
-        name: String(data.get("name")),
+        name,
         description: description || null,
       },
     });
+
+    if (!openRef.current) {
+      return;
+    }
 
     if (result.data?.updateCampaign) {
       onUpdated();
@@ -66,6 +80,11 @@ export function ManageCampaignModal({
 
   async function handleArchive() {
     const result = await archiveCampaign({ id: campaign.id });
+
+    if (!openRef.current) {
+      return;
+    }
+
     if (result.data?.archiveCampaign) {
       setConfirmingArchive(false);
       onArchived();
@@ -75,7 +94,7 @@ export function ManageCampaignModal({
   return (
     <Modal open={open} onClose={handleClose}>
       <h2>Manage campaign</h2>
-      <Form onSubmit={handleSubmit}>
+      <Form ref={formRef} onSubmit={handleSubmit}>
         <FormError>{formatGraphQLError(error)}</FormError>
         <FormField label="Name" htmlFor="manage-campaign-name">
           <Input

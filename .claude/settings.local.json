@@ -53,7 +53,13 @@
       "Bash(node -e ' *)",
       "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; cat {}')",
       "Bash(python3 -m json.tool /home/bilar/Documents/StoryForge/postman/StoryForge.postman_collection.json)",
-      "mcp__claude_ai_Atlassian_Rovo__searchJiraIssuesUsingJql"
+      "mcp__claude_ai_Atlassian_Rovo__searchJiraIssuesUsingJql",
+      "Bash(xargs -I{} cat -n {})",
+      "Bash(xargs -I{} sh -c 'echo ==={}===; cat -n {}')",
+      "Bash(xargs -I{} sh -c 'echo ==={}===; grep -n -A20 \"model CampaignMember\" {}')",
+      "Bash(grep *)",
+      "Bash(npx vitest *)",
+      "Bash(npm run *)"
     ]
   }
 }

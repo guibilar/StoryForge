@@ -106,13 +106,22 @@ function setupMocks({
 
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === CreateEntityDocument) {
-      return [{ fetching: false, stale: false }, createEntity];
+      return [
+        { fetching: false, error: undefined, stale: false },
+        createEntity,
+      ];
     }
     if (document === UpdateEntityDocument) {
-      return [{ fetching: false, stale: false }, updateEntity];
+      return [
+        { fetching: false, error: undefined, stale: false },
+        updateEntity,
+      ];
     }
     if (document === DeleteEntityDocument) {
-      return [{ fetching: false, stale: false }, deleteEntity];
+      return [
+        { fetching: false, error: undefined, stale: false },
+        deleteEntity,
+      ];
     }
 
     throw new Error("Unexpected mutation in test");

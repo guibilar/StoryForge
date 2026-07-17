@@ -60,7 +60,7 @@ export function MembersWindow() {
   }
 
   async function handleRemove(userId: string) {
-    if (!campaignId) {
+    if (!campaignId || userId === currentUserId) {
       return;
     }
     await removeMember({ campaignId, userId });
@@ -109,6 +109,7 @@ export function MembersWindow() {
                 className={styles.roleSelect}
                 aria-label={`Role for ${member.user.email}`}
                 value={member.role}
+                disabled={updateRoleState.fetching}
                 onChange={(event) =>
                   handleRoleChange(
                     member.userId,
@@ -125,10 +126,11 @@ export function MembersWindow() {
             ) : (
               <span className={styles.role}>{member.role}</span>
             )}
-            {isOwner ? (
+            {isOwner && member.userId !== currentUserId ? (
               <Button
                 type="button"
                 variant="secondary"
+                disabled={removeState.fetching}
                 onClick={() => handleRemove(member.userId)}
               >
                 Remove

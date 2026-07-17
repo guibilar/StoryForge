@@ -1,4 +1,5 @@
 import type { FormEvent } from "react";
+import { useEffect, useRef } from "react";
 import { useMutation } from "urql";
 import {
   Button,
@@ -26,20 +27,34 @@ export function CreateCampaignDialog({
   const [{ error, fetching }, createCampaign] = useMutation(
     CreateCampaignDocument,
   );
+  const formRef = useRef<HTMLFormElement>(null);
+  const openRef = useRef(open);
+
+  useEffect(() => {
+    openRef.current = open;
+    if (open) {
+      formRef.current?.reset();
+    }
+  }, [open]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const form = event.currentTarget;
     const data = new FormData(form);
+    const name = String(data.get("name") ?? "").trim();
     const description = String(data.get("description") ?? "").trim();
 
     const result = await createCampaign({
       input: {
-        name: String(data.get("name")),
+        name,
         description: description || null,
       },
     });
+
+    if (!openRef.current) {
+      return;
+    }
 
     if (result.data?.createCampaign) {
       form.reset();
@@ -50,7 +65,7 @@ export function CreateCampaignDialog({
   return (
     <Modal open={open} onClose={onClose}>
       <h2>New campaign</h2>
-      <Form onSubmit={handleSubmit}>
+      <Form ref={formRef} onSubmit={handleSubmit}>
         <FormError>{formatGraphQLError(error)}</FormError>
         <FormField label="Name" htmlFor="campaign-name">
           <Input id="campaign-name" name="name" required />

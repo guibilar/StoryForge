@@ -55,9 +55,10 @@ export function NpcsWindow() {
 
   const [createState, createEntity] = useMutation(CreateEntityDocument);
   const [updateState, updateEntity] = useMutation(UpdateEntityDocument);
-  const [, deleteEntity] = useMutation(DeleteEntityDocument);
+  const [deleteState, deleteEntity] = useMutation(DeleteEntityDocument);
 
   const [modal, setModal] = useState<ModalState>(null);
+  const [dismissedFormError, setDismissedFormError] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
     null,
   );
@@ -77,8 +78,19 @@ export function NpcsWindow() {
     reexecuteEntities({ requestPolicy: "network-only" });
   }
 
+  function openCreateModal() {
+    setDismissedFormError(false);
+    setModal({ mode: "create" });
+  }
+
+  function openEditModal(npc: NpcRow) {
+    setDismissedFormError(false);
+    setModal({ mode: "edit", npc });
+  }
+
   function closeModal() {
     setModal(null);
+    setDismissedFormError(true);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -94,6 +106,10 @@ export function NpcsWindow() {
     const visibility = String(
       data.get("visibility") ?? "PUBLIC",
     ) as EntityVisibility;
+
+    if (!name) {
+      return;
+    }
 
     if (modal.mode === "create") {
       const result = await createEntity({
@@ -141,9 +157,12 @@ export function NpcsWindow() {
     return <p>{formatGraphQLError(error) ?? "Unable to load NPCs."}</p>;
   }
 
-  const formError = formatGraphQLError(
-    modal?.mode === "create" ? createState.error : updateState.error,
-  );
+  const deleteError = formatGraphQLError(deleteState.error);
+  const formError = dismissedFormError
+    ? null
+    : formatGraphQLError(
+        modal?.mode === "create" ? createState.error : updateState.error,
+      );
 
   return (
     <div className={styles.wrap}>
@@ -166,15 +185,17 @@ export function NpcsWindow() {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => setModal({ mode: "edit", npc })}
+                  onClick={() => openEditModal(npc)}
                 >
                   Edit
                 </Button>
                 {confirmingDeleteId === npc.id ? (
                   <>
+                    <FormError>{deleteError}</FormError>
                     <Button
                       type="button"
                       variant="secondary"
+                      disabled={deleteState.fetching}
                       onClick={() => handleDelete(npc.id)}
                     >
                       Confirm
@@ -203,7 +224,7 @@ export function NpcsWindow() {
       </ul>
 
       {isWriter ? (
-        <Button type="button" onClick={() => setModal({ mode: "create" })}>
+        <Button type="button" onClick={openCreateModal}>
           + New NPC
         </Button>
       ) : null}

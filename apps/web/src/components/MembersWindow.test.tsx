@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
@@ -116,10 +116,23 @@ describe("MembersWindow", () => {
     expect(
       screen.getByLabelText("Role for owner@example.com"),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Remove" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Remove" })).toHaveLength(1);
     expect(
       screen.getByRole("button", { name: "Add member" }),
     ).toBeInTheDocument();
+  });
+
+  it("does not show a Remove button for the owner's own row", () => {
+    setupMocks();
+    renderWindow();
+
+    const ownerRow = screen.getByText("owner@example.com").closest("li");
+    expect(ownerRow).not.toBeNull();
+    expect(
+      within(ownerRow as HTMLElement).queryByRole("button", {
+        name: "Remove",
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it("hides all controls for a Storyteller (read-only)", () => {
@@ -149,7 +162,7 @@ describe("MembersWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getAllByRole("button", { name: "Remove" })[1]);
+    await user.click(screen.getByRole("button", { name: "Remove" }));
 
     expect(removeMember).toHaveBeenCalledWith({
       campaignId: "camp-1",

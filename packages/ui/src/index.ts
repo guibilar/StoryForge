@@ -32,3 +32,13 @@ export type { WindowProps } from "./components/Window/Window";
 
 export { Dock } from "./components/Dock/Dock";
 export type { DockProps, DockItem } from "./components/Dock/Dock";
+
+export { Tabs } from "./components/Tabs/Tabs";
+export type { TabsProps, TabItem } from "./components/Tabs/Tabs";
+
+export { CommandPalette } from "./components/CommandPalette/CommandPalette";
+export type {
+  CommandPaletteProps,
+  CommandPaletteSection,
+  CommandPaletteItem,
+} from "./components/CommandPalette/CommandPalette";

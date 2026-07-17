@@ -63,7 +63,9 @@
       "Bash(pnpm codegen *)",
       "Bash(pnpm vitest *)",
       "Bash(pnpm exec *)",
-      "Skill(run)"
+      "Skill(run)",
+      "Skill(artifact-design)",
+      "mcp__claude_ai_Atlassian_Rovo__createIssueLink"
     ]
   }
 }

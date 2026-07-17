@@ -5,16 +5,17 @@
   background: var(--bg);
   color: var(--text-h);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow);
   overflow: hidden;
+  z-index: var(--z-window-base);
 }
 
 .titleBar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
+  gap: var(--space-2);
+  padding: var(--space-2) 10px;
   background: var(--code-bg);
   border-bottom: 1px solid var(--border);
   cursor: grab;
@@ -57,7 +58,7 @@
 }
 
 .body {
-  padding: 12px 14px;
+  padding: var(--space-3) 14px;
   overflow: auto;
   flex: 1;
 }

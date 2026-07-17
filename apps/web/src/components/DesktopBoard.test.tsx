@@ -12,6 +12,27 @@ import {
   MeDocument,
   SessionsDocument,
 } from "../gql/graphql";
+import type { CampaignRole } from "../gql/graphql";
+import { useDesktopWindowsController } from "../hooks/useDesktopWindowsController";
+import { DesktopWindowsContext } from "../lib/DesktopWindowsContext";
+
+// DesktopBoard now reads window state from context (KAN-96 lifted ownership
+// up to CampaignDesktopPage so a sibling sidebar can share it) rather than
+// owning it itself — this harness stands in for that owner in isolation.
+function Harness({
+  campaignId,
+  role,
+}: {
+  campaignId: string;
+  role?: CampaignRole;
+}) {
+  const desktopWindows = useDesktopWindowsController(campaignId);
+  return (
+    <DesktopWindowsContext.Provider value={desktopWindows}>
+      <DesktopBoard role={role} />
+    </DesktopWindowsContext.Provider>
+  );
+}
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
@@ -97,7 +118,7 @@ describe("DesktopBoard", () => {
   it("shows the default windows open/closed per the catalog defaults", () => {
     render(
       <MemoryRouter>
-        <DesktopBoard campaignId="camp-1" role="OWNER" />
+        <Harness campaignId="camp-1" role="OWNER" />
       </MemoryRouter>,
     );
 
@@ -118,7 +139,7 @@ describe("DesktopBoard", () => {
 
   it("opens a hidden window from the dock and closes it again", async () => {
     const user = userEvent.setup();
-    render(<DesktopBoard campaignId="camp-1" />);
+    render(<Harness campaignId="camp-1" />);
 
     await user.click(screen.getByRole("button", { name: "Timeline" }));
     expect(screen.getByText("No events yet.")).toBeInTheDocument();
@@ -129,18 +150,18 @@ describe("DesktopBoard", () => {
 
   it("persists the arrangement so a remount restores it", async () => {
     const user = userEvent.setup();
-    const { unmount } = render(<DesktopBoard campaignId="camp-1" />);
+    const { unmount } = render(<Harness campaignId="camp-1" />);
 
     await user.click(screen.getByRole("button", { name: "Timeline" }));
     unmount();
 
-    render(<DesktopBoard campaignId="camp-1" />);
+    render(<Harness campaignId="camp-1" />);
     expect(screen.getByText("No events yet.")).toBeInTheDocument();
   });
 
   it("reset layout restores the defaults", async () => {
     const user = userEvent.setup();
-    render(<DesktopBoard campaignId="camp-1" />);
+    render(<Harness campaignId="camp-1" />);
 
     await user.click(screen.getByRole("button", { name: "Timeline" }));
     await user.click(screen.getByRole("button", { name: "Reset layout" }));
@@ -149,7 +170,7 @@ describe("DesktopBoard", () => {
   });
 
   it("drags a window by its title bar and persists the new position", () => {
-    render(<DesktopBoard campaignId="camp-1" />);
+    render(<Harness campaignId="camp-1" />);
 
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
@@ -189,7 +210,7 @@ describe("DesktopBoard", () => {
   });
 
   it("resizes a window by its handle and persists the new size", () => {
-    render(<DesktopBoard campaignId="camp-1" />);
+    render(<Harness campaignId="camp-1" />);
 
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
@@ -233,7 +254,7 @@ describe("DesktopBoard", () => {
   });
 
   it("clamps resize to the minimum size and the board bounds", () => {
-    render(<DesktopBoard campaignId="camp-1" />);
+    render(<Harness campaignId="camp-1" />);
 
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });

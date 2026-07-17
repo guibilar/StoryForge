@@ -5,7 +5,11 @@ import { MemoryRouter } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
 
 import { DesktopBoard } from "./DesktopBoard";
-import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import {
+  DesktopWindowsContext,
+  useDesktopWindows,
+} from "../lib/DesktopWindowsContext";
+import { useDesktopWindowsController } from "../hooks/useDesktopWindowsController";
 import {
   CampaignDocument,
   EntitiesDocument,
@@ -13,6 +17,18 @@ import {
   MeDocument,
   SessionsDocument,
 } from "../gql/graphql";
+
+// DesktopBoard now reads window state from context (KAN-96 lifted ownership
+// up to CampaignDesktopPage so a sibling sidebar can share it) rather than
+// owning it itself — this harness stands in for that owner in isolation.
+function Harness({ campaignId }: { campaignId: string }) {
+  const desktopWindows = useDesktopWindowsController(campaignId);
+  return (
+    <DesktopWindowsContext.Provider value={desktopWindows}>
+      <DesktopBoard role="OWNER" />
+    </DesktopWindowsContext.Provider>
+  );
+}
 
 // windowCatalog.ts always renders NpcsWindow, so replacing it with a harness
 // that consumes useDesktopWindows() is the least invasive way to exercise
@@ -116,7 +132,7 @@ beforeEach(() => {
 function renderBoard() {
   return render(
     <MemoryRouter>
-      <DesktopBoard campaignId="camp-1" role="OWNER" />
+      <Harness campaignId="camp-1" />
     </MemoryRouter>,
   );
 }

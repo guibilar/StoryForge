@@ -9,3 +9,10 @@
   font-weight: 600;
   margin: 0;
 }
+
+.deskLayout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  align-items: start;
+}

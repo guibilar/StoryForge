@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useMutation, useQuery } from "urql";
@@ -135,6 +135,30 @@ describe("CampaignDesktopPage", () => {
 
     expect(screen.getByText("The Sabbat War · OWNER")).toBeInTheDocument();
     expect(screen.getByTestId("desktop-board")).toBeInTheDocument();
+  });
+
+  it("renders the entity sidebar alongside the board above the breakpoint", () => {
+    mockMatchMedia(false);
+    setupMocks();
+    renderPage();
+
+    const nav = screen.getByRole("navigation", {
+      name: "Campaign navigation",
+    });
+    expect(nav).toBeInTheDocument();
+    expect(
+      within(nav).getByRole("button", { name: "Timeline" }),
+    ).toBeInTheDocument();
+  });
+
+  it("does not render the entity sidebar below the breakpoint", () => {
+    mockMatchMedia(true);
+    setupMocks();
+    renderPage();
+
+    expect(
+      screen.queryByRole("navigation", { name: "Campaign navigation" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the single-panel mobile fallback below the breakpoint", () => {

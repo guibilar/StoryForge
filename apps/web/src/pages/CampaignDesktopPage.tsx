@@ -4,13 +4,22 @@ import { Link } from "@storyforge/ui";
 
 import { CampaignDocument, MeDocument } from "../gql/graphql";
 import { DesktopBoard } from "../components/DesktopBoard";
+import { EntitySidebar } from "../components/EntitySidebar";
 import { MobileDesktop } from "../components/MobileDesktop";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { useDesktopWindowsController } from "../hooks/useDesktopWindowsController";
+import { DesktopWindowsContext } from "../lib/DesktopWindowsContext";
 import styles from "./CampaignDesktopPage.module.css";
 
 export function CampaignDesktopPage() {
   const { id } = useParams<{ id: string }>();
   const isMobile = useMediaQuery("(max-width: 768px)");
+
+  // Owned here (not inside DesktopBoard) so EntitySidebar — a sibling of
+  // DesktopBoard, not a descendant — can open/toggle the same windows. `id`
+  // is available synchronously from the route; the campaign data it names
+  // may still be loading below.
+  const desktopWindows = useDesktopWindowsController(id ?? "");
 
   const [{ data: meData }] = useQuery({ query: MeDocument });
   const [{ data: campaignData, fetching }] = useQuery({
@@ -57,11 +66,16 @@ export function CampaignDesktopPage() {
         </p>
       </header>
 
-      {isMobile ? (
-        <MobileDesktop role={role} />
-      ) : (
-        <DesktopBoard campaignId={campaign.id} role={role} />
-      )}
+      <DesktopWindowsContext.Provider value={desktopWindows}>
+        {isMobile ? (
+          <MobileDesktop role={role} />
+        ) : (
+          <div className={styles.deskLayout}>
+            <EntitySidebar campaignId={campaign.id} role={role} />
+            <DesktopBoard role={role} />
+          </div>
+        )}
+      </DesktopWindowsContext.Provider>
     </main>
   );
 }

@@ -63,6 +63,41 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     [persistLayout],
   );
 
+  // Opens a window for an id chosen at runtime (e.g. `entity:${id}`), not
+  // just one predeclared in windowCatalog.ts. If the id is already in the
+  // layout (still open, or closed-but-not-removed) it's brought to front at
+  // its existing position/size instead of being reset to `defaults`.
+  const openWindow = useCallback(
+    (
+      id: string,
+      defaults: { x: number; y: number; width: number; height: number },
+    ) => {
+      setLayout((current) => {
+        const existing = current[id];
+        return persistLayout({
+          ...current,
+          [id]: existing
+            ? { ...existing, hidden: false, z: maxZ(current) + 1 }
+            : { ...defaults, hidden: false, z: maxZ(current) + 1 },
+        });
+      });
+    },
+    [persistLayout],
+  );
+
+  // Removes a dynamically-opened window entirely, unlike `toggle` which only
+  // hides a static catalog window (so the Dock can still reopen it).
+  const closeWindow = useCallback(
+    (id: string) => {
+      setLayout((current) => {
+        const rest = { ...current };
+        delete rest[id];
+        return persistLayout(rest);
+      });
+    },
+    [persistLayout],
+  );
+
   const toggle = useCallback(
     (id: string) => {
       setLayout((current) => {
@@ -95,10 +130,22 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     setLayout((current) => persistLayout(current));
   }, [persistLayout]);
 
+  // "Reset layout" only resets the static catalog windows (the ones present
+  // in `defaults`) back to their shipped positions — any dynamically-opened
+  // windows (entity:*, etc) are left exactly as they are, since resetting
+  // "the layout" isn't the same thing as closing whatever else is open.
   const reset = useCallback(() => {
-    localStorage.removeItem(storageKey(campaignId));
-    setLayout(defaults);
-  }, [campaignId, defaults]);
+    setLayout((current) => {
+      const dynamicEntries = Object.fromEntries(
+        Object.entries(current).filter(([id]) => !(id in defaults)),
+      );
+      if (Object.keys(dynamicEntries).length === 0) {
+        localStorage.removeItem(storageKey(campaignId));
+        return defaults;
+      }
+      return persistLayout({ ...defaults, ...dynamicEntries });
+    });
+  }, [campaignId, defaults, persistLayout]);
 
   const startDrag = useCallback(
     (
@@ -189,5 +236,7 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     startDrag,
     startResize,
     reset,
+    openWindow,
+    closeWindow,
   };
 }

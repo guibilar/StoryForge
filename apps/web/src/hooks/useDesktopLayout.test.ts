@@ -91,6 +91,107 @@ describe("useDesktopLayout", () => {
     expect(localStorage.getItem("storyforge:desktop:camp-1")).toBeNull();
   });
 
+  it("openWindow inserts a new id at the given defaults, unhidden and on top", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() =>
+      result.current.openWindow("entity:1", {
+        x: 10,
+        y: 20,
+        width: 300,
+        height: 200,
+      }),
+    );
+
+    expect(result.current.layout["entity:1"]).toMatchObject({
+      x: 10,
+      y: 20,
+      width: 300,
+      height: 200,
+      hidden: false,
+    });
+    expect(result.current.layout["entity:1"].z).toBeGreaterThan(
+      DEFAULTS.npcs.z,
+    );
+  });
+
+  it("openWindow on an already-open id brings it to front without resetting position", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() =>
+      result.current.openWindow("entity:1", {
+        x: 10,
+        y: 20,
+        width: 300,
+        height: 200,
+      }),
+    );
+    act(() => result.current.move("entity:1", 555, 666));
+    act(() => result.current.bringToFront("npcs"));
+    act(() =>
+      result.current.openWindow("entity:1", {
+        x: 0,
+        y: 0,
+        width: 999,
+        height: 999,
+      }),
+    );
+
+    expect(result.current.layout["entity:1"]).toMatchObject({
+      x: 555,
+      y: 666,
+    });
+    expect(result.current.layout["entity:1"].z).toBeGreaterThan(
+      result.current.layout.npcs.z,
+    );
+  });
+
+  it("closeWindow removes the id from the layout entirely", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() =>
+      result.current.openWindow("entity:1", {
+        x: 10,
+        y: 20,
+        width: 300,
+        height: 200,
+      }),
+    );
+    act(() => result.current.closeWindow("entity:1"));
+
+    expect(result.current.layout["entity:1"]).toBeUndefined();
+    const stored = JSON.parse(
+      localStorage.getItem("storyforge:desktop:camp-1")!,
+    );
+    expect(stored["entity:1"]).toBeUndefined();
+  });
+
+  it("reset restores static defaults but leaves dynamically-opened windows alone", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() => result.current.toggle("notes"));
+    act(() =>
+      result.current.openWindow("entity:1", {
+        x: 10,
+        y: 20,
+        width: 300,
+        height: 200,
+      }),
+    );
+    act(() => result.current.reset());
+
+    expect(result.current.layout.npcs).toEqual(DEFAULTS.npcs);
+    expect(result.current.layout.notes).toEqual(DEFAULTS.notes);
+    expect(result.current.layout["entity:1"]).toMatchObject({
+      x: 10,
+      y: 20,
+    });
+    const stored = JSON.parse(
+      localStorage.getItem("storyforge:desktop:camp-1")!,
+    );
+    expect(stored["entity:1"]).toBeDefined();
+  });
+
   it("scopes storage per campaign id", () => {
     const { result: campaignA } = renderHook(() =>
       useDesktopLayout("camp-a", DEFAULTS),

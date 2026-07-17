@@ -57,7 +57,7 @@ function makeEvent(): Event {
   return Event.create({
     campaignId: "campaign-1",
     title: "Goblin ambush",
-    occurredAt: new Date("2024-01-01T00:00:00Z"),
+    occurredAt: "Day 1",
   });
 }
 
@@ -156,7 +156,7 @@ describe("events Mutation.createEvent", () => {
       sessionId: "session-1",
       title: "Goblin ambush",
       description: "The party was ambushed on the road.",
-      occurredAt: new Date("2024-01-01T00:00:00.000Z"),
+      occurredAt: "2024-01-01T00:00:00.000Z",
     });
     expect(result).toBe(event);
   });

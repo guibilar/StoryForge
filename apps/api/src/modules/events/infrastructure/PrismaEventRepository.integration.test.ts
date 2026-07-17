@@ -65,7 +65,7 @@ describe("PrismaEventRepository", () => {
     const event = Event.create({
       campaignId,
       title: uniqueName("event"),
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
     });
 
     await repository.create(event);
@@ -88,12 +88,12 @@ describe("PrismaEventRepository", () => {
     const later = Event.create({
       campaignId,
       title: uniqueName("event"),
-      occurredAt: new Date("2024-02-01T00:00:00Z"),
+      occurredAt: "Day 2",
     });
     const earlier = Event.create({
       campaignId,
       title: uniqueName("event"),
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
     });
     await repository.create(later);
     await repository.create(earlier);
@@ -113,12 +113,12 @@ describe("PrismaEventRepository", () => {
       campaignId,
       sessionId: session.Id.toString(),
       title: uniqueName("event"),
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
     });
     const unlinked = Event.create({
       campaignId,
       title: uniqueName("event"),
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
     });
     await repository.create(linked);
     await repository.create(unlinked);
@@ -133,7 +133,7 @@ describe("PrismaEventRepository", () => {
     const event = Event.create({
       campaignId,
       title: uniqueName("event"),
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
     });
     await repository.create(event);
 
@@ -149,7 +149,7 @@ describe("PrismaEventRepository", () => {
     const event = Event.create({
       campaignId,
       title: uniqueName("event"),
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
     });
     await repository.create(event);
 
@@ -166,7 +166,7 @@ describe("PrismaEventRepository", () => {
       campaignId,
       sessionId: session.Id.toString(),
       title: uniqueName("event"),
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
     });
     await repository.create(event);
 
@@ -182,7 +182,7 @@ describe("PrismaEventRepository", () => {
     const event = Event.create({
       campaignId,
       title: uniqueName("event"),
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
     });
     await repository.create(event);
 
@@ -213,7 +213,7 @@ describe("PrismaEventRepository", () => {
     const event = Event.create({
       campaignId,
       title: uniqueName("event"),
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
     });
     await repository.create(event);
 

@@ -30,7 +30,7 @@ export type EventMinAggregateOutputType = {
   sessionId: string | null;
   title: string | null;
   description: string | null;
-  occurredAt: Date | null;
+  occurredAt: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 };
@@ -41,7 +41,7 @@ export type EventMaxAggregateOutputType = {
   sessionId: string | null;
   title: string | null;
   description: string | null;
-  occurredAt: Date | null;
+  occurredAt: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 };
@@ -177,7 +177,7 @@ export type EventGroupByOutputType = {
   sessionId: string | null;
   title: string;
   description: string | null;
-  occurredAt: Date;
+  occurredAt: string;
   createdAt: Date;
   updatedAt: Date;
   _count: EventCountAggregateOutputType | null;
@@ -207,7 +207,7 @@ export type EventWhereInput = {
   sessionId?: Prisma.StringNullableFilter<"Event"> | string | null;
   title?: Prisma.StringFilter<"Event"> | string;
   description?: Prisma.StringNullableFilter<"Event"> | string | null;
-  occurredAt?: Prisma.DateTimeFilter<"Event"> | Date | string;
+  occurredAt?: Prisma.StringFilter<"Event"> | string;
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string;
   campaign?: Prisma.XOR<
@@ -245,7 +245,7 @@ export type EventWhereUniqueInput = Prisma.AtLeast<
     sessionId?: Prisma.StringNullableFilter<"Event"> | string | null;
     title?: Prisma.StringFilter<"Event"> | string;
     description?: Prisma.StringNullableFilter<"Event"> | string | null;
-    occurredAt?: Prisma.DateTimeFilter<"Event"> | Date | string;
+    occurredAt?: Prisma.StringFilter<"Event"> | string;
     createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string;
     campaign?: Prisma.XOR<
@@ -290,7 +290,7 @@ export type EventScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Event"> | string;
   description?:
     Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null;
-  occurredAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string;
+  occurredAt?: Prisma.StringWithAggregatesFilter<"Event"> | string;
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string;
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string;
 };
@@ -299,7 +299,7 @@ export type EventCreateInput = {
   id?: string;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   campaign: Prisma.CampaignCreateNestedOneWithoutEventsInput;
@@ -313,7 +313,7 @@ export type EventUncheckedCreateInput = {
   sessionId?: string | null;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   participants?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutEventInput;
@@ -323,7 +323,7 @@ export type EventUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEventsNestedInput;
@@ -337,7 +337,7 @@ export type EventUncheckedUpdateInput = {
   sessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   participants?: Prisma.EventParticipantUncheckedUpdateManyWithoutEventNestedInput;
@@ -349,7 +349,7 @@ export type EventCreateManyInput = {
   sessionId?: string | null;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -358,7 +358,7 @@ export type EventUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -369,7 +369,7 @@ export type EventUncheckedUpdateManyInput = {
   sessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -624,7 +624,7 @@ export type EventCreateWithoutCampaignInput = {
   id?: string;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   session?: Prisma.SessionCreateNestedOneWithoutEventsInput;
@@ -636,7 +636,7 @@ export type EventUncheckedCreateWithoutCampaignInput = {
   sessionId?: string | null;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   participants?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutEventInput;
@@ -693,7 +693,7 @@ export type EventScalarWhereInput = {
   sessionId?: Prisma.StringNullableFilter<"Event"> | string | null;
   title?: Prisma.StringFilter<"Event"> | string;
   description?: Prisma.StringNullableFilter<"Event"> | string | null;
-  occurredAt?: Prisma.DateTimeFilter<"Event"> | Date | string;
+  occurredAt?: Prisma.StringFilter<"Event"> | string;
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string;
 };
@@ -702,7 +702,7 @@ export type EventCreateWithoutSessionInput = {
   id?: string;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   campaign: Prisma.CampaignCreateNestedOneWithoutEventsInput;
@@ -714,7 +714,7 @@ export type EventUncheckedCreateWithoutSessionInput = {
   campaignId: string;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   participants?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutEventInput;
@@ -766,7 +766,7 @@ export type EventCreateWithoutParticipantsInput = {
   id?: string;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   campaign: Prisma.CampaignCreateNestedOneWithoutEventsInput;
@@ -779,7 +779,7 @@ export type EventUncheckedCreateWithoutParticipantsInput = {
   sessionId?: string | null;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -816,7 +816,7 @@ export type EventUpdateWithoutParticipantsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEventsNestedInput;
@@ -829,7 +829,7 @@ export type EventUncheckedUpdateWithoutParticipantsInput = {
   sessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -839,7 +839,7 @@ export type EventCreateManyCampaignInput = {
   sessionId?: string | null;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -848,7 +848,7 @@ export type EventUpdateWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   session?: Prisma.SessionUpdateOneWithoutEventsNestedInput;
@@ -860,7 +860,7 @@ export type EventUncheckedUpdateWithoutCampaignInput = {
   sessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   participants?: Prisma.EventParticipantUncheckedUpdateManyWithoutEventNestedInput;
@@ -871,7 +871,7 @@ export type EventUncheckedUpdateManyWithoutCampaignInput = {
   sessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -881,7 +881,7 @@ export type EventCreateManySessionInput = {
   campaignId: string;
   title: string;
   description?: string | null;
-  occurredAt: Date | string;
+  occurredAt: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -890,7 +890,7 @@ export type EventUpdateWithoutSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEventsNestedInput;
@@ -902,7 +902,7 @@ export type EventUncheckedUpdateWithoutSessionInput = {
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   participants?: Prisma.EventParticipantUncheckedUpdateManyWithoutEventNestedInput;
@@ -913,7 +913,7 @@ export type EventUncheckedUpdateManyWithoutSessionInput = {
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
-  occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  occurredAt?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -1081,7 +1081,7 @@ export type $EventPayload<
       sessionId: string | null;
       title: string;
       description: string | null;
-      occurredAt: Date;
+      occurredAt: string;
       createdAt: Date;
       updatedAt: Date;
     },
@@ -1713,7 +1713,7 @@ export interface EventFieldRefs {
   readonly sessionId: Prisma.FieldRef<"Event", "String">;
   readonly title: Prisma.FieldRef<"Event", "String">;
   readonly description: Prisma.FieldRef<"Event", "String">;
-  readonly occurredAt: Prisma.FieldRef<"Event", "DateTime">;
+  readonly occurredAt: Prisma.FieldRef<"Event", "String">;
   readonly createdAt: Prisma.FieldRef<"Event", "DateTime">;
   readonly updatedAt: Prisma.FieldRef<"Event", "DateTime">;
 }

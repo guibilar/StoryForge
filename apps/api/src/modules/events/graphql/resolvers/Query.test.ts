@@ -67,7 +67,7 @@ function makeEvent(): Event {
   return Event.create({
     campaignId: "campaign-1",
     title: "Goblin ambush",
-    occurredAt: new Date("2024-01-01T00:00:00Z"),
+    occurredAt: "Day 1",
   });
 }
 

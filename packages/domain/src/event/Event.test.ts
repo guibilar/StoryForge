@@ -7,7 +7,7 @@ const validProps = {
   sessionId: "session-1",
   title: "Goblin ambush",
   description: "The party was ambushed on the road.",
-  occurredAt: new Date("2024-01-01T00:00:00Z"),
+  occurredAt: "Day 1, before the storm",
 };
 
 describe("Event", () => {
@@ -25,7 +25,7 @@ describe("Event", () => {
     const event = Event.create({
       campaignId: "campaign-1",
       title: "Goblin ambush",
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1, before the storm",
     });
 
     expect(event.SessionId).toBeNull();
@@ -73,17 +73,29 @@ describe("Event", () => {
 
   it("changes title, description, occurredAt and session", () => {
     const event = Event.create(validProps);
-    const newDate = new Date("2024-03-01T00:00:00Z");
+    const newOccurredAt = "Day 3, after the parley";
 
     event.changeTitle("Renamed event");
     event.changeDescription("New description");
-    event.changeOccurredAt(newDate);
+    event.changeOccurredAt(newOccurredAt);
     event.changeSession("session-2");
 
     expect(event.Title).toBe("Renamed event");
     expect(event.Description).toBe("New description");
-    expect(event.OccurredAt).toBe(newDate);
+    expect(event.OccurredAt).toBe(newOccurredAt);
     expect(event.SessionId).toBe("session-2");
+  });
+
+  it.each(["", "   "])("rejects an empty occurredAt %j", (occurredAt) => {
+    expect(() => Event.create({ ...validProps, occurredAt })).toThrow(
+      "Event occurredAt cannot be empty.",
+    );
+  });
+
+  it("rejects an occurredAt longer than 255 characters", () => {
+    expect(() =>
+      Event.create({ ...validProps, occurredAt: "a".repeat(256) }),
+    ).toThrow("Event occurredAt cannot exceed 255 characters.");
   });
 
   it("clears the session when changeSession is called with null", () => {

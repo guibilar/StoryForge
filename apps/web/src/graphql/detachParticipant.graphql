@@ -1,0 +1,9 @@
+mutation DetachParticipant($eventId: ID!, $entityId: ID!) {
+  detachParticipant(eventId: $eventId, entityId: $entityId) {
+    id
+    participants {
+      id
+      name
+    }
+  }
+}

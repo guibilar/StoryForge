@@ -5,7 +5,13 @@ import { MemoryRouter } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
 
 import { DesktopBoard } from "./DesktopBoard";
-import { CampaignDocument, EntitiesDocument, MeDocument } from "../gql/graphql";
+import {
+  CampaignDocument,
+  EntitiesDocument,
+  EventsDocument,
+  MeDocument,
+  SessionsDocument,
+} from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
@@ -51,6 +57,14 @@ vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
 
   if (args.query === EntitiesDocument) {
     return [{ data: { entities: [] }, fetching: false, stale: false }, vi.fn()];
+  }
+
+  if (args.query === EventsDocument) {
+    return [{ data: { events: [] }, fetching: false, stale: false }, vi.fn()];
+  }
+
+  if (args.query === SessionsDocument) {
+    return [{ data: { sessions: [] }, fetching: false, stale: false }, vi.fn()];
   }
 
   throw new Error("Unexpected query in test");
@@ -107,10 +121,10 @@ describe("DesktopBoard", () => {
     render(<DesktopBoard campaignId="camp-1" />);
 
     await user.click(screen.getByRole("button", { name: "Timeline" }));
-    expect(screen.getByText("Coming soon — KAN-49.")).toBeInTheDocument();
+    expect(screen.getByText("No events yet.")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Close Timeline" }));
-    expect(screen.queryByText("Coming soon — KAN-49.")).not.toBeInTheDocument();
+    expect(screen.queryByText("No events yet.")).not.toBeInTheDocument();
   });
 
   it("persists the arrangement so a remount restores it", async () => {
@@ -121,7 +135,7 @@ describe("DesktopBoard", () => {
     unmount();
 
     render(<DesktopBoard campaignId="camp-1" />);
-    expect(screen.getByText("Coming soon — KAN-49.")).toBeInTheDocument();
+    expect(screen.getByText("No events yet.")).toBeInTheDocument();
   });
 
   it("reset layout restores the defaults", async () => {
@@ -131,7 +145,7 @@ describe("DesktopBoard", () => {
     await user.click(screen.getByRole("button", { name: "Timeline" }));
     await user.click(screen.getByRole("button", { name: "Reset layout" }));
 
-    expect(screen.queryByText("Coming soon — KAN-49.")).not.toBeInTheDocument();
+    expect(screen.queryByText("No events yet.")).not.toBeInTheDocument();
   });
 
   it("drags a window by its title bar and persists the new position", () => {

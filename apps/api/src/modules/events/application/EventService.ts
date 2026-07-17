@@ -16,7 +16,7 @@ export interface CreateEventDto {
   sessionId?: string | null;
   title: string;
   description?: string | null;
-  occurredAt: Date;
+  occurredAt: string;
 }
 
 export interface UpdateEventDto {
@@ -24,7 +24,7 @@ export interface UpdateEventDto {
   sessionId?: string | null;
   title?: string;
   description?: string | null;
-  occurredAt?: Date;
+  occurredAt?: string;
 }
 
 export class EventService {

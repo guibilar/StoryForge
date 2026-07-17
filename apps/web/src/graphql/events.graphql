@@ -1,0 +1,20 @@
+query Events($campaignId: ID!) {
+  events(campaignId: $campaignId) {
+    id
+    campaignId
+    title
+    description
+    occurredAt
+    sessionId
+    session {
+      id
+      sessionNumber
+    }
+    participants {
+      id
+      name
+    }
+    createdAt
+    updatedAt
+  }
+}

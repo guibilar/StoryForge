@@ -11,7 +11,7 @@ describe("EventMapper", () => {
       sessionId: "33333333-3333-3333-3333-333333333333",
       title: "Goblin ambush",
       description: "The party was ambushed on the road.",
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
       createdAt: new Date("2024-01-01T00:00:00Z"),
       updatedAt: new Date("2024-02-01T00:00:00Z"),
     };
@@ -34,7 +34,7 @@ describe("EventMapper", () => {
       sessionId: "33333333-3333-3333-3333-333333333333",
       title: "Goblin ambush",
       description: "The party was ambushed on the road.",
-      occurredAt: new Date("2024-01-01T00:00:00Z"),
+      occurredAt: "Day 1",
     });
 
     const record = EventMapper.toPersistence(event);

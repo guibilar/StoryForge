@@ -51,7 +51,7 @@ function makeSessionRepository(): SessionRepository {
 const createDto = {
   campaignId: "campaign-1",
   title: "Goblin ambush",
-  occurredAt: new Date("2024-01-01T00:00:00Z"),
+  occurredAt: "Day 1",
 };
 
 function makeSession(overrides?: Partial<{ campaignId: string }>): Session {
@@ -141,18 +141,18 @@ describe("EventService", () => {
     it("updates title, description, occurredAt", async () => {
       const event = await service.createEvent(createDto);
       vi.mocked(repository.findById).mockResolvedValue(event);
-      const newDate = new Date("2024-02-01T00:00:00Z");
+      const newOccurredAt = "Day 2";
 
       const updated = await service.updateEvent({
         id: event.Id.toString(),
         title: "Renamed",
         description: "New description",
-        occurredAt: newDate,
+        occurredAt: newOccurredAt,
       });
 
       expect(updated.Title).toBe("Renamed");
       expect(updated.Description).toBe("New description");
-      expect(updated.OccurredAt).toBe(newDate);
+      expect(updated.OccurredAt).toBe(newOccurredAt);
       expect(repository.update).toHaveBeenCalledWith(event);
     });
 

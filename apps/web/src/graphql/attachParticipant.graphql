@@ -1,0 +1,9 @@
+mutation AttachParticipant($eventId: ID!, $entityId: ID!) {
+  attachParticipant(eventId: $eventId, entityId: $entityId) {
+    id
+    participants {
+      id
+      name
+    }
+  }
+}

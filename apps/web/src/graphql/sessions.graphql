@@ -1,0 +1,7 @@
+query Sessions($campaignId: ID!) {
+  sessions(campaignId: $campaignId) {
+    id
+    sessionNumber
+    date
+  }
+}

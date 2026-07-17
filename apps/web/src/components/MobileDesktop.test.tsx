@@ -6,7 +6,13 @@ import { useMutation, useQuery } from "urql";
 import { vi } from "vitest";
 
 import { MobileDesktop } from "./MobileDesktop";
-import { CampaignDocument, EntitiesDocument, MeDocument } from "../gql/graphql";
+import {
+  CampaignDocument,
+  EntitiesDocument,
+  EventsDocument,
+  MeDocument,
+  SessionsDocument,
+} from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
@@ -62,6 +68,14 @@ vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     return [{ data: { entities: [] }, fetching: false, stale: false }, vi.fn()];
   }
 
+  if (args.query === EventsDocument) {
+    return [{ data: { events: [] }, fetching: false, stale: false }, vi.fn()];
+  }
+
+  if (args.query === SessionsDocument) {
+    return [{ data: { sessions: [] }, fetching: false, stale: false }, vi.fn()];
+  }
+
   throw new Error("Unexpected query in test");
 }) as never);
 
@@ -89,7 +103,7 @@ describe("MobileDesktop", () => {
     expect(
       screen.getByRole("heading", { name: "Timeline" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Coming soon — KAN-49.")).toBeInTheDocument();
+    expect(screen.getByText("No events yet.")).toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: "NPCs" }),
     ).not.toBeInTheDocument();

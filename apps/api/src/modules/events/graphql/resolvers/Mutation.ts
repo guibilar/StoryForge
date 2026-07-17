@@ -1,11 +1,22 @@
+import { ValidationError } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
-import {
-  parseOptionalDate,
-  parseRequiredDate,
-} from "../../../../graphql/dateInput";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
 import { requireCampaignWriter } from "../../../campaignMembers/graphql/guards";
+
+function normalizeOptionalOccurredAt(
+  value: string | null | undefined,
+): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null) {
+    throw new ValidationError("occurredAt cannot be null.");
+  }
+
+  return value;
+}
 
 export interface CreateEventInput {
   campaignId: string;
@@ -36,7 +47,7 @@ export const Mutation = {
         sessionId: args.input.sessionId,
         title: args.input.title,
         description: args.input.description,
-        occurredAt: parseRequiredDate(args.input.occurredAt, "occurredAt"),
+        occurredAt: args.input.occurredAt,
       });
     } catch (error) {
       toGraphQLError(error);
@@ -57,7 +68,7 @@ export const Mutation = {
         sessionId: args.input.sessionId,
         title: args.input.title,
         description: args.input.description,
-        occurredAt: parseOptionalDate(args.input.occurredAt, "occurredAt"),
+        occurredAt: normalizeOptionalOccurredAt(args.input.occurredAt),
       });
     } catch (error) {
       toGraphQLError(error);

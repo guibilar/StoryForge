@@ -1,0 +1,319 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
+import { describe, expect, it, vi } from "vitest";
+import { useMutation, useQuery } from "urql";
+
+import { TimelineWindow } from "./TimelineWindow";
+import {
+  AttachParticipantDocument,
+  CampaignDocument,
+  CreateEventDocument,
+  DeleteEventDocument,
+  DetachParticipantDocument,
+  EntitiesDocument,
+  EventsDocument,
+  MeDocument,
+  SessionsDocument,
+  UpdateEventDocument,
+} from "../gql/graphql";
+
+vi.mock("urql", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("urql")>();
+  return { ...actual, useMutation: vi.fn(), useQuery: vi.fn() };
+});
+
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router-dom")>();
+  return { ...actual, useParams: () => ({ id: "camp-1" }) };
+});
+
+const CURRENT_USER_ID = "user-1";
+
+const ownerMembers = [
+  {
+    userId: CURRENT_USER_ID,
+    role: "OWNER",
+    user: { id: CURRENT_USER_ID, email: "owner@example.com" },
+  },
+];
+
+const playerMembers = [
+  {
+    userId: CURRENT_USER_ID,
+    role: "PLAYER",
+    user: { id: CURRENT_USER_ID, email: "player@example.com" },
+  },
+];
+
+const entities = [
+  {
+    id: "npc-1",
+    name: "Theo Vance",
+    description: null,
+    visibility: "PUBLIC",
+    tags: [],
+  },
+  {
+    id: "npc-2",
+    name: "Sister Agnes",
+    description: null,
+    visibility: "PUBLIC",
+    tags: [],
+  },
+];
+
+const sessions = [{ id: "sess-1", sessionNumber: 11, date: "2026-06-29" }];
+
+const events = [
+  {
+    id: "event-1",
+    campaignId: "camp-1",
+    title: "Coterie forms an uneasy alliance",
+    description: "They agreed to a truce.",
+    occurredAt: "Day 1",
+    sessionId: null,
+    session: null,
+    participants: [{ id: "npc-1", name: "Theo Vance" }],
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "event-2",
+    campaignId: "camp-1",
+    title: "Blood debt struck with the Prince",
+    description: null,
+    occurredAt: "Day 2",
+    sessionId: "sess-1",
+    session: { id: "sess-1", sessionNumber: 11 },
+    participants: [{ id: "npc-2", name: "Sister Agnes" }],
+    createdAt: "2026-01-02T00:00:00.000Z",
+    updatedAt: "2026-01-02T00:00:00.000Z",
+  },
+];
+
+function setupMocks({
+  members = ownerMembers,
+  eventList = events,
+  createEvent = vi
+    .fn()
+    .mockResolvedValue({ data: { createEvent: { id: "event-3" } } }),
+  updateEvent = vi.fn().mockResolvedValue({ data: { updateEvent: {} } }),
+  deleteEvent = vi.fn().mockResolvedValue({ data: { deleteEvent: true } }),
+  attachParticipant = vi
+    .fn()
+    .mockResolvedValue({ data: { attachParticipant: {} } }),
+  detachParticipant = vi
+    .fn()
+    .mockResolvedValue({ data: { detachParticipant: {} } }),
+  reexecuteEvents = vi.fn(),
+} = {}) {
+  vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
+    if (args.query === MeDocument) {
+      return [
+        {
+          data: { me: { id: CURRENT_USER_ID, email: "member@example.com" } },
+          fetching: false,
+          stale: false,
+        },
+        vi.fn(),
+      ];
+    }
+
+    if (args.query === CampaignDocument) {
+      return [
+        {
+          data: { campaign: { id: "camp-1", name: "Campaign", members } },
+          fetching: false,
+          stale: false,
+        },
+        vi.fn(),
+      ];
+    }
+
+    if (args.query === EventsDocument) {
+      return [
+        { data: { events: eventList }, fetching: false, stale: false },
+        reexecuteEvents,
+      ];
+    }
+
+    if (args.query === EntitiesDocument) {
+      return [{ data: { entities }, fetching: false, stale: false }, vi.fn()];
+    }
+
+    if (args.query === SessionsDocument) {
+      return [{ data: { sessions }, fetching: false, stale: false }, vi.fn()];
+    }
+
+    throw new Error("Unexpected query in test");
+  }) as never);
+
+  vi.mocked(useMutation).mockImplementation(((document: unknown) => {
+    if (document === CreateEventDocument) {
+      return [{ fetching: false, error: undefined, stale: false }, createEvent];
+    }
+    if (document === UpdateEventDocument) {
+      return [{ fetching: false, error: undefined, stale: false }, updateEvent];
+    }
+    if (document === DeleteEventDocument) {
+      return [{ fetching: false, error: undefined, stale: false }, deleteEvent];
+    }
+    if (document === AttachParticipantDocument) {
+      return [
+        { fetching: false, error: undefined, stale: false },
+        attachParticipant,
+      ];
+    }
+    if (document === DetachParticipantDocument) {
+      return [
+        { fetching: false, error: undefined, stale: false },
+        detachParticipant,
+      ];
+    }
+
+    throw new Error("Unexpected mutation in test");
+  }) as never);
+
+  return {
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    attachParticipant,
+    detachParticipant,
+    reexecuteEvents,
+  };
+}
+
+function renderWindow() {
+  render(
+    <MemoryRouter>
+      <TimelineWindow />
+    </MemoryRouter>,
+  );
+}
+
+describe("TimelineWindow", () => {
+  it("lists events in occurredAt order with participant and session chips", () => {
+    setupMocks();
+    renderWindow();
+
+    expect(
+      screen.getByText("Coterie forms an uneasy alliance"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Blood debt struck with the Prince"),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Theo Vance").length).toBeGreaterThan(0);
+    expect(screen.getByText("#11")).toBeInTheDocument();
+  });
+
+  it("shows create/edit/delete controls for an Owner", () => {
+    setupMocks();
+    renderWindow();
+
+    expect(
+      screen.getByRole("button", { name: "+ New event" }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(2);
+  });
+
+  it("hides write controls for a Player (read-only)", () => {
+    setupMocks({ members: playerMembers });
+    renderWindow();
+
+    expect(
+      screen.getByText("Coterie forms an uneasy alliance"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "+ New event" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Edit" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("filters events by search text", async () => {
+    setupMocks();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.type(screen.getByLabelText("Search events"), "blood debt");
+
+    expect(
+      screen.queryByText("Coterie forms an uneasy alliance"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Blood debt struck with the Prince"),
+    ).toBeInTheDocument();
+  });
+
+  it("filters events by participant", async () => {
+    setupMocks();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.selectOptions(
+      screen.getByLabelText("Filter by participant"),
+      "npc-2",
+    );
+
+    expect(
+      screen.queryByText("Coterie forms an uneasy alliance"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Blood debt struck with the Prince"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows an empty state when there are no events", () => {
+    setupMocks({ eventList: [] });
+    renderWindow();
+
+    expect(screen.getByText("No events yet.")).toBeInTheDocument();
+  });
+
+  it("creates an event with selected participants and refetches", async () => {
+    const { createEvent, attachParticipant, reexecuteEvents } = setupMocks();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "+ New event" }));
+    await user.type(screen.getByLabelText("Title"), "New event");
+    await user.type(screen.getByLabelText("Order (in-fiction)"), "Day 3");
+    await user.click(screen.getByRole("checkbox", { name: "Theo Vance" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createEvent).toHaveBeenCalledWith({
+      input: {
+        campaignId: "camp-1",
+        title: "New event",
+        description: null,
+        occurredAt: "Day 3",
+        sessionId: null,
+      },
+    });
+    expect(attachParticipant).toHaveBeenCalledWith({
+      eventId: "event-3",
+      entityId: "npc-1",
+    });
+    expect(reexecuteEvents).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+  });
+
+  it("deletes an event after confirming and refetches", async () => {
+    const { deleteEvent, reexecuteEvents } = setupMocks();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getAllByRole("button", { name: "Delete" })[0]);
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+    expect(deleteEvent).toHaveBeenCalledWith({ id: "event-1" });
+    expect(reexecuteEvents).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+  });
+});

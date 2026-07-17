@@ -5,6 +5,7 @@ import { ComingSoonPanel } from "../components/ComingSoonPanel";
 import { MembersWindow } from "../components/MembersWindow";
 import { NotesWindow } from "../components/NotesWindow";
 import { NpcsWindow } from "../components/NpcsWindow";
+import { TimelineWindow } from "../components/TimelineWindow";
 import type { LayoutMap } from "../hooks/useDesktopLayout";
 import type { CampaignRole } from "../gql/graphql";
 
@@ -42,7 +43,7 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
   {
     id: "timeline",
     title: "Timeline",
-    render: () => createElement(ComingSoonPanel, { ticket: "KAN-49" }),
+    render: () => createElement(TimelineWindow),
   },
   {
     id: "notes",

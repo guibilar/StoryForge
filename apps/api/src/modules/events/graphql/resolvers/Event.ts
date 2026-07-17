@@ -1,5 +1,7 @@
+import { filterByVisibility } from "@storyforge/domain";
 import type { Event as DomainEvent } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
+import { requireCampaignMember } from "../../../campaignMembers/graphql/guards";
 
 export const Event = {
   id: (event: DomainEvent) => event.Id.toString(),
@@ -11,9 +13,19 @@ export const Event = {
       : null,
   title: (event: DomainEvent) => event.Title,
   description: (event: DomainEvent) => event.Description,
-  occurredAt: (event: DomainEvent) => event.OccurredAt.toISOString(),
-  participants: (event: DomainEvent, _args: unknown, context: GraphQLContext) =>
-    context.eventService.listParticipants(event.Id.toString()),
+  occurredAt: (event: DomainEvent) => event.OccurredAt,
+  participants: async (
+    event: DomainEvent,
+    _args: unknown,
+    context: GraphQLContext,
+  ) => {
+    const [participants, membership] = await Promise.all([
+      context.eventService.listParticipants(event.Id.toString()),
+      requireCampaignMember(context, event.CampaignId),
+    ]);
+
+    return filterByVisibility(participants, membership.Role);
+  },
   createdAt: (event: DomainEvent) => event.CreatedAt.toISOString(),
   updatedAt: (event: DomainEvent) => event.UpdatedAt.toISOString(),
 };

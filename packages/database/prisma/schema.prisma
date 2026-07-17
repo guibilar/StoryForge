@@ -107,7 +107,10 @@ model Event {
 
   title       String
   description String?
-  occurredAt  DateTime
+  // Free-text in-fiction ordering ("Day 14, after the masquerade"), not a
+  // real-world date — Timeline events have no calendar dates by design
+  // (KAN-49), distinct from Session.date. Sorted lexicographically.
+  occurredAt  String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

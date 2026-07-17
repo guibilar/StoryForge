@@ -32,6 +32,14 @@ export type CreateEntityInput = {
   visibility?: EntityVisibility | null | undefined;
 };
 
+export type CreateEventInput = {
+  campaignId: string | number;
+  description?: string | null | undefined;
+  occurredAt: string;
+  sessionId?: string | number | null | undefined;
+  title: string;
+};
+
 export type CreateNoteInput = {
   campaignId: string | number;
   content?: string | null | undefined;
@@ -78,6 +86,14 @@ export type UpdateEntityInput = {
   visibility?: EntityVisibility | null | undefined;
 };
 
+export type UpdateEventInput = {
+  description?: string | null | undefined;
+  id: string | number;
+  occurredAt?: string | null | undefined;
+  sessionId?: string | number | null | undefined;
+  title?: string | null | undefined;
+};
+
 export type UpdateNoteInput = {
   content?: string | null | undefined;
   id: string | number;
@@ -101,6 +117,18 @@ export type ArchiveCampaignMutationVariables = Exact<{
 }>;
 
 export type ArchiveCampaignMutation = { archiveCampaign: boolean };
+
+export type AttachParticipantMutationVariables = Exact<{
+  eventId: string | number;
+  entityId: string | number;
+}>;
+
+export type AttachParticipantMutation = {
+  attachParticipant: {
+    id: string;
+    participants: Array<{ id: string; name: string }>;
+  };
+};
 
 export type CampaignQueryVariables = Exact<{
   id: string | number;
@@ -158,6 +186,25 @@ export type CreateEntityMutation = {
   };
 };
 
+export type CreateEventMutationVariables = Exact<{
+  input: CreateEventInput;
+}>;
+
+export type CreateEventMutation = {
+  createEvent: {
+    id: string;
+    campaignId: string;
+    title: string;
+    description: string | null;
+    occurredAt: string;
+    sessionId: string | null;
+    createdAt: string;
+    updatedAt: string;
+    session: { id: string; sessionNumber: number } | null;
+    participants: Array<{ id: string; name: string }>;
+  };
+};
+
 export type CreateNoteMutationVariables = Exact<{
   input: CreateNoteInput;
 }>;
@@ -179,11 +226,29 @@ export type DeleteEntityMutationVariables = Exact<{
 
 export type DeleteEntityMutation = { deleteEntity: boolean };
 
+export type DeleteEventMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type DeleteEventMutation = { deleteEvent: boolean };
+
 export type DeleteNoteMutationVariables = Exact<{
   id: string | number;
 }>;
 
 export type DeleteNoteMutation = { deleteNote: boolean };
+
+export type DetachParticipantMutationVariables = Exact<{
+  eventId: string | number;
+  entityId: string | number;
+}>;
+
+export type DetachParticipantMutation = {
+  detachParticipant: {
+    id: string;
+    participants: Array<{ id: string; name: string }>;
+  };
+};
 
 export type EntitiesQueryVariables = Exact<{
   campaignId: string | number;
@@ -197,6 +262,25 @@ export type EntitiesQuery = {
     description: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
+  }>;
+};
+
+export type EventsQueryVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type EventsQuery = {
+  events: Array<{
+    id: string;
+    campaignId: string;
+    title: string;
+    description: string | null;
+    occurredAt: string;
+    sessionId: string | null;
+    createdAt: string;
+    updatedAt: string;
+    session: { id: string; sessionNumber: number } | null;
+    participants: Array<{ id: string; name: string }>;
   }>;
 };
 
@@ -244,6 +328,14 @@ export type RemoveCampaignMemberMutationVariables = Exact<{
 
 export type RemoveCampaignMemberMutation = { removeCampaignMember: boolean };
 
+export type SessionsQueryVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type SessionsQuery = {
+  sessions: Array<{ id: string; sessionNumber: number; date: string }>;
+};
+
 export type UpdateCampaignMutationVariables = Exact<{
   input: UpdateCampaignInput;
 }>;
@@ -276,6 +368,25 @@ export type UpdateEntityMutation = {
     description: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
+  };
+};
+
+export type UpdateEventMutationVariables = Exact<{
+  input: UpdateEventInput;
+}>;
+
+export type UpdateEventMutation = {
+  updateEvent: {
+    id: string;
+    campaignId: string;
+    title: string;
+    description: string | null;
+    occurredAt: string;
+    sessionId: string | null;
+    createdAt: string;
+    updatedAt: string;
+    session: { id: string; sessionNumber: number } | null;
+    participants: Array<{ id: string; name: string }>;
   };
 };
 
@@ -401,6 +512,87 @@ export const ArchiveCampaignDocument = {
 } as unknown as DocumentNode<
   ArchiveCampaignMutation,
   ArchiveCampaignMutationVariables
+>;
+export const AttachParticipantDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "AttachParticipant" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "eventId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "entityId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "attachParticipant" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "eventId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "eventId" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "entityId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "entityId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "participants" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  AttachParticipantMutation,
+  AttachParticipantMutationVariables
 >;
 export const CampaignDocument = {
   kind: "Document",
@@ -660,6 +852,89 @@ export const CreateEntityDocument = {
   CreateEntityMutation,
   CreateEntityMutationVariables
 >;
+export const CreateEventDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateEvent" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateEventInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createEvent" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "occurredAt" } },
+                { kind: "Field", name: { kind: "Name", value: "sessionId" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "session" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "sessionNumber" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "participants" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<CreateEventMutation, CreateEventMutationVariables>;
 export const CreateNoteDocument = {
   kind: "Document",
   definitions: [
@@ -758,6 +1033,45 @@ export const DeleteEntityDocument = {
   DeleteEntityMutation,
   DeleteEntityMutationVariables
 >;
+export const DeleteEventDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteEvent" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteEvent" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteEventMutation, DeleteEventMutationVariables>;
 export const DeleteNoteDocument = {
   kind: "Document",
   definitions: [
@@ -797,6 +1111,87 @@ export const DeleteNoteDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteNoteMutation, DeleteNoteMutationVariables>;
+export const DetachParticipantDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DetachParticipant" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "eventId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "entityId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "detachParticipant" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "eventId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "eventId" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "entityId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "entityId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "participants" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DetachParticipantMutation,
+  DetachParticipantMutationVariables
+>;
 export const EntitiesDocument = {
   kind: "Document",
   definitions: [
@@ -878,6 +1273,86 @@ export const EntitiesDocument = {
     },
   ],
 } as unknown as DocumentNode<EntitiesQuery, EntitiesQueryVariables>;
+export const EventsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Events" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "events" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "occurredAt" } },
+                { kind: "Field", name: { kind: "Name", value: "sessionId" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "session" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "sessionNumber" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "participants" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EventsQuery, EventsQueryVariables>;
 export const LoginDocument = {
   kind: "Document",
   definitions: [
@@ -1159,6 +1634,59 @@ export const RemoveCampaignMemberDocument = {
   RemoveCampaignMemberMutation,
   RemoveCampaignMemberMutationVariables
 >;
+export const SessionsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Sessions" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "sessions" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "sessionNumber" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "date" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SessionsQuery, SessionsQueryVariables>;
 export const UpdateCampaignDocument = {
   kind: "Document",
   definitions: [
@@ -1339,6 +1867,89 @@ export const UpdateEntityDocument = {
   UpdateEntityMutation,
   UpdateEntityMutationVariables
 >;
+export const UpdateEventDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateEvent" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateEventInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateEvent" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "occurredAt" } },
+                { kind: "Field", name: { kind: "Name", value: "sessionId" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "session" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "sessionNumber" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "participants" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateEventMutation, UpdateEventMutationVariables>;
 export const UpdateNoteDocument = {
   kind: "Document",
   definitions: [

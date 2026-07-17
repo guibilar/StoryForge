@@ -6,7 +6,7 @@ export interface CreateEventProps {
   sessionId?: string | null;
   title: string;
   description?: string | null;
-  occurredAt: Date;
+  occurredAt: string;
 }
 
 export interface RehydrateEventProps {
@@ -15,7 +15,7 @@ export interface RehydrateEventProps {
   sessionId: string | null;
   title: string;
   description: string | null;
-  occurredAt: Date;
+  occurredAt: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,12 +27,13 @@ export class Event {
     private sessionIdValue: string | null,
     private titleValue: string,
     private descriptionValue: string | null,
-    private occurredAtValue: Date,
+    private occurredAtValue: string,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
   ) {
     this.validateTitle(titleValue);
     this.validateDescription(descriptionValue);
+    this.validateOccurredAt(occurredAtValue);
   }
 
   static create(props: CreateEventProps): Event {
@@ -81,7 +82,7 @@ export class Event {
     return this.descriptionValue;
   }
 
-  get OccurredAt(): Date {
+  get OccurredAt(): string {
     return this.occurredAtValue;
   }
 
@@ -107,7 +108,9 @@ export class Event {
     this.updatedAtValue = new Date();
   }
 
-  changeOccurredAt(occurredAt: Date): void {
+  changeOccurredAt(occurredAt: string): void {
+    this.validateOccurredAt(occurredAt);
+
     this.occurredAtValue = occurredAt;
     this.updatedAtValue = new Date();
   }
@@ -137,6 +140,18 @@ export class Event {
     if (description.length > 1000) {
       throw new ValidationError(
         "Event description cannot exceed 1000 characters.",
+      );
+    }
+  }
+
+  private validateOccurredAt(occurredAt: string): void {
+    if (!occurredAt.trim()) {
+      throw new ValidationError("Event occurredAt cannot be empty.");
+    }
+
+    if (occurredAt.length > 255) {
+      throw new ValidationError(
+        "Event occurredAt cannot exceed 255 characters.",
       );
     }
   }

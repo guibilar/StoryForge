@@ -122,6 +122,27 @@ describe("PrismaCampaignMemberRepository", () => {
     expect(found?.Role).toBe("STORYTELLER");
   });
 
+  it.each(["CO_STORYTELLER", "OBSERVER"] as const)(
+    "persists the %s role",
+    async (role) => {
+      const campaignId = await createCampaign();
+      const userId = await createUser();
+      const member = CampaignMember.create({
+        campaignId,
+        userId: UserId.fromString(userId),
+        role,
+      });
+
+      await repository.create(member);
+      const found = await repository.findByCampaignAndUser(
+        campaignId,
+        UserId.fromString(userId),
+      );
+
+      expect(found?.Role).toBe(role);
+    },
+  );
+
   it("deletes a member", async () => {
     const campaignId = await createCampaign();
     const userId = await createUser();

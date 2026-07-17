@@ -50,4 +50,38 @@ describe("CampaignMember", () => {
     expect(member.Role).toBe("STORYTELLER");
     expect(member.UpdatedAt.getTime()).toBeGreaterThan(before.getTime());
   });
+
+  it.each([
+    "OWNER",
+    "STORYTELLER",
+    "CO_STORYTELLER",
+    "PLAYER",
+    "OBSERVER",
+  ] as const)("creates a member with role %s", (role) => {
+    const member = CampaignMember.create({
+      campaignId: "campaign-1",
+      userId: UserId.create(),
+      role,
+    });
+
+    expect(member.Role).toBe(role);
+  });
+
+  it.each([
+    "OWNER",
+    "STORYTELLER",
+    "CO_STORYTELLER",
+    "PLAYER",
+    "OBSERVER",
+  ] as const)("changes the role to %s", (role) => {
+    const member = CampaignMember.create({
+      campaignId: "campaign-1",
+      userId: UserId.create(),
+      role: "PLAYER",
+    });
+
+    member.changeRole(role);
+
+    expect(member.Role).toBe(role);
+  });
 });

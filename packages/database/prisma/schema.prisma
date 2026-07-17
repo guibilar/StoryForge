@@ -15,7 +15,9 @@ datasource db {
 enum CampaignRole {
   OWNER
   STORYTELLER
+  CO_STORYTELLER
   PLAYER
+  OBSERVER
 }
 
 enum Visibility {

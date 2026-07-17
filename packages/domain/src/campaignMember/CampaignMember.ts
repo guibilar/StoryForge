@@ -1,6 +1,7 @@
 import { UserId } from "../user";
 
-export type CampaignRole = "OWNER" | "STORYTELLER" | "PLAYER";
+export type CampaignRole =
+  "OWNER" | "STORYTELLER" | "CO_STORYTELLER" | "PLAYER" | "OBSERVER";
 
 export interface CreateCampaignMemberProps {
   campaignId: string;

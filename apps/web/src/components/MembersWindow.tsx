@@ -14,7 +14,13 @@ import type { CampaignRole } from "../gql/graphql";
 import { formatGraphQLError } from "../lib/graphqlError";
 import styles from "./MembersWindow.module.css";
 
-const ROLES: CampaignRole[] = ["OWNER", "STORYTELLER", "PLAYER"];
+const ROLES: CampaignRole[] = [
+  "OWNER",
+  "STORYTELLER",
+  "CO_STORYTELLER",
+  "PLAYER",
+  "OBSERVER",
+];
 
 export function MembersWindow() {
   const { id: campaignId } = useParams<{ id: string }>();

@@ -56,6 +56,10 @@ export class CampaignMemberService {
       );
     }
 
+    if (dto.role === "OWNER") {
+      await this.assertNoOtherOwner(dto.campaignId);
+    }
+
     const member = CampaignMember.create({
       campaignId: dto.campaignId,
       userId: user.Id,
@@ -94,9 +98,23 @@ export class CampaignMemberService {
       );
     }
 
+    if (dto.role === "OWNER" && member.Role !== "OWNER") {
+      await this.assertNoOtherOwner(dto.campaignId);
+    }
+
     member.changeRole(dto.role);
     await this.campaignMemberRepository.update(member);
 
     return member;
+  }
+
+  private async assertNoOtherOwner(campaignId: string): Promise<void> {
+    const members =
+      await this.campaignMemberRepository.listByCampaign(campaignId);
+    if (members.some((m) => m.Role === "OWNER")) {
+      throw new ValidationError(
+        "This campaign already has an owner. Only one owner is allowed per campaign.",
+      );
+    }
   }
 }

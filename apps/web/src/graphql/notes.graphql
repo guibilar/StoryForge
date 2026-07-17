@@ -4,6 +4,8 @@ query Notes($campaignId: ID!) {
     campaignId
     title
     content
+    visibility
+    recipientIds
     createdAt
     updatedAt
   }

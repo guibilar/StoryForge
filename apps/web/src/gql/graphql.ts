@@ -44,7 +44,9 @@ export type CreateNoteInput = {
   campaignId: string | number;
   content?: string | null | undefined;
   parentNoteId?: string | number | null | undefined;
+  recipientIds?: Array<string | number> | null | undefined;
   title: string;
+  visibility?: NoteVisibility | null | undefined;
 };
 
 export type CreateSessionInput = {
@@ -65,6 +67,8 @@ export type LoginInput = {
   email: string;
   password: string;
 };
+
+export type NoteVisibility = "PRIVATE" | "SHARED" | "TARGETED";
 
 export type RegisterUserInput = {
   email: string;
@@ -103,7 +107,9 @@ export type UpdateEventInput = {
 export type UpdateNoteInput = {
   content?: string | null | undefined;
   id: string | number;
+  recipientIds?: Array<string | number> | null | undefined;
   title?: string | null | undefined;
+  visibility?: NoteVisibility | null | undefined;
 };
 
 export type UpdateSessionInput = {
@@ -239,6 +245,8 @@ export type CreateNoteMutation = {
     campaignId: string;
     title: string;
     content: string;
+    visibility: NoteVisibility;
+    recipientIds: Array<string>;
     createdAt: string;
     updatedAt: string;
   };
@@ -364,6 +372,8 @@ export type NotesQuery = {
     campaignId: string;
     title: string;
     content: string;
+    visibility: NoteVisibility;
+    recipientIds: Array<string>;
     createdAt: string;
     updatedAt: string;
   }>;
@@ -462,6 +472,8 @@ export type UpdateNoteMutation = {
     campaignId: string;
     title: string;
     content: string;
+    visibility: NoteVisibility;
+    recipientIds: Array<string>;
     createdAt: string;
     updatedAt: string;
   };
@@ -1157,6 +1169,11 @@ export const CreateNoteDocument = {
                 { kind: "Field", name: { kind: "Name", value: "campaignId" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "content" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "recipientIds" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
                 { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
               ],
@@ -1907,6 +1924,11 @@ export const NotesDocument = {
                 { kind: "Field", name: { kind: "Name", value: "campaignId" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "content" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "recipientIds" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
                 { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
               ],
@@ -2435,6 +2457,11 @@ export const UpdateNoteDocument = {
                 { kind: "Field", name: { kind: "Name", value: "campaignId" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "content" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "recipientIds" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
                 { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
               ],

@@ -49,10 +49,8 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
     id: "notes",
     title: "Notes",
     render: () => createElement(NotesWindow),
-    // KAN-62: Owner + Storyteller full read/write. Player visibility isn't
-    // defined until KAN-63 (shared vs. private notes) lands, so Players and
-    // Observers don't see this window at all — same pattern as Members.
-    visibleToRoles: ["OWNER", "STORYTELLER", "CO_STORYTELLER"],
+    // Visible to every member since KAN-63: the API filters what each role
+    // can read (shared notes, plus targeted handouts addressed to you).
   },
 ];
 

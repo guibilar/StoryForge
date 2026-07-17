@@ -74,8 +74,8 @@ tracks what's actually built, not just planned.
       `localStorage` per campaign, single-panel tab-switcher fallback below
       the mobile breakpoint (`MobileDesktop`). Window content is
       data-driven (`WINDOW_CATALOG`) so each real window (KAN-39/81/84/49/85)
-      can plug in without touching the shell — today every entry is a
-      `ComingSoonPanel` placeholder.
+      can plug in without touching the shell — `npcs` and `members` are real
+      windows now, the rest are still `ComingSoonPanel` placeholders.
 - [x] Manage-campaign modal (KAN-82) — "Manage" button on owner-owned
       dashboard cards opens `ManageCampaignModal` (name field, description
       textarea, wired to `updateCampaign`); Archive is a destructive text
@@ -87,17 +87,24 @@ tracks what's actually built, not just planned.
 
 - [x] Entity CRUD backend (SF-001): service, repository, GraphQL resolvers
       — `entity(id)`, `entities`, `createEntity`, `updateEntity`, `deleteEntity`
-      (KAN-83). Upgraded to `requireCampaignMember` (any role) — `entities`
-      and `createEntity` check membership on the given `campaignId` directly;
-      `entity`/`updateEntity`/`deleteEntity` load the entity first to get its
-      `campaignId` since only `id` is given.
+      (KAN-83). Reads (`entity`/`entities`) require `requireCampaignMember`
+      (any role); writes (`createEntity`/`updateEntity`/`deleteEntity`/
+      `uploadEntityImage`) require `requireCampaignWriter` (OWNER/STORYTELLER
+      only, KAN-39) — a narrow guard added ahead of the full KAN-62
+      permission system, built on `requireCampaignMember` the same way
+      `requireCampaignOwner` is. `entities`/`createEntity` check membership on
+      the given `campaignId` directly; the rest load the entity first to get
+      its `campaignId` since only `id` is given. Player reads are filtered to
+      `Visibility: PUBLIC` (`entities` drops non-public results; `entity(id)`
+      throws `FORBIDDEN` for a non-public entity) — the first real enforcement
+      of `Entity.visibility`.
 - [x] Entity soft delete
 - [x] Duplicate-name validation per campaign
 - [x] Generic `type` field (Character/Location/Organization via type string, no type-specific schema)
 - [x] Portrait / image upload — `uploadEntityImage` mutation (GraphQL multipart
       request spec), `LocalImageStore` (validates JPEG/PNG/GIF/WEBP, 5MB limit,
       writes to `UPLOADS_DIR/<entityId>/<uuid>.<ext>`), guarded via
-      `requireCampaignMember` (loads the entity first, same as above)
+      `requireCampaignWriter` (loads the entity first, same as above)
 - [x] Tags (KAN-37) — campaign-scoped `Tag`/`EntityTag` join model (reusable
       across entities in a campaign, name normalized trim+lowercase);
       `addTagToEntity`/`removeTagFromEntity` GraphQL mutations (find-or-create
@@ -111,7 +118,14 @@ tracks what's actually built, not just planned.
       GraphQL query; `EntityFilter { type, nameContains, tagIds }`, AND-combined
       (`type` exact match, `nameContains` case-insensitive, `tagIds` any-match
       via `EntityTag` join), all fields optional
-- [ ] Frontend entity list + form
+- [x] Frontend: NPCs window (KAN-39) — `NpcsWindow` plugged into the Campaign
+      Desktop's `npcs` catalog slot; lists `entities(campaignId, filter:
+    {type: "NPC"})` with visibility/tag chips, a `Modal`-based create/edit
+      form (name, description, visibility), and per-row delete with an
+      inline confirm step. Owner/Storyteller get full CRUD; Players get the
+      same list read-only (no mutation UI rendered), matching the new
+      backend `requireCampaignWriter`/visibility-filtering enforcement above
+      — not just a frontend-only illusion of the restriction.
 
 ## Relationships
 

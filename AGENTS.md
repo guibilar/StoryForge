@@ -321,8 +321,9 @@ Core depends only on interfaces.
 design system yet — built to exactly what each landed ticket needed
 (KAN-31 auth + campaign screens, KAN-80 desktop shell), per KAN-75's DoD
 ("not a speculative component library built ahead of need"). Tables are
-still unbuilt — pick them up when KAN-39/81 (NPCs/Members list views) need
-them, following the same pattern.
+still unbuilt — both the Members (KAN-81) and NPCs (KAN-39) list views
+shipped as plain `<ul>` lists instead, matching current scale; pick a
+Table up when a window's list actually needs it.
 
 **No build step.** `main`/`types` point straight at `src/index.ts` (no
 `dist/`), same "just-in-time package" pattern as `packages/database` —
@@ -573,18 +574,19 @@ auth flow, and the campaign desktop shell are all wired:
   - `WINDOW_CATALOG` (`src/lib/windowCatalog.ts`) is data-driven —
     `{id, title, render}` entries — specifically so KAN-39/81/84/49/85
     can each swap their entry's `render` for a real component without
-    touching `DesktopBoard`/`MobileDesktop`. Today every entry renders
-    `ComingSoonPanel` (`src/components/ComingSoonPanel.tsx`), a one-line
-    placeholder naming the tracking ticket.
+    touching `DesktopBoard`/`MobileDesktop`. `npcs` (`NpcsWindow`) and
+    `members` (`MembersWindow`) are real now; `sessions`/`timeline`/`notes`
+    still render `ComingSoonPanel` (`src/components/ComingSoonPanel.tsx`),
+    a one-line placeholder naming the tracking ticket.
 - `src/index.css` only holds `apps/web`-shell layout/typography rules;
   design tokens (colors, fonts, shadows) live in
   `@storyforge/ui/tokens.css`, imported once in `main.tsx`.
 
 Target responsibilities not yet realized: UI extension rendering
-(plugin-contributed UI), the manage-campaign modal (KAN-82), and the
-real content for every Campaign Desktop window (NPCs, Timeline, Members,
-Sessions, Notes — KAN-39/49/81/84/85), which today are all
-`ComingSoonPanel` placeholders inside the KAN-80 shell.
+(plugin-contributed UI), and the real content for the remaining Campaign
+Desktop windows (Timeline, Sessions, Notes — KAN-49/84/85), which are
+still `ComingSoonPanel` placeholders inside the KAN-80 shell. NPCs
+(KAN-39) and Members (KAN-81) now render real content.
 
 No business logic.
 

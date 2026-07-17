@@ -37,3 +37,20 @@ export async function requireCampaignMember(
 
   return membership;
 }
+
+const WRITER_ROLES = new Set(["OWNER", "STORYTELLER"]);
+
+export async function requireCampaignWriter(
+  context: GraphQLContext,
+  campaignId: string,
+): Promise<CampaignMember> {
+  const membership = await requireCampaignMember(context, campaignId);
+
+  if (!WRITER_ROLES.has(membership.Role)) {
+    throw new ForbiddenError(
+      "Only the campaign owner or storyteller can perform this action.",
+    );
+  }
+
+  return membership;
+}

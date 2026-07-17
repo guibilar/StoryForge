@@ -53,6 +53,12 @@ const authenticatedUser = User.create({
 const membership = CampaignMember.create({
   campaignId: "campaign-1",
   userId: authenticatedUser.Id,
+  role: "STORYTELLER",
+});
+
+const playerMembership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
   role: "PLAYER",
 });
 
@@ -93,6 +99,32 @@ describe("entities Mutation.createEntity", () => {
     const imageStorage = makeImageStorage();
     const campaignMemberService = makeCampaignMemberService();
     vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = {
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    };
+
+    await expect(
+      Mutation.createEntity(undefined, { input }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(entityService.createEntity).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when the campaign member is a Player", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
     const context = makeContext(
       entityService,
       imageStorage,
@@ -193,6 +225,34 @@ describe("entities Mutation.updateEntity", () => {
     expect(entityService.updateEntity).not.toHaveBeenCalled();
   });
 
+  it("rejects with FORBIDDEN when the campaign member is a Player", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    const entity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    });
+    vi.mocked(entityService.getEntity).mockResolvedValue(entity);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = { id: "entity-1", name: "Renamed" };
+
+    await expect(
+      Mutation.updateEntity(undefined, { input }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(entityService.updateEntity).not.toHaveBeenCalled();
+  });
+
   it("delegates to entityService when the user is a campaign member", async () => {
     const entityService = makeEntityService();
     const imageStorage = makeImageStorage();
@@ -261,6 +321,33 @@ describe("entities Mutation.deleteEntity", () => {
     });
     vi.mocked(entityService.getEntity).mockResolvedValue(entity);
     vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Mutation.deleteEntity(undefined, { id: "entity-1" }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(entityService.deleteEntity).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when the campaign member is a Player", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    const entity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    });
+    vi.mocked(entityService.getEntity).mockResolvedValue(entity);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
     const context = makeContext(
       entityService,
       imageStorage,
@@ -344,6 +431,38 @@ describe("entities Mutation.uploadEntityImage", () => {
     });
     vi.mocked(entityService.getEntity).mockResolvedValue(entity);
     vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Mutation.uploadEntityImage(
+        undefined,
+        { entityId: "entity-1", file },
+        context,
+      ),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(imageStorage.save).not.toHaveBeenCalled();
+    expect(entityService.setEntityImage).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when the campaign member is a Player", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    const entity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    });
+    vi.mocked(entityService.getEntity).mockResolvedValue(entity);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
     const context = makeContext(
       entityService,
       imageStorage,

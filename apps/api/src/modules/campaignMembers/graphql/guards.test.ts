@@ -5,7 +5,11 @@ import {
   ForbiddenError,
   User,
 } from "@storyforge/domain";
-import { requireCampaignMember, requireCampaignOwner } from "./guards";
+import {
+  requireCampaignMember,
+  requireCampaignOwner,
+  requireCampaignWriter,
+} from "./guards";
 import type { GraphQLContext } from "../../../graphql/context";
 import type { CampaignMemberService } from "../application/CampaignMemberService";
 
@@ -101,5 +105,68 @@ describe("requireCampaignMember", () => {
       membership,
     );
     expect(getMembership).toHaveBeenCalledWith(campaignId, user.Id.toString());
+  });
+});
+
+describe("requireCampaignWriter", () => {
+  it("throws AuthenticationError when logged out", async () => {
+    const context = makeContext(null, { getMembership: vi.fn() });
+
+    await expect(requireCampaignWriter(context, campaignId)).rejects.toThrow(
+      AuthenticationError,
+    );
+  });
+
+  it("throws ForbiddenError when the user has no membership", async () => {
+    const context = makeContext(user, {
+      getMembership: vi.fn().mockResolvedValue(null),
+    });
+
+    await expect(requireCampaignWriter(context, campaignId)).rejects.toThrow(
+      ForbiddenError,
+    );
+  });
+
+  it("throws ForbiddenError when the user is a Player", async () => {
+    const membership = CampaignMember.create({
+      campaignId,
+      userId: user.Id,
+      role: "PLAYER",
+    });
+    const context = makeContext(user, {
+      getMembership: vi.fn().mockResolvedValue(membership),
+    });
+
+    await expect(requireCampaignWriter(context, campaignId)).rejects.toThrow(
+      ForbiddenError,
+    );
+  });
+
+  it("resolves with the membership when the user is the Owner", async () => {
+    const membership = CampaignMember.create({
+      campaignId,
+      userId: user.Id,
+      role: "OWNER",
+    });
+    const getMembership = vi.fn().mockResolvedValue(membership);
+    const context = makeContext(user, { getMembership });
+
+    await expect(requireCampaignWriter(context, campaignId)).resolves.toBe(
+      membership,
+    );
+  });
+
+  it("resolves with the membership when the user is the Storyteller", async () => {
+    const membership = CampaignMember.create({
+      campaignId,
+      userId: user.Id,
+      role: "STORYTELLER",
+    });
+    const getMembership = vi.fn().mockResolvedValue(membership);
+    const context = makeContext(user, { getMembership });
+
+    await expect(requireCampaignWriter(context, campaignId)).resolves.toBe(
+      membership,
+    );
   });
 });

@@ -1,0 +1,12 @@
+query Entities($campaignId: ID!, $filter: EntityFilter) {
+  entities(campaignId: $campaignId, filter: $filter) {
+    id
+    name
+    description
+    visibility
+    tags {
+      id
+      name
+    }
+  }
+}

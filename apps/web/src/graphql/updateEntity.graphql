@@ -1,0 +1,12 @@
+mutation UpdateEntity($input: UpdateEntityInput!) {
+  updateEntity(input: $input) {
+    id
+    name
+    description
+    visibility
+    tags {
+      id
+      name
+    }
+  }
+}

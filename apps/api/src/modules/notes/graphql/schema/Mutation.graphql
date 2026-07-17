@@ -3,12 +3,16 @@ input CreateNoteInput {
   title: String!
   content: String
   parentNoteId: ID
+  visibility: NoteVisibility
+  recipientIds: [ID!]
 }
 
 input UpdateNoteInput {
   id: ID!
   title: String
   content: String
+  visibility: NoteVisibility
+  recipientIds: [ID!]
 }
 
 extend type Mutation {

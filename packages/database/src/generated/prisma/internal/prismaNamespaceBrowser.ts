@@ -65,6 +65,7 @@ export const ModelName = {
   Relationship: "Relationship",
   User: "User",
   Note: "Note",
+  NoteRecipient: "NoteRecipient",
   NoteLink: "NoteLink",
   Attachment: "Attachment",
   CampaignMember: "CampaignMember",
@@ -217,6 +218,7 @@ export const NoteScalarFieldEnum = {
   parentNoteId: "parentNoteId",
   title: "title",
   content: "content",
+  visibility: "visibility",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
   deletedAt: "deletedAt",
@@ -224,6 +226,16 @@ export const NoteScalarFieldEnum = {
 
 export type NoteScalarFieldEnum =
   (typeof NoteScalarFieldEnum)[keyof typeof NoteScalarFieldEnum];
+
+export const NoteRecipientScalarFieldEnum = {
+  id: "id",
+  noteId: "noteId",
+  userId: "userId",
+  createdAt: "createdAt",
+} as const;
+
+export type NoteRecipientScalarFieldEnum =
+  (typeof NoteRecipientScalarFieldEnum)[keyof typeof NoteRecipientScalarFieldEnum];
 
 export const NoteLinkScalarFieldEnum = {
   id: "id",

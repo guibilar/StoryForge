@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Note } from "./Note";
 import { NoteId } from "./NoteId";
+import { NoteVisibility } from "./NoteVisibility";
 import { UserId } from "../user/UserId";
 
 const validProps = {
@@ -50,6 +51,8 @@ describe("Note", () => {
       title: validProps.title,
       content: validProps.content,
       parentNoteId: null,
+      visibility: NoteVisibility.SHARED,
+      recipientIds: [],
       createdAt,
       updatedAt,
       deletedAt: null,
@@ -156,6 +159,100 @@ describe("Note", () => {
       expect(() => note.moveTo(note.Id)).toThrow(
         "A note cannot be its own parent.",
       );
+    });
+  });
+
+  describe("visibility", () => {
+    it("defaults to SHARED with no recipients", () => {
+      const note = Note.create(validProps);
+
+      expect(note.Visibility).toBe(NoteVisibility.SHARED);
+      expect(note.RecipientIds).toEqual([]);
+    });
+
+    it("creates a TARGETED note with recipients", () => {
+      const recipient = UserId.create();
+      const note = Note.create({
+        ...validProps,
+        visibility: NoteVisibility.TARGETED,
+        recipientIds: [recipient],
+      });
+
+      expect(note.Visibility).toBe(NoteVisibility.TARGETED);
+      expect(note.RecipientIds).toHaveLength(1);
+      expect(note.RecipientIds[0].equals(recipient)).toBe(true);
+    });
+
+    it("dedupes recipients by id", () => {
+      const recipient = UserId.create();
+      const note = Note.create({
+        ...validProps,
+        visibility: NoteVisibility.TARGETED,
+        recipientIds: [recipient, UserId.fromString(recipient.toString())],
+      });
+
+      expect(note.RecipientIds).toHaveLength(1);
+    });
+
+    it("rejects a TARGETED note without recipients", () => {
+      expect(() =>
+        Note.create({ ...validProps, visibility: NoteVisibility.TARGETED }),
+      ).toThrow("A targeted note needs at least one recipient.");
+    });
+
+    it.each([NoteVisibility.SHARED, NoteVisibility.PRIVATE])(
+      "rejects recipients on a %s note",
+      (visibility) => {
+        expect(() =>
+          Note.create({
+            ...validProps,
+            visibility,
+            recipientIds: [UserId.create()],
+          }),
+        ).toThrow("Only targeted notes can have recipients.");
+      },
+    );
+
+    it("changes visibility and replaces recipients", () => {
+      const note = Note.create(validProps);
+      const recipient = UserId.create();
+
+      note.changeVisibility(NoteVisibility.TARGETED, [recipient]);
+
+      expect(note.Visibility).toBe(NoteVisibility.TARGETED);
+      expect(note.RecipientIds[0].equals(recipient)).toBe(true);
+
+      note.changeVisibility(NoteVisibility.PRIVATE);
+
+      expect(note.Visibility).toBe(NoteVisibility.PRIVATE);
+      expect(note.RecipientIds).toEqual([]);
+    });
+
+    it("keeps prior state when a visibility change is invalid", () => {
+      const note = Note.create({
+        ...validProps,
+        visibility: NoteVisibility.TARGETED,
+        recipientIds: [UserId.create()],
+      });
+
+      expect(() => note.changeVisibility(NoteVisibility.TARGETED)).toThrow(
+        "A targeted note needs at least one recipient.",
+      );
+
+      expect(note.Visibility).toBe(NoteVisibility.TARGETED);
+      expect(note.RecipientIds).toHaveLength(1);
+    });
+
+    it("returns a copy of recipients so callers cannot mutate them", () => {
+      const note = Note.create({
+        ...validProps,
+        visibility: NoteVisibility.TARGETED,
+        recipientIds: [UserId.create()],
+      });
+
+      note.RecipientIds.pop();
+
+      expect(note.RecipientIds).toHaveLength(1);
     });
   });
 });

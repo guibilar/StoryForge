@@ -1,13 +1,44 @@
-import type { Note as DomainNote } from "@storyforge/domain";
+import {
+  filterByVisibility,
+  type Note as DomainNote,
+} from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
+import { requireCampaignMember } from "../../../campaignMembers/graphql/guards";
+import { filterViewableNotes } from "../../../notes/graphql/guards";
 
 export const Note = {
-  linkedEntities: (note: DomainNote, _args: unknown, context: GraphQLContext) =>
-    context.noteService.listLinkedEntities(note.Id.toString()),
+  linkedEntities: async (
+    note: DomainNote,
+    _args: unknown,
+    context: GraphQLContext,
+  ) => {
+    const entities = await context.noteService.listLinkedEntities(
+      note.Id.toString(),
+    );
+    const membership = await requireCampaignMember(context, note.CampaignId);
 
-  linkedNotes: (note: DomainNote, _args: unknown, context: GraphQLContext) =>
-    context.noteService.listLinkedNotes(note.Id.toString()),
+    return filterByVisibility(entities, membership.Role);
+  },
 
-  backlinks: (note: DomainNote, _args: unknown, context: GraphQLContext) =>
-    context.noteService.listNoteBacklinks(note.Id.toString()),
+  linkedNotes: async (
+    note: DomainNote,
+    _args: unknown,
+    context: GraphQLContext,
+  ) => {
+    const notes = await context.noteService.listLinkedNotes(note.Id.toString());
+
+    return filterViewableNotes(context, note.CampaignId, notes);
+  },
+
+  backlinks: async (
+    note: DomainNote,
+    _args: unknown,
+    context: GraphQLContext,
+  ) => {
+    const notes = await context.noteService.listNoteBacklinks(
+      note.Id.toString(),
+    );
+
+    return filterViewableNotes(context, note.CampaignId, notes);
+  },
 };

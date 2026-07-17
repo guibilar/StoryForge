@@ -1,4 +1,5 @@
 import {
+  CampaignMemberRepository,
   Entity,
   EntityId,
   EntityRepository,
@@ -7,6 +8,7 @@ import {
   NoteLink,
   NoteLinkRepository,
   NoteRepository,
+  NoteVisibility,
   NotFoundError,
   UserId,
   ValidationError,
@@ -23,12 +25,16 @@ export interface CreateNoteDto {
   title: string;
   content?: string;
   parentNoteId?: string;
+  visibility?: NoteVisibility;
+  recipientIds?: string[];
 }
 
 export interface UpdateNoteDto {
   id: string;
   title?: string;
   content?: string;
+  visibility?: NoteVisibility;
+  recipientIds?: string[];
 }
 
 export class NoteService {
@@ -38,6 +44,7 @@ export class NoteService {
     private readonly repository: NoteRepository,
     private readonly entityRepository: EntityRepository,
     private readonly noteLinkRepository: NoteLinkRepository,
+    private readonly campaignMemberRepository: CampaignMemberRepository,
   ) {
     this.linkResolver = new NoteLinkResolver(entityRepository, repository);
   }
@@ -47,12 +54,19 @@ export class NoteService {
       ? (await this.resolveParent(dto.campaignId, dto.parentNoteId)).Id
       : null;
 
+    const recipientIds = await this.resolveRecipients(
+      dto.campaignId,
+      dto.recipientIds ?? [],
+    );
+
     const note = Note.create({
       campaignId: dto.campaignId,
       authorId: UserId.fromString(dto.authorId),
       title: dto.title,
       content: dto.content,
       parentNoteId,
+      visibility: dto.visibility,
+      recipientIds,
     });
 
     const links = await this.resolveLinks(note);
@@ -74,6 +88,20 @@ export class NoteService {
 
     if (dto.content !== undefined) {
       note.changeContent(dto.content);
+    }
+
+    if (dto.visibility !== undefined || dto.recipientIds !== undefined) {
+      const visibility = dto.visibility ?? note.Visibility;
+      // Recipients not sent: keep them when visibility stays the same, drop
+      // them when it changes (a note leaving TARGETED loses its handout list).
+      const recipientIds =
+        dto.recipientIds !== undefined
+          ? await this.resolveRecipients(note.CampaignId, dto.recipientIds)
+          : visibility === note.Visibility
+            ? note.RecipientIds
+            : [];
+
+      note.changeVisibility(visibility, recipientIds);
     }
 
     const links = await this.resolveLinks(note);
@@ -191,6 +219,31 @@ export class NoteService {
     const links = await this.noteLinkRepository.findByTargetEntity(entityId);
 
     return this.hydrateNotes(links.map((link) => link.NoteId));
+  }
+
+  /**
+   * Handout recipients must belong to the note's campaign — a targeted note
+   * addressed to a stranger would silently never be visible to them.
+   */
+  private async resolveRecipients(
+    campaignId: string,
+    recipientIds: string[],
+  ): Promise<UserId[]> {
+    const userIds = recipientIds.map((id) => UserId.fromString(id));
+
+    const memberships = await Promise.all(
+      userIds.map((userId) =>
+        this.campaignMemberRepository.findByCampaignAndUser(campaignId, userId),
+      ),
+    );
+
+    if (memberships.some((membership) => membership === null)) {
+      throw new ValidationError(
+        "All note recipients must be members of the campaign.",
+      );
+    }
+
+    return userIds;
   }
 
   /**

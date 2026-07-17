@@ -26,6 +26,12 @@ enum Visibility {
   PRIVATE
 }
 
+enum NoteVisibility {
+  SHARED
+  PRIVATE
+  TARGETED
+}
+
 model Campaign {
   id          String  @id @default(uuid())
   name        String  @unique
@@ -221,6 +227,7 @@ model User {
   campaignMemberships CampaignMember[]
   notes               Note[]
   sessionAttendances  SessionAttendee[]
+  noteRecipiencies    NoteRecipient[]
 }
 
 model Note {
@@ -236,18 +243,36 @@ model Note {
   title   String
   content String @db.Text
 
+  visibility NoteVisibility @default(SHARED)
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   attachments Attachment[]
   children    Note[]       @relation("NoteParent")
+  recipients  NoteRecipient[]
 
   linksOut NoteLink[] @relation("NoteLinkSource")
   linksIn  NoteLink[] @relation("NoteLinkTargetNote")
 
   @@index([campaignId])
   @@index([parentNoteId])
+}
+
+model NoteRecipient {
+  id     String @id @default(uuid())
+  noteId String
+  userId String
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([noteId, userId])
+  @@index([noteId])
+  @@index([userId])
 }
 
 model NoteLink {

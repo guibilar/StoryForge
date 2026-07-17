@@ -102,6 +102,11 @@ export type User = Prisma.UserModel;
  */
 export type Note = Prisma.NoteModel;
 /**
+ * Model NoteRecipient
+ *
+ */
+export type NoteRecipient = Prisma.NoteRecipientModel;
+/**
  * Model NoteLink
  *
  */

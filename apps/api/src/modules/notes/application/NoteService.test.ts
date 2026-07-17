@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  CampaignMember,
+  CampaignMemberRepository,
   Entity,
   EntityRepository,
   EntityVisibility,
@@ -8,6 +10,7 @@ import {
   NoteLink,
   NoteLinkRepository,
   NoteRepository,
+  NoteVisibility,
   NotFoundError,
   UserId,
 } from "@storyforge/domain";
@@ -49,6 +52,17 @@ function makeNoteLinkRepository(): NoteLinkRepository {
   };
 }
 
+function makeCampaignMemberRepository(): CampaignMemberRepository {
+  return {
+    listByCampaign: vi.fn().mockResolvedValue([]),
+    findByCampaignAndUser: vi.fn().mockResolvedValue(null),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    transferOwnership: vi.fn(),
+  };
+}
+
 const createDto = {
   campaignId: "campaign-1",
   authorId: UserId.create().toString(),
@@ -60,13 +74,20 @@ describe("NoteService", () => {
   let repository: NoteRepository;
   let entityRepository: EntityRepository;
   let noteLinkRepository: NoteLinkRepository;
+  let campaignMemberRepository: CampaignMemberRepository;
   let service: NoteService;
 
   beforeEach(() => {
     repository = makeRepository();
     entityRepository = makeEntityRepository();
     noteLinkRepository = makeNoteLinkRepository();
-    service = new NoteService(repository, entityRepository, noteLinkRepository);
+    campaignMemberRepository = makeCampaignMemberRepository();
+    service = new NoteService(
+      repository,
+      entityRepository,
+      noteLinkRepository,
+      campaignMemberRepository,
+    );
   });
 
   describe("createNote", () => {
@@ -87,6 +108,51 @@ describe("NoteService", () => {
       });
 
       expect(note.Content).toBe("");
+    });
+
+    it("defaults visibility to SHARED", async () => {
+      const note = await service.createNote(createDto);
+
+      expect(note.Visibility).toBe(NoteVisibility.SHARED);
+      expect(note.RecipientIds).toEqual([]);
+    });
+
+    it("creates a TARGETED note when the recipients are campaign members", async () => {
+      const recipient = UserId.create();
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(
+        CampaignMember.create({
+          campaignId: createDto.campaignId,
+          userId: recipient,
+          role: "PLAYER",
+        }),
+      );
+
+      const note = await service.createNote({
+        ...createDto,
+        visibility: NoteVisibility.TARGETED,
+        recipientIds: [recipient.toString()],
+      });
+
+      expect(note.Visibility).toBe(NoteVisibility.TARGETED);
+      expect(note.RecipientIds.map((id) => id.toString())).toEqual([
+        recipient.toString(),
+      ]);
+      expect(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).toHaveBeenCalledWith(createDto.campaignId, expect.anything());
+    });
+
+    it("rejects recipients who are not campaign members", async () => {
+      await expect(
+        service.createNote({
+          ...createDto,
+          visibility: NoteVisibility.TARGETED,
+          recipientIds: [UserId.create().toString()],
+        }),
+      ).rejects.toThrow("All note recipients must be members of the campaign.");
+      expect(repository.createWithLinks).not.toHaveBeenCalled();
     });
   });
 
@@ -116,6 +182,97 @@ describe("NoteService", () => {
       expect(updated.Title).toBe("Renamed");
       expect(updated.Content).toBe("Updated content");
       expect(repository.updateWithLinks).toHaveBeenCalledWith(note, []);
+    });
+
+    it("changes visibility to PRIVATE and clears stale recipients", async () => {
+      const recipient = UserId.create();
+      const note = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: createDto.title,
+        visibility: NoteVisibility.TARGETED,
+        recipientIds: [recipient],
+      });
+      vi.mocked(repository.findById).mockResolvedValue(note);
+
+      const updated = await service.updateNote({
+        id: note.Id.toString(),
+        visibility: NoteVisibility.PRIVATE,
+      });
+
+      expect(updated.Visibility).toBe(NoteVisibility.PRIVATE);
+      expect(updated.RecipientIds).toEqual([]);
+    });
+
+    it("keeps existing recipients when visibility stays TARGETED and no recipients are sent", async () => {
+      const recipient = UserId.create();
+      const note = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: createDto.title,
+        visibility: NoteVisibility.TARGETED,
+        recipientIds: [recipient],
+      });
+      vi.mocked(repository.findById).mockResolvedValue(note);
+
+      const updated = await service.updateNote({
+        id: note.Id.toString(),
+        visibility: NoteVisibility.TARGETED,
+      });
+
+      expect(updated.RecipientIds.map((id) => id.toString())).toEqual([
+        recipient.toString(),
+      ]);
+    });
+
+    it("replaces recipients after validating campaign membership", async () => {
+      const oldRecipient = UserId.create();
+      const newRecipient = UserId.create();
+      const note = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: createDto.title,
+        visibility: NoteVisibility.TARGETED,
+        recipientIds: [oldRecipient],
+      });
+      vi.mocked(repository.findById).mockResolvedValue(note);
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(
+        CampaignMember.create({
+          campaignId: createDto.campaignId,
+          userId: newRecipient,
+          role: "PLAYER",
+        }),
+      );
+
+      const updated = await service.updateNote({
+        id: note.Id.toString(),
+        recipientIds: [newRecipient.toString()],
+      });
+
+      expect(updated.RecipientIds.map((id) => id.toString())).toEqual([
+        newRecipient.toString(),
+      ]);
+    });
+
+    it("rejects a recipient update naming a non-member", async () => {
+      const note = Note.create({
+        campaignId: createDto.campaignId,
+        authorId: UserId.fromString(createDto.authorId),
+        title: createDto.title,
+        visibility: NoteVisibility.TARGETED,
+        recipientIds: [UserId.create()],
+      });
+      vi.mocked(repository.findById).mockResolvedValue(note);
+
+      await expect(
+        service.updateNote({
+          id: note.Id.toString(),
+          recipientIds: [UserId.create().toString()],
+        }),
+      ).rejects.toThrow("All note recipients must be members of the campaign.");
+      expect(repository.updateWithLinks).not.toHaveBeenCalled();
     });
   });
 

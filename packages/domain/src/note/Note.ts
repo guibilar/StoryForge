@@ -1,6 +1,7 @@
 import { ValidationError } from "../shared";
 import { UserId } from "../user/UserId";
 import { NoteId } from "./NoteId";
+import { NoteVisibility } from "./NoteVisibility";
 
 const MAX_CONTENT_LENGTH = 100_000;
 
@@ -10,6 +11,8 @@ export interface CreateNoteProps {
   title: string;
   content?: string;
   parentNoteId?: NoteId | null;
+  visibility?: NoteVisibility;
+  recipientIds?: UserId[];
 }
 
 export interface RehydrateNoteProps {
@@ -19,6 +22,8 @@ export interface RehydrateNoteProps {
   title: string;
   content: string;
   parentNoteId: NoteId | null;
+  visibility: NoteVisibility;
+  recipientIds: UserId[];
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -32,6 +37,8 @@ export class Note {
     private titleValue: string,
     private contentValue: string,
     private parentNoteIdValue: NoteId | null,
+    private visibilityValue: NoteVisibility,
+    private recipientIdsValue: UserId[],
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
     private deletedAtValue: Date | null,
@@ -39,6 +46,10 @@ export class Note {
     this.validateTitle(titleValue);
     this.titleValue = titleValue.trim();
     this.validateContent(contentValue);
+    this.recipientIdsValue = this.normalizeRecipients(
+      visibilityValue,
+      recipientIdsValue,
+    );
   }
 
   static create(props: CreateNoteProps): Note {
@@ -49,6 +60,8 @@ export class Note {
       props.title,
       props.content ?? "",
       props.parentNoteId ?? null,
+      props.visibility ?? NoteVisibility.SHARED,
+      props.recipientIds ?? [],
       new Date(),
       new Date(),
       null,
@@ -63,6 +76,8 @@ export class Note {
       props.title,
       props.content,
       props.parentNoteId,
+      props.visibility,
+      props.recipientIds,
       props.createdAt,
       props.updatedAt,
       props.deletedAt,
@@ -105,6 +120,14 @@ export class Note {
     return this.parentNoteIdValue;
   }
 
+  get Visibility(): NoteVisibility {
+    return this.visibilityValue;
+  }
+
+  get RecipientIds(): UserId[] {
+    return [...this.recipientIdsValue];
+  }
+
   /**
    * Sets the immediate parent. Only guards against a note directly
    * parenting itself — cycle and depth-cap checks require walking the
@@ -132,6 +155,15 @@ export class Note {
     this.validateContent(content);
 
     this.contentValue = content;
+    this.updatedAtValue = new Date();
+  }
+
+  changeVisibility(
+    visibility: NoteVisibility,
+    recipientIds: UserId[] = [],
+  ): void {
+    this.recipientIdsValue = this.normalizeRecipients(visibility, recipientIds);
+    this.visibilityValue = visibility;
     this.updatedAtValue = new Date();
   }
 
@@ -171,5 +203,30 @@ export class Note {
         `Note content cannot exceed ${MAX_CONTENT_LENGTH} characters.`,
       );
     }
+  }
+
+  private normalizeRecipients(
+    visibility: NoteVisibility,
+    recipientIds: UserId[],
+  ): UserId[] {
+    const deduped = [
+      ...new Map(recipientIds.map((id) => [id.toString(), id])).values(),
+    ];
+
+    if (visibility === NoteVisibility.TARGETED) {
+      if (deduped.length === 0) {
+        throw new ValidationError(
+          "A targeted note needs at least one recipient.",
+        );
+      }
+
+      return deduped;
+    }
+
+    if (deduped.length > 0) {
+      throw new ValidationError("Only targeted notes can have recipients.");
+    }
+
+    return deduped;
   }
 }

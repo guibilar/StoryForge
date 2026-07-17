@@ -195,6 +195,38 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntFilter<$PrismaModel>;
 };
 
+export type EnumNoteVisibilityFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.NoteVisibility
+    | Prisma.EnumNoteVisibilityFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.NoteVisibility[]
+    | Prisma.ListEnumNoteVisibilityFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.NoteVisibility[]
+    | Prisma.ListEnumNoteVisibilityFieldRefInput<$PrismaModel>;
+  not?:
+    Prisma.NestedEnumNoteVisibilityFilter<$PrismaModel> | $Enums.NoteVisibility;
+};
+
+export type EnumNoteVisibilityWithAggregatesFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.NoteVisibility
+    | Prisma.EnumNoteVisibilityFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.NoteVisibility[]
+    | Prisma.ListEnumNoteVisibilityFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.NoteVisibility[]
+    | Prisma.ListEnumNoteVisibilityFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumNoteVisibilityWithAggregatesFilter<$PrismaModel>
+    | $Enums.NoteVisibility;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumNoteVisibilityFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumNoteVisibilityFilter<$PrismaModel>;
+};
+
 export type EnumCampaignRoleFilter<$PrismaModel = never> = {
   equals?:
     $Enums.CampaignRole | Prisma.EnumCampaignRoleFieldRefInput<$PrismaModel>;
@@ -419,6 +451,39 @@ export type NestedFloatFilter<$PrismaModel = never> = {
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>;
   not?: Prisma.NestedFloatFilter<$PrismaModel> | number;
 };
+
+export type NestedEnumNoteVisibilityFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.NoteVisibility
+    | Prisma.EnumNoteVisibilityFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.NoteVisibility[]
+    | Prisma.ListEnumNoteVisibilityFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.NoteVisibility[]
+    | Prisma.ListEnumNoteVisibilityFieldRefInput<$PrismaModel>;
+  not?:
+    Prisma.NestedEnumNoteVisibilityFilter<$PrismaModel> | $Enums.NoteVisibility;
+};
+
+export type NestedEnumNoteVisibilityWithAggregatesFilter<$PrismaModel = never> =
+  {
+    equals?:
+      | $Enums.NoteVisibility
+      | Prisma.EnumNoteVisibilityFieldRefInput<$PrismaModel>;
+    in?:
+      | $Enums.NoteVisibility[]
+      | Prisma.ListEnumNoteVisibilityFieldRefInput<$PrismaModel>;
+    notIn?:
+      | $Enums.NoteVisibility[]
+      | Prisma.ListEnumNoteVisibilityFieldRefInput<$PrismaModel>;
+    not?:
+      | Prisma.NestedEnumNoteVisibilityWithAggregatesFilter<$PrismaModel>
+      | $Enums.NoteVisibility;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumNoteVisibilityFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumNoteVisibilityFilter<$PrismaModel>;
+  };
 
 export type NestedEnumCampaignRoleFilter<$PrismaModel = never> = {
   equals?:

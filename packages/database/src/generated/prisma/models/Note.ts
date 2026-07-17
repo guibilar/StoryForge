@@ -31,6 +31,7 @@ export type NoteMinAggregateOutputType = {
   parentNoteId: string | null;
   title: string | null;
   content: string | null;
+  visibility: $Enums.NoteVisibility | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   deletedAt: Date | null;
@@ -43,6 +44,7 @@ export type NoteMaxAggregateOutputType = {
   parentNoteId: string | null;
   title: string | null;
   content: string | null;
+  visibility: $Enums.NoteVisibility | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   deletedAt: Date | null;
@@ -55,6 +57,7 @@ export type NoteCountAggregateOutputType = {
   parentNoteId: number;
   title: number;
   content: number;
+  visibility: number;
   createdAt: number;
   updatedAt: number;
   deletedAt: number;
@@ -68,6 +71,7 @@ export type NoteMinAggregateInputType = {
   parentNoteId?: true;
   title?: true;
   content?: true;
+  visibility?: true;
   createdAt?: true;
   updatedAt?: true;
   deletedAt?: true;
@@ -80,6 +84,7 @@ export type NoteMaxAggregateInputType = {
   parentNoteId?: true;
   title?: true;
   content?: true;
+  visibility?: true;
   createdAt?: true;
   updatedAt?: true;
   deletedAt?: true;
@@ -92,6 +97,7 @@ export type NoteCountAggregateInputType = {
   parentNoteId?: true;
   title?: true;
   content?: true;
+  visibility?: true;
   createdAt?: true;
   updatedAt?: true;
   deletedAt?: true;
@@ -183,6 +189,7 @@ export type NoteGroupByOutputType = {
   parentNoteId: string | null;
   title: string;
   content: string;
+  visibility: $Enums.NoteVisibility;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -214,6 +221,7 @@ export type NoteWhereInput = {
   parentNoteId?: Prisma.StringNullableFilter<"Note"> | string | null;
   title?: Prisma.StringFilter<"Note"> | string;
   content?: Prisma.StringFilter<"Note"> | string;
+  visibility?: Prisma.EnumNoteVisibilityFilter<"Note"> | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFilter<"Note"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"Note"> | Date | string;
   deletedAt?: Prisma.DateTimeNullableFilter<"Note"> | Date | string | null;
@@ -228,6 +236,7 @@ export type NoteWhereInput = {
   > | null;
   attachments?: Prisma.AttachmentListRelationFilter;
   children?: Prisma.NoteListRelationFilter;
+  recipients?: Prisma.NoteRecipientListRelationFilter;
   linksOut?: Prisma.NoteLinkListRelationFilter;
   linksIn?: Prisma.NoteLinkListRelationFilter;
 };
@@ -239,6 +248,7 @@ export type NoteOrderByWithRelationInput = {
   parentNoteId?: Prisma.SortOrderInput | Prisma.SortOrder;
   title?: Prisma.SortOrder;
   content?: Prisma.SortOrder;
+  visibility?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -247,6 +257,7 @@ export type NoteOrderByWithRelationInput = {
   parent?: Prisma.NoteOrderByWithRelationInput;
   attachments?: Prisma.AttachmentOrderByRelationAggregateInput;
   children?: Prisma.NoteOrderByRelationAggregateInput;
+  recipients?: Prisma.NoteRecipientOrderByRelationAggregateInput;
   linksOut?: Prisma.NoteLinkOrderByRelationAggregateInput;
   linksIn?: Prisma.NoteLinkOrderByRelationAggregateInput;
 };
@@ -262,6 +273,8 @@ export type NoteWhereUniqueInput = Prisma.AtLeast<
     parentNoteId?: Prisma.StringNullableFilter<"Note"> | string | null;
     title?: Prisma.StringFilter<"Note"> | string;
     content?: Prisma.StringFilter<"Note"> | string;
+    visibility?:
+      Prisma.EnumNoteVisibilityFilter<"Note"> | $Enums.NoteVisibility;
     createdAt?: Prisma.DateTimeFilter<"Note"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Note"> | Date | string;
     deletedAt?: Prisma.DateTimeNullableFilter<"Note"> | Date | string | null;
@@ -276,6 +289,7 @@ export type NoteWhereUniqueInput = Prisma.AtLeast<
     > | null;
     attachments?: Prisma.AttachmentListRelationFilter;
     children?: Prisma.NoteListRelationFilter;
+    recipients?: Prisma.NoteRecipientListRelationFilter;
     linksOut?: Prisma.NoteLinkListRelationFilter;
     linksIn?: Prisma.NoteLinkListRelationFilter;
   },
@@ -289,6 +303,7 @@ export type NoteOrderByWithAggregationInput = {
   parentNoteId?: Prisma.SortOrderInput | Prisma.SortOrder;
   title?: Prisma.SortOrder;
   content?: Prisma.SortOrder;
+  visibility?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -312,6 +327,9 @@ export type NoteScalarWhereWithAggregatesInput = {
     Prisma.StringNullableWithAggregatesFilter<"Note"> | string | null;
   title?: Prisma.StringWithAggregatesFilter<"Note"> | string;
   content?: Prisma.StringWithAggregatesFilter<"Note"> | string;
+  visibility?:
+    | Prisma.EnumNoteVisibilityWithAggregatesFilter<"Note">
+    | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Note"> | Date | string;
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Note"> | Date | string;
   deletedAt?:
@@ -322,6 +340,7 @@ export type NoteCreateInput = {
   id?: string;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -330,6 +349,7 @@ export type NoteCreateInput = {
   parent?: Prisma.NoteCreateNestedOneWithoutChildrenInput;
   attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
@@ -341,11 +361,13 @@ export type NoteUncheckedCreateInput = {
   parentNoteId?: string | null;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteUncheckedCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
@@ -354,6 +376,8 @@ export type NoteUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -363,6 +387,7 @@ export type NoteUpdateInput = {
   parent?: Prisma.NoteUpdateOneWithoutChildrenNestedInput;
   attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -375,12 +400,15 @@ export type NoteUncheckedUpdateInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUncheckedUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUncheckedUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -392,6 +420,7 @@ export type NoteCreateManyInput = {
   parentNoteId?: string | null;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -401,6 +430,8 @@ export type NoteUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -415,6 +446,8 @@ export type NoteUncheckedUpdateManyInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -443,6 +476,7 @@ export type NoteCountOrderByAggregateInput = {
   parentNoteId?: Prisma.SortOrder;
   title?: Prisma.SortOrder;
   content?: Prisma.SortOrder;
+  visibility?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrder;
@@ -455,6 +489,7 @@ export type NoteMaxOrderByAggregateInput = {
   parentNoteId?: Prisma.SortOrder;
   title?: Prisma.SortOrder;
   content?: Prisma.SortOrder;
+  visibility?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrder;
@@ -467,6 +502,7 @@ export type NoteMinOrderByAggregateInput = {
   parentNoteId?: Prisma.SortOrder;
   title?: Prisma.SortOrder;
   content?: Prisma.SortOrder;
+  visibility?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrder;
@@ -688,6 +724,10 @@ export type NoteUncheckedCreateNestedManyWithoutParentInput = {
   connect?: Prisma.NoteWhereUniqueInput | Prisma.NoteWhereUniqueInput[];
 };
 
+export type EnumNoteVisibilityFieldUpdateOperationsInput = {
+  set?: $Enums.NoteVisibility;
+};
+
 export type NoteUpdateOneWithoutChildrenNestedInput = {
   create?: Prisma.XOR<
     Prisma.NoteCreateWithoutChildrenInput,
@@ -761,6 +801,32 @@ export type NoteUncheckedUpdateManyWithoutParentNestedInput = {
     | Prisma.NoteUpdateManyWithWhereWithoutParentInput
     | Prisma.NoteUpdateManyWithWhereWithoutParentInput[];
   deleteMany?: Prisma.NoteScalarWhereInput | Prisma.NoteScalarWhereInput[];
+};
+
+export type NoteCreateNestedOneWithoutRecipientsInput = {
+  create?: Prisma.XOR<
+    Prisma.NoteCreateWithoutRecipientsInput,
+    Prisma.NoteUncheckedCreateWithoutRecipientsInput
+  >;
+  connectOrCreate?: Prisma.NoteCreateOrConnectWithoutRecipientsInput;
+  connect?: Prisma.NoteWhereUniqueInput;
+};
+
+export type NoteUpdateOneRequiredWithoutRecipientsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.NoteCreateWithoutRecipientsInput,
+    Prisma.NoteUncheckedCreateWithoutRecipientsInput
+  >;
+  connectOrCreate?: Prisma.NoteCreateOrConnectWithoutRecipientsInput;
+  upsert?: Prisma.NoteUpsertWithoutRecipientsInput;
+  connect?: Prisma.NoteWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.NoteUpdateToOneWithWhereWithoutRecipientsInput,
+      Prisma.NoteUpdateWithoutRecipientsInput
+    >,
+    Prisma.NoteUncheckedUpdateWithoutRecipientsInput
+  >;
 };
 
 export type NoteCreateNestedOneWithoutLinksOutInput = {
@@ -847,6 +913,7 @@ export type NoteCreateWithoutCampaignInput = {
   id?: string;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -854,6 +921,7 @@ export type NoteCreateWithoutCampaignInput = {
   parent?: Prisma.NoteCreateNestedOneWithoutChildrenInput;
   attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
@@ -864,11 +932,13 @@ export type NoteUncheckedCreateWithoutCampaignInput = {
   parentNoteId?: string | null;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteUncheckedCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
@@ -925,6 +995,7 @@ export type NoteScalarWhereInput = {
   parentNoteId?: Prisma.StringNullableFilter<"Note"> | string | null;
   title?: Prisma.StringFilter<"Note"> | string;
   content?: Prisma.StringFilter<"Note"> | string;
+  visibility?: Prisma.EnumNoteVisibilityFilter<"Note"> | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFilter<"Note"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"Note"> | Date | string;
   deletedAt?: Prisma.DateTimeNullableFilter<"Note"> | Date | string | null;
@@ -934,6 +1005,7 @@ export type NoteCreateWithoutAuthorInput = {
   id?: string;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -941,6 +1013,7 @@ export type NoteCreateWithoutAuthorInput = {
   parent?: Prisma.NoteCreateNestedOneWithoutChildrenInput;
   attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
@@ -951,11 +1024,13 @@ export type NoteUncheckedCreateWithoutAuthorInput = {
   parentNoteId?: string | null;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteUncheckedCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
@@ -1005,6 +1080,7 @@ export type NoteCreateWithoutChildrenInput = {
   id?: string;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1012,6 +1088,7 @@ export type NoteCreateWithoutChildrenInput = {
   author: Prisma.UserCreateNestedOneWithoutNotesInput;
   parent?: Prisma.NoteCreateNestedOneWithoutChildrenInput;
   attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
+  recipients?: Prisma.NoteRecipientCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
@@ -1023,10 +1100,12 @@ export type NoteUncheckedCreateWithoutChildrenInput = {
   parentNoteId?: string | null;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
+  recipients?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
@@ -1043,6 +1122,7 @@ export type NoteCreateWithoutParentInput = {
   id?: string;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1050,6 +1130,7 @@ export type NoteCreateWithoutParentInput = {
   author: Prisma.UserCreateNestedOneWithoutNotesInput;
   attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
@@ -1060,11 +1141,13 @@ export type NoteUncheckedCreateWithoutParentInput = {
   authorId: string;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteUncheckedCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
@@ -1106,6 +1189,8 @@ export type NoteUpdateWithoutChildrenInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1114,6 +1199,7 @@ export type NoteUpdateWithoutChildrenInput = {
   author?: Prisma.UserUpdateOneRequiredWithoutNotesNestedInput;
   parent?: Prisma.NoteUpdateOneWithoutChildrenNestedInput;
   attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
+  recipients?: Prisma.NoteRecipientUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -1126,11 +1212,14 @@ export type NoteUncheckedUpdateWithoutChildrenInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
+  recipients?: Prisma.NoteRecipientUncheckedUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -1163,10 +1252,11 @@ export type NoteUpdateManyWithWhereWithoutParentInput = {
   >;
 };
 
-export type NoteCreateWithoutLinksOutInput = {
+export type NoteCreateWithoutRecipientsInput = {
   id?: string;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1175,6 +1265,108 @@ export type NoteCreateWithoutLinksOutInput = {
   parent?: Prisma.NoteCreateNestedOneWithoutChildrenInput;
   attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteCreateNestedManyWithoutParentInput;
+  linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
+};
+
+export type NoteUncheckedCreateWithoutRecipientsInput = {
+  id?: string;
+  campaignId: string;
+  authorId: string;
+  parentNoteId?: string | null;
+  title: string;
+  content: string;
+  visibility?: $Enums.NoteVisibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
+  children?: Prisma.NoteUncheckedCreateNestedManyWithoutParentInput;
+  linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
+  linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
+};
+
+export type NoteCreateOrConnectWithoutRecipientsInput = {
+  where: Prisma.NoteWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.NoteCreateWithoutRecipientsInput,
+    Prisma.NoteUncheckedCreateWithoutRecipientsInput
+  >;
+};
+
+export type NoteUpsertWithoutRecipientsInput = {
+  update: Prisma.XOR<
+    Prisma.NoteUpdateWithoutRecipientsInput,
+    Prisma.NoteUncheckedUpdateWithoutRecipientsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.NoteCreateWithoutRecipientsInput,
+    Prisma.NoteUncheckedCreateWithoutRecipientsInput
+  >;
+  where?: Prisma.NoteWhereInput;
+};
+
+export type NoteUpdateToOneWithWhereWithoutRecipientsInput = {
+  where?: Prisma.NoteWhereInput;
+  data: Prisma.XOR<
+    Prisma.NoteUpdateWithoutRecipientsInput,
+    Prisma.NoteUncheckedUpdateWithoutRecipientsInput
+  >;
+};
+
+export type NoteUpdateWithoutRecipientsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  title?: Prisma.StringFieldUpdateOperationsInput | string;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  campaign?: Prisma.CampaignUpdateOneRequiredWithoutNotesNestedInput;
+  author?: Prisma.UserUpdateOneRequiredWithoutNotesNestedInput;
+  parent?: Prisma.NoteUpdateOneWithoutChildrenNestedInput;
+  attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
+  children?: Prisma.NoteUpdateManyWithoutParentNestedInput;
+  linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
+};
+
+export type NoteUncheckedUpdateWithoutRecipientsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  authorId?: Prisma.StringFieldUpdateOperationsInput | string;
+  parentNoteId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  title?: Prisma.StringFieldUpdateOperationsInput | string;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
+  children?: Prisma.NoteUncheckedUpdateManyWithoutParentNestedInput;
+  linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
+  linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
+};
+
+export type NoteCreateWithoutLinksOutInput = {
+  id?: string;
+  title: string;
+  content: string;
+  visibility?: $Enums.NoteVisibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  campaign: Prisma.CampaignCreateNestedOneWithoutNotesInput;
+  author: Prisma.UserCreateNestedOneWithoutNotesInput;
+  parent?: Prisma.NoteCreateNestedOneWithoutChildrenInput;
+  attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
+  children?: Prisma.NoteCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
 
@@ -1185,11 +1377,13 @@ export type NoteUncheckedCreateWithoutLinksOutInput = {
   parentNoteId?: string | null;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteUncheckedCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
 
@@ -1205,6 +1399,7 @@ export type NoteCreateWithoutLinksInInput = {
   id?: string;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1213,6 +1408,7 @@ export type NoteCreateWithoutLinksInInput = {
   parent?: Prisma.NoteCreateNestedOneWithoutChildrenInput;
   attachments?: Prisma.AttachmentCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
 };
 
@@ -1223,11 +1419,13 @@ export type NoteUncheckedCreateWithoutLinksInInput = {
   parentNoteId?: string | null;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   attachments?: Prisma.AttachmentUncheckedCreateNestedManyWithoutNoteInput;
   children?: Prisma.NoteUncheckedCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
 };
 
@@ -1263,6 +1461,8 @@ export type NoteUpdateWithoutLinksOutInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1272,6 +1472,7 @@ export type NoteUpdateWithoutLinksOutInput = {
   parent?: Prisma.NoteUpdateOneWithoutChildrenNestedInput;
   attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
 
@@ -1283,12 +1484,15 @@ export type NoteUncheckedUpdateWithoutLinksOutInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUncheckedUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUncheckedUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
 
@@ -1316,6 +1520,8 @@ export type NoteUpdateWithoutLinksInInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1325,6 +1531,7 @@ export type NoteUpdateWithoutLinksInInput = {
   parent?: Prisma.NoteUpdateOneWithoutChildrenNestedInput;
   attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
 };
 
@@ -1336,12 +1543,15 @@ export type NoteUncheckedUpdateWithoutLinksInInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUncheckedUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUncheckedUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
 };
 
@@ -1349,6 +1559,7 @@ export type NoteCreateWithoutAttachmentsInput = {
   id?: string;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1356,6 +1567,7 @@ export type NoteCreateWithoutAttachmentsInput = {
   author: Prisma.UserCreateNestedOneWithoutNotesInput;
   parent?: Prisma.NoteCreateNestedOneWithoutChildrenInput;
   children?: Prisma.NoteCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkCreateNestedManyWithoutTargetNoteInput;
 };
@@ -1367,10 +1579,12 @@ export type NoteUncheckedCreateWithoutAttachmentsInput = {
   parentNoteId?: string | null;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   children?: Prisma.NoteUncheckedCreateNestedManyWithoutParentInput;
+  recipients?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutNoteInput;
   linksOut?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutNoteInput;
   linksIn?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetNoteInput;
 };
@@ -1407,6 +1621,8 @@ export type NoteUpdateWithoutAttachmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1415,6 +1631,7 @@ export type NoteUpdateWithoutAttachmentsInput = {
   author?: Prisma.UserUpdateOneRequiredWithoutNotesNestedInput;
   parent?: Prisma.NoteUpdateOneWithoutChildrenNestedInput;
   children?: Prisma.NoteUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -1427,11 +1644,14 @@ export type NoteUncheckedUpdateWithoutAttachmentsInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   children?: Prisma.NoteUncheckedUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUncheckedUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -1442,6 +1662,7 @@ export type NoteCreateManyCampaignInput = {
   parentNoteId?: string | null;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1451,6 +1672,8 @@ export type NoteUpdateWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1459,6 +1682,7 @@ export type NoteUpdateWithoutCampaignInput = {
   parent?: Prisma.NoteUpdateOneWithoutChildrenNestedInput;
   attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -1470,12 +1694,15 @@ export type NoteUncheckedUpdateWithoutCampaignInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUncheckedUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUncheckedUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -1487,6 +1714,8 @@ export type NoteUncheckedUpdateManyWithoutCampaignInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1499,6 +1728,7 @@ export type NoteCreateManyAuthorInput = {
   parentNoteId?: string | null;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1508,6 +1738,8 @@ export type NoteUpdateWithoutAuthorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1516,6 +1748,7 @@ export type NoteUpdateWithoutAuthorInput = {
   parent?: Prisma.NoteUpdateOneWithoutChildrenNestedInput;
   attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -1527,12 +1760,15 @@ export type NoteUncheckedUpdateWithoutAuthorInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUncheckedUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUncheckedUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -1544,6 +1780,8 @@ export type NoteUncheckedUpdateManyWithoutAuthorInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1556,6 +1794,7 @@ export type NoteCreateManyParentInput = {
   authorId: string;
   title: string;
   content: string;
+  visibility?: $Enums.NoteVisibility;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1565,6 +1804,8 @@ export type NoteUpdateWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1573,6 +1814,7 @@ export type NoteUpdateWithoutParentInput = {
   author?: Prisma.UserUpdateOneRequiredWithoutNotesNestedInput;
   attachments?: Prisma.AttachmentUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -1583,12 +1825,15 @@ export type NoteUncheckedUpdateWithoutParentInput = {
   authorId?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   attachments?: Prisma.AttachmentUncheckedUpdateManyWithoutNoteNestedInput;
   children?: Prisma.NoteUncheckedUpdateManyWithoutParentNestedInput;
+  recipients?: Prisma.NoteRecipientUncheckedUpdateManyWithoutNoteNestedInput;
   linksOut?: Prisma.NoteLinkUncheckedUpdateManyWithoutNoteNestedInput;
   linksIn?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetNoteNestedInput;
 };
@@ -1599,6 +1844,8 @@ export type NoteUncheckedUpdateManyWithoutParentInput = {
   authorId?: Prisma.StringFieldUpdateOperationsInput | string;
   title?: Prisma.StringFieldUpdateOperationsInput | string;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
+  visibility?:
+    Prisma.EnumNoteVisibilityFieldUpdateOperationsInput | $Enums.NoteVisibility;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1612,6 +1859,7 @@ export type NoteUncheckedUpdateManyWithoutParentInput = {
 export type NoteCountOutputType = {
   attachments: number;
   children: number;
+  recipients: number;
   linksOut: number;
   linksIn: number;
 };
@@ -1622,6 +1870,7 @@ export type NoteCountOutputTypeSelect<
 > = {
   attachments?: boolean | NoteCountOutputTypeCountAttachmentsArgs;
   children?: boolean | NoteCountOutputTypeCountChildrenArgs;
+  recipients?: boolean | NoteCountOutputTypeCountRecipientsArgs;
   linksOut?: boolean | NoteCountOutputTypeCountLinksOutArgs;
   linksIn?: boolean | NoteCountOutputTypeCountLinksInArgs;
 };
@@ -1662,6 +1911,16 @@ export type NoteCountOutputTypeCountChildrenArgs<
 /**
  * NoteCountOutputType without action
  */
+export type NoteCountOutputTypeCountRecipientsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.NoteRecipientWhereInput;
+};
+
+/**
+ * NoteCountOutputType without action
+ */
 export type NoteCountOutputTypeCountLinksOutArgs<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -1690,6 +1949,7 @@ export type NoteSelect<
     parentNoteId?: boolean;
     title?: boolean;
     content?: boolean;
+    visibility?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
@@ -1698,6 +1958,7 @@ export type NoteSelect<
     parent?: boolean | Prisma.Note$parentArgs<ExtArgs>;
     attachments?: boolean | Prisma.Note$attachmentsArgs<ExtArgs>;
     children?: boolean | Prisma.Note$childrenArgs<ExtArgs>;
+    recipients?: boolean | Prisma.Note$recipientsArgs<ExtArgs>;
     linksOut?: boolean | Prisma.Note$linksOutArgs<ExtArgs>;
     linksIn?: boolean | Prisma.Note$linksInArgs<ExtArgs>;
     _count?: boolean | Prisma.NoteCountOutputTypeDefaultArgs<ExtArgs>;
@@ -1716,6 +1977,7 @@ export type NoteSelectCreateManyAndReturn<
     parentNoteId?: boolean;
     title?: boolean;
     content?: boolean;
+    visibility?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
@@ -1737,6 +1999,7 @@ export type NoteSelectUpdateManyAndReturn<
     parentNoteId?: boolean;
     title?: boolean;
     content?: boolean;
+    visibility?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
@@ -1754,6 +2017,7 @@ export type NoteSelectScalar = {
   parentNoteId?: boolean;
   title?: boolean;
   content?: boolean;
+  visibility?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
   deletedAt?: boolean;
@@ -1769,6 +2033,7 @@ export type NoteOmit<
   | "parentNoteId"
   | "title"
   | "content"
+  | "visibility"
   | "createdAt"
   | "updatedAt"
   | "deletedAt",
@@ -1783,6 +2048,7 @@ export type NoteInclude<
   parent?: boolean | Prisma.Note$parentArgs<ExtArgs>;
   attachments?: boolean | Prisma.Note$attachmentsArgs<ExtArgs>;
   children?: boolean | Prisma.Note$childrenArgs<ExtArgs>;
+  recipients?: boolean | Prisma.Note$recipientsArgs<ExtArgs>;
   linksOut?: boolean | Prisma.Note$linksOutArgs<ExtArgs>;
   linksIn?: boolean | Prisma.Note$linksInArgs<ExtArgs>;
   _count?: boolean | Prisma.NoteCountOutputTypeDefaultArgs<ExtArgs>;
@@ -1815,6 +2081,7 @@ export type $NotePayload<
     parent: Prisma.$NotePayload<ExtArgs> | null;
     attachments: Prisma.$AttachmentPayload<ExtArgs>[];
     children: Prisma.$NotePayload<ExtArgs>[];
+    recipients: Prisma.$NoteRecipientPayload<ExtArgs>[];
     linksOut: Prisma.$NoteLinkPayload<ExtArgs>[];
     linksIn: Prisma.$NoteLinkPayload<ExtArgs>[];
   };
@@ -1826,6 +2093,7 @@ export type $NotePayload<
       parentNoteId: string | null;
       title: string;
       content: string;
+      visibility: $Enums.NoteVisibility;
       createdAt: Date;
       updatedAt: Date;
       deletedAt: Date | null;
@@ -2442,6 +2710,17 @@ export interface Prisma__NoteClient<
       >
     | Null
   >;
+  recipients<T extends Prisma.Note$recipientsArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Note$recipientsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$NoteRecipientPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   linksOut<T extends Prisma.Note$linksOutArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.Note$linksOutArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
@@ -2506,6 +2785,7 @@ export interface NoteFieldRefs {
   readonly parentNoteId: Prisma.FieldRef<"Note", "String">;
   readonly title: Prisma.FieldRef<"Note", "String">;
   readonly content: Prisma.FieldRef<"Note", "String">;
+  readonly visibility: Prisma.FieldRef<"Note", "NoteVisibility">;
   readonly createdAt: Prisma.FieldRef<"Note", "DateTime">;
   readonly updatedAt: Prisma.FieldRef<"Note", "DateTime">;
   readonly deletedAt: Prisma.FieldRef<"Note", "DateTime">;
@@ -3037,6 +3317,36 @@ export type Note$childrenArgs<
   take?: number;
   skip?: number;
   distinct?: Prisma.NoteScalarFieldEnum | Prisma.NoteScalarFieldEnum[];
+};
+
+/**
+ * Note.recipients
+ */
+export type Note$recipientsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the NoteRecipient
+   */
+  select?: Prisma.NoteRecipientSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the NoteRecipient
+   */
+  omit?: Prisma.NoteRecipientOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NoteRecipientInclude<ExtArgs> | null;
+  where?: Prisma.NoteRecipientWhereInput;
+  orderBy?:
+    | Prisma.NoteRecipientOrderByWithRelationInput
+    | Prisma.NoteRecipientOrderByWithRelationInput[];
+  cursor?: Prisma.NoteRecipientWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    Prisma.NoteRecipientScalarFieldEnum | Prisma.NoteRecipientScalarFieldEnum[];
 };
 
 /**

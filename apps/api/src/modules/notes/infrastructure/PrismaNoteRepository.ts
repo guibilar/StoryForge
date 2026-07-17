@@ -11,6 +11,7 @@ export class PrismaNoteRepository implements NoteRepository {
         id: id.toString(),
         deletedAt: null,
       },
+      include: { recipients: true },
     });
 
     if (!record) {
@@ -26,6 +27,7 @@ export class PrismaNoteRepository implements NoteRepository {
         campaignId,
         deletedAt: null,
       },
+      include: { recipients: true },
       orderBy: {
         createdAt: "asc",
       },
@@ -41,6 +43,7 @@ export class PrismaNoteRepository implements NoteRepository {
         title,
         deletedAt: null,
       },
+      include: { recipients: true },
     });
 
     return records.map(NoteMapper.toDomain);
@@ -52,6 +55,7 @@ export class PrismaNoteRepository implements NoteRepository {
         parentNoteId: noteId,
         deletedAt: null,
       },
+      include: { recipients: true },
       orderBy: {
         createdAt: "asc",
       },
@@ -67,6 +71,7 @@ export class PrismaNoteRepository implements NoteRepository {
         parentNoteId: null,
         deletedAt: null,
       },
+      include: { recipients: true },
       orderBy: {
         createdAt: "asc",
       },
@@ -77,7 +82,7 @@ export class PrismaNoteRepository implements NoteRepository {
 
   async create(note: Note): Promise<void> {
     await prisma.note.create({
-      data: NoteMapper.toPersistence(note),
+      data: this.toCreateData(note),
     });
   }
 
@@ -86,13 +91,13 @@ export class PrismaNoteRepository implements NoteRepository {
       where: {
         id: note.Id.toString(),
       },
-      data: NoteMapper.toPersistence(note),
+      data: this.toUpdateData(note),
     });
   }
 
   async createWithLinks(note: Note, links: NoteLink[]): Promise<void> {
     await prisma.$transaction([
-      prisma.note.create({ data: NoteMapper.toPersistence(note) }),
+      prisma.note.create({ data: this.toCreateData(note) }),
       ...links.map((link) =>
         prisma.noteLink.create({ data: NoteLinkMapper.toPersistence(link) }),
       ),
@@ -105,12 +110,34 @@ export class PrismaNoteRepository implements NoteRepository {
     await prisma.$transaction([
       prisma.note.update({
         where: { id: noteId },
-        data: NoteMapper.toPersistence(note),
+        data: this.toUpdateData(note),
       }),
       prisma.noteLink.deleteMany({ where: { noteId } }),
       ...links.map((link) =>
         prisma.noteLink.create({ data: NoteLinkMapper.toPersistence(link) }),
       ),
     ]);
+  }
+
+  private toCreateData(note: Note) {
+    return {
+      ...NoteMapper.toPersistence(note),
+      recipients: { create: NoteMapper.toRecipientCreates(note) },
+    };
+  }
+
+  /**
+   * Recipients are replaced wholesale on every update: the domain Note holds
+   * the full recipient list, so deleteMany + create keeps the rows in sync
+   * with it inside the same statement.
+   */
+  private toUpdateData(note: Note) {
+    return {
+      ...NoteMapper.toPersistence(note),
+      recipients: {
+        deleteMany: {},
+        create: NoteMapper.toRecipientCreates(note),
+      },
+    };
   }
 }

@@ -84,6 +84,7 @@ const noteService = new NoteService(
   new PrismaNoteRepository(),
   new PrismaEntityRepository(),
   noteLinkRepository,
+  campaignMemberRepository,
 );
 const attachmentService = new AttachmentService(
   new PrismaAttachmentRepository(),

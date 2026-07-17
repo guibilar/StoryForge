@@ -1,8 +1,10 @@
+import { NoteVisibility } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
 import { requireCampaignWriter } from "../../../campaignMembers/graphql/guards";
 import type { UpdateNoteDto } from "../../application/NoteService";
+import { requireNoteWriter } from "../guards";
 
 export const Mutation = {
   createNote: async (
@@ -13,6 +15,8 @@ export const Mutation = {
         title: string;
         content?: string;
         parentNoteId?: string;
+        visibility?: NoteVisibility;
+        recipientIds?: string[];
       };
     },
     context: GraphQLContext,
@@ -39,7 +43,7 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const note = await context.noteService.getNote(args.input.id);
-      await requireCampaignWriter(context, note.CampaignId);
+      await requireNoteWriter(context, note);
       return await context.noteService.updateNote(args.input);
     } catch (error) {
       toGraphQLError(error);
@@ -54,7 +58,7 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const note = await context.noteService.getNote(args.id);
-      await requireCampaignWriter(context, note.CampaignId);
+      await requireNoteWriter(context, note);
       await context.noteService.deleteNote(args.id);
       return true;
     } catch (error) {
@@ -70,7 +74,7 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const note = await context.noteService.getNote(args.id);
-      await requireCampaignWriter(context, note.CampaignId);
+      await requireNoteWriter(context, note);
       return await context.noteService.moveNote(
         args.id,
         args.parentNoteId ?? null,

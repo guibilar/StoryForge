@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   CampaignMember,
   Note,
+  NoteVisibility,
   NotFoundError,
   User,
   UserId,
@@ -112,6 +113,59 @@ describe("notes Query.note", () => {
     expect(result).toBe(note);
   });
 
+  it("rejects with FORBIDDEN when a player queries another author's PRIVATE note", async () => {
+    const noteService = makeNoteService();
+    const campaignMemberService = makeCampaignMemberService();
+    const note = Note.create({
+      campaignId: "campaign-1",
+      authorId: UserId.create(),
+      title: "GM secrets",
+      visibility: NoteVisibility.PRIVATE,
+    });
+    vi.mocked(noteService.getNote).mockResolvedValue(note);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      membership,
+    );
+    const context = makeContext(
+      noteService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Query.note(undefined, { id: note.Id.toString() }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+  });
+
+  it("returns a TARGETED note to a named recipient", async () => {
+    const noteService = makeNoteService();
+    const campaignMemberService = makeCampaignMemberService();
+    const note = Note.create({
+      campaignId: "campaign-1",
+      authorId: UserId.create(),
+      title: "Handout for you",
+      visibility: NoteVisibility.TARGETED,
+      recipientIds: [authenticatedUser.Id],
+    });
+    vi.mocked(noteService.getNote).mockResolvedValue(note);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      membership,
+    );
+    const context = makeContext(
+      noteService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    const result = await Query.note(
+      undefined,
+      { id: note.Id.toString() },
+      context,
+    );
+
+    expect(result).toBe(note);
+  });
+
   it("translates domain errors into GraphQL errors", async () => {
     const noteService = makeNoteService();
     const campaignMemberService = makeCampaignMemberService();
@@ -191,6 +245,58 @@ describe("notes Query.notes", () => {
     );
 
     expect(noteService.listNotes).toHaveBeenCalledWith("campaign-1");
-    expect(result).toBe(notes);
+    expect(result).toEqual(notes);
+  });
+
+  it("filters out notes a player cannot view", async () => {
+    const noteService = makeNoteService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      membership,
+    );
+    const shared = Note.create({
+      campaignId: "campaign-1",
+      authorId: UserId.create(),
+      title: "Party log",
+    });
+    const privateNote = Note.create({
+      campaignId: "campaign-1",
+      authorId: UserId.create(),
+      title: "GM secrets",
+      visibility: NoteVisibility.PRIVATE,
+    });
+    const handout = Note.create({
+      campaignId: "campaign-1",
+      authorId: UserId.create(),
+      title: "Handout for you",
+      visibility: NoteVisibility.TARGETED,
+      recipientIds: [authenticatedUser.Id],
+    });
+    const otherHandout = Note.create({
+      campaignId: "campaign-1",
+      authorId: UserId.create(),
+      title: "Handout for someone else",
+      visibility: NoteVisibility.TARGETED,
+      recipientIds: [UserId.create()],
+    });
+    vi.mocked(noteService.listNotes).mockResolvedValue([
+      shared,
+      privateNote,
+      handout,
+      otherHandout,
+    ]);
+    const context = makeContext(
+      noteService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    const result = await Query.notes(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    expect(result).toEqual([shared, handout]);
   });
 });

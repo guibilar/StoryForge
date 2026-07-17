@@ -25,3 +25,12 @@ export const Visibility = {
 } as const;
 
 export type Visibility = (typeof Visibility)[keyof typeof Visibility];
+
+export const NoteVisibility = {
+  SHARED: "SHARED",
+  PRIVATE: "PRIVATE",
+  TARGETED: "TARGETED",
+} as const;
+
+export type NoteVisibility =
+  (typeof NoteVisibility)[keyof typeof NoteVisibility];

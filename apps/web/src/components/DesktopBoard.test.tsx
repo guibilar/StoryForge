@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
 
 import { DesktopBoard } from "./DesktopBoard";
-import { CampaignDocument, MeDocument } from "../gql/graphql";
+import { CampaignDocument, EntitiesDocument, MeDocument } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
@@ -47,6 +47,10 @@ vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
       },
       vi.fn(),
     ];
+  }
+
+  if (args.query === EntitiesDocument) {
+    return [{ data: { entities: [] }, fetching: false, stale: false }, vi.fn()];
   }
 
   throw new Error("Unexpected query in test");

@@ -21,6 +21,24 @@ export type CreateCampaignDto = {
   name: string;
 };
 
+export type CreateEntityInput = {
+  campaignId: string | number;
+  description?: string | null | undefined;
+  icon?: string | null | undefined;
+  image?: string | null | undefined;
+  name: string;
+  type: string;
+  visibility?: EntityVisibility | null | undefined;
+};
+
+export type EntityFilter = {
+  nameContains?: string | null | undefined;
+  tagIds?: Array<string | number> | null | undefined;
+  type?: string | null | undefined;
+};
+
+export type EntityVisibility = "PRIVATE" | "PUBLIC" | "STORYTELLER";
+
 export type LoginInput = {
   email: string;
   password: string;
@@ -41,6 +59,15 @@ export type UpdateCampaignMemberRoleInput = {
   campaignId: string | number;
   role: CampaignRole;
   userId: string | number;
+};
+
+export type UpdateEntityInput = {
+  description?: string | null | undefined;
+  icon?: string | null | undefined;
+  id: string | number;
+  image?: string | null | undefined;
+  name?: string | null | undefined;
+  visibility?: EntityVisibility | null | undefined;
 };
 
 export type AddCampaignMemberMutationVariables = Exact<{
@@ -103,6 +130,41 @@ export type CreateCampaignMutation = {
   };
 };
 
+export type CreateEntityMutationVariables = Exact<{
+  input: CreateEntityInput;
+}>;
+
+export type CreateEntityMutation = {
+  createEntity: {
+    id: string;
+    name: string;
+    description: string | null;
+    visibility: EntityVisibility;
+    tags: Array<{ id: string; name: string }>;
+  };
+};
+
+export type DeleteEntityMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type DeleteEntityMutation = { deleteEntity: boolean };
+
+export type EntitiesQueryVariables = Exact<{
+  campaignId: string | number;
+  filter?: EntityFilter | null | undefined;
+}>;
+
+export type EntitiesQuery = {
+  entities: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    visibility: EntityVisibility;
+    tags: Array<{ id: string; name: string }>;
+  }>;
+};
+
 export type LoginMutationVariables = Exact<{
   input: LoginInput;
 }>;
@@ -151,6 +213,20 @@ export type UpdateCampaignMemberRoleMutationVariables = Exact<{
 
 export type UpdateCampaignMemberRoleMutation = {
   updateCampaignMemberRole: { userId: string; role: CampaignRole };
+};
+
+export type UpdateEntityMutationVariables = Exact<{
+  input: UpdateEntityInput;
+}>;
+
+export type UpdateEntityMutation = {
+  updateEntity: {
+    id: string;
+    name: string;
+    description: string | null;
+    visibility: EntityVisibility;
+    tags: Array<{ id: string; name: string }>;
+  };
 };
 
 export const AddCampaignMemberDocument = {
@@ -451,6 +527,197 @@ export const CreateCampaignDocument = {
   CreateCampaignMutation,
   CreateCampaignMutationVariables
 >;
+export const CreateEntityDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateEntity" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateEntityInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createEntity" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "tags" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreateEntityMutation,
+  CreateEntityMutationVariables
+>;
+export const DeleteEntityDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteEntity" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteEntity" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteEntityMutation,
+  DeleteEntityMutationVariables
+>;
+export const EntitiesDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Entities" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "filter" },
+          },
+          type: {
+            kind: "NamedType",
+            name: { kind: "Name", value: "EntityFilter" },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "entities" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "filter" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "filter" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "tags" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EntitiesQuery, EntitiesQueryVariables>;
 export const LoginDocument = {
   kind: "Document",
   definitions: [
@@ -790,4 +1057,72 @@ export const UpdateCampaignMemberRoleDocument = {
 } as unknown as DocumentNode<
   UpdateCampaignMemberRoleMutation,
   UpdateCampaignMemberRoleMutationVariables
+>;
+export const UpdateEntityDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateEntity" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateEntityInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateEntity" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "tags" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateEntityMutation,
+  UpdateEntityMutationVariables
 >;

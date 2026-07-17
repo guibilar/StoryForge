@@ -1,0 +1,12 @@
+mutation CreateEntity($input: CreateEntityInput!) {
+  createEntity(input: $input) {
+    id
+    name
+    description
+    visibility
+    tags {
+      id
+      name
+    }
+  }
+}

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { ComingSoonPanel } from "../components/ComingSoonPanel";
 import { MembersWindow } from "../components/MembersWindow";
+import { NpcsWindow } from "../components/NpcsWindow";
 import type { LayoutMap } from "../hooks/useDesktopLayout";
 import type { CampaignRole } from "../gql/graphql";
 
@@ -21,7 +22,7 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
   {
     id: "npcs",
     title: "NPCs",
-    render: () => createElement(ComingSoonPanel, { ticket: "KAN-39" }),
+    render: () => createElement(NpcsWindow),
   },
   {
     id: "members",

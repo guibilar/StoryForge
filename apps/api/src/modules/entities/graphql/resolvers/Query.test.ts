@@ -47,6 +47,12 @@ const authenticatedUser = User.create({
 const membership = CampaignMember.create({
   campaignId: "campaign-1",
   userId: authenticatedUser.Id,
+  role: "STORYTELLER",
+});
+
+const playerMembership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
   role: "PLAYER",
 });
 
@@ -113,6 +119,54 @@ describe("entities Query.entity", () => {
 
     expect(entityService.getEntity).toHaveBeenCalledWith("entity-1");
     expect(result).toBe(entity);
+  });
+
+  it("returns a PUBLIC entity when the user is a Player", async () => {
+    const entityService = makeEntityService();
+    const campaignMemberService = makeCampaignMemberService();
+    const entity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    });
+    vi.mocked(entityService.getEntity).mockResolvedValue(entity);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
+    const context = makeContext(
+      entityService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    const result = await Query.entity(undefined, { id: "entity-1" }, context);
+
+    expect(result).toBe(entity);
+  });
+
+  it("rejects with FORBIDDEN when a Player requests a non-PUBLIC entity", async () => {
+    const entityService = makeEntityService();
+    const campaignMemberService = makeCampaignMemberService();
+    const entity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Secret Goblin",
+      visibility: EntityVisibility.PRIVATE,
+    });
+    vi.mocked(entityService.getEntity).mockResolvedValue(entity);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
+    const context = makeContext(
+      entityService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Query.entity(undefined, { id: "entity-1" }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
   });
 
   it("translates domain errors into GraphQL errors", async () => {
@@ -225,5 +279,78 @@ describe("entities Query.entities", () => {
       "campaign-1",
       filter,
     );
+  });
+
+  it("filters out non-PUBLIC entities for a Player", async () => {
+    const entityService = makeEntityService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
+    const publicEntity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    });
+    const privateEntity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Secret Goblin",
+      visibility: EntityVisibility.PRIVATE,
+    });
+    vi.mocked(entityService.listEntities).mockResolvedValue([
+      publicEntity,
+      privateEntity,
+    ]);
+    const context = makeContext(
+      entityService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    const result = await Query.entities(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    expect(result).toEqual([publicEntity]);
+  });
+
+  it("returns all entities for a Storyteller regardless of visibility", async () => {
+    const entityService = makeEntityService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      membership,
+    );
+    const entities = [
+      Entity.create({
+        campaignId: "campaign-1",
+        type: "npc",
+        name: "Goblin",
+        visibility: EntityVisibility.PUBLIC,
+      }),
+      Entity.create({
+        campaignId: "campaign-1",
+        type: "npc",
+        name: "Secret Goblin",
+        visibility: EntityVisibility.PRIVATE,
+      }),
+    ];
+    vi.mocked(entityService.listEntities).mockResolvedValue(entities);
+    const context = makeContext(
+      entityService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    const result = await Query.entities(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    expect(result).toBe(entities);
   });
 });

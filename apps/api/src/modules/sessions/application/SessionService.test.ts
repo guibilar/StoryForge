@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { NotFoundError, Session, SessionRepository } from "@storyforge/domain";
+import {
+  CampaignMember,
+  CampaignMemberRepository,
+  NotFoundError,
+  Session,
+  SessionRepository,
+  UserId,
+  ValidationError,
+} from "@storyforge/domain";
 import { SessionService } from "./SessionService";
 
 function makeRepository(): SessionRepository {
@@ -10,6 +18,20 @@ function makeRepository(): SessionRepository {
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    attachAttendee: vi.fn(),
+    detachAttendee: vi.fn(),
+    listAttendeeUserIds: vi.fn(),
+  };
+}
+
+function makeCampaignMemberRepository(): CampaignMemberRepository {
+  return {
+    listByCampaign: vi.fn(),
+    findByCampaignAndUser: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    transferOwnership: vi.fn(),
   };
 }
 
@@ -20,11 +42,13 @@ const createDto = {
 
 describe("SessionService", () => {
   let repository: SessionRepository;
+  let campaignMemberRepository: CampaignMemberRepository;
   let service: SessionService;
 
   beforeEach(() => {
     repository = makeRepository();
-    service = new SessionService(repository);
+    campaignMemberRepository = makeCampaignMemberRepository();
+    service = new SessionService(repository, campaignMemberRepository);
   });
 
   describe("createSession", () => {
@@ -140,6 +164,87 @@ describe("SessionService", () => {
 
       await expect(service.listSessions("campaign-1")).resolves.toBe(sessions);
       expect(repository.findByCampaign).toHaveBeenCalledWith("campaign-1");
+    });
+  });
+
+  describe("attachAttendee", () => {
+    it("throws NotFoundError when the session does not exist", async () => {
+      vi.mocked(repository.findById).mockResolvedValue(null);
+
+      await expect(service.attachAttendee("missing", "user-1")).rejects.toThrow(
+        NotFoundError,
+      );
+    });
+
+    it("rejects a userId that is not a member of the session's campaign", async () => {
+      vi.mocked(repository.findMaxSessionNumber).mockResolvedValue(0);
+      const session = await service.createSession(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(session);
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(null);
+
+      await expect(
+        service.attachAttendee(session.Id.toString(), "user-1"),
+      ).rejects.toThrow(ValidationError);
+      expect(repository.attachAttendee).not.toHaveBeenCalled();
+    });
+
+    it("attaches the attendee when the user is a campaign member", async () => {
+      vi.mocked(repository.findMaxSessionNumber).mockResolvedValue(0);
+      const session = await service.createSession(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(session);
+      const membership = CampaignMember.create({
+        campaignId: "campaign-1",
+        userId: UserId.fromString("user-1"),
+        role: "PLAYER",
+      });
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(membership);
+
+      await service.attachAttendee(session.Id.toString(), "user-1");
+
+      expect(repository.attachAttendee).toHaveBeenCalledWith(
+        session.Id,
+        "user-1",
+      );
+    });
+  });
+
+  describe("detachAttendee", () => {
+    it("throws NotFoundError when the session does not exist", async () => {
+      vi.mocked(repository.findById).mockResolvedValue(null);
+
+      await expect(service.detachAttendee("missing", "user-1")).rejects.toThrow(
+        NotFoundError,
+      );
+    });
+
+    it("delegates to the repository", async () => {
+      vi.mocked(repository.findMaxSessionNumber).mockResolvedValue(0);
+      const session = await service.createSession(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(session);
+
+      await service.detachAttendee(session.Id.toString(), "user-1");
+
+      expect(repository.detachAttendee).toHaveBeenCalledWith(
+        session.Id,
+        "user-1",
+      );
+    });
+  });
+
+  describe("listAttendeeUserIds", () => {
+    it("delegates to the repository", async () => {
+      vi.mocked(repository.listAttendeeUserIds).mockResolvedValue(["user-1"]);
+
+      vi.mocked(repository.findMaxSessionNumber).mockResolvedValue(0);
+      const session = await service.createSession(createDto);
+
+      await expect(
+        service.listAttendeeUserIds(session.Id.toString()),
+      ).resolves.toEqual(["user-1"]);
     });
   });
 });

@@ -10,6 +10,7 @@
 export type * from "./models/Campaign";
 export type * from "./models/Entity";
 export type * from "./models/Session";
+export type * from "./models/SessionAttendee";
 export type * from "./models/Event";
 export type * from "./models/EventParticipant";
 export type * from "./models/Tag";

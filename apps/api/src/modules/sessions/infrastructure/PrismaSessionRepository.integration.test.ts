@@ -6,6 +6,7 @@ import { PrismaSessionRepository } from "./PrismaSessionRepository";
 
 const repository = new PrismaSessionRepository();
 const createdCampaignIds: string[] = [];
+const createdUserIds: string[] = [];
 
 async function createCampaign(): Promise<string> {
   const campaign = await prisma.campaign.create({
@@ -15,12 +16,28 @@ async function createCampaign(): Promise<string> {
   return campaign.id;
 }
 
+async function createUser(): Promise<string> {
+  const user = await prisma.user.create({
+    data: {
+      id: randomUUID(),
+      email: `test-user-${randomUUID()}@example.com`,
+      password: "hashed",
+    },
+  });
+  createdUserIds.push(user.id);
+  return user.id;
+}
+
 afterEach(async () => {
   if (createdCampaignIds.length > 0) {
     await prisma.campaign.deleteMany({
       where: { id: { in: createdCampaignIds } },
     });
     createdCampaignIds.length = 0;
+  }
+  if (createdUserIds.length > 0) {
+    await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });
+    createdUserIds.length = 0;
   }
 });
 
@@ -127,5 +144,29 @@ describe("PrismaSessionRepository", () => {
 
     const found = await repository.findById(session.Id);
     expect(found).toBeNull();
+  });
+
+  it("attaches and detaches an attendee idempotently", async () => {
+    const campaignId = await createCampaign();
+    const userId = await createUser();
+    const session = Session.create({
+      campaignId,
+      sessionNumber: 1,
+      date: new Date("2024-01-01T00:00:00Z"),
+    });
+    await repository.create(session);
+
+    await repository.attachAttendee(session.Id, userId);
+    await repository.attachAttendee(session.Id, userId); // idempotent
+
+    const attendees = await repository.listAttendeeUserIds(session.Id);
+    expect(attendees).toEqual([userId]);
+
+    await repository.detachAttendee(session.Id, userId);
+    await repository.detachAttendee(session.Id, userId); // idempotent, no error
+
+    await expect(repository.listAttendeeUserIds(session.Id)).resolves.toEqual(
+      [],
+    );
   });
 });

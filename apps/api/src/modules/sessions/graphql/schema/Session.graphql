@@ -4,6 +4,7 @@ type Session {
   sessionNumber: Int!
   date: String!
   summary: String
+  attendees: [CampaignMember!]!
   createdAt: String!
   updatedAt: String!
 }

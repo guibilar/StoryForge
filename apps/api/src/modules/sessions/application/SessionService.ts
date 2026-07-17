@@ -1,8 +1,11 @@
 import {
+  CampaignMemberRepository,
   NotFoundError,
   Session,
   SessionId,
   SessionRepository,
+  UserId,
+  ValidationError,
 } from "@storyforge/domain";
 
 export interface CreateSessionDto {
@@ -18,7 +21,10 @@ export interface UpdateSessionDto {
 }
 
 export class SessionService {
-  constructor(private readonly repository: SessionRepository) {}
+  constructor(
+    private readonly repository: SessionRepository,
+    private readonly campaignMemberRepository: CampaignMemberRepository,
+  ) {}
 
   async createSession(dto: CreateSessionDto): Promise<Session> {
     const maxSessionNumber = await this.repository.findMaxSessionNumber(
@@ -84,5 +90,37 @@ export class SessionService {
 
   async listSessions(campaignId: string): Promise<Session[]> {
     return this.repository.findByCampaign(campaignId);
+  }
+
+  async attachAttendee(sessionId: string, userId: string): Promise<Session> {
+    const session = await this.getSession(sessionId);
+
+    const membership =
+      await this.campaignMemberRepository.findByCampaignAndUser(
+        session.CampaignId,
+        UserId.fromString(userId),
+      );
+
+    if (!membership) {
+      throw new ValidationError(
+        "User is not a member of this session's campaign.",
+      );
+    }
+
+    await this.repository.attachAttendee(session.Id, userId);
+
+    return session;
+  }
+
+  async detachAttendee(sessionId: string, userId: string): Promise<Session> {
+    const session = await this.getSession(sessionId);
+
+    await this.repository.detachAttendee(session.Id, userId);
+
+    return session;
+  }
+
+  async listAttendeeUserIds(sessionId: string): Promise<string[]> {
+    return this.repository.listAttendeeUserIds(SessionId.fromString(sessionId));
   }
 }

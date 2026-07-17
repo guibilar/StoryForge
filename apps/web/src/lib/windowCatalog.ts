@@ -1,10 +1,10 @@
 import { createElement } from "react";
 import type { ReactNode } from "react";
 
-import { ComingSoonPanel } from "../components/ComingSoonPanel";
 import { MembersWindow } from "../components/MembersWindow";
 import { NotesWindow } from "../components/NotesWindow";
 import { NpcsWindow } from "../components/NpcsWindow";
+import { SessionsWindow } from "../components/SessionsWindow";
 import { TimelineWindow } from "../components/TimelineWindow";
 import type { LayoutMap } from "../hooks/useDesktopLayout";
 import type { CampaignRole } from "../gql/graphql";
@@ -18,8 +18,8 @@ export interface WindowCatalogEntry {
   visibleToRoles?: CampaignRole[];
 }
 
-// Data-driven so KAN-39/81/84/49/85 can each replace their entry's `render`
-// with a real component without touching the desktop shell.
+// Data-driven so future windows (Relationships, Maps, ...) can plug in by
+// adding a catalog entry, without touching the desktop shell.
 export const WINDOW_CATALOG: WindowCatalogEntry[] = [
   {
     id: "npcs",
@@ -38,7 +38,7 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
   {
     id: "sessions",
     title: "Sessions",
-    render: () => createElement(ComingSoonPanel, { ticket: "KAN-84" }),
+    render: () => createElement(SessionsWindow),
   },
   {
     id: "timeline",

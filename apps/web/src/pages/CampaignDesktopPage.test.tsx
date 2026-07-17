@@ -4,7 +4,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useMutation, useQuery } from "urql";
 
 import { CampaignDesktopPage } from "./CampaignDesktopPage";
-import { CampaignDocument, EntitiesDocument, MeDocument } from "../gql/graphql";
+import {
+  CampaignDocument,
+  EntitiesDocument,
+  MeDocument,
+  SessionsDocument,
+} from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
@@ -76,6 +81,13 @@ function setupMocks({
     if (args.query === EntitiesDocument) {
       return [
         { data: { entities: [] }, fetching: false, stale: false },
+        vi.fn(),
+      ];
+    }
+
+    if (args.query === SessionsDocument) {
+      return [
+        { data: { sessions: [] }, fetching: false, stale: false },
         vi.fn(),
       ];
     }

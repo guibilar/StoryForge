@@ -1,0 +1,12 @@
+mutation DetachSessionAttendee($sessionId: ID!, $userId: ID!) {
+  detachSessionAttendee(sessionId: $sessionId, userId: $userId) {
+    id
+    attendees {
+      userId
+      user {
+        id
+        email
+      }
+    }
+  }
+}

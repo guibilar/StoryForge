@@ -71,4 +71,40 @@ export const Mutation = {
       toGraphQLError(error);
     }
   },
+
+  attachSessionAttendee: async (
+    _parent: unknown,
+    args: { sessionId: string; userId: string },
+    context: GraphQLContext,
+  ) => {
+    try {
+      requireCurrentUser(context);
+      const session = await context.sessionService.getSession(args.sessionId);
+      await requireCampaignWriter(context, session.CampaignId);
+      return await context.sessionService.attachAttendee(
+        args.sessionId,
+        args.userId,
+      );
+    } catch (error) {
+      toGraphQLError(error);
+    }
+  },
+
+  detachSessionAttendee: async (
+    _parent: unknown,
+    args: { sessionId: string; userId: string },
+    context: GraphQLContext,
+  ) => {
+    try {
+      requireCurrentUser(context);
+      const session = await context.sessionService.getSession(args.sessionId);
+      await requireCampaignWriter(context, session.CampaignId);
+      return await context.sessionService.detachAttendee(
+        args.sessionId,
+        args.userId,
+      );
+    } catch (error) {
+      toGraphQLError(error);
+    }
+  },
 };

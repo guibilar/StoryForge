@@ -13,4 +13,10 @@ export interface SessionRepository {
   update(session: Session): Promise<void>;
 
   delete(id: SessionId): Promise<void>;
+
+  attachAttendee(sessionId: SessionId, userId: string): Promise<void>;
+
+  detachAttendee(sessionId: SessionId, userId: string): Promise<void>;
+
+  listAttendeeUserIds(sessionId: SessionId): Promise<string[]>;
 }

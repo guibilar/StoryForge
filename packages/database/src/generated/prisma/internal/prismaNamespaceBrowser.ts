@@ -57,6 +57,7 @@ export const ModelName = {
   Campaign: "Campaign",
   Entity: "Entity",
   Session: "Session",
+  SessionAttendee: "SessionAttendee",
   Event: "Event",
   EventParticipant: "EventParticipant",
   Tag: "Tag",
@@ -126,6 +127,16 @@ export const SessionScalarFieldEnum = {
 
 export type SessionScalarFieldEnum =
   (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum];
+
+export const SessionAttendeeScalarFieldEnum = {
+  id: "id",
+  sessionId: "sessionId",
+  userId: "userId",
+  createdAt: "createdAt",
+} as const;
+
+export type SessionAttendeeScalarFieldEnum =
+  (typeof SessionAttendeeScalarFieldEnum)[keyof typeof SessionAttendeeScalarFieldEnum];
 
 export const EventScalarFieldEnum = {
   id: "id",

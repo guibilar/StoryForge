@@ -47,6 +47,12 @@ export type CreateNoteInput = {
   title: string;
 };
 
+export type CreateSessionInput = {
+  campaignId: string | number;
+  date: string;
+  summary?: string | null | undefined;
+};
+
 export type EntityFilter = {
   nameContains?: string | null | undefined;
   tagIds?: Array<string | number> | null | undefined;
@@ -100,6 +106,12 @@ export type UpdateNoteInput = {
   title?: string | null | undefined;
 };
 
+export type UpdateSessionInput = {
+  date?: string | null | undefined;
+  id: string | number;
+  summary?: string | null | undefined;
+};
+
 export type AddCampaignMemberMutationVariables = Exact<{
   input: AddCampaignMemberInput;
 }>;
@@ -127,6 +139,18 @@ export type AttachParticipantMutation = {
   attachParticipant: {
     id: string;
     participants: Array<{ id: string; name: string }>;
+  };
+};
+
+export type AttachSessionAttendeeMutationVariables = Exact<{
+  sessionId: string | number;
+  userId: string | number;
+}>;
+
+export type AttachSessionAttendeeMutation = {
+  attachSessionAttendee: {
+    id: string;
+    attendees: Array<{ userId: string; user: { id: string; email: string } }>;
   };
 };
 
@@ -220,6 +244,20 @@ export type CreateNoteMutation = {
   };
 };
 
+export type CreateSessionMutationVariables = Exact<{
+  input: CreateSessionInput;
+}>;
+
+export type CreateSessionMutation = {
+  createSession: {
+    id: string;
+    sessionNumber: number;
+    date: string;
+    summary: string | null;
+    attendees: Array<{ userId: string; user: { id: string; email: string } }>;
+  };
+};
+
 export type DeleteEntityMutationVariables = Exact<{
   id: string | number;
 }>;
@@ -238,6 +276,12 @@ export type DeleteNoteMutationVariables = Exact<{
 
 export type DeleteNoteMutation = { deleteNote: boolean };
 
+export type DeleteSessionMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type DeleteSessionMutation = { deleteSession: boolean };
+
 export type DetachParticipantMutationVariables = Exact<{
   eventId: string | number;
   entityId: string | number;
@@ -247,6 +291,18 @@ export type DetachParticipantMutation = {
   detachParticipant: {
     id: string;
     participants: Array<{ id: string; name: string }>;
+  };
+};
+
+export type DetachSessionAttendeeMutationVariables = Exact<{
+  sessionId: string | number;
+  userId: string | number;
+}>;
+
+export type DetachSessionAttendeeMutation = {
+  detachSessionAttendee: {
+    id: string;
+    attendees: Array<{ userId: string; user: { id: string; email: string } }>;
   };
 };
 
@@ -333,7 +389,13 @@ export type SessionsQueryVariables = Exact<{
 }>;
 
 export type SessionsQuery = {
-  sessions: Array<{ id: string; sessionNumber: number; date: string }>;
+  sessions: Array<{
+    id: string;
+    sessionNumber: number;
+    date: string;
+    summary: string | null;
+    attendees: Array<{ userId: string; user: { id: string; email: string } }>;
+  }>;
 };
 
 export type UpdateCampaignMutationVariables = Exact<{
@@ -402,6 +464,20 @@ export type UpdateNoteMutation = {
     content: string;
     createdAt: string;
     updatedAt: string;
+  };
+};
+
+export type UpdateSessionMutationVariables = Exact<{
+  input: UpdateSessionInput;
+}>;
+
+export type UpdateSessionMutation = {
+  updateSession: {
+    id: string;
+    sessionNumber: number;
+    date: string;
+    summary: string | null;
+    attendees: Array<{ userId: string; user: { id: string; email: string } }>;
   };
 };
 
@@ -593,6 +669,106 @@ export const AttachParticipantDocument = {
 } as unknown as DocumentNode<
   AttachParticipantMutation,
   AttachParticipantMutationVariables
+>;
+export const AttachSessionAttendeeDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "AttachSessionAttendee" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "sessionId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "userId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "attachSessionAttendee" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "sessionId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "sessionId" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "userId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "userId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "attendees" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "userId" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "email" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  AttachSessionAttendeeMutation,
+  AttachSessionAttendeeMutationVariables
 >;
 export const CampaignDocument = {
   kind: "Document",
@@ -991,6 +1167,96 @@ export const CreateNoteDocument = {
     },
   ],
 } as unknown as DocumentNode<CreateNoteMutation, CreateNoteMutationVariables>;
+export const CreateSessionDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateSession" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateSessionInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createSession" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "sessionNumber" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "date" } },
+                { kind: "Field", name: { kind: "Name", value: "summary" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "attendees" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "userId" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "email" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreateSessionMutation,
+  CreateSessionMutationVariables
+>;
 export const DeleteEntityDocument = {
   kind: "Document",
   definitions: [
@@ -1111,6 +1377,48 @@ export const DeleteNoteDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteNoteMutation, DeleteNoteMutationVariables>;
+export const DeleteSessionDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteSession" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteSession" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteSessionMutation,
+  DeleteSessionMutationVariables
+>;
 export const DetachParticipantDocument = {
   kind: "Document",
   definitions: [
@@ -1191,6 +1499,106 @@ export const DetachParticipantDocument = {
 } as unknown as DocumentNode<
   DetachParticipantMutation,
   DetachParticipantMutationVariables
+>;
+export const DetachSessionAttendeeDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DetachSessionAttendee" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "sessionId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "userId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "detachSessionAttendee" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "sessionId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "sessionId" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "userId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "userId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "attendees" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "userId" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "email" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DetachSessionAttendeeMutation,
+  DetachSessionAttendeeMutationVariables
 >;
 export const EntitiesDocument = {
   kind: "Document",
@@ -1679,6 +2087,37 @@ export const SessionsDocument = {
                   name: { kind: "Name", value: "sessionNumber" },
                 },
                 { kind: "Field", name: { kind: "Name", value: "date" } },
+                { kind: "Field", name: { kind: "Name", value: "summary" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "attendees" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "userId" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "email" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -2006,3 +2445,93 @@ export const UpdateNoteDocument = {
     },
   ],
 } as unknown as DocumentNode<UpdateNoteMutation, UpdateNoteMutationVariables>;
+export const UpdateSessionDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateSession" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateSessionInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateSession" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "sessionNumber" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "date" } },
+                { kind: "Field", name: { kind: "Name", value: "summary" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "attendees" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "userId" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "email" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateSessionMutation,
+  UpdateSessionMutationVariables
+>;

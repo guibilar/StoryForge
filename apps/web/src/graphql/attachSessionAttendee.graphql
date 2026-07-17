@@ -1,0 +1,12 @@
+mutation AttachSessionAttendee($sessionId: ID!, $userId: ID!) {
+  attachSessionAttendee(sessionId: $sessionId, userId: $userId) {
+    id
+    attendees {
+      userId
+      user {
+        id
+        email
+      }
+    }
+  }
+}

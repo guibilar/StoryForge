@@ -89,7 +89,10 @@ const attachmentService = new AttachmentService(
   new PrismaAttachmentRepository(),
   imageStorage,
 );
-const sessionService = new SessionService(new PrismaSessionRepository());
+const sessionService = new SessionService(
+  new PrismaSessionRepository(),
+  campaignMemberRepository,
+);
 const eventService = new EventService(
   new PrismaEventRepository(),
   new PrismaEntityRepository(),

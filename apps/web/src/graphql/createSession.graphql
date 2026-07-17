@@ -1,5 +1,5 @@
-query Sessions($campaignId: ID!) {
-  sessions(campaignId: $campaignId) {
+mutation CreateSession($input: CreateSessionInput!) {
+  createSession(input: $input) {
     id
     sessionNumber
     date

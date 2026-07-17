@@ -83,4 +83,29 @@ export class PrismaSessionRepository implements SessionRepository {
       },
     });
   }
+
+  async attachAttendee(sessionId: SessionId, userId: string): Promise<void> {
+    await prisma.sessionAttendee.upsert({
+      where: {
+        sessionId_userId: { sessionId: sessionId.toString(), userId },
+      },
+      create: { sessionId: sessionId.toString(), userId },
+      update: {},
+    });
+  }
+
+  async detachAttendee(sessionId: SessionId, userId: string): Promise<void> {
+    await prisma.sessionAttendee.deleteMany({
+      where: { sessionId: sessionId.toString(), userId },
+    });
+  }
+
+  async listAttendeeUserIds(sessionId: SessionId): Promise<string[]> {
+    const records = await prisma.sessionAttendee.findMany({
+      where: { sessionId: sessionId.toString() },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return records.map((record) => record.userId);
+  }
 }

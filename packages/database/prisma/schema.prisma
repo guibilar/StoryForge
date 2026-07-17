@@ -91,10 +91,26 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  events Event[]
+  events    Event[]
+  attendees SessionAttendee[]
 
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
+}
+
+model SessionAttendee {
+  id        String @id @default(uuid())
+  sessionId String
+  userId    String
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+  @@index([userId])
 }
 
 model Event {
@@ -204,6 +220,7 @@ model User {
 
   campaignMemberships CampaignMember[]
   notes               Note[]
+  sessionAttendances  SessionAttendee[]
 }
 
 model Note {

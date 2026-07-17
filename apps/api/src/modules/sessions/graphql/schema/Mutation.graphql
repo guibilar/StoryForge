@@ -14,4 +14,6 @@ extend type Mutation {
   createSession(input: CreateSessionInput!): Session!
   updateSession(input: UpdateSessionInput!): Session!
   deleteSession(id: ID!): Boolean!
+  attachSessionAttendee(sessionId: ID!, userId: ID!): Session!
+  detachSessionAttendee(sessionId: ID!, userId: ID!): Session!
 }

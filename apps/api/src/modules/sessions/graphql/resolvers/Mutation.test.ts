@@ -12,6 +12,9 @@ function makeSessionService(): SessionService {
     deleteSession: vi.fn(),
     getSession: vi.fn(),
     listSessions: vi.fn(),
+    attachAttendee: vi.fn(),
+    detachAttendee: vi.fn(),
+    listAttendeeUserIds: vi.fn(),
   } as unknown as SessionService;
 }
 
@@ -284,5 +287,167 @@ describe("sessions Mutation.deleteSession", () => {
 
     expect(sessionService.deleteSession).toHaveBeenCalledWith("session-1");
     expect(result).toBe(true);
+  });
+});
+
+describe("sessions Mutation.attachSessionAttendee", () => {
+  it("rejects with UNAUTHENTICATED when logged out", async () => {
+    const sessionService = makeSessionService();
+    const campaignMemberService = makeCampaignMemberService();
+    const context = makeContext(
+      sessionService,
+      campaignMemberService,
+      loggedOutUser,
+    );
+
+    await expect(
+      Mutation.attachSessionAttendee(
+        undefined,
+        { sessionId: "session-1", userId: "user-1" },
+        context,
+      ),
+    ).rejects.toMatchObject({
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+    expect(sessionService.attachAttendee).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when not a member of the session's campaign", async () => {
+    const sessionService = makeSessionService();
+    const campaignMemberService = makeCampaignMemberService();
+    const session = Session.create({
+      campaignId: "campaign-1",
+      sessionNumber: 1,
+      date: new Date("2024-01-01T00:00:00Z"),
+    });
+    vi.mocked(sessionService.getSession).mockResolvedValue(session);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      sessionService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Mutation.attachSessionAttendee(
+        undefined,
+        { sessionId: "session-1", userId: "user-1" },
+        context,
+      ),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(sessionService.attachAttendee).not.toHaveBeenCalled();
+  });
+
+  it("delegates to sessionService when the user is a campaign member", async () => {
+    const sessionService = makeSessionService();
+    const campaignMemberService = makeCampaignMemberService();
+    const session = Session.create({
+      campaignId: "campaign-1",
+      sessionNumber: 1,
+      date: new Date("2024-01-01T00:00:00Z"),
+    });
+    vi.mocked(sessionService.getSession).mockResolvedValue(session);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      membership,
+    );
+    vi.mocked(sessionService.attachAttendee).mockResolvedValue(session);
+    const context = makeContext(
+      sessionService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    const result = await Mutation.attachSessionAttendee(
+      undefined,
+      { sessionId: "session-1", userId: "user-1" },
+      context,
+    );
+
+    expect(sessionService.attachAttendee).toHaveBeenCalledWith(
+      "session-1",
+      "user-1",
+    );
+    expect(result).toBe(session);
+  });
+});
+
+describe("sessions Mutation.detachSessionAttendee", () => {
+  it("rejects with UNAUTHENTICATED when logged out", async () => {
+    const sessionService = makeSessionService();
+    const campaignMemberService = makeCampaignMemberService();
+    const context = makeContext(
+      sessionService,
+      campaignMemberService,
+      loggedOutUser,
+    );
+
+    await expect(
+      Mutation.detachSessionAttendee(
+        undefined,
+        { sessionId: "session-1", userId: "user-1" },
+        context,
+      ),
+    ).rejects.toMatchObject({
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+    expect(sessionService.detachAttendee).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when not a member of the session's campaign", async () => {
+    const sessionService = makeSessionService();
+    const campaignMemberService = makeCampaignMemberService();
+    const session = Session.create({
+      campaignId: "campaign-1",
+      sessionNumber: 1,
+      date: new Date("2024-01-01T00:00:00Z"),
+    });
+    vi.mocked(sessionService.getSession).mockResolvedValue(session);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      sessionService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Mutation.detachSessionAttendee(
+        undefined,
+        { sessionId: "session-1", userId: "user-1" },
+        context,
+      ),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(sessionService.detachAttendee).not.toHaveBeenCalled();
+  });
+
+  it("delegates to sessionService when the user is a campaign member", async () => {
+    const sessionService = makeSessionService();
+    const campaignMemberService = makeCampaignMemberService();
+    const session = Session.create({
+      campaignId: "campaign-1",
+      sessionNumber: 1,
+      date: new Date("2024-01-01T00:00:00Z"),
+    });
+    vi.mocked(sessionService.getSession).mockResolvedValue(session);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      membership,
+    );
+    vi.mocked(sessionService.detachAttendee).mockResolvedValue(session);
+    const context = makeContext(
+      sessionService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    const result = await Mutation.detachSessionAttendee(
+      undefined,
+      { sessionId: "session-1", userId: "user-1" },
+      context,
+    );
+
+    expect(sessionService.detachAttendee).toHaveBeenCalledWith(
+      "session-1",
+      "user-1",
+    );
+    expect(result).toBe(session);
   });
 });

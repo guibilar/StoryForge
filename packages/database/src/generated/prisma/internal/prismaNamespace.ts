@@ -414,6 +414,7 @@ export const ModelName = {
   Campaign: "Campaign",
   Entity: "Entity",
   Session: "Session",
+  SessionAttendee: "SessionAttendee",
   Event: "Event",
   EventParticipant: "EventParticipant",
   Tag: "Tag",
@@ -449,6 +450,7 @@ export type TypeMap<
       | "campaign"
       | "entity"
       | "session"
+      | "sessionAttendee"
       | "event"
       | "eventParticipant"
       | "tag"
@@ -686,6 +688,82 @@ export type TypeMap<
           args: Prisma.SessionCountArgs<ExtArgs>;
           result:
             | runtime.Types.Utils.Optional<Prisma.SessionCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    SessionAttendee: {
+      payload: Prisma.$SessionAttendeePayload<ExtArgs>;
+      fields: Prisma.SessionAttendeeFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.SessionAttendeeFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.SessionAttendeeFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload>;
+        };
+        findFirst: {
+          args: Prisma.SessionAttendeeFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.SessionAttendeeFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload>;
+        };
+        findMany: {
+          args: Prisma.SessionAttendeeFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload>[];
+        };
+        create: {
+          args: Prisma.SessionAttendeeCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload>;
+        };
+        createMany: {
+          args: Prisma.SessionAttendeeCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.SessionAttendeeCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload>[];
+        };
+        delete: {
+          args: Prisma.SessionAttendeeDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload>;
+        };
+        update: {
+          args: Prisma.SessionAttendeeUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload>;
+        };
+        deleteMany: {
+          args: Prisma.SessionAttendeeDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.SessionAttendeeUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.SessionAttendeeUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload>[];
+        };
+        upsert: {
+          args: Prisma.SessionAttendeeUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SessionAttendeePayload>;
+        };
+        aggregate: {
+          args: Prisma.SessionAttendeeAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSessionAttendee>;
+        };
+        groupBy: {
+          args: Prisma.SessionAttendeeGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.SessionAttendeeGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.SessionAttendeeCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.SessionAttendeeCountAggregateOutputType>
             | number;
         };
       };
@@ -1531,6 +1609,16 @@ export const SessionScalarFieldEnum = {
 export type SessionScalarFieldEnum =
   (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum];
 
+export const SessionAttendeeScalarFieldEnum = {
+  id: "id",
+  sessionId: "sessionId",
+  userId: "userId",
+  createdAt: "createdAt",
+} as const;
+
+export type SessionAttendeeScalarFieldEnum =
+  (typeof SessionAttendeeScalarFieldEnum)[keyof typeof SessionAttendeeScalarFieldEnum];
+
 export const EventScalarFieldEnum = {
   id: "id",
   campaignId: "campaignId",
@@ -1896,6 +1984,7 @@ export type GlobalOmitConfig = {
   campaign?: Prisma.CampaignOmit;
   entity?: Prisma.EntityOmit;
   session?: Prisma.SessionOmit;
+  sessionAttendee?: Prisma.SessionAttendeeOmit;
   event?: Prisma.EventOmit;
   eventParticipant?: Prisma.EventParticipantOmit;
   tag?: Prisma.TagOmit;

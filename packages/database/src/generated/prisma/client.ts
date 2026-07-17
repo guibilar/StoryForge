@@ -62,6 +62,11 @@ export type Entity = Prisma.EntityModel;
  */
 export type Session = Prisma.SessionModel;
 /**
+ * Model SessionAttendee
+ *
+ */
+export type SessionAttendee = Prisma.SessionAttendeeModel;
+/**
  * Model Event
  *
  */

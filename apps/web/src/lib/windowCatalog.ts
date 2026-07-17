@@ -28,9 +28,10 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
     id: "members",
     title: "Members",
     render: () => createElement(MembersWindow),
-    // Owner: full CRUD. Storyteller: read-only. Player visibility is an open
-    // question per KAN-81/KAN-62, so Players don't see this window at all.
-    visibleToRoles: ["OWNER", "STORYTELLER"],
+    // Owner: full CRUD. Storyteller/Co-Storyteller: read-only. Player
+    // visibility is an open question per KAN-81/KAN-62, so Players (and
+    // Observers) don't see this window at all.
+    visibleToRoles: ["OWNER", "STORYTELLER", "CO_STORYTELLER"],
   },
   {
     id: "sessions",

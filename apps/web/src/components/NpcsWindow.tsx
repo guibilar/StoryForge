@@ -67,7 +67,10 @@ export function NpcsWindow() {
   const myRole = members.find(
     (member) => member.userId === currentUserId,
   )?.role;
-  const isWriter = myRole === "OWNER" || myRole === "STORYTELLER";
+  const isWriter =
+    myRole === "OWNER" ||
+    myRole === "STORYTELLER" ||
+    myRole === "CO_STORYTELLER";
   const npcs: NpcRow[] = entitiesData?.entities ?? [];
 
   function refetch() {

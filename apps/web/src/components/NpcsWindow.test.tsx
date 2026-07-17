@@ -167,6 +167,22 @@ describe("NpcsWindow", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows create/edit/delete controls for a Co-Storyteller", () => {
+    const members = [
+      {
+        userId: CURRENT_USER_ID,
+        role: "CO_STORYTELLER",
+        user: { id: CURRENT_USER_ID, email: "co-storyteller@example.com" },
+      },
+    ];
+    setupMocks({ members });
+    renderWindow();
+
+    expect(
+      screen.getByRole("button", { name: "+ New NPC" }),
+    ).toBeInTheDocument();
+  });
+
   it("hides all controls for a Player (read-only)", () => {
     setupMocks({ members: playerMembers });
     renderWindow();

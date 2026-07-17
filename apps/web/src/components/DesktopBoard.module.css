@@ -29,7 +29,7 @@
 
 .board {
   position: relative;
-  height: 70vh;
+  height: 90vh;
   min-height: 480px;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -42,4 +42,5 @@
   left: 50%;
   bottom: 16px;
   transform: translateX(-50%);
+  z-index: 9999;
 }

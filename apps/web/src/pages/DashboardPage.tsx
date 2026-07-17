@@ -70,9 +70,6 @@ export function DashboardPage() {
                 {role ? ` · ${role}` : ""}
               </p>
               <div className={styles.actions}>
-                <Button onClick={() => navigate(`/campaigns/${campaign.id}`)}>
-                  Enter campaign
-                </Button>
                 {role === "OWNER" ? (
                   <Button
                     variant="secondary"
@@ -81,6 +78,9 @@ export function DashboardPage() {
                     Manage
                   </Button>
                 ) : null}
+                <Button onClick={() => navigate(`/campaigns/${campaign.id}`)}>
+                  Enter
+                </Button>
               </div>
             </li>
           );

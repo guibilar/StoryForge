@@ -205,7 +205,7 @@ describe("DashboardPage", () => {
     renderDashboard();
 
     const enterButtons = screen.getAllByRole("button", {
-      name: "Enter campaign",
+      name: "Enter",
     });
     expect(enterButtons).toHaveLength(2);
 

@@ -82,7 +82,7 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
     openWindow({
       id: `entity:${entity.id}`,
       title: entity.name,
-      render: () => <EntityWindow entity={entity} />,
+      render: () => <EntityWindow entity={entity} campaignId={campaignId} />,
       x: 140 + offset,
       y: 80 + offset,
       width: DEFAULT_ENTITY_WINDOW.width,

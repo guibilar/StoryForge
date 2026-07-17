@@ -38,7 +38,7 @@ type Documents = {
   "query Me {\n  me {\n    id\n    email\n  }\n}": typeof types.MeDocument;
   "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.NotesDocument;
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.RegisterDocument;
-  "query Relationships($campaignId: ID!) {\n  relationships(campaignId: $campaignId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n  }\n}": typeof types.RelationshipsDocument;
+  "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}": typeof types.RelationshipsDocument;
   "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}": typeof types.RemoveCampaignMemberDocument;
   "query Sessions($campaignId: ID!) {\n  sessions(campaignId: $campaignId) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.SessionsDocument;
   "mutation UpdateCampaign($input: UpdateCampaignInput!) {\n  updateCampaign(input: $input) {\n    id\n    name\n    description\n    archivedAt\n  }\n}": typeof types.UpdateCampaignDocument;
@@ -95,7 +95,7 @@ const documents: Documents = {
     types.NotesDocument,
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}":
     types.RegisterDocument,
-  "query Relationships($campaignId: ID!) {\n  relationships(campaignId: $campaignId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n  }\n}":
+  "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}":
     types.RelationshipsDocument,
   "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}":
     types.RemoveCampaignMemberDocument,
@@ -277,8 +277,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "query Relationships($campaignId: ID!) {\n  relationships(campaignId: $campaignId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n  }\n}",
-): (typeof documents)["query Relationships($campaignId: ID!) {\n  relationships(campaignId: $campaignId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n  }\n}"];
+  source: "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}",
+): (typeof documents)["query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -1,8 +1,9 @@
-query Relationships($campaignId: ID!) {
-  relationships(campaignId: $campaignId) {
+query Relationships($campaignId: ID!, $entityId: ID) {
+  relationships(campaignId: $campaignId, entityId: $entityId) {
     id
     sourceEntityId
     targetEntityId
     type
+    description
   }
 }

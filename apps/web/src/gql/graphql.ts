@@ -392,6 +392,7 @@ export type RegisterMutation = {
 
 export type RelationshipsQueryVariables = Exact<{
   campaignId: string | number;
+  entityId?: string | number | null | undefined;
 }>;
 
 export type RelationshipsQuery = {
@@ -400,6 +401,7 @@ export type RelationshipsQuery = {
     sourceEntityId: string;
     targetEntityId: string;
     type: string;
+    description: string | null;
   }>;
 };
 
@@ -2039,6 +2041,14 @@ export const RelationshipsDocument = {
             type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "entityId" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -2055,6 +2065,14 @@ export const RelationshipsDocument = {
                   name: { kind: "Name", value: "campaignId" },
                 },
               },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "entityId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "entityId" },
+                },
+              },
             ],
             selectionSet: {
               kind: "SelectionSet",
@@ -2069,6 +2087,7 @@ export const RelationshipsDocument = {
                   name: { kind: "Name", value: "targetEntityId" },
                 },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
               ],
             },
           },

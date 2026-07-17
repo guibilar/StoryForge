@@ -42,16 +42,46 @@ const storytellerMembers = [
   },
 ];
 
-const notes = [
+const tableMembers = [
+  ...ownerMembers,
+  {
+    userId: "player-1",
+    role: "PLAYER",
+    user: { id: "player-1", email: "player1@example.com" },
+  },
+  {
+    userId: "player-2",
+    role: "PLAYER",
+    user: { id: "player-2", email: "player2@example.com" },
+  },
+];
+
+const playerMembers = tableMembers.map((member) =>
+  member.userId === CURRENT_USER_ID ? { ...member, role: "PLAYER" } : member,
+);
+
+interface NoteFixture {
+  id: string;
+  title: string;
+  content: string;
+  visibility: string;
+  recipientIds: string[];
+}
+
+const notes: NoteFixture[] = [
   {
     id: "note-1",
     title: "Session 1 recap",
     content: "The party met **Goblin King** and fled the mines.",
+    visibility: "SHARED",
+    recipientIds: [],
   },
   {
     id: "note-2",
     title: "House rules",
     content: "No resting inside dungeons.",
+    visibility: "SHARED",
+    recipientIds: [],
   },
 ];
 
@@ -173,11 +203,142 @@ describe("NotesWindow", () => {
     await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(createNote).toHaveBeenCalledWith({
-      input: { campaignId: "camp-1", title: "New note title", content: "" },
+      input: {
+        campaignId: "camp-1",
+        title: "New note title",
+        content: "",
+        visibility: "SHARED",
+      },
     });
     expect(reexecuteNotes).toHaveBeenCalledWith({
       requestPolicy: "network-only",
     });
+  });
+
+  it("creates a targeted handout with selected recipients", async () => {
+    const { createNote } = setupMocks({ members: tableMembers });
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "+ New note" }));
+    await user.type(screen.getByLabelText("Title"), "Secret clue");
+    await user.selectOptions(
+      screen.getByLabelText("Visibility"),
+      "Handout for specific players",
+    );
+
+    const saveButton = screen.getByRole("button", { name: "Save" });
+    expect(saveButton).toBeDisabled();
+    expect(
+      screen.getByText("Select at least one recipient."),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText("player1@example.com"));
+    expect(saveButton).toBeEnabled();
+    await user.click(saveButton);
+
+    expect(createNote).toHaveBeenCalledWith({
+      input: {
+        campaignId: "camp-1",
+        title: "Secret clue",
+        content: "",
+        visibility: "TARGETED",
+        recipientIds: ["player-1"],
+      },
+    });
+  });
+
+  it("does not offer the current user as a recipient", async () => {
+    setupMocks({ members: tableMembers });
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "+ New note" }));
+    await user.selectOptions(
+      screen.getByLabelText("Visibility"),
+      "Handout for specific players",
+    );
+
+    expect(
+      screen.queryByLabelText("owner@example.com"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText("player1@example.com")).toBeInTheDocument();
+  });
+
+  it("seeds the edit modal with the note's visibility and recipients, and submits them", async () => {
+    const targeted = {
+      id: "note-3",
+      title: "Handout",
+      content: "For your eyes only.",
+      visibility: "TARGETED",
+      recipientIds: ["player-1"],
+    };
+    const { updateNote } = setupMocks({
+      members: tableMembers,
+      noteRoots: [targeted],
+    });
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByText("Handout"));
+
+    expect(screen.getByLabelText("Visibility")).toHaveValue("TARGETED");
+    expect(screen.getByLabelText("player1@example.com")).toBeChecked();
+
+    await user.click(screen.getByLabelText("player2@example.com"));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(updateNote).toHaveBeenCalledWith({
+      input: {
+        id: "note-3",
+        title: "Handout",
+        content: "For your eyes only.",
+        visibility: "TARGETED",
+        recipientIds: ["player-1", "player-2"],
+      },
+    });
+  });
+
+  it("shows visibility badges: Private, Handout count, and For you", () => {
+    const badgeNotes = [
+      { ...notes[0] },
+      {
+        id: "note-4",
+        title: "GM secrets",
+        content: "hidden",
+        visibility: "PRIVATE",
+        recipientIds: [],
+      },
+      {
+        id: "note-5",
+        title: "Clue for players",
+        content: "psst",
+        visibility: "TARGETED",
+        recipientIds: ["player-1", "player-2"],
+      },
+    ];
+    setupMocks({ members: tableMembers, noteRoots: badgeNotes });
+    renderWindow();
+
+    expect(screen.getByText("Private")).toBeInTheDocument();
+    expect(screen.getByText("Handout · 2")).toBeInTheDocument();
+  });
+
+  it("labels a handout addressed to the current user as For you", () => {
+    const handout = {
+      id: "note-6",
+      title: "Just for me",
+      content: "psst",
+      visibility: "TARGETED",
+      recipientIds: [CURRENT_USER_ID],
+    };
+    setupMocks({ members: playerMembers, noteRoots: [handout] });
+    renderWindow();
+
+    expect(screen.getByText("For you")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "+ New note" }),
+    ).not.toBeInTheDocument();
   });
 
   it("deletes a note after confirming and refetches", async () => {

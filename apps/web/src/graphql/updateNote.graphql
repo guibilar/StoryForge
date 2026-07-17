@@ -4,6 +4,8 @@ mutation UpdateNote($input: UpdateNoteInput!) {
     campaignId
     title
     content
+    visibility
+    recipientIds
     createdAt
     updatedAt
   }

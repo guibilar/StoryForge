@@ -20,6 +20,7 @@ import {
   NotesDocument,
   UpdateNoteDocument,
 } from "../gql/graphql";
+import type { NoteVisibility } from "../gql/graphql";
 import { formatGraphQLError } from "../lib/graphqlError";
 import styles from "./NotesWindow.module.css";
 
@@ -27,9 +28,17 @@ interface NoteRow {
   id: string;
   title: string;
   content: string;
+  visibility: NoteVisibility;
+  recipientIds: string[];
 }
 
 type ModalState = { mode: "create" } | { mode: "edit"; note: NoteRow } | null;
+
+const VISIBILITY_OPTIONS: Array<{ value: NoteVisibility; label: string }> = [
+  { value: "SHARED", label: "Shared with everyone" },
+  { value: "PRIVATE", label: "Private (Storytellers only)" },
+  { value: "TARGETED", label: "Handout for specific players" },
+];
 
 function previewOf(content: string): string {
   const flat = content.replace(/\s+/g, " ").trim();
@@ -61,6 +70,9 @@ export function NotesWindow() {
     null,
   );
   const [modalContent, setModalContent] = useState("");
+  const [modalVisibility, setModalVisibility] =
+    useState<NoteVisibility>("SHARED");
+  const [modalRecipientIds, setModalRecipientIds] = useState<string[]>([]);
 
   const currentUserId = meData?.me?.id;
   const members = campaignData?.campaign?.members ?? [];
@@ -72,6 +84,11 @@ export function NotesWindow() {
     myRole === "STORYTELLER" ||
     myRole === "CO_STORYTELLER";
   const notes: NoteRow[] = notesData?.noteRoots ?? [];
+  const recipientOptions = members.filter(
+    (member) => member.userId !== currentUserId,
+  );
+  const missingRecipients =
+    modalVisibility === "TARGETED" && modalRecipientIds.length === 0;
 
   function refetch() {
     reexecuteNotes({ requestPolicy: "network-only" });
@@ -80,12 +97,16 @@ export function NotesWindow() {
   function openCreateModal() {
     setDismissedFormError(false);
     setModalContent("");
+    setModalVisibility("SHARED");
+    setModalRecipientIds([]);
     setModal({ mode: "create" });
   }
 
   function openEditModal(note: NoteRow) {
     setDismissedFormError(false);
     setModalContent(note.content);
+    setModalVisibility(note.visibility);
+    setModalRecipientIds(note.recipientIds);
     setModal({ mode: "edit", note });
   }
 
@@ -94,9 +115,36 @@ export function NotesWindow() {
     setDismissedFormError(true);
   }
 
+  function toggleRecipient(userId: string) {
+    setModalRecipientIds((current) =>
+      current.includes(userId)
+        ? current.filter((id) => id !== userId)
+        : [...current, userId],
+    );
+  }
+
+  function visibilityBadge(note: NoteRow) {
+    if (note.visibility === "PRIVATE") {
+      return <span className={styles.badge}>Private</span>;
+    }
+
+    if (note.visibility === "TARGETED") {
+      const forMe = currentUserId
+        ? note.recipientIds.includes(currentUserId)
+        : false;
+      return (
+        <span className={`${styles.badge} ${styles.badgeTargeted}`}>
+          {forMe ? "For you" : `Handout · ${note.recipientIds.length}`}
+        </span>
+      );
+    }
+
+    return null;
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!campaignId || !modal) {
+    if (!campaignId || !modal || missingRecipients) {
       return;
     }
 
@@ -108,9 +156,21 @@ export function NotesWindow() {
       return;
     }
 
+    const visibilityInput = {
+      visibility: modalVisibility,
+      ...(modalVisibility === "TARGETED"
+        ? { recipientIds: modalRecipientIds }
+        : {}),
+    };
+
     if (modal.mode === "create") {
       const result = await createNote({
-        input: { campaignId, title, content: modalContent },
+        input: {
+          campaignId,
+          title,
+          content: modalContent,
+          ...visibilityInput,
+        },
       });
       if (result.data?.createNote) {
         closeModal();
@@ -118,7 +178,12 @@ export function NotesWindow() {
       }
     } else {
       const result = await updateNote({
-        input: { id: modal.note.id, title, content: modalContent },
+        input: {
+          id: modal.note.id,
+          title,
+          content: modalContent,
+          ...visibilityInput,
+        },
       });
       if (result.data?.updateNote) {
         closeModal();
@@ -161,7 +226,10 @@ export function NotesWindow() {
               onClick={() => (isWriter ? openEditModal(note) : undefined)}
               disabled={!isWriter}
             >
-              <span className={styles.title}>{note.title}</span>
+              <span className={styles.titleLine}>
+                <span className={styles.title}>{note.title}</span>
+                {visibilityBadge(note)}
+              </span>
               <span className={styles.preview}>{previewOf(note.content)}</span>
             </button>
             {isWriter ? (
@@ -234,13 +302,59 @@ export function NotesWindow() {
                   />
                 </div>
               </FormField>
+              <FormField label="Visibility" htmlFor="note-visibility">
+                <select
+                  id="note-visibility"
+                  className={styles.select}
+                  value={modalVisibility}
+                  onChange={(event) =>
+                    setModalVisibility(event.target.value as NoteVisibility)
+                  }
+                >
+                  {VISIBILITY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              {modalVisibility === "TARGETED" ? (
+                <FormField label="Recipients" htmlFor="note-recipients">
+                  <div className={styles.recipientChecks} id="note-recipients">
+                    {recipientOptions.map((member) => (
+                      <label key={member.userId} className={styles.checkPill}>
+                        <input
+                          type="checkbox"
+                          checked={modalRecipientIds.includes(member.userId)}
+                          onChange={() => toggleRecipient(member.userId)}
+                        />
+                        {member.user.email}
+                      </label>
+                    ))}
+                    {recipientOptions.length === 0 ? (
+                      <span className={styles.hint}>
+                        No other members to hand this out to.
+                      </span>
+                    ) : null}
+                  </div>
+                  {missingRecipients ? (
+                    <span className={styles.hint}>
+                      Select at least one recipient.
+                    </span>
+                  ) : null}
+                </FormField>
+              ) : null}
               <div className={styles.modalActions}>
                 <Button type="button" variant="secondary" onClick={closeModal}>
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createState.fetching || updateState.fetching}
+                  disabled={
+                    createState.fetching ||
+                    updateState.fetching ||
+                    missingRecipients
+                  }
                 >
                   Save
                 </Button>

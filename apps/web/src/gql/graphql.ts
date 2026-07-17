@@ -32,6 +32,13 @@ export type CreateEntityInput = {
   visibility?: EntityVisibility | null | undefined;
 };
 
+export type CreateNoteInput = {
+  campaignId: string | number;
+  content?: string | null | undefined;
+  parentNoteId?: string | number | null | undefined;
+  title: string;
+};
+
 export type EntityFilter = {
   nameContains?: string | null | undefined;
   tagIds?: Array<string | number> | null | undefined;
@@ -69,6 +76,12 @@ export type UpdateEntityInput = {
   image?: string | null | undefined;
   name?: string | null | undefined;
   visibility?: EntityVisibility | null | undefined;
+};
+
+export type UpdateNoteInput = {
+  content?: string | null | undefined;
+  id: string | number;
+  title?: string | null | undefined;
 };
 
 export type AddCampaignMemberMutationVariables = Exact<{
@@ -145,11 +158,32 @@ export type CreateEntityMutation = {
   };
 };
 
+export type CreateNoteMutationVariables = Exact<{
+  input: CreateNoteInput;
+}>;
+
+export type CreateNoteMutation = {
+  createNote: {
+    id: string;
+    campaignId: string;
+    title: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
 export type DeleteEntityMutationVariables = Exact<{
   id: string | number;
 }>;
 
 export type DeleteEntityMutation = { deleteEntity: boolean };
+
+export type DeleteNoteMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type DeleteNoteMutation = { deleteNote: boolean };
 
 export type EntitiesQueryVariables = Exact<{
   campaignId: string | number;
@@ -179,6 +213,21 @@ export type LogoutMutation = { logout: boolean };
 export type MeQueryVariables = Exact<{ [key: string]: never }>;
 
 export type MeQuery = { me: { id: string; email: string } | null };
+
+export type NotesQueryVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type NotesQuery = {
+  noteRoots: Array<{
+    id: string;
+    campaignId: string;
+    title: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+};
 
 export type RegisterMutationVariables = Exact<{
   input: RegisterUserInput;
@@ -227,6 +276,21 @@ export type UpdateEntityMutation = {
     description: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
+  };
+};
+
+export type UpdateNoteMutationVariables = Exact<{
+  input: UpdateNoteInput;
+}>;
+
+export type UpdateNoteMutation = {
+  updateNote: {
+    id: string;
+    campaignId: string;
+    title: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
   };
 };
 
@@ -596,6 +660,62 @@ export const CreateEntityDocument = {
   CreateEntityMutation,
   CreateEntityMutationVariables
 >;
+export const CreateNoteDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateNote" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateNoteInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createNote" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "content" } },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<CreateNoteMutation, CreateNoteMutationVariables>;
 export const DeleteEntityDocument = {
   kind: "Document",
   definitions: [
@@ -638,6 +758,45 @@ export const DeleteEntityDocument = {
   DeleteEntityMutation,
   DeleteEntityMutationVariables
 >;
+export const DeleteNoteDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteNote" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteNote" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteNoteMutation, DeleteNoteMutationVariables>;
 export const EntitiesDocument = {
   kind: "Document",
   definitions: [
@@ -822,6 +981,59 @@ export const MeDocument = {
     },
   ],
 } as unknown as DocumentNode<MeQuery, MeQueryVariables>;
+export const NotesDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Notes" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "noteRoots" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "content" } },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<NotesQuery, NotesQueryVariables>;
 export const RegisterDocument = {
   kind: "Document",
   definitions: [
@@ -1127,3 +1339,59 @@ export const UpdateEntityDocument = {
   UpdateEntityMutation,
   UpdateEntityMutationVariables
 >;
+export const UpdateNoteDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateNote" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateNoteInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateNote" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "content" } },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateNoteMutation, UpdateNoteMutationVariables>;

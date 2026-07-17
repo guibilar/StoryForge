@@ -1,0 +1,10 @@
+query Notes($campaignId: ID!) {
+  noteRoots(campaignId: $campaignId) {
+    id
+    campaignId
+    title
+    content
+    createdAt
+    updatedAt
+  }
+}

@@ -84,10 +84,12 @@ describe("MobileDesktop", () => {
     const user = userEvent.setup();
     renderMobileDesktop();
 
-    await user.click(screen.getByRole("button", { name: "Notes" }));
+    await user.click(screen.getByRole("button", { name: "Timeline" }));
 
-    expect(screen.getByRole("heading", { name: "Notes" })).toBeInTheDocument();
-    expect(screen.getByText("Coming soon — KAN-85.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Timeline" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Coming soon — KAN-49.")).toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: "NPCs" }),
     ).not.toBeInTheDocument();

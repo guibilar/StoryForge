@@ -106,32 +106,32 @@ describe("DesktopBoard", () => {
     const user = userEvent.setup();
     render(<DesktopBoard campaignId="camp-1" />);
 
-    await user.click(screen.getByRole("button", { name: "Notes" }));
-    expect(screen.getByText("Coming soon — KAN-85.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Timeline" }));
+    expect(screen.getByText("Coming soon — KAN-49.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Close Notes" }));
-    expect(screen.queryByText("Coming soon — KAN-85.")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Close Timeline" }));
+    expect(screen.queryByText("Coming soon — KAN-49.")).not.toBeInTheDocument();
   });
 
   it("persists the arrangement so a remount restores it", async () => {
     const user = userEvent.setup();
     const { unmount } = render(<DesktopBoard campaignId="camp-1" />);
 
-    await user.click(screen.getByRole("button", { name: "Notes" }));
+    await user.click(screen.getByRole("button", { name: "Timeline" }));
     unmount();
 
     render(<DesktopBoard campaignId="camp-1" />);
-    expect(screen.getByText("Coming soon — KAN-85.")).toBeInTheDocument();
+    expect(screen.getByText("Coming soon — KAN-49.")).toBeInTheDocument();
   });
 
   it("reset layout restores the defaults", async () => {
     const user = userEvent.setup();
     render(<DesktopBoard campaignId="camp-1" />);
 
-    await user.click(screen.getByRole("button", { name: "Notes" }));
+    await user.click(screen.getByRole("button", { name: "Timeline" }));
     await user.click(screen.getByRole("button", { name: "Reset layout" }));
 
-    expect(screen.queryByText("Coming soon — KAN-85.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Coming soon — KAN-49.")).not.toBeInTheDocument();
   });
 
   it("drags a window by its title bar and persists the new position", () => {

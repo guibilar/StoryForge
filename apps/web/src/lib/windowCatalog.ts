@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { ComingSoonPanel } from "../components/ComingSoonPanel";
 import { MembersWindow } from "../components/MembersWindow";
+import { NotesWindow } from "../components/NotesWindow";
 import { NpcsWindow } from "../components/NpcsWindow";
 import type { LayoutMap } from "../hooks/useDesktopLayout";
 import type { CampaignRole } from "../gql/graphql";
@@ -46,7 +47,11 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
   {
     id: "notes",
     title: "Notes",
-    render: () => createElement(ComingSoonPanel, { ticket: "KAN-85" }),
+    render: () => createElement(NotesWindow),
+    // KAN-62: Owner + Storyteller full read/write. Player visibility isn't
+    // defined until KAN-63 (shared vs. private notes) lands, so Players and
+    // Observers don't see this window at all — same pattern as Members.
+    visibleToRoles: ["OWNER", "STORYTELLER", "CO_STORYTELLER"],
   },
 ];
 

@@ -51,6 +51,10 @@ export interface DesktopWindowsApi {
   presets: Record<string, LayoutMap>;
   savePreset: (name: string) => void;
   applyPreset: (name: string) => void;
+  // Overwrites layout + recentIds wholesale from server-fetched data
+  // (KAN-104's useWorkspaceStateSync) — the frontend counterpart to KAN-103's
+  // myWorkspaceState/saveWorkspaceState.
+  hydrateFromServer: (layout: LayoutMap, recentEntityIds: string[]) => void;
 }
 
 export const DesktopWindowsContext = createContext<DesktopWindowsApi | null>(

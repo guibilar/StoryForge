@@ -95,6 +95,7 @@ function setupDesktopWindows() {
     presets: {},
     savePreset: vi.fn(),
     applyPreset: vi.fn(),
+    hydrateFromServer: vi.fn(),
   });
   return { toggle, openWindow };
 }

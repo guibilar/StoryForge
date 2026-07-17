@@ -255,6 +255,31 @@ describe("useDesktopLayout", () => {
     expect(fresh.current.presets["Session Prep"]).toBeDefined();
   });
 
+  it("hydrateLayout overwrites the layout wholesale and persists it", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() => result.current.move("npcs", 999, 999));
+    act(() =>
+      result.current.hydrateLayout({
+        npcs: { x: 1, y: 2, width: 3, height: 4, hidden: false, z: 5 },
+      }),
+    );
+
+    expect(result.current.layout.npcs).toMatchObject({ x: 1, y: 2 });
+    const stored = JSON.parse(
+      localStorage.getItem("storyforge:desktop:camp-1")!,
+    );
+    expect(stored.npcs).toMatchObject({ x: 1, y: 2 });
+  });
+
+  it("hydrateLayout falls back to defaults for static ids it doesn't mention", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() => result.current.hydrateLayout({ npcs: DEFAULTS.npcs }));
+
+    expect(result.current.layout.notes).toEqual(DEFAULTS.notes);
+  });
+
   it("scopes storage per campaign id", () => {
     const { result: campaignA } = renderHook(() =>
       useDesktopLayout("camp-a", DEFAULTS),

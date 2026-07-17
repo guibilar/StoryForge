@@ -1,0 +1,6 @@
+mutation SaveWorkspaceState($input: SaveWorkspaceStateInput!) {
+  saveWorkspaceState(input: $input) {
+    id
+    updatedAt
+  }
+}

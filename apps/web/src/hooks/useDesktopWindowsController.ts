@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import type { ReactNode } from "react";
 
 import { useDesktopLayout } from "./useDesktopLayout";
+import type { LayoutMap } from "./useDesktopLayout";
 import { useRecentEntities } from "./useRecentEntities";
 import { DEFAULT_LAYOUT } from "../lib/windowCatalog";
 import type { OpenWindowRequest } from "../lib/DesktopWindowsContext";
@@ -20,8 +21,11 @@ const ENTITY_ID_PREFIX = "entity:";
 // sibling component needs the same state, not just a descendant.
 export function useDesktopWindowsController(campaignId: string) {
   const layoutApi = useDesktopLayout(campaignId, DEFAULT_LAYOUT);
-  const { openWindow: layoutOpenWindow, closeWindow: layoutCloseWindow } =
-    layoutApi;
+  const {
+    openWindow: layoutOpenWindow,
+    closeWindow: layoutCloseWindow,
+    hydrateLayout,
+  } = layoutApi;
 
   // useDesktopLayout only tracks position/size/z/hidden for a dynamic id;
   // the title + content to render for it lives here, since a React render
@@ -30,7 +34,19 @@ export function useDesktopWindowsController(campaignId: string) {
     Record<string, DynamicWindowEntry>
   >({});
 
-  const { recentIds, recordOpen } = useRecentEntities(campaignId);
+  const { recentIds, recordOpen, hydrateRecents } =
+    useRecentEntities(campaignId);
+
+  // Combines both underlying hydrate calls behind one entry point for
+  // KAN-104's server-sync hook, so it doesn't need to know these are two
+  // separate localStorage-backed pieces of state under the hood.
+  const hydrateFromServer = useCallback(
+    (serverLayout: LayoutMap, serverRecentIds: string[]) => {
+      hydrateLayout(serverLayout);
+      hydrateRecents(serverRecentIds);
+    },
+    [hydrateLayout, hydrateRecents],
+  );
 
   const openWindow = useCallback(
     (request: OpenWindowRequest) => {
@@ -72,5 +88,6 @@ export function useDesktopWindowsController(campaignId: string) {
     openWindow,
     closeWindow,
     recentIds,
+    hydrateFromServer,
   };
 }

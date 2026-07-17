@@ -203,6 +203,18 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     [presets, defaults, persistLayout],
   );
 
+  // Overwrites the layout wholesale with server-fetched data (KAN-104) —
+  // same shape as applying a preset, but the source is myWorkspaceState
+  // instead of a local named snapshot. Merges over `defaults` for the same
+  // reason applyPreset does: a server snapshot saved before a since-added
+  // static window shouldn't leave that window without a valid entry.
+  const hydrateLayout = useCallback(
+    (serverLayout: LayoutMap) => {
+      setLayout(() => persistLayout({ ...defaults, ...serverLayout }));
+    },
+    [defaults, persistLayout],
+  );
+
   const startDrag = useCallback(
     (
       id: string,
@@ -297,5 +309,6 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     presets,
     savePreset,
     applyPreset,
+    hydrateLayout,
   };
 }

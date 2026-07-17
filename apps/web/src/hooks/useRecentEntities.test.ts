@@ -55,6 +55,28 @@ describe("useRecentEntities", () => {
     expect(fresh.current.recentIds).toEqual(["e-1"]);
   });
 
+  it("hydrateRecents overwrites the list wholesale and persists it", () => {
+    const { result } = renderHook(() => useRecentEntities("camp-1"));
+
+    act(() => result.current.recordOpen("stale"));
+    act(() => result.current.hydrateRecents(["server-1", "server-2"]));
+
+    expect(result.current.recentIds).toEqual(["server-1", "server-2"]);
+    const stored = JSON.parse(
+      localStorage.getItem("storyforge:recents:camp-1")!,
+    );
+    expect(stored).toEqual(["server-1", "server-2"]);
+  });
+
+  it("hydrateRecents caps at 10 entries too", () => {
+    const { result } = renderHook(() => useRecentEntities("camp-1"));
+    const many = Array.from({ length: 12 }, (_, i) => `e-${i}`);
+
+    act(() => result.current.hydrateRecents(many));
+
+    expect(result.current.recentIds).toHaveLength(10);
+  });
+
   it("scopes storage per campaign id", () => {
     const { result: campaignA } = renderHook(() => useRecentEntities("camp-a"));
     act(() => campaignA.current.recordOpen("e-1"));

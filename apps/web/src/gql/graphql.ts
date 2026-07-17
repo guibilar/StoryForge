@@ -75,6 +75,12 @@ export type RegisterUserInput = {
   password: string;
 };
 
+export type SaveWorkspaceStateInput = {
+  campaignId: string | number;
+  layout: string;
+  recentEntityIds: string;
+};
+
 export type UpdateCampaignInput = {
   description?: string | null | undefined;
   id: string | number;
@@ -364,6 +370,19 @@ export type MeQueryVariables = Exact<{ [key: string]: never }>;
 
 export type MeQuery = { me: { id: string; email: string } | null };
 
+export type MyWorkspaceStateQueryVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type MyWorkspaceStateQuery = {
+  myWorkspaceState: {
+    id: string;
+    layout: string;
+    recentEntityIds: string;
+    updatedAt: string;
+  } | null;
+};
+
 export type NotesQueryVariables = Exact<{
   campaignId: string | number;
 }>;
@@ -411,6 +430,14 @@ export type RemoveCampaignMemberMutationVariables = Exact<{
 }>;
 
 export type RemoveCampaignMemberMutation = { removeCampaignMember: boolean };
+
+export type SaveWorkspaceStateMutationVariables = Exact<{
+  input: SaveWorkspaceStateInput;
+}>;
+
+export type SaveWorkspaceStateMutation = {
+  saveWorkspaceState: { id: string; updatedAt: string };
+};
 
 export type SessionsQueryVariables = Exact<{
   campaignId: string | number;
@@ -1902,6 +1929,63 @@ export const MeDocument = {
     },
   ],
 } as unknown as DocumentNode<MeQuery, MeQueryVariables>;
+export const MyWorkspaceStateDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "MyWorkspaceState" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "myWorkspaceState" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "layout" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "recentEntityIds" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  MyWorkspaceStateQuery,
+  MyWorkspaceStateQueryVariables
+>;
 export const NotesDocument = {
   kind: "Document",
   definitions: [
@@ -2159,6 +2243,61 @@ export const RemoveCampaignMemberDocument = {
 } as unknown as DocumentNode<
   RemoveCampaignMemberMutation,
   RemoveCampaignMemberMutationVariables
+>;
+export const SaveWorkspaceStateDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "SaveWorkspaceState" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "SaveWorkspaceStateInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "saveWorkspaceState" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  SaveWorkspaceStateMutation,
+  SaveWorkspaceStateMutationVariables
 >;
 export const SessionsDocument = {
   kind: "Document",

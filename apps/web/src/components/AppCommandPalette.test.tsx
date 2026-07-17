@@ -113,6 +113,7 @@ function setupDesktopWindows({ recentIds = [] as string[] } = {}) {
     presets: {},
     savePreset: vi.fn(),
     applyPreset: vi.fn(),
+    hydrateFromServer: vi.fn(),
   });
   return { toggle, openWindow };
 }

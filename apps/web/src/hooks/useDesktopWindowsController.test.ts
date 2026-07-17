@@ -59,4 +59,33 @@ describe("useDesktopWindowsController", () => {
     expect(typeof result.current.toggle).toBe("function");
     expect(typeof result.current.reset).toBe("function");
   });
+
+  it("hydrateFromServer overwrites both layout and recentIds in one call", () => {
+    const { result } = renderHook(() => useDesktopWindowsController("camp-1"));
+
+    // Populate a "stale" recentIds entry through the real code path
+    // (openWindow), so hydrateFromServer has something to overwrite.
+    act(() =>
+      result.current.openWindow({
+        id: "entity:stale",
+        title: "Stale",
+        render: () => "content",
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+      }),
+    );
+    expect(result.current.recentIds).toEqual(["stale"]);
+
+    act(() =>
+      result.current.hydrateFromServer(
+        { npcs: { x: 1, y: 2, width: 3, height: 4, hidden: false, z: 5 } },
+        ["server-entity"],
+      ),
+    );
+
+    expect(result.current.layout.npcs).toMatchObject({ x: 1, y: 2 });
+    expect(result.current.recentIds).toEqual(["server-entity"]);
+  });
 });

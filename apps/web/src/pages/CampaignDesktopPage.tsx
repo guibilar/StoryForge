@@ -9,6 +9,7 @@ import { EntitySidebar } from "../components/EntitySidebar";
 import { MobileDesktop } from "../components/MobileDesktop";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useDesktopWindowsController } from "../hooks/useDesktopWindowsController";
+import { useWorkspaceStateSync } from "../hooks/useWorkspaceStateSync";
 import { DesktopWindowsContext } from "../lib/DesktopWindowsContext";
 import styles from "./CampaignDesktopPage.module.css";
 
@@ -21,6 +22,10 @@ export function CampaignDesktopPage() {
   // is available synchronously from the route; the campaign data it names
   // may still be loading below.
   const desktopWindows = useDesktopWindowsController(id ?? "");
+  // KAN-104: loads any previously-saved server state on mount and
+  // debounce-syncs local changes back up — on top of, not instead of, the
+  // localStorage persistence useDesktopWindowsController already does.
+  useWorkspaceStateSync(id ?? "", desktopWindows);
 
   const [{ data: meData }] = useQuery({ query: MeDocument });
   const [{ data: campaignData, fetching }] = useQuery({

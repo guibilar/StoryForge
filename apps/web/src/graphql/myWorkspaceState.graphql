@@ -1,0 +1,8 @@
+query MyWorkspaceState($campaignId: ID!) {
+  myWorkspaceState(campaignId: $campaignId) {
+    id
+    layout
+    recentEntityIds
+    updatedAt
+  }
+}

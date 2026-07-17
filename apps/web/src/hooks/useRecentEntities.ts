@@ -22,9 +22,10 @@ function loadRecents(campaignId: string): string[] {
 }
 
 // localStorage-backed, most-recent-first list of entity ids opened in this
-// campaign — mirrors useDesktopLayout's per-campaign localStorage precedent
-// rather than a backend model (see KAN-103 for the optional server-synced
-// upgrade path, deliberately not built yet).
+// campaign — mirrors useDesktopLayout's per-campaign localStorage precedent.
+// KAN-104 layers server sync (KAN-103's myWorkspaceState/saveWorkspaceState)
+// on top via hydrateRecents; this hook stays localStorage-only either way,
+// so the app still works offline or before the server round-trip lands.
 export function useRecentEntities(campaignId: string) {
   const [recentIds, setRecentIds] = useState<string[]>(() =>
     loadRecents(campaignId),
@@ -44,5 +45,15 @@ export function useRecentEntities(campaignId: string) {
     [campaignId],
   );
 
-  return { recentIds, recordOpen };
+  // Overwrites the list wholesale with server-fetched data (KAN-104).
+  const hydrateRecents = useCallback(
+    (serverRecentIds: string[]) => {
+      const next = serverRecentIds.slice(0, MAX_RECENTS);
+      localStorage.setItem(storageKey(campaignId), JSON.stringify(next));
+      setRecentIds(next);
+    },
+    [campaignId],
+  );
+
+  return { recentIds, recordOpen, hydrateRecents };
 }

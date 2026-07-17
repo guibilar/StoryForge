@@ -8,6 +8,7 @@ import {
   CampaignDocument,
   EntitiesDocument,
   MeDocument,
+  MyWorkspaceStateDocument,
   NotesDocument,
   SessionsDocument,
 } from "../gql/graphql";
@@ -96,6 +97,13 @@ function setupMocks({
     if (args.query === NotesDocument) {
       return [
         { data: { noteRoots: [] }, fetching: false, stale: false },
+        vi.fn(),
+      ];
+    }
+
+    if (args.query === MyWorkspaceStateDocument) {
+      return [
+        { data: { myWorkspaceState: null }, fetching: false, stale: false },
         vi.fn(),
       ];
     }

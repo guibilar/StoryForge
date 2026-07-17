@@ -21,23 +21,6 @@
   overflow-x: auto;
 }
 
-.tab,
-.activeTab {
-  appearance: none;
-  border: 1px solid var(--border);
-  background: none;
-  color: var(--text);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 600;
-  font-size: 12px;
-  padding: 8px 12px;
-  border-radius: 8px;
+.tab {
   flex: none;
-}
-
-.activeTab {
-  color: var(--text-h);
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
 }

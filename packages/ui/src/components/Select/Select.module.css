@@ -1,0 +1,21 @@
+.select {
+  font: inherit;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  padding: 6px 8px;
+  box-sizing: border-box;
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent-border);
+}
+
+.select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

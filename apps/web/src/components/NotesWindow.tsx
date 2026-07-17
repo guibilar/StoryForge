@@ -5,11 +5,13 @@ import { useMutation, useQuery } from "urql";
 import MDEditor from "@uiw/react-md-editor";
 import {
   Button,
+  Checkbox,
   Form,
   FormError,
   FormField,
   Input,
   Modal,
+  Select,
 } from "@storyforge/ui";
 
 import {
@@ -342,7 +344,7 @@ export function NotesWindow() {
                 </div>
               </FormField>
               <FormField label="Visibility" htmlFor="note-visibility">
-                <select
+                <Select
                   id="note-visibility"
                   className={styles.select}
                   value={modalVisibility}
@@ -355,20 +357,18 @@ export function NotesWindow() {
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </FormField>
               {modalVisibility === "TARGETED" ? (
                 <FormField label="Recipients" htmlFor="note-recipients">
                   <div className={styles.recipientChecks} id="note-recipients">
                     {recipientOptions.map((member) => (
-                      <label key={member.userId} className={styles.checkPill}>
-                        <input
-                          type="checkbox"
-                          checked={modalRecipientIds.includes(member.userId)}
-                          onChange={() => toggleRecipient(member.userId)}
-                        />
-                        {member.user.email}
-                      </label>
+                      <Checkbox
+                        key={member.userId}
+                        label={member.user.email}
+                        checked={modalRecipientIds.includes(member.userId)}
+                        onChange={() => toggleRecipient(member.userId)}
+                      />
                     ))}
                     {recipientOptions.length === 0 ? (
                       <span className={styles.hint}>

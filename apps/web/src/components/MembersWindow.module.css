@@ -35,16 +35,6 @@
   font-size: 12px;
 }
 
-.roleSelect {
-  font: inherit;
-  font-size: 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-  color: var(--text);
-  padding: 4px 6px;
-}
-
 .addForm {
   border-top: 1px solid var(--border);
   padding-top: 12px;

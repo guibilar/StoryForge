@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "@storyforge/ui";
 
 import { visibleWindowCatalog } from "../lib/windowCatalog";
 import type { CampaignRole } from "../gql/graphql";
@@ -23,17 +24,16 @@ export function MobileDesktop({ role }: MobileDesktopProps) {
 
       <div className={styles.tabs}>
         {catalog.map((entry) => (
-          <button
+          <Button
             key={entry.id}
             type="button"
-            className={
-              entry.id === effectiveActiveId ? styles.activeTab : styles.tab
-            }
+            variant="tab"
+            className={styles.tab}
             aria-pressed={entry.id === effectiveActiveId}
             onClick={() => setActiveId(entry.id)}
           >
             {entry.title}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

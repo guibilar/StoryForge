@@ -9,6 +9,8 @@ import {
   FormField,
   Input,
   Modal,
+  Select,
+  Textarea,
 } from "@storyforge/ui";
 
 import {
@@ -244,31 +246,29 @@ export function NpcsWindow() {
                 />
               </FormField>
               <FormField label="Description" htmlFor="npc-description">
-                <textarea
+                <Textarea
                   id="npc-description"
                   name="description"
                   defaultValue={
                     modal.mode === "edit" ? (modal.npc.description ?? "") : ""
                   }
                   rows={4}
-                  className={styles.textarea}
                 />
               </FormField>
               <FormField label="Visibility" htmlFor="npc-visibility">
-                <select
+                <Select
                   id="npc-visibility"
                   name="visibility"
                   defaultValue={
                     modal.mode === "edit" ? modal.npc.visibility : "PUBLIC"
                   }
-                  className={styles.visibilitySelect}
                 >
                   {VISIBILITIES.map((visibility) => (
                     <option key={visibility} value={visibility}>
                       {visibility}
                     </option>
                   ))}
-                </select>
+                </Select>
               </FormField>
               <div className={styles.modalActions}>
                 <Button type="button" variant="secondary" onClick={closeModal}>

@@ -8,6 +8,7 @@ import {
   FormField,
   Input,
   Modal,
+  Textarea,
 } from "@storyforge/ui";
 
 import {
@@ -105,12 +106,11 @@ export function ManageCampaignModal({
           />
         </FormField>
         <FormField label="Description" htmlFor="manage-campaign-description">
-          <textarea
+          <Textarea
             id="manage-campaign-description"
             name="description"
             defaultValue={campaign.description ?? ""}
             rows={4}
-            className={styles.textarea}
           />
         </FormField>
         <div className={styles.actions}>
@@ -132,31 +132,31 @@ export function ManageCampaignModal({
               dashboard and can&apos;t be reopened.
             </p>
             <div className={styles.actions}>
-              <button
+              <Button
                 type="button"
-                className={styles.textAction}
+                variant="text"
                 onClick={() => setConfirmingArchive(false)}
               >
                 Never mind
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className={styles.destructiveAction}
+                variant="destructive"
                 onClick={handleArchive}
                 disabled={archiving}
               >
                 Confirm archive
-              </button>
+              </Button>
             </div>
           </>
         ) : (
-          <button
+          <Button
             type="button"
-            className={styles.destructiveAction}
+            variant="destructive"
             onClick={() => setConfirmingArchive(true)}
           >
             Archive campaign
-          </button>
+          </Button>
         )}
       </div>
     </Modal>

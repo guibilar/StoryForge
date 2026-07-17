@@ -4,6 +4,15 @@ export type { ButtonProps, ButtonVariant } from "./components/Button/Button";
 export { Input } from "./components/Input/Input";
 export type { InputProps } from "./components/Input/Input";
 
+export { Textarea } from "./components/Textarea/Textarea";
+export type { TextareaProps } from "./components/Textarea/Textarea";
+
+export { Select } from "./components/Select/Select";
+export type { SelectProps } from "./components/Select/Select";
+
+export { Checkbox } from "./components/Checkbox/Checkbox";
+export type { CheckboxProps } from "./components/Checkbox/Checkbox";
+
 export { Link } from "./components/Link/Link";
 export type { LinkProps } from "./components/Link/Link";
 

@@ -42,3 +42,58 @@
   background: var(--accent-bg);
   border-color: var(--accent-border);
 }
+
+.ghost {
+  background: none;
+  color: var(--text);
+  border-color: var(--border);
+  font-weight: 600;
+  font-size: 11px;
+  padding: 7px 10px;
+  border-radius: 6px;
+}
+
+.ghost:hover:not(:disabled) {
+  color: var(--text-h);
+  background: var(--accent-bg);
+}
+
+.text {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text);
+  text-decoration: underline;
+  border-radius: 0;
+}
+
+.text:hover:not(:disabled) {
+  color: var(--text-h);
+}
+
+.destructive {
+  composes: text;
+  color: #e5484d;
+}
+
+.tab {
+  background: none;
+  color: var(--text);
+  border-color: var(--border);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.tab:hover:not(:disabled):not([aria-pressed="true"]) {
+  background: var(--accent-bg);
+}
+
+.tab[aria-pressed="true"] {
+  color: var(--text-h);
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}

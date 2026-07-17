@@ -46,6 +46,11 @@ export interface DesktopWindowsApi {
   // Most-recent-first entity ids opened via openWindow, capped at 10 — see
   // useRecentEntities.ts. Raw entity ids, not entity:{id} window ids.
   recentIds: string[];
+  // Named, saved LayoutMap snapshots — see useDesktopLayout's savePreset for
+  // the caveat on dynamic (entity:*) windows.
+  presets: Record<string, LayoutMap>;
+  savePreset: (name: string) => void;
+  applyPreset: (name: string) => void;
 }
 
 export const DesktopWindowsContext = createContext<DesktopWindowsApi | null>(

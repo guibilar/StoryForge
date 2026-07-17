@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Button, Dock, Window } from "@storyforge/ui";
 
@@ -10,6 +10,8 @@ import styles from "./DesktopBoard.module.css";
 export interface DesktopBoardProps {
   role?: CampaignRole;
 }
+
+const APPLY_ANIMATION_MS = 320;
 
 // Renders the shared desktop-windows state (owned by CampaignDesktopPage via
 // useDesktopWindowsController, reached here through DesktopWindowsContext —
@@ -25,8 +27,32 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
     reset,
     dynamicWindows,
     closeWindow,
+    presets,
+    savePreset,
+    applyPreset,
   } = useDesktopWindows();
   const catalog = visibleWindowCatalog(role);
+
+  // Only applied to window chrome briefly after applying a preset — a
+  // permanent CSS transition on left/top/width/height would fight the
+  // per-pointermove style updates during drag/resize, making them feel
+  // laggy instead of instant.
+  const [animating, setAnimating] = useState(false);
+  const [presetSelection, setPresetSelection] = useState("");
+  const presetNames = Object.keys(presets);
+
+  function handleApplyPreset(name: string) {
+    applyPreset(name);
+    setAnimating(true);
+    setTimeout(() => setAnimating(false), APPLY_ANIMATION_MS);
+  }
+
+  function handleSavePreset() {
+    const name = window.prompt("Name this layout:")?.trim();
+    if (name) {
+      savePreset(name);
+    }
+  }
 
   const dockItems = catalog.map((entry) => ({
     id: entry.id,
@@ -49,6 +75,7 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
       <Window
         key={id}
         title={title}
+        className={animating ? styles.animating : undefined}
         style={{
           left: windowLayout.x,
           top: windowLayout.y,
@@ -81,6 +108,30 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
   return (
     <div className={styles.wrap}>
       <div className={styles.toolbar}>
+        <select
+          className={styles.presetSelect}
+          aria-label="Load layout preset"
+          value={presetSelection}
+          onChange={(event) => {
+            const name = event.target.value;
+            if (name) {
+              handleApplyPreset(name);
+            }
+            setPresetSelection("");
+          }}
+        >
+          <option value="" disabled>
+            Load preset…
+          </option>
+          {presetNames.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+        <Button type="button" variant="ghost" onClick={handleSavePreset}>
+          Save as preset
+        </Button>
         <Button type="button" variant="ghost" onClick={reset}>
           Reset layout
         </Button>

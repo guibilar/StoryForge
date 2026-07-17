@@ -19,6 +19,10 @@ function storageKey(campaignId: string): string {
   return `storyforge:desktop:${campaignId}`;
 }
 
+function presetsKey(campaignId: string): string {
+  return `storyforge:desktop:${campaignId}:presets`;
+}
+
 function loadLayout(campaignId: string, defaults: LayoutMap): LayoutMap {
   try {
     const raw = localStorage.getItem(storageKey(campaignId));
@@ -31,6 +35,21 @@ function loadLayout(campaignId: string, defaults: LayoutMap): LayoutMap {
   }
 }
 
+function loadPresets(campaignId: string): Record<string, LayoutMap> {
+  try {
+    const raw = localStorage.getItem(presetsKey(campaignId));
+    if (!raw) {
+      return {};
+    }
+    const parsed: unknown = JSON.parse(raw);
+    return typeof parsed === "object" && parsed !== null
+      ? (parsed as Record<string, LayoutMap>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
 function maxZ(layout: LayoutMap): number {
   return Math.max(0, ...Object.values(layout).map((w) => w.z));
 }
@@ -38,6 +57,9 @@ function maxZ(layout: LayoutMap): number {
 export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
   const [layout, setLayout] = useState<LayoutMap>(() =>
     loadLayout(campaignId, defaults),
+  );
+  const [presets, setPresets] = useState<Record<string, LayoutMap>>(() =>
+    loadPresets(campaignId),
   );
 
   // Writing localStorage inside the setLayout updater (rather than reading a
@@ -147,6 +169,40 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     });
   }, [campaignId, defaults, persistLayout]);
 
+  // Snapshots the *entire current layout* — static catalog windows and any
+  // open dynamic (entity:*) windows alike — under a named preset. Only the
+  // position data is captured (same limitation as the layout itself): a
+  // dynamic window's title/content lives in useDesktopWindowsController, not
+  // here, so applying a preset later only re-renders a dynamic window whose
+  // content is already registered (i.e. it's currently open) — the position
+  // still round-trips either way, it just doesn't resurrect closed windows.
+  const savePreset = useCallback(
+    (name: string) => {
+      setPresets((current) => {
+        const next = { ...current, [name]: layout };
+        localStorage.setItem(presetsKey(campaignId), JSON.stringify(next));
+        return next;
+      });
+    },
+    [campaignId, layout],
+  );
+
+  const applyPreset = useCallback(
+    (name: string) => {
+      setLayout((current) => {
+        const preset = presets[name];
+        if (!preset) {
+          return current;
+        }
+        // Merge over `defaults` (not `current`) so any static catalog
+        // window the preset doesn't mention still has a valid entry,
+        // mirroring reset()'s safety net.
+        return persistLayout({ ...defaults, ...preset });
+      });
+    },
+    [presets, defaults, persistLayout],
+  );
+
   const startDrag = useCallback(
     (
       id: string,
@@ -238,5 +294,8 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     reset,
     openWindow,
     closeWindow,
+    presets,
+    savePreset,
+    applyPreset,
   };
 }

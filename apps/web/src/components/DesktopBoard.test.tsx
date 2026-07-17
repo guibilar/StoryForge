@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -296,5 +296,62 @@ describe("DesktopBoard", () => {
     act(() => {
       window.dispatchEvent(new PointerEvent("pointerup"));
     });
+  });
+
+  it("saves the current arrangement as a named preset and restores it later", async () => {
+    const user = userEvent.setup();
+    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("My Layout");
+    render(<Harness campaignId="camp-1" />);
+
+    const board = screen.getByTestId("desktop-board");
+    mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
+    const npcsTitle = screen.getByText("NPCs", { selector: "span" });
+    const windowEl = npcsTitle.closest("div[style]") as HTMLElement;
+    mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
+
+    // Move NPCs, then save that arrangement as a preset.
+    act(() => {
+      npcsTitle.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          clientX: 50,
+          clientY: 50,
+        }),
+      );
+    });
+    act(() => {
+      window.dispatchEvent(
+        new PointerEvent("pointermove", { clientX: 150, clientY: 150 }),
+      );
+    });
+    act(() => {
+      window.dispatchEvent(new PointerEvent("pointerup"));
+    });
+    expect(windowEl.style.left).toBe("128px");
+
+    await user.click(screen.getByRole("button", { name: "Save as preset" }));
+    expect(promptSpy).toHaveBeenCalled();
+
+    // Reset scatters it back to the shipped default position...
+    await user.click(screen.getByRole("button", { name: "Reset layout" }));
+    expect(windowEl.style.left).toBe("28px");
+
+    // ...and loading the saved preset brings it back.
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Load layout preset" }),
+      "My Layout",
+    );
+    expect(windowEl.style.left).toBe("128px");
+  });
+
+  it("does not save a preset when the name prompt is cancelled", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, "prompt").mockReturnValue(null);
+    render(<Harness campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("button", { name: "Save as preset" }));
+
+    const select = screen.getByRole("combobox", { name: "Load layout preset" });
+    expect(within(select).getAllByRole("option")).toHaveLength(1);
   });
 });

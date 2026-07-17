@@ -156,6 +156,9 @@ function setupDesktopWindows() {
     openWindow,
     closeWindow: vi.fn(),
     recentIds: [],
+    presets: {},
+    savePreset: vi.fn(),
+    applyPreset: vi.fn(),
   });
   return { openWindow };
 }

@@ -192,6 +192,69 @@ describe("useDesktopLayout", () => {
     expect(stored["entity:1"]).toBeDefined();
   });
 
+  it("savePreset snapshots the current layout under a name", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() => result.current.move("npcs", 200, 150));
+    act(() => result.current.savePreset("Session Prep"));
+
+    expect(result.current.presets["Session Prep"].npcs).toMatchObject({
+      x: 200,
+      y: 150,
+    });
+    const stored = JSON.parse(
+      localStorage.getItem("storyforge:desktop:camp-1:presets")!,
+    );
+    expect(stored["Session Prep"].npcs).toMatchObject({ x: 200, y: 150 });
+  });
+
+  it("applyPreset restores a saved arrangement", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() => result.current.move("npcs", 200, 150));
+    act(() => result.current.savePreset("Session Prep"));
+    act(() => result.current.move("npcs", 999, 999));
+    act(() => result.current.applyPreset("Session Prep"));
+
+    expect(result.current.layout.npcs).toMatchObject({ x: 200, y: 150 });
+  });
+
+  it("applyPreset falls back to defaults for static ids the preset doesn't mention", () => {
+    // Simulate a preset that only ever captured one window (e.g. saved
+    // before "notes" existed) by writing a partial snapshot directly.
+    localStorage.setItem(
+      "storyforge:desktop:camp-1:presets",
+      JSON.stringify({ Partial: { npcs: DEFAULTS.npcs } }),
+    );
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() => result.current.applyPreset("Partial"));
+
+    expect(result.current.layout.notes).toEqual(DEFAULTS.notes);
+  });
+
+  it("applyPreset is a no-op for an unknown name", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    act(() => result.current.move("npcs", 200, 150));
+    act(() => result.current.applyPreset("Nonexistent"));
+
+    expect(result.current.layout.npcs).toMatchObject({ x: 200, y: 150 });
+  });
+
+  it("persists presets to localStorage, readable by a fresh hook instance", () => {
+    const { result, unmount } = renderHook(() =>
+      useDesktopLayout("camp-1", DEFAULTS),
+    );
+    act(() => result.current.savePreset("Session Prep"));
+    unmount();
+
+    const { result: fresh } = renderHook(() =>
+      useDesktopLayout("camp-1", DEFAULTS),
+    );
+    expect(fresh.current.presets["Session Prep"]).toBeDefined();
+  });
+
   it("scopes storage per campaign id", () => {
     const { result: campaignA } = renderHook(() =>
       useDesktopLayout("camp-a", DEFAULTS),

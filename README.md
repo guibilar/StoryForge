@@ -29,8 +29,9 @@ apps/
                infrastructure/ (Prisma repositories)
   web/         React app — routing, urql GraphQL client, full auth flow
                (login/register/dashboard), and the campaign desktop shell
-               (KAN-80: draggable windows, dock, layout persistence, mobile
-               tab fallback). Window contents are still placeholders, see
+               (KAN-80: draggable/resizable windows, dock, layout
+               persistence, mobile tab fallback). NPCs and Members windows
+               are real; Sessions/Timeline/Notes are placeholders, see
                docs/FEATURES.md
 
 packages/
@@ -105,11 +106,15 @@ Early stage, API-first. Implemented full-stack (domain → service → Prisma re
 GraphQL): `User` (auth), `Campaign`, `CampaignMember`, `Entity` (incl. image upload),
 `Tag`, `Relationship`, `Note` (incl. nesting and wiki-style `NoteLink`s), `Attachment`,
 `Session`, and `Event` (incl. many-to-many participants via `EventParticipant`).
-Auth guarding is partial — see `AGENTS.md` "apps/api" section for which mutations require
-a logged-in user. The web app has a complete auth flow (register, login, dashboard —
-built on `packages/ui`, KAN-75) and the campaign desktop shell (KAN-80): a per-campaign
-board of draggable/closable windows with a dock to reopen them, layout persisted to
-`localStorage`, and a single-panel tab fallback below the mobile breakpoint. Every window
-(NPCs, Members, Sessions, Timeline, Notes) is still a placeholder pending its own ticket
-(KAN-39/81/84/49/85). The plugin compiler and RPG-system plugin packages have not been
-started.
+Every campaign-scoped resolver is guarded by a role-based permission system (KAN-61/62:
+five roles — Owner, Storyteller, Co-Storyteller, Player, Observer — mapped to actions in
+`packages/domain/src/permission`; Players/Observers are read-only for world data and see
+only `PUBLIC`-visibility entities). Auth runs over JWT as a Bearer header or an HttpOnly
+cookie (`login`/`registerUser` set it, `logout` clears it). The web app has a complete
+auth flow (register, login, dashboard — built on `packages/ui`, KAN-75) and the campaign
+desktop shell (KAN-80): a per-campaign board of draggable/resizable (KAN-88) windows with
+a dock to reopen them, layout persisted to `localStorage`, and a single-panel tab fallback
+below the mobile breakpoint. NPCs (KAN-39) and Members (KAN-81) are real windows with
+role-aware CRUD; Sessions, Timeline, and Notes are still placeholders pending their own
+tickets (KAN-84/49/85). The plugin compiler and RPG-system plugin packages have not been
+started. See `docs/FEATURES.md` for the full checklist.

@@ -33,24 +33,29 @@ what's still a stub or not yet started):
 storyforge/
 
 apps/
-    api/                    GraphQL server (Fastify/graphql-yoga), modules/
-    web/                    React app (still default Vite scaffold)
+    api/                    GraphQL server (graphql-yoga), 11 vertical-slice
+                            modules — see apps/api below
+    web/                    React app — auth flow, dashboard, campaign
+                            desktop shell — see apps/web below
 
 packages/
     core/                   empty — not started
-    database/               Prisma schema, client, repositories live here
-    domain/                 Entity aggregate + shared errors implemented
+    database/               Prisma schema, client (repository implementations
+                            live in apps/api — see below)
+    domain/                 aggregates for every module (see packages/domain
+                            below) + permission matrix + shared errors
     plugin-sdk/             empty — not started
     shared/                 empty — not started
     ui/                     shared React components (Button, Input, Form, Link,
-                             Modal, Window, Dock) — see packages/ui below
+                             Modal, Window, Dock) + Storybook — see packages/ui
     vtm-plugin/             empty — not started (Vampire plugin placeholder)
 
 docs/
-    Roadmap/                empty
-    sprints/                empty
+    FEATURES.md             feature checklist, kept in sync with built code
 
-docker/
+docker-compose.yml          full local stack (Postgres, migrate, API, web)
+apps/api/Dockerfile, apps/web/Dockerfile
+postman/                    Postman collection covering the whole API
 .github/
 ```
 
@@ -90,7 +95,8 @@ Known gaps between target and current code:
   `apps/api` section below). There is no compile-time plugin compiler yet.
 - There is no top-level `plugins/` directory. `packages/vtm-plugin` is a
   placeholder for the future Vampire plugin but is currently empty.
-- There is no `scripts/` directory.
+- There is no `scripts/` directory, and no `docker/` directory — Docker
+  files live at the repo root (`docker-compose.yml`) and inside each app.
 - `packages/core`, `packages/plugin-sdk`, and `packages/shared` exist as
   workspace entries but contain no source yet. `packages/ui` (KAN-75) now
   has real source — see below, this bullet is stale for that one package.
@@ -180,18 +186,44 @@ Currently contains:
 - `user/` — the `User` aggregate (email/password validation, `CreatedAt`/
   `UpdatedAt`/`Id`/`Email`/`Password` getters — password hashing itself is
   an application-layer concern, not domain), `UserId`, `UserRepository`
-  interface.
+  interface. `User.validatePlainPassword(raw)` (static) holds the raw
+  password rules — the instance-level validation only ever sees the bcrypt
+  hash (always 60 chars, passes every length rule), so any caller that
+  hashes a user-supplied password must run the static validator against
+  the raw input first. `AuthenticationService.register` does exactly that.
 - `tag/` (KAN-37) — the `Tag` aggregate (`campaignId` + `name`, normalized
   trim+lowercase on both `create()` and `rename()` so casing variants
   collide into one tag), `TagId`, `TagRepository` interface (includes
   `attachToEntity`/`detachFromEntity` — the `Tag`↔`Entity` join is managed
   through this repository rather than its own domain object, since
   `EntityTag` is a plain link with no behavior of its own).
+- `relationship/` (KAN-40/41) — the `Relationship` aggregate (directed
+  entity→entity edge, validated free-string `type`, soft delete, blocks
+  self-relationships), `RelationshipId`, `RelationshipRepository`.
+- `note/` (KAN-43/46) — the `Note` aggregate (`campaignId`/`authorId`,
+  title/content, soft delete, `ParentNoteId` + `moveTo` for nesting),
+  `NoteId`, `NoteRepository`.
+- `noteLink/` (KAN-45) — the `NoteLink` value object (note → entity or
+  note target), `NoteLinkId`, `NoteLinkRepository`.
+- `attachment/` (KAN-44) — the `Attachment` aggregate (note-scoped file
+  metadata, image mime-type allowlist), `AttachmentId`,
+  `AttachmentRepository`.
+- `session/` (KAN-47) — the `Session` aggregate (per-campaign
+  auto-numbered, date + optional summary), `SessionId`,
+  `SessionRepository`.
+- `event/` (KAN-48) — the `Event` aggregate (timeline event, optional
+  session link, `occurredAt`), `EventId`, `EventRepository`.
+- `permission/` (KAN-62) — the role-based permission matrix:
+  `hasPermission(role, action)` over a `CampaignRole → PermissionAction`
+  map (`VIEW_ENTITY`, `EDIT_ENTITY`, `MANAGE_MEMBERS`,
+  `MANAGE_CAMPAIGN_SETTINGS`), plus `canViewVisibility`/
+  `filterByVisibility` for the Player/Observer read path. Framework-free —
+  consumed by the apps/api guards.
 - `shared/errors/` — `DomainError` (abstract base), `NotFoundError`,
-  `ValidationError`, `AuthenticationError`.
+  `ValidationError`, `AuthenticationError`, `ForbiddenError`.
 
-Not yet implemented: Domain Events, Domain Services. No repository
-implementations yet either (see packages/database — schema only).
+Not yet implemented: Domain Events, Domain Services. Repository
+implementations live in `apps/api` (see packages/database).
 
 Should contain (per architecture rules):
 
@@ -251,15 +283,26 @@ service, mutations persist, domain errors surface as proper GraphQL errors):
   `schema { query: Query mutation: Mutation }` block plus bare
   `type Query`/`type Mutation` — modules only ever `extend` these, never
   redeclare them), `context.ts` (builds `GraphQLContext`, including
-  module-scope singleton `entityService`/`authenticationService` handed to
-  every request, plus a per-request `currentUserId: string | null` decoded
-  off the `Authorization: Bearer <token>` header — a failed/missing token
-  resolves to `null` rather than throwing, so resolvers decide what's
-  protected, not the context builder), `errors.ts` (`toGraphQLError` —
-  maps `NotFoundError`/`ValidationError`/`AuthenticationError` to
-  `GraphQLError` with an `extensions.code` — `NOT_FOUND`/`BAD_USER_INPUT`/
-  `UNAUTHENTICATED` respectively — so resolvers don't leak masked
-  "Unexpected error." responses).
+  module-scope singleton services handed to every request, plus per-request
+  `currentUserId`/`currentUser` decoded off the `Authorization: Bearer
+<token>` header or, failing that, the HttpOnly `token` cookie
+  (`cookies.ts` — set by `login`/`registerUser` via `setAuthCookie`,
+  cleared by `logout`; `SameSite=Lax`, `Secure` in production, 8h
+  `Max-Age` matching the JWT expiry). A failed/missing token resolves to
+  `null` rather than throwing, so resolvers decide what's protected, not
+  the context builder), `errors.ts` (`toGraphQLError` — maps
+  `NotFoundError`/`ValidationError`/`AuthenticationError`/`ForbiddenError`
+  to `GraphQLError` with an `extensions.code` — `NOT_FOUND`/
+  `BAD_USER_INPUT`/`UNAUTHENTICATED`/`FORBIDDEN` respectively — so
+  resolvers don't leak masked "Unexpected error." responses),
+  `dateInput.ts` (`parseRequiredDate`/`parseOptionalDate` — every
+  date-string GraphQL argument goes through these; they reject `null` and
+  unparseable strings as `ValidationError` instead of letting
+  `new Date(null)` silently coerce to the 1970 epoch or an Invalid Date
+  reach Prisma as a masked internal error), and `uploadsStaticHandler.ts`
+  (serves `GET /uploads/*` off `UPLOADS_DIR` outside GraphQL —
+  path-traversal-safe, tolerates malformed percent-encoding and query
+  strings; note these URLs are unauthenticated by design so far).
 - `apps/api/src/modules/<module>/graphql/` — per-module schema
   (`schema/*.graphql`, only `extend type Query`/`extend type Mutation` +
   the module's own types/enums/inputs) and resolvers (`resolvers/Query.ts`,
@@ -315,7 +358,7 @@ Core depends only on interfaces.
 
 ---
 
-## packages/ui (KAN-75/KAN-31/KAN-80 — thin scope: Button, Input, Form, Link, Modal, Window, Dock)
+## packages/ui (KAN-75/KAN-31/KAN-80 — thin scope: Button, Input, Form, Link, Modal, Window, Dock; plus Storybook)
 
 `@storyforge/ui`, consumed by `apps/web` today. Deliberately not a full
 design system yet — built to exactly what each landed ticket needed
@@ -332,6 +375,9 @@ Vite in `apps/web` transforms the TSX/CSS-Modules source directly. No
 `lint`, `test` (Vitest + Testing Library, mirrors `apps/web`'s config),
 and `typecheck` (`tsc --noEmit`) scripts, all wired into the root
 `pnpm turbo run lint build test` (CI runs this — see Testing section).
+Storybook is set up (`.storybook/`, `*.stories.tsx` per component;
+`pnpm --filter @storyforge/ui storybook` on port 6006) for developing
+components in isolation — not part of the CI pipeline.
 
 **Styling: CSS Modules on CSS-custom-property tokens**, not Tailwind,
 not a headless lib like Radix (yet). Every component's `.module.css`
@@ -368,13 +414,14 @@ from `src/index.ts`):
   native-`<dialog>` trick) and native cancel (Escape) both call `onClose`.
   First consumer: KAN-31's create-campaign dialog; KAN-82's manage-campaign
   modal should reuse it rather than building its own.
-- `Window` (KAN-80) — chrome for one desktop window: title bar (`title`,
-  a close button calling `onClose`) + body (`children`). Drag and
-  z-index-to-front are not implemented inside `Window` itself — it just
-  exposes `onTitleBarPointerDown`/`onPointerDownCapture` passthrough props
+- `Window` (KAN-80/KAN-88) — chrome for one desktop window: title bar
+  (`title`, a close button calling `onClose`) + body (`children`) + a
+  resize handle. Drag/resize and z-index-to-front are not implemented
+  inside `Window` itself — it just exposes `onTitleBarPointerDown`/
+  `onPointerDownCapture`/`onResizeHandlePointerDown` passthrough props
   so the consumer's own pointer-event logic (`apps/web`'s
-  `useDesktopLayout` hook) can drive position/z-index externally. Pure
-  presentational component, no internal state.
+  `useDesktopLayout` hook) can drive position/size/z-index externally.
+  Pure presentational component, no internal state.
 - `Dock` (KAN-80) — row of toggle buttons, one per `DockItem {id, title,
 open}`, calling `onToggle(id)` on click; `open` renders a filled dot
   indicator. Used to reopen windows closed via `Window`'s × button.
@@ -477,50 +524,61 @@ tagIds }` input, passed unchanged through `EntityService.listEntities`
     `UPLOADS_DIR/<entityId>/<uuid>.<ext>` and returns that path as
     `Entity.image`. `UPLOADS_DIR` defaults to `<cwd>/uploads` if unset
     (`src/config/env.ts`). Reads (`entity`/`entities`) require
-    `requireCampaignMember` (any role); writes (`createEntity`/
-    `updateEntity`/`deleteEntity`/`uploadEntityImage`) require
-    `requireCampaignWriter` (OWNER/STORYTELLER only, KAN-39). Player reads
-    are additionally filtered to `Visibility: PUBLIC` — `entities` drops
-    non-public results, `entity(id)` throws `FORBIDDEN` for a non-public
-    entity.
+    `requireCampaignRole(..., "VIEW_ENTITY")` (any role); writes
+    (`createEntity`/`updateEntity`/`deleteEntity`/`uploadEntityImage`)
+    require `requireCampaignWriter` (EDIT_ENTITY — Owner/Storyteller/
+    Co-Storyteller, KAN-62). Player and Observer reads are additionally
+    filtered to `Visibility: PUBLIC` via the domain's
+    `canViewVisibility`/`filterByVisibility` — `entities` drops non-public
+    results, `entity(id)` throws `FORBIDDEN` for a non-public entity.
   - `src/modules/campaigns/`, same layout: `application/`
     (`CampaignService.ts` — create/update/archive/list; `archiveCampaign`
     additionally requires an `OWNER`-role `CampaignMember` to exist —
     `CampaignMapper.toDomain` now hydrates `campaignMembers` via an
     `include: { members: true }` query, so this check is reachable
-    (KAN-79)), `graphql/` (`createCampaign`/`updateCampaign`/
-    `archiveCampaign` mutations, guarded via `requireCurrentUser`;
-    `campaigns` query scoped to the caller's own `CampaignMember` rows via
-    `requireCurrentUser` (KAN-78); `campaign(id)` requires
-    `requireCampaignMember`), `infrastructure/` (`PrismaCampaignRepository`,
-    `CampaignMapper`).
+    (KAN-79)), `graphql/` (`createCampaign` guarded via
+    `requireCurrentUser` and persisting the caller as the OWNER member;
+    `updateCampaign`/`archiveCampaign` guarded via
+    `requireCampaignRole(..., "MANAGE_CAMPAIGN_SETTINGS")` (Owner only,
+    KAN-62); `campaigns` query scoped to the caller's own `CampaignMember`
+    rows via `requireCurrentUser` (KAN-78) and excluding archived
+    campaigns; `campaign(id)` requires `requireCampaignMember`),
+    `infrastructure/` (`PrismaCampaignRepository`, `CampaignMapper`).
   - `src/modules/auth/` (KAN-28), same layout: `application/`
     (`AuthenticationService.ts` — `register`/`login`, bcrypt hashing via
     `bcrypt-ts`, JWT issuance via `jsonwebtoken` with a minimal
-    `{ sub: userId }` payload — full domain objects never go in the token),
-    `graphql/` (`login`/`registerUser` mutations, `AuthPayload { token,
-user }`), `infrastructure/` (`PrismaUserRepository`, `UserMapper`).
-    Session strategy is JWT (stateless, no session table) — decided
-    explicitly over server-side sessions and refresh-token pairs; revisit
-    only if revocation-before-expiry becomes a real requirement.
+    `{ sub: userId }` payload — full domain objects never go in the token;
+    `register` validates the RAW password via `User.validatePlainPassword`
+    before hashing — the domain entity only ever sees the hash, which
+    would pass any length rule), `graphql/` (`login`/`registerUser`
+    mutations returning `AuthPayload { token, user }` and also setting the
+    HttpOnly auth cookie; `logout` clears it; `me` query resolves
+    `context.currentUser` or `null`), `infrastructure/`
+    (`PrismaUserRepository`, `UserMapper`). Session strategy is JWT
+    (stateless, no session table) — decided explicitly over server-side
+    sessions and refresh-token pairs; revisit only if
+    revocation-before-expiry becomes a real requirement.
   - `src/modules/campaignMembers/` (KAN-77) owns `CampaignMember` as its
     own aggregate (not nested under `Campaign`) and the shared guard
     library other modules build on (`graphql/guards.ts`):
     `requireCampaignMember` (any role, throws `ForbiddenError` if no
-    membership), `requireCampaignOwner` (OWNER only — gates
-    `addCampaignMember`/`removeCampaignMember`/`updateCampaignMemberRole`),
-    and `requireCampaignWriter` (OWNER/STORYTELLER, built on top of
-    `requireCampaignMember` the same way `requireCampaignOwner` is —
-    added for entities' KAN-39, ahead of the general KAN-62 permission
-    system).
+    membership), `requireCampaignRole` (membership + permission-matrix
+    check, KAN-62 — `MANAGE_MEMBERS` gates `addCampaignMember`/
+    `removeCampaignMember`/`updateCampaignMemberRole`), and
+    `requireCampaignWriter` (shorthand for
+    `requireCampaignRole(..., "EDIT_ENTITY")`). `CampaignMemberService`
+    enforces the single-owner invariant in both directions: adding or
+    promoting a second OWNER is rejected, and removing or demoting the
+    existing OWNER is rejected so a campaign can never be orphaned.
   - `src/modules/tags/` (KAN-37), same layout: `application/`
     (`TagService.ts` — `addTagToEntity`/`removeTagFromEntity` (find-or-create
     the campaign-scoped `Tag` by normalized name, then idempotently
     attach/detach the `EntityTag` link), `listCampaignTags`, `listEntityTags`;
     takes both `TagRepository` and `EntityRepository` since it needs to
     resolve `campaignId` from `entityId` and validate the entity exists),
-    `graphql/` (`addTagToEntity`/`removeTagFromEntity` mutations and
-    `campaignTags` query, all guarded via `requireCampaignMember` — the
+    `graphql/` (`addTagToEntity`/`removeTagFromEntity` mutations guarded
+    via `requireCampaignWriter` (tags mutate shared world data, same as
+    entity writes), `campaignTags` query via `requireCampaignMember` — the
     mutations resolve the entity first via `entityService.getEntity` to
     derive its `campaignId`, since neither takes `campaignId` directly;
     plus `Entity.tags` field resolver added directly to
@@ -538,24 +596,46 @@ user }`), `infrastructure/` (`PrismaUserRepository`, `UserMapper`).
 
 Not yet implemented: a DI container, an event bus, service
 registration/wiring beyond manual instantiation. Auth/permission gating
-is now a four-tier guard hierarchy, all in
-`modules/auth/graphql/guards.ts` (`requireCurrentUser`) and
-`modules/campaignMembers/graphql/guards.ts` (the rest), applied at the
-top of every campaign-scoped resolver across every module:
-`requireCurrentUser` — authenticated, no campaign check (used directly by
-a few resolvers, e.g. `campaigns`, and as the base every other guard
-calls internally); `requireCampaignMember` — authenticated + any-role
-membership in the target campaign (the default for reads and for writes
-with no role restriction); `requireCampaignOwner` — OWNER-role membership
-only (Members management, campaign settings); `requireCampaignWriter` —
-OWNER/STORYTELLER membership (entity writes, KAN-39). The old
-"inconsistently applied" gap (some mutations/queries fully unguarded) has
-been closed module by module — treat any resolver missing one of these
-four guards as a bug, not as an accepted gap, when touching this code.
-The remaining real gap is KAN-62: today `requireCampaignMember`/
-`requireCampaignWriter` only check role membership, not a generalized
-per-action permission map, and `Entity.visibility`-based read filtering
-only exists for entities (KAN-39), not yet for notes/sessions/timeline.
+(KAN-61/62) is a guard hierarchy in `modules/auth/graphql/guards.ts`
+(`requireCurrentUser`) and `modules/campaignMembers/graphql/guards.ts`
+(the rest), applied at the top of every campaign-scoped resolver across
+every module:
+
+- `requireCurrentUser` — authenticated, no campaign check (used directly
+  by a few resolvers, e.g. `campaigns`/`me`, and as the base every other
+  guard calls internally).
+- `requireCampaignMember(context, campaignId)` — authenticated + any-role
+  membership in the target campaign. Used for all reads, and for writes
+  on the collaborative surfaces (notes, attachments) where Players are
+  meant to write (`createNote` takes `authorId` from the membership).
+- `requireCampaignRole(context, campaignId, action)` — membership +
+  `hasPermission(role, action)` against the domain permission matrix
+  (`packages/domain/src/permission`). `MANAGE_MEMBERS` gates the
+  CampaignMember mutations; `MANAGE_CAMPAIGN_SETTINGS` gates
+  `updateCampaign`/`archiveCampaign`; `VIEW_ENTITY` gates entity reads
+  (combined with `canViewVisibility`/`filterByVisibility` so
+  Player/Observer only see `PUBLIC` entities).
+- `requireCampaignWriter(context, campaignId)` — shorthand for
+  `requireCampaignRole(..., "EDIT_ENTITY")` (Owner/Storyteller/
+  Co-Storyteller). Gates ALL world-data writes: entities (incl. image
+  upload), tags, relationships, sessions, and events. Notes/attachments
+  deliberately stay `requireCampaignMember` (see above).
+
+Treat any resolver missing one of these guards as a bug, not an accepted
+gap, when touching this code. Related invariants enforced at the service
+layer: a campaign has exactly one OWNER (`CampaignMemberService` rejects
+adding/promoting a second owner AND removing/demoting the existing one —
+so the campaign can never be orphaned; ownership transfer is not
+implemented yet and would need an atomic swap), and archived campaigns
+are excluded from `listCampaigns` (still reachable via `campaign(id)`).
+
+Remaining known gaps: `Entity.visibility`-based read filtering only
+exists for entities, not notes/sessions/timeline; the `Campaign.members`
+field resolver is unguarded by design for now (the web app reads it to
+resolve the viewer's own role — needs a dedicated "my membership" query
+before it can be restricted); `Campaign.name` is globally unique across
+all users (single-tenant assumption baked into the schema — revisit
+before multi-tenant use).
 
 No business logic belongs here — resolvers call services, services call
 repositories.
@@ -593,10 +673,11 @@ auth flow, and the campaign desktop shell are all wired:
     `@storyforge/ui` `Window` per entry in `WINDOW_CATALOG`
     (`src/lib/windowCatalog.ts`), positioned/sized/z-ordered from
     `useDesktopLayout` (`src/hooks/useDesktopLayout.ts`). That hook owns
-    drag (pointer-event based, clamped to the board's bounds),
-    bring-to-front on click/drag-start, close/reopen (`toggle`), and
-    persists the full layout to `localStorage` under
-    `storyforge:desktop:<campaignId>` on every drag-end and toggle — so
+    drag and resize (pointer-event based, clamped to the board's bounds,
+    KAN-88), bring-to-front on click/drag-start, close/reopen (`toggle`),
+    and persists the full layout to `localStorage` under
+    `storyforge:desktop:<campaignId>` on every drag/resize-end and toggle
+    — so
     arrangement survives a page reload, scoped per campaign. A `Dock`
     lists every catalog entry and toggles visibility; a "Reset layout"
     button clears storage and restores `DEFAULT_LAYOUT`.
@@ -605,12 +686,16 @@ auth flow, and the campaign desktop shell are all wired:
     instead of draggable windows. No layout persistence (nothing to
     persist — just an `activeId` selection).
   - `WINDOW_CATALOG` (`src/lib/windowCatalog.ts`) is data-driven —
-    `{id, title, render}` entries — specifically so KAN-39/81/84/49/85
-    can each swap their entry's `render` for a real component without
-    touching `DesktopBoard`/`MobileDesktop`. `npcs` (`NpcsWindow`) and
-    `members` (`MembersWindow`) are real now; `sessions`/`timeline`/`notes`
-    still render `ComingSoonPanel` (`src/components/ComingSoonPanel.tsx`),
-    a one-line placeholder naming the tracking ticket.
+    `{id, title, render, visibleToRoles?}` entries — specifically so
+    KAN-39/81/84/49/85 can each swap their entry's `render` for a real
+    component without touching `DesktopBoard`/`MobileDesktop`. `npcs`
+    (`NpcsWindow` — role-aware CRUD, Players/Observers get a read-only
+    list) and `members` (`MembersWindow` — Owner gets add/remove/
+    change-role with mutation errors surfaced in a `FormError` banner;
+    hidden entirely from Players/Observers via `visibleToRoles`) are real
+    now; `sessions`/`timeline`/`notes` still render `ComingSoonPanel`
+    (`src/components/ComingSoonPanel.tsx`), a one-line placeholder naming
+    the tracking ticket.
 - `src/index.css` only holds `apps/web`-shell layout/typography rules;
   design tokens (colors, fonts, shadows) live in
   `@storyforge/ui/tokens.css`, imported once in `main.tsx`.
@@ -1021,8 +1106,8 @@ the hook never needs a live Postgres — CI still runs the full suite
 
 Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
 `test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
-so workspace deps are built first). Current coverage (503 tests: 126
-`packages/domain` + 377 `apps/api`).
+so workspace deps are built first). Current coverage (605 tests: 168
+`packages/domain` + 437 `apps/api`).
 
 Every package also exposes a `test:unit` script (turbo task `test:unit`)
 that runs the same suite minus the Prisma repository integration tests —
@@ -1091,7 +1176,7 @@ Gotchas learned building this out, worth knowing before adding more:
   files relative to it.
 
 `apps/web` and `packages/ui` have Vitest + Testing Library test infra
-(component/unit level, 60 tests total: 35 `apps/web` + 25 `packages/ui`)
+(component/unit level, 99 tests total: 73 `apps/web` + 26 `packages/ui`)
 — `apps/web/src/router.test.tsx`, page-level tests per page
 (`LoginPage`/`RegisterPage`/`DashboardPage`/`CampaignDesktopPage.test.tsx`),
 component-level tests for the KAN-80 shell (`DesktopBoard.test.tsx`,
@@ -1157,15 +1242,19 @@ For every new feature:
 
 # Current Canonical Core Features
 
-The core application currently implements only:
+The core application currently implements (see `docs/FEATURES.md` for the
+full per-feature checklist):
 
 - **Authentication** — `User` aggregate + `AuthenticationService`
   (register/login, bcrypt hashing, JWT issuance), wired end-to-end through
-  `login`/`registerUser` GraphQL mutations (KAN-28), plus a `me` query
+  `login`/`registerUser`/`logout` GraphQL mutations (KAN-28; the token is
+  also set/cleared as an HttpOnly cookie), plus a `me` query
   (`context.currentUser`, resolves to `null` when logged out). Every
-  campaign-scoped resolver across every module is now gated by one of the
-  four guards described in the apps/api notes above (`requireCurrentUser`
-  → `requireCampaignMember`/`requireCampaignOwner`/`requireCampaignWriter`).
+  campaign-scoped resolver across every module is gated by one of the
+  guards described in the apps/api notes above (`requireCurrentUser` →
+  `requireCampaignMember`/`requireCampaignRole`/`requireCampaignWriter`),
+  backed by the KAN-61/62 five-role permission matrix in
+  `packages/domain/src/permission`.
 - **Campaign** — the top-level container. Everything belongs to a
   Campaign. Domain entity + `CampaignService` (create/update/archive,
   KAN-29) now implemented, same domain → service → Prisma repository
@@ -1190,6 +1279,11 @@ The core application currently implements only:
   domain → service → Prisma repository → GraphQL: `addTagToEntity`/
   `removeTagFromEntity` mutations, `campaignTags` query, `Entity.tags`
   field.
+- **Relationships** (KAN-40/41), **Notes** incl. nesting, wiki-style
+  links, and attachments (KAN-43/44/45/46), **Sessions** (KAN-47), and
+  **Events** incl. participants (KAN-48) — all follow the same
+  domain → service → Prisma repository → GraphQL shape; per-module detail
+  in the apps/api notes above and `docs/FEATURES.md`.
 
 Not yet implemented, despite being referenced elsewhere in this
 document as target scope: Worlds, and dedicated

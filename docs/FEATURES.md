@@ -17,17 +17,31 @@ tracks what's actually built, not just planned.
       step (source consumed directly by Vite). Consumers: `LoginPage`,
       `RegisterPage`, `DashboardPage`, `DesktopBoard`.
 - [x] Fastify / graphql-yoga backend boots
-- [x] GraphQL setup (schema merge, context, error mapping)
-- [ ] Docker skeleton (`docker/` exists but is empty — no Dockerfile/compose yet)
+- [x] GraphQL setup (schema merge, context, error mapping; date args
+      validated via `parseRequiredDate`/`parseOptionalDate` — `null`/garbage
+      strings are `BAD_USER_INPUT`, never a silent 1970 epoch or a masked
+      internal error)
+- [x] Cookie-based auth transport — `login`/`registerUser` set an HttpOnly
+      `token` cookie (SameSite=Lax, Secure in production, 8h Max-Age matching
+      the JWT), `logout` mutation clears it; `Authorization: Bearer` still
+      wins when both are present. Static `/uploads/*` handler serves entity
+      images/attachments (path-traversal-safe, tolerates malformed
+      percent-encoding and query strings)
+- [x] Docker — root `docker-compose.yml` (Postgres, one-off migrate service,
+      API, web-behind-nginx) + `apps/api/Dockerfile`/`apps/web/Dockerfile`;
+      see README "Docker"
+- [x] Storybook for `packages/ui` (`pnpm --filter @storyforge/ui storybook`,
+      per-component `*.stories.tsx`; not in CI)
 - [x] CI pipeline (`.github/workflows/ci.yml` — lint, build, test on push/PR
       to main; runs a `postgres:16` service container + `prisma migrate deploy`
       so Prisma repository integration tests run for real, not mocked)
-- [x] Husky hooks — pre-commit runs `pnpm test` then `pnpm lint-staged` (KAN-24)
-- [x] Test suite — 503 tests via Vitest across `packages/domain` (entities,
-      value objects, tags, relationships, notes, note links, sessions,
-      events) and `apps/api` (application services w/ mocked repos, Prisma
-      mappers, GraphQL resolvers, and Prisma repository integration tests
-      against a real Postgres), plus 60 more across `apps/web` and
+- [x] Husky hooks — pre-commit runs `pnpm test:unit` then `pnpm lint-staged`
+      (KAN-24; no Postgres needed to commit)
+- [x] Test suite — 704 tests via Vitest: 168 `packages/domain` (entities,
+      value objects, permission matrix, tags, relationships, notes, note
+      links, sessions, events) + 437 `apps/api` (application services w/
+      mocked repos, Prisma mappers, GraphQL resolvers, and Prisma repository
+      integration tests against a real Postgres) + 73 `apps/web` + 26
       `packages/ui` (component/page-level). See AGENTS.md "Testing" section
       for layout and gotchas.
 
@@ -37,15 +51,26 @@ tracks what's actually built, not just planned.
 - [x] `Campaign` domain entity + Prisma model
 - [x] `CampaignMember` model (KAN-27) — value object on `Campaign`, join table w/ role enum
 - [x] AuthenticationService (register/login, bcrypt hashing, JWT) (KAN-28)
+      — `register` validates the raw password (`User.validatePlainPassword`)
+      before hashing; previously the rules ran against the bcrypt hash, so
+      empty/short passwords were accepted
 - [x] CampaignService (create/update/archive) (KAN-29) — `archiveCampaign`'s
       owner-check now resolves correctly: `CampaignMapper.toDomain` hydrates
-      `campaignMembers` via an `include: { members: true }` query (KAN-79)
-- [x] GraphQL: `login`, `registerUser`
+      `campaignMembers` via an `include: { members: true }` query (KAN-79).
+      Archived campaigns are excluded from the `campaigns` list (the archive
+      confirm dialog promises they disappear from the dashboard) but stay
+      reachable via `campaign(id)`. Campaign names are globally unique
+      across all users — a known single-tenant assumption, revisit before
+      multi-tenant use
+- [x] GraphQL: `login`, `registerUser`, `logout` (mutations also set/clear
+      the HttpOnly auth cookie)
 - [x] GraphQL: `campaigns`, `campaign(id)`, `createCampaign`, `updateCampaign`, `archiveCampaign`
-      — all five are guarded (`requireCurrentUser`, KAN-83); `campaigns` is
-      also scoped to the caller's own `CampaignMember` rows (KAN-78).
-      `createCampaign` now also persists the requesting user as an `OWNER`
-      `CampaignMember` row, so newly created campaigns always have an owner.
+      — all five are guarded (KAN-83); `updateCampaign`/`archiveCampaign`
+      require `MANAGE_CAMPAIGN_SETTINGS` (Owner only, KAN-62); `campaigns` is
+      scoped to the caller's own `CampaignMember` rows (KAN-78) and excludes
+      archived campaigns. `createCampaign` persists the requesting user as an
+      `OWNER` `CampaignMember` row, so newly created campaigns always have an
+      owner.
 - [x] GraphQL: `me` (returns `context.currentUser`, no guard — resolves to `null` when
       logged out rather than throwing)
 - [x] CampaignMember GraphQL surface (KAN-77) — `CampaignMemberService`,
@@ -61,21 +86,32 @@ tracks what's actually built, not just planned.
       `CampaignRepository.update`). `Campaign.members`
       field resolver lists a campaign's members; `addCampaignMember`,
       `removeCampaignMember`, `updateCampaignMemberRole` mutations, all
-      gated by a new `requireCampaignOwner` guard (`requireCurrentUser` +
-      an OWNER-role membership check, looked up directly via the repository)
-      mapped to a `ForbiddenError`/`FORBIDDEN` GraphQL error code.
+      gated by `requireCampaignRole(..., "MANAGE_MEMBERS")` (Owner only,
+      KAN-62) mapped to a `ForbiddenError`/`FORBIDDEN` GraphQL error code.
+      Single-owner invariant enforced in both directions: adding/promoting
+      a second OWNER is rejected, and removing/demoting the existing OWNER
+      is rejected (a campaign can never be orphaned; ownership transfer is
+      a future feature needing an atomic swap).
 - [x] Frontend: protected routes (`ProtectedRoute` via `me` query), login +
       register pages wired to their mutations, dashboard (campaign list,
       create-campaign dialog, "Enter campaign" navigation to
       `/campaigns/:id`), all built on `packages/ui`
-- [x] Frontend: Campaign Desktop shell (KAN-80) — draggable/closable/
-      reopenable windows on a per-campaign board (`DesktopBoard`), dock to
-      reopen closed windows, layout (position/size/open-state) persisted to
-      `localStorage` per campaign, single-panel tab-switcher fallback below
-      the mobile breakpoint (`MobileDesktop`). Window content is
-      data-driven (`WINDOW_CATALOG`) so each real window (KAN-39/81/84/49/85)
-      can plug in without touching the shell — `npcs` and `members` are real
-      windows now, the rest are still `ComingSoonPanel` placeholders.
+- [x] Frontend: Campaign Desktop shell (KAN-80) — draggable/resizable
+      (KAN-88)/closable/reopenable windows on a per-campaign board
+      (`DesktopBoard`), dock to reopen closed windows, layout
+      (position/size/open-state) persisted to `localStorage` per campaign,
+      single-panel tab-switcher fallback below the mobile breakpoint
+      (`MobileDesktop`). Window content is data-driven (`WINDOW_CATALOG`,
+      incl. per-role visibility via `visibleToRoles`) so each real window
+      (KAN-39/81/84/49/85) can plug in without touching the shell — `npcs`
+      and `members` are real windows now, the rest are still
+      `ComingSoonPanel` placeholders.
+- [x] Frontend: Members window (KAN-81) — `MembersWindow` in the Campaign
+      Desktop's `members` catalog slot (hidden from Players/Observers via
+      `visibleToRoles`): lists members with role; Owner additionally gets
+      add-by-email (role select), per-row role change, and remove. Mutation
+      failures (e.g. trying to demote/remove the owner) surface in a
+      `FormError` banner instead of being silently swallowed.
 - [x] Manage-campaign modal (KAN-82) — "Manage" button on owner-owned
       dashboard cards opens `ManageCampaignModal` (name field, description
       textarea, wired to `updateCampaign`); Archive is a destructive text
@@ -87,17 +123,16 @@ tracks what's actually built, not just planned.
 
 - [x] Entity CRUD backend (SF-001): service, repository, GraphQL resolvers
       — `entity(id)`, `entities`, `createEntity`, `updateEntity`, `deleteEntity`
-      (KAN-83). Reads (`entity`/`entities`) require `requireCampaignMember`
-      (any role); writes (`createEntity`/`updateEntity`/`deleteEntity`/
-      `uploadEntityImage`) require `requireCampaignWriter` (OWNER/STORYTELLER
-      only, KAN-39) — a narrow guard added ahead of the full KAN-62
-      permission system, built on `requireCampaignMember` the same way
-      `requireCampaignOwner` is. `entities`/`createEntity` check membership on
-      the given `campaignId` directly; the rest load the entity first to get
-      its `campaignId` since only `id` is given. Player reads are filtered to
-      `Visibility: PUBLIC` (`entities` drops non-public results; `entity(id)`
-      throws `FORBIDDEN` for a non-public entity) — the first real enforcement
-      of `Entity.visibility`.
+      (KAN-83). Reads (`entity`/`entities`) require `VIEW_ENTITY` (any role);
+      writes (`createEntity`/`updateEntity`/`deleteEntity`/
+      `uploadEntityImage`) require `requireCampaignWriter` (`EDIT_ENTITY` —
+      Owner/Storyteller/Co-Storyteller, KAN-62). `entities`/`createEntity`
+      check membership on the given `campaignId` directly; the rest load the
+      entity first to get its `campaignId` since only `id` is given. Player
+      and Observer reads are filtered to `Visibility: PUBLIC` via the domain
+      `canViewVisibility`/`filterByVisibility` helpers (`entities` drops
+      non-public results; `entity(id)` throws `FORBIDDEN` for a non-public
+      entity).
 - [x] Entity soft delete
 - [x] Duplicate-name validation per campaign
 - [x] Generic `type` field (Character/Location/Organization via type string, no type-specific schema)
@@ -109,18 +144,19 @@ tracks what's actually built, not just planned.
       across entities in a campaign, name normalized trim+lowercase);
       `addTagToEntity`/`removeTagFromEntity` GraphQL mutations (find-or-create
       by name, idempotent attach/detach), `campaignTags` query, `Entity.tags`
-      field. `campaignTags` and both mutations now guarded via
-      `requireCampaignMember` (any role), not just `requireCurrentUser` —
-      the mutations resolve the entity first (`entityService.getEntity`) to
-      derive its `campaignId` before checking membership, since neither
-      mutation takes `campaignId` directly.
+      field. Both mutations require `requireCampaignWriter` (tags mutate
+      shared world data, same rule as entity writes, KAN-62); `campaignTags`
+      requires `requireCampaignMember` (any role). The mutations resolve the
+      entity first (`entityService.getEntity`) to derive its `campaignId`
+      before checking the role, since neither mutation takes `campaignId`
+      directly.
 - [x] Search / filtering — `entities(campaignId, filter: EntityFilter)`
       GraphQL query; `EntityFilter { type, nameContains, tagIds }`, AND-combined
       (`type` exact match, `nameContains` case-insensitive, `tagIds` any-match
       via `EntityTag` join), all fields optional
 - [x] Frontend: NPCs window (KAN-39) — `NpcsWindow` plugged into the Campaign
       Desktop's `npcs` catalog slot; lists `entities(campaignId, filter:
-    {type: "NPC"})` with visibility/tag chips, a `Modal`-based create/edit
+  {type: "NPC"})` with visibility/tag chips, a `Modal`-based create/edit
       form (name, description, visibility), and per-row delete with an
       inline confirm step. Owner/Storyteller get full CRUD; Players get the
       same list read-only (no mutation UI rendered), matching the new
@@ -140,10 +176,10 @@ tracks what's actually built, not just planned.
       `RelationshipMapper` under `apps/api/src/modules/relationships/`; GraphQL
       `relationship(id)`, `relationships(campaignId, entityId)` queries,
       `createRelationship`/`updateRelationship`/`deleteRelationship` mutations
-      (all five guarded via `requireCurrentUser`, KAN-83; upgraded to
-      `requireCampaignMember` — `relationship`/`updateRelationship`/
-      `deleteRelationship` load the relationship first to get its
-      `campaignId` since only `id` is given). Directional-only for v1 —
+      (queries guarded via `requireCampaignMember`; the three mutations
+      require `requireCampaignWriter`, KAN-62 — `relationship`/
+      `updateRelationship`/`deleteRelationship` load the relationship first
+      to get its `campaignId` since only `id` is given). Directional-only for v1 —
       Ally/Enemy do not auto-create an inverse edge (deferred, not needed yet).
       No nested `sourceEntity`/`targetEntity` field resolvers — GraphQL type
       exposes raw IDs only. `type` is a validated free string (like
@@ -159,11 +195,14 @@ tracks what's actually built, not just planned.
       as `Text`, soft delete like `Entity`); `NoteService`,
       `PrismaNoteRepository`, `NoteMapper` under `apps/api/src/modules/notes/`;
       GraphQL `note(id)`, `notes(campaignId)`, `createNote`, `updateNote`,
-      `deleteNote`, all guarded via a new `requireCampaignMember` guard
-      (`campaignMembers/graphql/guards.ts`, any role) rather than plain
-      `requireCurrentUser`. `entities`/`relationships`/`tags` were upgraded
-      to the same guard afterward, closing the gap across all of World
-      Building. `createNote`/`notes` check membership on the input `campaignId`;
+      `deleteNote`, all guarded via `requireCampaignMember`
+      (`campaignMembers/graphql/guards.ts`, any role). Unlike world data
+      (entities/tags/relationships/sessions/events, which writer-gate their
+      mutations per KAN-62), note writes deliberately stay member-level —
+      notes are the collaborative surface where Players journal
+      (`createNote` takes `authorId` from the resolved membership); revisit
+      when shared-vs-private notes land.
+      `createNote`/`notes` check membership on the input `campaignId`;
       `note`/`updateNote`/`deleteNote` first load the note to get its
       `campaignId`, then check membership on that. `createNote` takes
       `authorId` from the resolved membership, not client input. Markdown
@@ -228,10 +267,13 @@ tracks what's actually built, not just planned.
       `findMaxSessionNumber`, never client-supplied; `date`, `summary`
       nullable `Text`); `SessionService`, `PrismaSessionRepository`,
       `SessionMapper` under `apps/api/src/modules/sessions/`. GraphQL
-      `session(id)`, `sessions(campaignId)`, `createSession`,
-      `updateSession`, `deleteSession`, guarded via `requireCampaignMember`.
-      Hard delete (no `deletedAt`) — no restore requirement, no dangling
-      references possible for a leaf model.
+      `session(id)`, `sessions(campaignId)` guarded via
+      `requireCampaignMember`; `createSession`, `updateSession`,
+      `deleteSession` require `requireCampaignWriter` (KAN-62 — Players/
+      Observers are read-only for session records). `date` input is
+      validated (`null`/unparseable → `BAD_USER_INPUT`). Hard delete (no
+      `deletedAt`) — no restore requirement, no dangling references
+      possible for a leaf model.
 - [x] Event model (timeline, participants, related entities) (KAN-48) —
       `Event` domain entity + Prisma model (`campaignId` FK `Cascade`;
       `sessionId` **nullable** FK to `Session`, `onDelete: SetNull` — an
@@ -246,12 +288,14 @@ tracks what's actually built, not just planned.
       `EntityRepository`, and `SessionRepository` — validates a provided
       `sessionId` exists and belongs to the same campaign, and an
       `entityId` exists before attaching it as a participant. GraphQL
-      `event(id)`, `events(campaignId)`, `eventsBySession(sessionId)`,
-      `createEvent`, `updateEvent`, `deleteEvent`, `attachParticipant`,
-      `detachParticipant`; `Event.session` and `Event.participants` are
-      field resolvers (mirroring `Note.parent`'s lazy service-call
-      pattern), not Prisma includes. Hard delete, same rationale as
-      Session.
+      `event(id)`, `events(campaignId)`, `eventsBySession(sessionId)`
+      guarded via `requireCampaignMember`; `createEvent`, `updateEvent`,
+      `deleteEvent`, `attachParticipant`, `detachParticipant` require
+      `requireCampaignWriter` (KAN-62). `occurredAt` input is validated
+      (`null`/unparseable → `BAD_USER_INPUT`). `Event.session` and
+      `Event.participants` are field resolvers (mirroring `Note.parent`'s
+      lazy service-call pattern), not Prisma includes. Hard delete, same
+      rationale as Session.
 - [ ] Timeline UI (ordering, filters, search)
 
 ## Maps
@@ -277,8 +321,21 @@ tracks what's actually built, not just planned.
 
 ## Collaboration
 
-- [ ] Roles (Owner, Storyteller, Co-Storyteller, Player, Observer)
-- [ ] Permissions
+- [x] Roles (Owner, Storyteller, Co-Storyteller, Player, Observer) —
+      KAN-61 widened `CampaignRole` to the 5-role set end to end (domain
+      union type, Prisma enum + migration, GraphQL enum, frontend role
+      selects).
+- [x] Permissions (KAN-62) — domain permission matrix
+      (`packages/domain/src/permission`): role → action map
+      (`VIEW_ENTITY`, `EDIT_ENTITY`, `MANAGE_MEMBERS`,
+      `MANAGE_CAMPAIGN_SETTINGS`) consumed by the API guards
+      (`requireCampaignRole`/`requireCampaignWriter`); Player/Observer are
+      read-only for world data (entities, tags, relationships, sessions,
+      events) and see only `PUBLIC`-visibility entities. Known gaps:
+      visibility filtering exists for entities only (not notes/sessions/
+      timeline); `Campaign.members` is readable by any member (the web app
+      needs it to resolve the viewer's own role — wants a dedicated "my
+      membership" query first).
 - [ ] Shared vs private notes, player handouts
 
 ## Automation

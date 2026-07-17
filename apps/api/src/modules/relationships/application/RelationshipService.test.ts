@@ -188,10 +188,13 @@ describe("RelationshipService", () => {
       const relationships = [Relationship.create(createDto)];
       vi.mocked(repository.findByEntity).mockResolvedValue(relationships);
 
-      await expect(service.listRelationshipsByEntity("entity-1")).resolves.toBe(
-        relationships,
+      await expect(
+        service.listRelationshipsByEntity("campaign-1", "entity-1"),
+      ).resolves.toBe(relationships);
+      expect(repository.findByEntity).toHaveBeenCalledWith(
+        "campaign-1",
+        "entity-1",
       );
-      expect(repository.findByEntity).toHaveBeenCalledWith("entity-1");
     });
   });
 });

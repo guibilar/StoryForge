@@ -17,7 +17,12 @@ export const yoga = createYoga<{ req: IncomingMessage; res: ServerResponse }>({
 
 function requestListener(req: IncomingMessage, res: ServerResponse): void {
   if (req.url && isUploadsRequest(req.url)) {
-    serveUpload(req, res, UPLOADS_DIR);
+    serveUpload(req, res, UPLOADS_DIR).catch(() => {
+      if (!res.headersSent) {
+        res.writeHead(500);
+      }
+      res.end("Internal server error");
+    });
     return;
   }
 

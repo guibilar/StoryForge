@@ -55,7 +55,11 @@ export interface GraphQLContext extends YogaInitialContext {
   eventService: EventService;
 }
 
-const entityService = new EntityService(new PrismaEntityRepository());
+const noteLinkRepository = new PrismaNoteLinkRepository();
+const entityService = new EntityService(
+  new PrismaEntityRepository(),
+  noteLinkRepository,
+);
 const campaignMemberRepository = new PrismaCampaignMemberRepository();
 const campaignService = new CampaignService(
   new PrismaCampaignRepository(),
@@ -79,10 +83,11 @@ const imageStorage = new LocalImageStore();
 const noteService = new NoteService(
   new PrismaNoteRepository(),
   new PrismaEntityRepository(),
-  new PrismaNoteLinkRepository(),
+  noteLinkRepository,
 );
 const attachmentService = new AttachmentService(
   new PrismaAttachmentRepository(),
+  imageStorage,
 );
 const sessionService = new SessionService(new PrismaSessionRepository());
 const eventService = new EventService(
@@ -102,7 +107,7 @@ export function getCurrentUserId(request: Request): string | null {
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
 
     if (typeof payload === "string" || typeof payload.sub !== "string") {
       return null;

@@ -22,7 +22,7 @@ export class User {
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
   ) {
-    this.validateEmail(emailValue);
+    this.emailValue = User.normalizeEmail(emailValue);
     this.validatePassword(passwordValue);
   }
 
@@ -54,8 +54,11 @@ export class User {
       throw new ValidationError("Password must be at least 6 characters long.");
     }
 
-    if (trimmed.length > 255) {
-      throw new ValidationError("Password cannot exceed 255 characters.");
+    // bcrypt only hashes the first 72 bytes of its input and silently
+    // truncates the rest — a longer cap would let two different passwords
+    // sharing the first 72 bytes hash identically and both authenticate.
+    if (Buffer.byteLength(trimmed, "utf8") > 72) {
+      throw new ValidationError("Password cannot exceed 72 bytes.");
     }
   }
 
@@ -90,13 +93,20 @@ export class User {
   }
 
   changeEmail(newEmail: string): void {
-    this.validateEmail(newEmail);
-    this.emailValue = newEmail;
+    this.emailValue = User.normalizeEmail(newEmail);
     this.updatedAtValue = new Date();
   }
 
-  private validateEmail(email: string): void {
-    const trimmed = email.trim();
+  /**
+   * Emails are case-insensitive by spec (RFC 5321 makes the domain part
+   * case-insensitive and virtually every provider treats the local part the
+   * same way in practice). Storing a normalized lowercase form here — not
+   * just at the call sites — means every code path that creates or
+   * rehydrates a User ends up consistent, so "Test@Example.com" and
+   * "test@example.com" can't register as two different accounts.
+   */
+  static normalizeEmail(email: string): string {
+    const trimmed = email.trim().toLowerCase();
 
     if (!trimmed) {
       throw new ValidationError("Email cannot be empty.");
@@ -109,6 +119,8 @@ export class User {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
       throw new ValidationError("Email format is invalid.");
     }
+
+    return trimmed;
   }
 
   private validatePassword(password: string): void {

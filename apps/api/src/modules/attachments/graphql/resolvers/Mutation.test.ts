@@ -202,7 +202,7 @@ describe("attachments Mutation.deleteAttachment", () => {
     expect(attachmentService.deleteAttachment).not.toHaveBeenCalled();
   });
 
-  it("rejects with FORBIDDEN when not a member of the attachment's note campaign", async () => {
+  it("rejects with NOT_FOUND (not FORBIDDEN) when not a member of the attachment's note campaign, to avoid leaking existence across campaigns", async () => {
     const attachmentService = makeAttachmentService();
     const noteService = makeNoteService();
     const imageStorage = makeImageStorage();
@@ -220,7 +220,7 @@ describe("attachments Mutation.deleteAttachment", () => {
 
     await expect(
       Mutation.deleteAttachment(undefined, { id: "attachment-1" }, context),
-    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    ).rejects.toMatchObject({ extensions: { code: "NOT_FOUND" } });
     expect(attachmentService.deleteAttachment).not.toHaveBeenCalled();
   });
 

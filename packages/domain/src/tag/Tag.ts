@@ -22,7 +22,7 @@ export class Tag {
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
   ) {
-    this.nameValue = Tag.normalizeName(nameValue);
+    this.nameValue = Tag.normalize(nameValue);
   }
 
   static create(props: CreateTagProps): Tag {
@@ -66,11 +66,16 @@ export class Tag {
   }
 
   rename(name: string): void {
-    this.nameValue = Tag.normalizeName(name);
+    this.nameValue = Tag.normalize(name);
     this.updatedAtValue = new Date();
   }
 
-  private static normalizeName(name: string): string {
+  /**
+   * Trims and lowercases a tag name the same way Tag storage does, so
+   * callers can look up an existing tag by a not-yet-normalized name (e.g.
+   * user input) before deciding whether to create a new one.
+   */
+  static normalize(name: string): string {
     const trimmed = name.trim().toLocaleLowerCase();
 
     if (!trimmed) {

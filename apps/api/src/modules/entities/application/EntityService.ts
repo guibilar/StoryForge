@@ -4,6 +4,7 @@ import {
   EntityId,
   EntityRepository,
   EntityVisibility,
+  NoteLinkRepository,
   NotFoundError,
   ValidationError,
 } from "@storyforge/domain";
@@ -28,7 +29,10 @@ export interface UpdateEntityDto {
 }
 
 export class EntityService {
-  constructor(private readonly repository: EntityRepository) {}
+  constructor(
+    private readonly repository: EntityRepository,
+    private readonly noteLinkRepository: NoteLinkRepository,
+  ) {}
 
   async createEntity(dto: CreateEntityDto): Promise<Entity> {
     const exists = await this.repository.existsByName(dto.campaignId, dto.name);
@@ -98,6 +102,7 @@ export class EntityService {
     entity.delete();
 
     await this.repository.update(entity);
+    await this.noteLinkRepository.deleteByTargetEntity(id);
   }
 
   async getEntity(id: string): Promise<Entity> {

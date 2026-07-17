@@ -13,8 +13,15 @@ export interface CreateAttachmentDto {
   sizeBytes: number;
 }
 
+export interface AttachmentFileStore {
+  delete(url: string): Promise<void>;
+}
+
 export class AttachmentService {
-  constructor(private readonly repository: AttachmentRepository) {}
+  constructor(
+    private readonly repository: AttachmentRepository,
+    private readonly fileStore: AttachmentFileStore,
+  ) {}
 
   async createAttachment(dto: CreateAttachmentDto): Promise<Attachment> {
     const attachment = Attachment.create(dto);
@@ -44,5 +51,6 @@ export class AttachmentService {
     const attachment = await this.getAttachment(id);
 
     await this.repository.delete(attachment.Id);
+    await this.fileStore.delete(attachment.Url);
   }
 }

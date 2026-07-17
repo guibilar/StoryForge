@@ -16,4 +16,9 @@ extend type Mutation {
   updateCampaignMemberRole(
     input: UpdateCampaignMemberRoleInput!
   ): CampaignMember!
+  """
+  Hands OWNER over to another existing campaign member, atomically demoting
+  the current OWNER to STORYTELLER. Only the current OWNER may call this.
+  """
+  transferCampaignOwnership(campaignId: ID!, userId: ID!): CampaignMember!
 }

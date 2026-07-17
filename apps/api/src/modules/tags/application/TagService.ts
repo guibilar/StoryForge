@@ -26,15 +26,28 @@ export class TagService {
 
   async addTagToEntity(entityId: string, name: string): Promise<Entity> {
     const entity = await this.getEntityOrThrow(entityId);
+    const normalizedName = Tag.normalize(name);
 
     let tag = await this.tagRepository.findByCampaignAndName(
       entity.CampaignId,
-      name,
+      normalizedName,
     );
 
     if (!tag) {
-      tag = Tag.create({ campaignId: entity.CampaignId, name });
-      await this.tagRepository.create(tag);
+      await this.tagRepository.create(
+        Tag.create({ campaignId: entity.CampaignId, name }),
+      );
+      // Re-fetch rather than reusing the in-memory Tag: a concurrent
+      // addTagToEntity call for the same name may have won the race and
+      // persisted a different id, which create() swallows as a no-op.
+      tag = await this.tagRepository.findByCampaignAndName(
+        entity.CampaignId,
+        normalizedName,
+      );
+    }
+
+    if (!tag) {
+      throw new NotFoundError("Tag not found after creation.");
     }
 
     await this.tagRepository.attachToEntity(tag.Id, entityId);

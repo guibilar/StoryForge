@@ -3,6 +3,7 @@ import {
   CampaignMemberRepository,
   CampaignRole,
   NotFoundError,
+  User,
   UserId,
   UserRepository,
   ValidationError,
@@ -19,6 +20,9 @@ export interface UpdateCampaignMemberRoleDto {
   userId: string;
   role: CampaignRole;
 }
+
+/** Role the outgoing OWNER is left with after a transfer. */
+const DEMOTED_OWNER_ROLE: CampaignRole = "STORYTELLER";
 
 export class CampaignMemberService {
   constructor(
@@ -41,7 +45,9 @@ export class CampaignMemberService {
   }
 
   async addMember(dto: AddCampaignMemberDto): Promise<CampaignMember> {
-    const user = await this.userRepository.findByEmail(dto.email);
+    const user = await this.userRepository.findByEmail(
+      User.normalizeEmail(dto.email),
+    );
     if (!user) {
       throw new NotFoundError(`No user found with email "${dto.email}".`);
     }
@@ -123,6 +129,46 @@ export class CampaignMemberService {
     await this.campaignMemberRepository.update(member);
 
     return member;
+  }
+
+  /**
+   * Hands OWNER over to another existing member, atomically demoting the
+   * current OWNER. Unlike updateMemberRole (which rejects a second OWNER
+   * outright), this is the only sanctioned way to change who owns a
+   * campaign — without it, an OWNER could never be replaced.
+   */
+  async transferOwnership(
+    campaignId: string,
+    newOwnerUserId: string,
+  ): Promise<CampaignMember> {
+    const newOwner = await this.campaignMemberRepository.findByCampaignAndUser(
+      campaignId,
+      UserId.fromString(newOwnerUserId),
+    );
+    if (!newOwner) {
+      throw new NotFoundError(
+        `User with ID "${newOwnerUserId}" is not a member of this campaign.`,
+      );
+    }
+
+    if (newOwner.Role === "OWNER") {
+      return newOwner;
+    }
+
+    const members =
+      await this.campaignMemberRepository.listByCampaign(campaignId);
+    const currentOwner = members.find((m) => m.Role === "OWNER") ?? null;
+
+    await this.campaignMemberRepository.transferOwnership(
+      campaignId,
+      currentOwner?.UserId ?? null,
+      newOwner.UserId,
+      DEMOTED_OWNER_ROLE,
+    );
+
+    newOwner.changeRole("OWNER");
+
+    return newOwner;
   }
 
   private async assertNoOtherOwner(campaignId: string): Promise<void> {

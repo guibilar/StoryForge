@@ -25,6 +25,16 @@ export interface AuthResult {
   user: User;
 }
 
+// A bcrypt.compare against a hash always costs roughly the same amount of
+// time regardless of whether it matches. Comparing against this fixed dummy
+// hash when no user exists keeps login's timing indistinguishable from the
+// "wrong password" case, so response latency can't be used to enumerate
+// which emails have accounts.
+const DUMMY_PASSWORD_HASH = hashSync(
+  "no-such-user-timing-safety",
+  genSaltSync(10),
+);
+
 export class AuthenticationService {
   constructor(private readonly userRepository: UserRepository) {}
 
@@ -33,7 +43,8 @@ export class AuthenticationService {
     // hash (always 60 chars), which passes the length rules for any input.
     User.validatePlainPassword(dto.password);
 
-    const exists = await this.userRepository.existsByEmail(dto.email);
+    const email = User.normalizeEmail(dto.email);
+    const exists = await this.userRepository.existsByEmail(email);
 
     if (exists) {
       throw new ValidationError("An account with this email already exists.");
@@ -43,7 +54,7 @@ export class AuthenticationService {
     const salt = genSaltSync(saltRounds);
     const hashedPassword = hashSync(dto.password, salt);
 
-    const user = User.create({ email: dto.email, password: hashedPassword });
+    const user = User.create({ email, password: hashedPassword });
 
     await this.userRepository.create(user);
 
@@ -53,15 +64,16 @@ export class AuthenticationService {
   }
 
   async login(dto: LoginDto): Promise<AuthResult> {
-    const user = await this.userRepository.findByEmail(dto.email);
+    const user = await this.userRepository.findByEmail(
+      User.normalizeEmail(dto.email),
+    );
 
-    if (!user) {
-      throw new AuthenticationError("Invalid email or password.");
-    }
+    const isMatch = compareSync(
+      dto.password,
+      user ? user.Password : DUMMY_PASSWORD_HASH,
+    );
 
-    const isMatch = compareSync(dto.password, user.Password);
-
-    if (!isMatch) {
+    if (!user || !isMatch) {
       throw new AuthenticationError("Invalid email or password.");
     }
 

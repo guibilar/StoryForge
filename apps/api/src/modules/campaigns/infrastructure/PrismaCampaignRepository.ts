@@ -71,14 +71,26 @@ export class PrismaCampaignRepository implements CampaignRepository {
   }
 
   async update(entity: Campaign): Promise<Campaign> {
-    const record = await prisma.campaign.update({
-      where: {
-        id: entity.Id.toString(),
-      },
-      data: CampaignMapper.toPersistence(entity),
-      include: { members: true },
-    });
-    return CampaignMapper.toDomain(record);
+    try {
+      const record = await prisma.campaign.update({
+        where: {
+          id: entity.Id.toString(),
+        },
+        data: CampaignMapper.toPersistence(entity),
+        include: { members: true },
+      });
+      return CampaignMapper.toDomain(record);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ValidationError(
+          `A campaign with the name "${entity.Name}" already exists.`,
+        );
+      }
+      throw error;
+    }
   }
 
   async archive(campaign: Campaign): Promise<void> {

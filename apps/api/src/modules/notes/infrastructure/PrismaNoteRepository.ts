@@ -1,7 +1,8 @@
-import { Note, NoteId, NoteRepository } from "@storyforge/domain";
+import { Note, NoteId, NoteLink, NoteRepository } from "@storyforge/domain";
 
 import { prisma } from "@storyforge/database";
 import { NoteMapper } from "./NoteMapper";
+import { NoteLinkMapper } from "../../noteLinks/infrastructure/NoteLinkMapper";
 
 export class PrismaNoteRepository implements NoteRepository {
   async findById(id: NoteId): Promise<Note | null> {
@@ -87,5 +88,29 @@ export class PrismaNoteRepository implements NoteRepository {
       },
       data: NoteMapper.toPersistence(note),
     });
+  }
+
+  async createWithLinks(note: Note, links: NoteLink[]): Promise<void> {
+    await prisma.$transaction([
+      prisma.note.create({ data: NoteMapper.toPersistence(note) }),
+      ...links.map((link) =>
+        prisma.noteLink.create({ data: NoteLinkMapper.toPersistence(link) }),
+      ),
+    ]);
+  }
+
+  async updateWithLinks(note: Note, links: NoteLink[]): Promise<void> {
+    const noteId = note.Id.toString();
+
+    await prisma.$transaction([
+      prisma.note.update({
+        where: { id: noteId },
+        data: NoteMapper.toPersistence(note),
+      }),
+      prisma.noteLink.deleteMany({ where: { noteId } }),
+      ...links.map((link) =>
+        prisma.noteLink.create({ data: NoteLinkMapper.toPersistence(link) }),
+      ),
+    ]);
   }
 }

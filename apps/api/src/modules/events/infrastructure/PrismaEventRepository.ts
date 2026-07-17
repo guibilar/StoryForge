@@ -73,14 +73,12 @@ export class PrismaEventRepository implements EventRepository {
     entityId: string,
     role?: string | null,
   ): Promise<void> {
-    const existing = await prisma.eventParticipant.findFirst({
-      where: { eventId: eventId.toString(), entityId },
-    });
-
-    if (existing) return;
-
-    await prisma.eventParticipant.create({
-      data: { eventId: eventId.toString(), entityId, role: role ?? null },
+    await prisma.eventParticipant.upsert({
+      where: {
+        eventId_entityId: { eventId: eventId.toString(), entityId },
+      },
+      create: { eventId: eventId.toString(), entityId, role: role ?? null },
+      update: { role: role ?? null },
     });
   }
 

@@ -68,7 +68,7 @@ export class CampaignService {
       throw new NotFoundError(`Campaign with ID "${dto.id}" not found.`);
     }
 
-    if (dto.name && dto.name !== undefined) campaign.rename(dto.name);
+    if (dto.name !== undefined) campaign.rename(dto.name);
 
     if (dto.description !== undefined)
       campaign.changeDescription(dto.description);

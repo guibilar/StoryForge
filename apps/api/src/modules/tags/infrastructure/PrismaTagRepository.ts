@@ -1,7 +1,14 @@
 import { Tag, TagId, TagRepository } from "@storyforge/domain";
 
-import { prisma } from "@storyforge/database";
+import { prisma, Prisma } from "@storyforge/database";
 import { TagMapper } from "./TagMapper";
+
+function isUniqueConstraintViolation(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  );
+}
 
 export class PrismaTagRepository implements TagRepository {
   async findById(id: TagId): Promise<Tag | null> {
@@ -64,21 +71,32 @@ export class PrismaTagRepository implements TagRepository {
   }
 
   async create(entity: Tag): Promise<void> {
-    await prisma.tag.create({
-      data: TagMapper.toPersistence(entity),
-    });
+    try {
+      await prisma.tag.create({
+        data: TagMapper.toPersistence(entity),
+      });
+    } catch (error) {
+      // Someone else's concurrent create won the (campaignId, name) race —
+      // the caller re-fetches by name afterwards, so this is a no-op, not a
+      // failure.
+      if (!isUniqueConstraintViolation(error)) {
+        throw error;
+      }
+    }
   }
 
   async attachToEntity(tagId: TagId, entityId: string): Promise<void> {
-    const existing = await prisma.entityTag.findFirst({
-      where: { tagId: tagId.toString(), entityId },
-    });
-
-    if (existing) return;
-
-    await prisma.entityTag.create({
-      data: { tagId: tagId.toString(), entityId },
-    });
+    try {
+      await prisma.entityTag.create({
+        data: { tagId: tagId.toString(), entityId },
+      });
+    } catch (error) {
+      // Already attached — a concurrent call won the (entityId, tagId)
+      // race, which is the idempotent outcome this method promises.
+      if (!isUniqueConstraintViolation(error)) {
+        throw error;
+      }
+    }
   }
 
   async detachFromEntity(tagId: TagId, entityId: string): Promise<void> {

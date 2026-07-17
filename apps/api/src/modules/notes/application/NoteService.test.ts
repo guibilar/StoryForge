@@ -22,6 +22,8 @@ function makeRepository(): NoteRepository {
     findRoots: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
+    createWithLinks: vi.fn(),
+    updateWithLinks: vi.fn(),
   };
 }
 
@@ -42,6 +44,8 @@ function makeNoteLinkRepository(): NoteLinkRepository {
     findByTargetEntity: vi.fn().mockResolvedValue([]),
     findByTargetNote: vi.fn().mockResolvedValue([]),
     replaceForNote: vi.fn(),
+    deleteByNote: vi.fn(),
+    deleteByTargetEntity: vi.fn(),
   };
 }
 
@@ -72,7 +76,7 @@ describe("NoteService", () => {
       expect(note.Title).toBe("Session 1 prep");
       expect(note.Content).toBe("Some markdown content.");
       expect(note.AuthorId.toString()).toBe(createDto.authorId);
-      expect(repository.create).toHaveBeenCalledWith(note);
+      expect(repository.createWithLinks).toHaveBeenCalledWith(note, []);
     });
 
     it("defaults content to an empty string when omitted", async () => {
@@ -111,7 +115,7 @@ describe("NoteService", () => {
 
       expect(updated.Title).toBe("Renamed");
       expect(updated.Content).toBe("Updated content");
-      expect(repository.update).toHaveBeenCalledWith(note);
+      expect(repository.updateWithLinks).toHaveBeenCalledWith(note, []);
     });
   });
 
@@ -136,6 +140,9 @@ describe("NoteService", () => {
 
       expect(note.isDeleted()).toBe(true);
       expect(repository.update).toHaveBeenCalledWith(note);
+      expect(noteLinkRepository.deleteByNote).toHaveBeenCalledWith(
+        note.Id.toString(),
+      );
     });
 
     it("cascades the soft-delete down the whole subtree", async () => {
@@ -176,6 +183,15 @@ describe("NoteService", () => {
       expect(child.isDeleted()).toBe(true);
       expect(grandchild.isDeleted()).toBe(true);
       expect(repository.update).toHaveBeenCalledTimes(3);
+      expect(noteLinkRepository.deleteByNote).toHaveBeenCalledWith(
+        root.Id.toString(),
+      );
+      expect(noteLinkRepository.deleteByNote).toHaveBeenCalledWith(
+        child.Id.toString(),
+      );
+      expect(noteLinkRepository.deleteByNote).toHaveBeenCalledWith(
+        grandchild.Id.toString(),
+      );
     });
   });
 
@@ -233,10 +249,9 @@ describe("NoteService", () => {
         createDto.campaignId,
         "Gruk the Orc",
       );
-      expect(noteLinkRepository.replaceForNote).toHaveBeenCalledWith(
-        note.Id.toString(),
-        [expect.objectContaining({ TargetEntityId: entity.Id.toString() })],
-      );
+      expect(repository.createWithLinks).toHaveBeenCalledWith(note, [
+        expect.objectContaining({ TargetEntityId: entity.Id.toString() }),
+      ]);
     });
 
     it("falls back to a Note title match when no Entity matches", async () => {
@@ -252,10 +267,9 @@ describe("NoteService", () => {
         content: "See [[Session 0]] recap.",
       });
 
-      expect(noteLinkRepository.replaceForNote).toHaveBeenCalledWith(
-        note.Id.toString(),
-        [expect.objectContaining({ TargetNoteId: targetNote.Id.toString() })],
-      );
+      expect(repository.createWithLinks).toHaveBeenCalledWith(note, [
+        expect.objectContaining({ TargetNoteId: targetNote.Id.toString() }),
+      ]);
     });
 
     it("drops unresolvable links instead of persisting them", async () => {
@@ -264,10 +278,7 @@ describe("NoteService", () => {
         content: "Refers to [[Nobody Known]].",
       });
 
-      expect(noteLinkRepository.replaceForNote).toHaveBeenCalledWith(
-        note.Id.toString(),
-        [],
-      );
+      expect(repository.createWithLinks).toHaveBeenCalledWith(note, []);
     });
 
     it("resolves explicit [[Label|entity:<id>]] links within the same campaign only", async () => {
@@ -284,10 +295,9 @@ describe("NoteService", () => {
         content: `[[Gruk|entity:${entity.Id.toString()}]]`,
       });
 
-      expect(noteLinkRepository.replaceForNote).toHaveBeenCalledWith(
-        note.Id.toString(),
-        [expect.objectContaining({ TargetEntityId: entity.Id.toString() })],
-      );
+      expect(repository.createWithLinks).toHaveBeenCalledWith(note, [
+        expect.objectContaining({ TargetEntityId: entity.Id.toString() }),
+      ]);
     });
 
     it("re-syncs links on updateNote", async () => {
@@ -310,10 +320,9 @@ describe("NoteService", () => {
         content: "Now mentions [[Gruk the Orc]].",
       });
 
-      expect(noteLinkRepository.replaceForNote).toHaveBeenCalledWith(
-        existing.Id.toString(),
-        [expect.objectContaining({ TargetEntityId: entity.Id.toString() })],
-      );
+      expect(repository.updateWithLinks).toHaveBeenCalledWith(existing, [
+        expect.objectContaining({ TargetEntityId: entity.Id.toString() }),
+      ]);
     });
   });
 

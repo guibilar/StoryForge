@@ -57,4 +57,20 @@ export const Mutation = {
       toGraphQLError(error);
     }
   },
+
+  transferCampaignOwnership: async (
+    _parent: unknown,
+    args: { campaignId: string; userId: string },
+    context: GraphQLContext,
+  ) => {
+    try {
+      await requireCampaignRole(context, args.campaignId, "MANAGE_MEMBERS");
+      return await context.campaignMemberService.transferOwnership(
+        args.campaignId,
+        args.userId,
+      );
+    } catch (error) {
+      toGraphQLError(error);
+    }
+  },
 };

@@ -1,3 +1,4 @@
+import { ForbiddenError, NotFoundError } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
@@ -36,7 +37,14 @@ export const Mutation = {
       requireCurrentUser(context);
       const attachment = await context.attachmentService.getAttachment(args.id);
       const note = await context.noteService.getNote(attachment.NoteId);
-      await requireCampaignMember(context, note.CampaignId);
+      try {
+        await requireCampaignMember(context, note.CampaignId);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          throw new NotFoundError("Attachment not found.");
+        }
+        throw error;
+      }
       await context.attachmentService.deleteAttachment(args.id);
       return true;
     } catch (error) {

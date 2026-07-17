@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import jwt from "jsonwebtoken";
-import { hashSync, genSaltSync } from "bcrypt-ts";
+import { hashSync, genSaltSync, compareSync } from "bcrypt-ts";
+
+vi.mock("bcrypt-ts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("bcrypt-ts")>();
+  return { ...actual, compareSync: vi.fn(actual.compareSync) };
+});
 import {
   AuthenticationError,
   User,
@@ -81,6 +86,17 @@ describe("AuthenticationService", () => {
       await expect(
         service.login({ email: "nobody@example.com", password: "secret1" }),
       ).rejects.toThrow(AuthenticationError);
+    });
+
+    it("still runs a bcrypt compare for an unknown email, to avoid a timing side-channel that would let callers enumerate accounts", async () => {
+      vi.mocked(compareSync).mockClear();
+      vi.mocked(repository.findByEmail).mockResolvedValue(null);
+
+      await expect(
+        service.login({ email: "nobody@example.com", password: "secret1" }),
+      ).rejects.toThrow(AuthenticationError);
+
+      expect(compareSync).toHaveBeenCalledTimes(1);
     });
 
     it("rejects an incorrect password", async () => {

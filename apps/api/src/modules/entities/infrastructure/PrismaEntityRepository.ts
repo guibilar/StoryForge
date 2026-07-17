@@ -106,11 +106,23 @@ export class PrismaEntityRepository implements EntityRepository {
   }
 
   async update(entity: Entity): Promise<void> {
-    await prisma.entity.update({
-      where: {
-        id: entity.Id.toString(),
-      },
-      data: EntityMapper.toPersistence(entity),
-    });
+    try {
+      await prisma.entity.update({
+        where: {
+          id: entity.Id.toString(),
+        },
+        data: EntityMapper.toPersistence(entity),
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ValidationError(
+          `An entity with the name "${entity.Name}" already exists.`,
+        );
+      }
+      throw error;
+    }
   }
 }

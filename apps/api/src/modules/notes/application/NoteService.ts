@@ -55,8 +55,8 @@ export class NoteService {
       parentNoteId,
     });
 
-    await this.repository.create(note);
-    await this.syncLinks(note);
+    const links = await this.resolveLinks(note);
+    await this.repository.createWithLinks(note, links);
 
     return note;
   }
@@ -76,8 +76,8 @@ export class NoteService {
       note.changeContent(dto.content);
     }
 
-    await this.repository.update(note);
-    await this.syncLinks(note);
+    const links = await this.resolveLinks(note);
+    await this.repository.updateWithLinks(note, links);
 
     return note;
   }
@@ -101,6 +101,7 @@ export class NoteService {
   private async deleteWithDescendants(note: Note): Promise<void> {
     note.delete();
     await this.repository.update(note);
+    await this.noteLinkRepository.deleteByNote(note.Id.toString());
 
     const children = await this.repository.findChildren(note.Id.toString());
 
@@ -192,7 +193,13 @@ export class NoteService {
     return this.hydrateNotes(links.map((link) => link.NoteId));
   }
 
-  private async syncLinks(note: Note): Promise<void> {
+  /**
+   * Parses [[links]] out of the note's content and resolves them against
+   * existing entities/notes. Read-only — createNote/updateNote persist the
+   * result together with the note itself in one transaction, so a failure
+   * here can't leave the note saved with stale or missing links.
+   */
+  private async resolveLinks(note: Note): Promise<NoteLink[]> {
     const parsedLinks = parseNoteLinks(note.Content);
     const resolvedTargets = await this.linkResolver.resolve(
       note.CampaignId,
@@ -200,11 +207,10 @@ export class NoteService {
     );
 
     const noteId = note.Id.toString();
-    const links = resolvedTargets.map((target) =>
+
+    return resolvedTargets.map((target) =>
       NoteLink.create({ noteId, ...target }),
     );
-
-    await this.noteLinkRepository.replaceForNote(noteId, links);
   }
 
   /**

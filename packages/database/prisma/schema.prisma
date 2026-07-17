@@ -278,5 +278,9 @@ model CampaignMember {
   updatedAt DateTime @updatedAt
 
   @@unique([campaignId, userId])
+  // A campaign may have at most one OWNER, enforced by a partial unique
+  // index (see migration 20260716120000_campaign_member_single_owner) —
+  // Prisma's declarative @@unique can't express a WHERE role = 'OWNER'
+  // clause.
   @@index([campaignId])
 }

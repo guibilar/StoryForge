@@ -6,7 +6,7 @@ export interface RelationshipRepository {
 
   findByCampaign(campaignId: string): Promise<Relationship[]>;
 
-  findByEntity(entityId: string): Promise<Relationship[]>;
+  findByEntity(campaignId: string, entityId: string): Promise<Relationship[]>;
 
   existsByEdge(
     campaignId: string,

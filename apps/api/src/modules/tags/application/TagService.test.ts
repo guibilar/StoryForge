@@ -115,7 +115,7 @@ describe("TagService", () => {
 
       expect(tagRepository.findByCampaignAndName).toHaveBeenCalledWith(
         entity.CampaignId,
-        "Faction:Thieves-Guild",
+        "faction:thieves-guild",
       );
       expect(tagRepository.create).not.toHaveBeenCalled();
       expect(tagRepository.attachToEntity).toHaveBeenCalledTimes(1);
@@ -129,7 +129,13 @@ describe("TagService", () => {
 
     it("creates a new tag when none exists for the campaign yet", async () => {
       vi.mocked(entityRepository.findById).mockResolvedValue(entity);
-      vi.mocked(tagRepository.findByCampaignAndName).mockResolvedValue(null);
+      let created: Tag | undefined;
+      vi.mocked(tagRepository.findByCampaignAndName).mockImplementation(
+        async () => created ?? null,
+      );
+      vi.mocked(tagRepository.create).mockImplementation(async (tag) => {
+        created = tag;
+      });
 
       await service.addTagToEntity(entity.Id.toString(), "status:dead");
 
@@ -139,6 +145,25 @@ describe("TagService", () => {
       expect(createdTag.CampaignId).toBe(entity.CampaignId);
       expect(tagRepository.attachToEntity).toHaveBeenCalledWith(
         createdTag.Id,
+        entity.Id.toString(),
+      );
+    });
+
+    it("attaches the winning tag when a concurrent create races and wins", async () => {
+      vi.mocked(entityRepository.findById).mockResolvedValue(entity);
+      const winningTag = Tag.create({
+        campaignId: entity.CampaignId,
+        name: "status:dead",
+      });
+      vi.mocked(tagRepository.findByCampaignAndName)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(winningTag);
+      vi.mocked(tagRepository.create).mockResolvedValue(undefined);
+
+      await service.addTagToEntity(entity.Id.toString(), "status:dead");
+
+      expect(tagRepository.attachToEntity).toHaveBeenCalledWith(
+        winningTag.Id,
         entity.Id.toString(),
       );
     });

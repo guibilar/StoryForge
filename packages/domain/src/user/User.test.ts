@@ -68,10 +68,10 @@ describe("User", () => {
     );
   });
 
-  it("rejects a password longer than 255 characters", () => {
+  it("rejects a password longer than 72 bytes", () => {
     expect(() =>
-      User.create({ ...validProps, password: "a".repeat(256) }),
-    ).toThrow("Password cannot exceed 255 characters.");
+      User.create({ ...validProps, password: "a".repeat(73) }),
+    ).toThrow("Password cannot exceed 72 bytes.");
   });
 
   it("changes the email and bumps updatedAt", async () => {
@@ -90,6 +90,20 @@ describe("User", () => {
 
     expect(() => user.changeEmail("invalid")).toThrow(ValidationError);
   });
+
+  it("normalizes email casing and surrounding whitespace so two differently-cased addresses can't both register", () => {
+    const user = User.create({ ...validProps, email: "  User@Example.com  " });
+
+    expect(user.Email).toBe("user@example.com");
+  });
+
+  it("normalizes casing on changeEmail too", () => {
+    const user = User.create(validProps);
+
+    user.changeEmail("New@Example.com");
+
+    expect(user.Email).toBe("new@example.com");
+  });
 });
 
 describe("User.validatePlainPassword", () => {
@@ -100,8 +114,15 @@ describe("User.validatePlainPassword", () => {
     expect(() => User.validatePlainPassword("abc")).toThrow(
       "Password must be at least 6 characters long.",
     );
-    expect(() => User.validatePlainPassword("a".repeat(256))).toThrow(
-      "Password cannot exceed 255 characters.",
+    expect(() => User.validatePlainPassword("a".repeat(73))).toThrow(
+      "Password cannot exceed 72 bytes.",
+    );
+  });
+
+  it("rejects a password within the 72-character limit but over 72 bytes once encoded", () => {
+    // "é" is 2 bytes in UTF-8, so 72 of them is 144 bytes despite being 72 chars.
+    expect(() => User.validatePlainPassword("é".repeat(72))).toThrow(
+      "Password cannot exceed 72 bytes.",
     );
   });
 

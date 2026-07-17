@@ -36,6 +36,12 @@ const authenticatedUser = User.create({
 const membership = CampaignMember.create({
   campaignId: "campaign-1",
   userId: authenticatedUser.Id,
+  role: "STORYTELLER",
+});
+
+const playerMembership = CampaignMember.create({
+  campaignId: "campaign-1",
+  userId: authenticatedUser.Id,
   role: "PLAYER",
 });
 
@@ -62,6 +68,27 @@ describe("notes Mutation.createNote", () => {
     const noteService = makeNoteService();
     const campaignMemberService = makeCampaignMemberService();
     vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      noteService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = { campaignId: "campaign-1", title: "Session 1 prep" };
+
+    await expect(
+      Mutation.createNote(undefined, { input }, context),
+    ).rejects.toMatchObject({
+      extensions: { code: "FORBIDDEN" },
+    });
+    expect(noteService.createNote).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when the campaign member is a Player", async () => {
+    const noteService = makeNoteService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
     const context = makeContext(
       noteService,
       campaignMemberService,
@@ -151,6 +178,33 @@ describe("notes Mutation.updateNote", () => {
     expect(noteService.updateNote).not.toHaveBeenCalled();
   });
 
+  it("rejects with FORBIDDEN when the campaign member is a Player", async () => {
+    const noteService = makeNoteService();
+    const campaignMemberService = makeCampaignMemberService();
+    const existing = Note.create({
+      campaignId: "campaign-1",
+      authorId: UserId.create(),
+      title: "Session 1 prep",
+    });
+    vi.mocked(noteService.getNote).mockResolvedValue(existing);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
+    const context = makeContext(
+      noteService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = { id: existing.Id.toString(), title: "Renamed" };
+
+    await expect(
+      Mutation.updateNote(undefined, { input }, context),
+    ).rejects.toMatchObject({
+      extensions: { code: "FORBIDDEN" },
+    });
+    expect(noteService.updateNote).not.toHaveBeenCalled();
+  });
+
   it("delegates to noteService when the user is a campaign member", async () => {
     const noteService = makeNoteService();
     const campaignMemberService = makeCampaignMemberService();
@@ -211,6 +265,32 @@ describe("notes Mutation.deleteNote", () => {
     });
     vi.mocked(noteService.getNote).mockResolvedValue(note);
     vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      noteService,
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Mutation.deleteNote(undefined, { id: note.Id.toString() }, context),
+    ).rejects.toMatchObject({
+      extensions: { code: "FORBIDDEN" },
+    });
+    expect(noteService.deleteNote).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when the campaign member is a Player", async () => {
+    const noteService = makeNoteService();
+    const campaignMemberService = makeCampaignMemberService();
+    const note = Note.create({
+      campaignId: "campaign-1",
+      authorId: UserId.create(),
+      title: "Session 1 prep",
+    });
+    vi.mocked(noteService.getNote).mockResolvedValue(note);
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
     const context = makeContext(
       noteService,
       campaignMemberService,

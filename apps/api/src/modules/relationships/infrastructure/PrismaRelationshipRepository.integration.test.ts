@@ -137,11 +137,29 @@ describe("PrismaRelationshipRepository", () => {
     await repository.create(asTarget);
     await repository.create(unrelated);
 
-    const relationships = await repository.findByEntity(a);
+    const relationships = await repository.findByEntity(campaignId, a);
 
     expect(relationships.map((r) => r.Id.toString()).sort()).toEqual(
       [asSource.Id.toString(), asTarget.Id.toString()].sort(),
     );
+  });
+
+  it("does not return relationships from a different campaign for the same entity id", async () => {
+    const campaignId = await createCampaign();
+    const otherCampaignId = await createCampaign();
+    const a = await createEntity(campaignId);
+    const b = await createEntity(campaignId);
+    const relationship = Relationship.create({
+      campaignId,
+      sourceEntityId: a,
+      targetEntityId: b,
+      type: "MEMBER_OF",
+    });
+    await repository.create(relationship);
+
+    const relationships = await repository.findByEntity(otherCampaignId, a);
+
+    expect(relationships).toEqual([]);
   });
 
   it("reports whether an edge already exists", async () => {

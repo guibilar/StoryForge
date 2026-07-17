@@ -106,8 +106,11 @@ export class RelationshipService {
     return this.repository.findByCampaign(campaignId);
   }
 
-  async listRelationshipsByEntity(entityId: string): Promise<Relationship[]> {
-    return this.repository.findByEntity(entityId);
+  async listRelationshipsByEntity(
+    campaignId: string,
+    entityId: string,
+  ): Promise<Relationship[]> {
+    return this.repository.findByEntity(campaignId, entityId);
   }
 
   private async validateEntityInCampaign(

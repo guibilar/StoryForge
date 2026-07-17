@@ -38,9 +38,13 @@ export class PrismaRelationshipRepository implements RelationshipRepository {
     return records.map(RelationshipMapper.toDomain);
   }
 
-  async findByEntity(entityId: string): Promise<Relationship[]> {
+  async findByEntity(
+    campaignId: string,
+    entityId: string,
+  ): Promise<Relationship[]> {
     const records = await prisma.relationship.findMany({
       where: {
+        campaignId,
         OR: [{ sourceEntityId: entityId }, { targetEntityId: entityId }],
         deletedAt: null,
       },

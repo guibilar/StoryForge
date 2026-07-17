@@ -37,6 +37,7 @@ export class Note {
     private deletedAtValue: Date | null,
   ) {
     this.validateTitle(titleValue);
+    this.titleValue = titleValue.trim();
     this.validateContent(contentValue);
   }
 

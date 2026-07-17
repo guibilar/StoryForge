@@ -102,4 +102,17 @@ describe("PrismaTagRepository", () => {
     const afterDetach = await repository.findByEntity(entity.Id.toString());
     expect(afterDetach.some((t) => t.Id.equals(tag.Id))).toBe(false);
   });
+
+  it("create is idempotent when another tag already has the same campaign+name", async () => {
+    const campaignId = await createCampaign();
+    const name = uniqueName("tag");
+    const first = Tag.create({ campaignId, name });
+    await repository.create(first);
+    const second = Tag.create({ campaignId, name });
+
+    await expect(repository.create(second)).resolves.toBeUndefined();
+
+    const tags = await repository.findByCampaign(campaignId);
+    expect(tags.filter((t) => t.Name === name)).toHaveLength(1);
+  });
 });

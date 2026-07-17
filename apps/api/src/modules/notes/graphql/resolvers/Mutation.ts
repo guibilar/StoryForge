@@ -1,7 +1,7 @@
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
-import { requireCampaignMember } from "../../../campaignMembers/graphql/guards";
+import { requireCampaignWriter } from "../../../campaignMembers/graphql/guards";
 import type { UpdateNoteDto } from "../../application/NoteService";
 
 export const Mutation = {
@@ -18,7 +18,7 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      const membership = await requireCampaignMember(
+      const membership = await requireCampaignWriter(
         context,
         args.input.campaignId,
       );
@@ -39,7 +39,7 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const note = await context.noteService.getNote(args.input.id);
-      await requireCampaignMember(context, note.CampaignId);
+      await requireCampaignWriter(context, note.CampaignId);
       return await context.noteService.updateNote(args.input);
     } catch (error) {
       toGraphQLError(error);
@@ -54,7 +54,7 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const note = await context.noteService.getNote(args.id);
-      await requireCampaignMember(context, note.CampaignId);
+      await requireCampaignWriter(context, note.CampaignId);
       await context.noteService.deleteNote(args.id);
       return true;
     } catch (error) {
@@ -70,7 +70,7 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const note = await context.noteService.getNote(args.id);
-      await requireCampaignMember(context, note.CampaignId);
+      await requireCampaignWriter(context, note.CampaignId);
       return await context.noteService.moveNote(
         args.id,
         args.parentNoteId ?? null,

@@ -1,4 +1,4 @@
-import { CampaignMember } from "./CampaignMember";
+import { CampaignMember, CampaignRole } from "./CampaignMember";
 import { UserId } from "../user";
 
 export interface CampaignMemberRepository {
@@ -14,4 +14,16 @@ export interface CampaignMemberRepository {
   update(member: CampaignMember): Promise<void>;
 
   delete(campaignId: string, userId: UserId): Promise<void>;
+
+  /**
+   * Atomically demotes the current OWNER (if any) to demotedRole and
+   * promotes newOwnerUserId to OWNER, so the campaign never has zero or two
+   * owners even under concurrent calls.
+   */
+  transferOwnership(
+    campaignId: string,
+    currentOwnerUserId: UserId | null,
+    newOwnerUserId: UserId,
+    demotedRole: CampaignRole,
+  ): Promise<void>;
 }

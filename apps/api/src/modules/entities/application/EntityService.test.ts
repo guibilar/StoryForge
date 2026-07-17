@@ -3,6 +3,7 @@ import {
   Entity,
   EntityRepository,
   EntityVisibility,
+  NoteLinkRepository,
   NotFoundError,
   ValidationError,
 } from "@storyforge/domain";
@@ -18,6 +19,17 @@ function makeRepository(): EntityRepository {
   };
 }
 
+function makeNoteLinkRepository(): NoteLinkRepository {
+  return {
+    findByNote: vi.fn(),
+    findByTargetEntity: vi.fn(),
+    findByTargetNote: vi.fn(),
+    replaceForNote: vi.fn(),
+    deleteByNote: vi.fn(),
+    deleteByTargetEntity: vi.fn(),
+  };
+}
+
 const createDto = {
   campaignId: "campaign-1",
   type: "npc",
@@ -27,11 +39,13 @@ const createDto = {
 
 describe("EntityService", () => {
   let repository: EntityRepository;
+  let noteLinkRepository: NoteLinkRepository;
   let service: EntityService;
 
   beforeEach(() => {
     repository = makeRepository();
-    service = new EntityService(repository);
+    noteLinkRepository = makeNoteLinkRepository();
+    service = new EntityService(repository, noteLinkRepository);
   });
 
   describe("createEntity", () => {
@@ -124,6 +138,17 @@ describe("EntityService", () => {
 
       expect(entity.isDeleted()).toBe(true);
       expect(repository.update).toHaveBeenCalledWith(entity);
+    });
+
+    it("cleans up NoteLinks that target the deleted entity", async () => {
+      const entity = Entity.create(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      await service.deleteEntity(entity.Id.toString());
+
+      expect(noteLinkRepository.deleteByTargetEntity).toHaveBeenCalledWith(
+        entity.Id.toString(),
+      );
     });
   });
 

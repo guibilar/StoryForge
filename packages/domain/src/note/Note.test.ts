@@ -22,6 +22,12 @@ describe("Note", () => {
     expect(note.isDeleted()).toBe(false);
   });
 
+  it("trims the title on create, matching changeTitle's behavior", () => {
+    const note = Note.create({ ...validProps, title: "  Padded Title  " });
+
+    expect(note.Title).toBe("Padded Title");
+  });
+
   it("defaults content to an empty string when omitted", () => {
     const note = Note.create({
       campaignId: "campaign-1",

@@ -30,6 +30,7 @@ export const Query = {
       await requireCampaignMember(context, args.campaignId);
       if (args.entityId) {
         return await context.relationshipService.listRelationshipsByEntity(
+          args.campaignId,
           args.entityId,
         );
       }

@@ -28,6 +28,7 @@ function makeCampaignMemberRepository(): CampaignMemberRepository {
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    transferOwnership: vi.fn(),
   };
 }
 
@@ -123,6 +124,18 @@ describe("CampaignService", () => {
 
       expect(updated.Name).toBe("New Name");
       expect(updated.Description).toBe("New desc");
+    });
+
+    it("rejects renaming to an empty string instead of silently ignoring it", async () => {
+      const campaign = Campaign.create({ name: "Old Name" });
+      vi.mocked(repository.findById).mockResolvedValue(campaign);
+
+      await expect(
+        service.updateCampaign({
+          input: { id: campaign.Id.toString(), name: "" },
+        }),
+      ).rejects.toThrow(ValidationError);
+      expect(repository.update).not.toHaveBeenCalled();
     });
   });
 

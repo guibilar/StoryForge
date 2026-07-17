@@ -3,10 +3,12 @@ import { ValidationError } from "@storyforge/domain";
 
 const mkdir = vi.fn();
 const writeFile = vi.fn();
+const unlink = vi.fn();
 
 vi.mock("node:fs/promises", () => ({
   mkdir: (...args: unknown[]) => mkdir(...args),
   writeFile: (...args: unknown[]) => writeFile(...args),
+  unlink: (...args: unknown[]) => unlink(...args),
 }));
 
 vi.mock("../../../config/env", () => ({
@@ -32,6 +34,7 @@ describe("LocalImageStore", () => {
     store = new LocalImageStore();
     mkdir.mockReset().mockResolvedValue(undefined);
     writeFile.mockReset().mockResolvedValue(undefined);
+    unlink.mockReset().mockResolvedValue(undefined);
   });
 
   it("creates the entity's directory and writes the file", async () => {
@@ -69,5 +72,40 @@ describe("LocalImageStore", () => {
       store.save("entity-1", makeFile({ name: longName })),
     ).rejects.toThrow(ValidationError);
     expect(writeFile).not.toHaveBeenCalled();
+  });
+
+  it("derives the stored extension from the validated mime type, not the client-supplied file name", async () => {
+    const path = await store.save(
+      "entity-1",
+      makeFile({ type: "image/png", name: "payload.svg" }),
+    );
+
+    expect(path).toMatch(/\.png$/);
+  });
+
+  describe("delete", () => {
+    it("unlinks the file for a previously saved url", async () => {
+      await store.delete("/uploads/entity-1/abc.png");
+
+      expect(unlink).toHaveBeenCalledWith(
+        "/tmp/storyforge-uploads/entity-1/abc.png",
+      );
+    });
+
+    it("swallows ENOENT when the file is already gone", async () => {
+      unlink.mockRejectedValue(
+        Object.assign(new Error("not found"), { code: "ENOENT" }),
+      );
+
+      await expect(
+        store.delete("/uploads/entity-1/abc.png"),
+      ).resolves.toBeUndefined();
+    });
+
+    it("ignores urls that would traverse outside the uploads dir", async () => {
+      await store.delete("/uploads/../../etc/passwd");
+
+      expect(unlink).not.toHaveBeenCalled();
+    });
   });
 });

@@ -36,4 +36,16 @@ export class PrismaNoteLinkRepository implements NoteLinkRepository {
       ),
     ]);
   }
+
+  async deleteByNote(noteId: string): Promise<void> {
+    await prisma.noteLink.deleteMany({
+      where: { OR: [{ noteId }, { targetNoteId: noteId }] },
+    });
+  }
+
+  async deleteByTargetEntity(entityId: string): Promise<void> {
+    await prisma.noteLink.deleteMany({
+      where: { targetEntityId: entityId },
+    });
+  }
 }

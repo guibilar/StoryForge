@@ -206,4 +206,36 @@ describe("PrismaEventRepository", () => {
     const afterDetach = await repository.findParticipants(event.Id);
     expect(afterDetach.some((e) => e.Id.equals(entity.Id))).toBe(false);
   });
+
+  it("updates the role when a participant is re-attached with a different role", async () => {
+    const campaignId = await createCampaign();
+    const entity = await createEntity(campaignId);
+    const event = Event.create({
+      campaignId,
+      title: uniqueName("event"),
+      occurredAt: new Date("2024-01-01T00:00:00Z"),
+    });
+    await repository.create(event);
+
+    await repository.attachParticipant(
+      event.Id,
+      entity.Id.toString(),
+      "witness",
+    );
+    await repository.attachParticipant(
+      event.Id,
+      entity.Id.toString(),
+      "victim",
+    );
+
+    const record = await prisma.eventParticipant.findUnique({
+      where: {
+        eventId_entityId: {
+          eventId: event.Id.toString(),
+          entityId: entity.Id.toString(),
+        },
+      },
+    });
+    expect(record?.role).toBe("victim");
+  });
 });

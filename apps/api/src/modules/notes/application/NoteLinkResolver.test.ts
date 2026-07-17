@@ -29,6 +29,8 @@ function makeNoteRepository(): NoteRepository {
     findRoots: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
+    createWithLinks: vi.fn(),
+    updateWithLinks: vi.fn(),
   };
 }
 

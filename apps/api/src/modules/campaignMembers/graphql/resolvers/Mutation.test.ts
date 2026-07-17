@@ -11,6 +11,7 @@ function makeCampaignMemberService(): CampaignMemberService {
     addMember: vi.fn(),
     removeMember: vi.fn(),
     updateMemberRole: vi.fn(),
+    transferOwnership: vi.fn(),
   } as unknown as CampaignMemberService;
 }
 
@@ -192,6 +193,60 @@ describe("campaignMembers Mutation", () => {
         args.input,
       );
       expect(result).toBe(updated);
+    });
+  });
+
+  describe("transferCampaignOwnership", () => {
+    const args = { campaignId, userId: "user-1" };
+
+    it("rejects with UNAUTHENTICATED when logged out", async () => {
+      const context = makeContext(campaignMemberService, loggedOutUser);
+
+      await expect(
+        Mutation.transferCampaignOwnership(undefined, args, context),
+      ).rejects.toMatchObject({
+        extensions: { code: "UNAUTHENTICATED" },
+      });
+      expect(campaignMemberService.transferOwnership).not.toHaveBeenCalled();
+    });
+
+    it("rejects with FORBIDDEN when the caller is not the owner", async () => {
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+      const context = makeContext(campaignMemberService, ownerUser);
+
+      await expect(
+        Mutation.transferCampaignOwnership(undefined, args, context),
+      ).rejects.toMatchObject({
+        extensions: { code: "FORBIDDEN" },
+      });
+      expect(campaignMemberService.transferOwnership).not.toHaveBeenCalled();
+    });
+
+    it("delegates to campaignMemberService when the caller is the owner", async () => {
+      vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+        ownerMembership,
+      );
+      const newOwner = CampaignMember.create({
+        campaignId,
+        userId: ownerUser.Id,
+        role: "OWNER",
+      });
+      vi.mocked(campaignMemberService.transferOwnership).mockResolvedValue(
+        newOwner,
+      );
+      const context = makeContext(campaignMemberService, ownerUser);
+
+      const result = await Mutation.transferCampaignOwnership(
+        undefined,
+        args,
+        context,
+      );
+
+      expect(campaignMemberService.transferOwnership).toHaveBeenCalledWith(
+        campaignId,
+        "user-1",
+      );
+      expect(result).toBe(newOwner);
     });
   });
 });

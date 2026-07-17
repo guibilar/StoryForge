@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
-import { Note, NoteId, UserId } from "@storyforge/domain";
+import { Note, NoteId, NoteLink, UserId } from "@storyforge/domain";
 import { prisma } from "@storyforge/database";
 import { PrismaNoteRepository } from "./PrismaNoteRepository";
 
@@ -129,5 +129,77 @@ describe("PrismaNoteRepository", () => {
     const found = await repository.findById(note.Id);
     expect(found?.Title).toBe(note.Title);
     expect(found?.Content).toBe("New content");
+  });
+
+  it("createWithLinks persists the note and its links atomically", async () => {
+    const campaignId = await createCampaign();
+    const authorId = await createUser();
+    const target = Note.create({
+      campaignId,
+      authorId: UserId.fromString(authorId),
+      title: uniqueTitle(),
+    });
+    await repository.create(target);
+    const note = Note.create({
+      campaignId,
+      authorId: UserId.fromString(authorId),
+      title: uniqueTitle(),
+    });
+    const link = NoteLink.create({
+      noteId: note.Id.toString(),
+      targetNoteId: target.Id.toString(),
+    });
+
+    await repository.createWithLinks(note, [link]);
+
+    const found = await repository.findById(note.Id);
+    expect(found).not.toBeNull();
+    const links = await prisma.noteLink.findMany({
+      where: { noteId: note.Id.toString() },
+    });
+    expect(links).toHaveLength(1);
+    expect(links[0].targetNoteId).toBe(target.Id.toString());
+  });
+
+  it("updateWithLinks persists the note and replaces its links atomically", async () => {
+    const campaignId = await createCampaign();
+    const authorId = await createUser();
+    const targetA = Note.create({
+      campaignId,
+      authorId: UserId.fromString(authorId),
+      title: uniqueTitle(),
+    });
+    const targetB = Note.create({
+      campaignId,
+      authorId: UserId.fromString(authorId),
+      title: uniqueTitle(),
+    });
+    await repository.create(targetA);
+    await repository.create(targetB);
+    const note = Note.create({
+      campaignId,
+      authorId: UserId.fromString(authorId),
+      title: uniqueTitle(),
+    });
+    await repository.createWithLinks(note, [
+      NoteLink.create({
+        noteId: note.Id.toString(),
+        targetNoteId: targetA.Id.toString(),
+      }),
+    ]);
+
+    note.changeContent("updated");
+    await repository.updateWithLinks(note, [
+      NoteLink.create({
+        noteId: note.Id.toString(),
+        targetNoteId: targetB.Id.toString(),
+      }),
+    ]);
+
+    const links = await prisma.noteLink.findMany({
+      where: { noteId: note.Id.toString() },
+    });
+    expect(links).toHaveLength(1);
+    expect(links[0].targetNoteId).toBe(targetB.Id.toString());
   });
 });

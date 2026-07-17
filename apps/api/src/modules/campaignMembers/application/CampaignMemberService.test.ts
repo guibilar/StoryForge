@@ -17,6 +17,7 @@ function makeCampaignMemberRepository(): CampaignMemberRepository {
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    transferOwnership: vi.fn(),
   };
 }
 
@@ -329,6 +330,98 @@ describe("CampaignMemberService", () => {
       expect(updated.Role).toBe("OWNER");
       expect(campaignMemberRepository.listByCampaign).not.toHaveBeenCalled();
       expect(campaignMemberRepository.update).toHaveBeenCalledWith(member);
+    });
+  });
+
+  describe("transferOwnership", () => {
+    it("throws NotFoundError when the new owner is not a member", async () => {
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(null);
+
+      await expect(
+        service.transferOwnership(campaignId, "missing-user"),
+      ).rejects.toThrow(NotFoundError);
+      expect(campaignMemberRepository.transferOwnership).not.toHaveBeenCalled();
+    });
+
+    it("is a no-op when the target is already the owner", async () => {
+      const userId = UserId.create();
+      const member = CampaignMember.create({
+        campaignId,
+        userId,
+        role: "OWNER",
+      });
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(member);
+
+      const result = await service.transferOwnership(
+        campaignId,
+        userId.toString(),
+      );
+
+      expect(result).toBe(member);
+      expect(campaignMemberRepository.transferOwnership).not.toHaveBeenCalled();
+    });
+
+    it("atomically demotes the current owner and promotes the new one", async () => {
+      const oldOwnerId = UserId.create();
+      const newOwnerId = UserId.create();
+      const oldOwner = CampaignMember.create({
+        campaignId,
+        userId: oldOwnerId,
+        role: "OWNER",
+      });
+      const newOwner = CampaignMember.create({
+        campaignId,
+        userId: newOwnerId,
+        role: "PLAYER",
+      });
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(newOwner);
+      vi.mocked(campaignMemberRepository.listByCampaign).mockResolvedValue([
+        oldOwner,
+        newOwner,
+      ]);
+
+      const result = await service.transferOwnership(
+        campaignId,
+        newOwnerId.toString(),
+      );
+
+      expect(result.Role).toBe("OWNER");
+      expect(campaignMemberRepository.transferOwnership).toHaveBeenCalledWith(
+        campaignId,
+        oldOwnerId,
+        newOwnerId,
+        "STORYTELLER",
+      );
+    });
+
+    it("promotes directly when the campaign currently has no owner", async () => {
+      const newOwnerId = UserId.create();
+      const newOwner = CampaignMember.create({
+        campaignId,
+        userId: newOwnerId,
+        role: "PLAYER",
+      });
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(newOwner);
+      vi.mocked(campaignMemberRepository.listByCampaign).mockResolvedValue([
+        newOwner,
+      ]);
+
+      await service.transferOwnership(campaignId, newOwnerId.toString());
+
+      expect(campaignMemberRepository.transferOwnership).toHaveBeenCalledWith(
+        campaignId,
+        null,
+        newOwnerId,
+        "STORYTELLER",
+      );
     });
   });
 });

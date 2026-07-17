@@ -227,6 +227,7 @@ describe("relationships Query.relationships", () => {
     );
 
     expect(relationshipService.listRelationshipsByEntity).toHaveBeenCalledWith(
+      "campaign-1",
       "entity-1",
     );
     expect(

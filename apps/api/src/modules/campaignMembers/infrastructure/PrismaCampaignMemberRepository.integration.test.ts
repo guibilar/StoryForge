@@ -161,4 +161,65 @@ describe("PrismaCampaignMemberRepository", () => {
     );
     expect(found).toBeNull();
   });
+
+  it("rejects a second OWNER for the same campaign at the DB level", async () => {
+    const campaignId = await createCampaign();
+    const firstOwnerId = await createUser();
+    const secondOwnerId = await createUser();
+    await repository.create(
+      CampaignMember.create({
+        campaignId,
+        userId: UserId.fromString(firstOwnerId),
+        role: "OWNER",
+      }),
+    );
+
+    await expect(
+      repository.create(
+        CampaignMember.create({
+          campaignId,
+          userId: UserId.fromString(secondOwnerId),
+          role: "OWNER",
+        }),
+      ),
+    ).rejects.toThrow();
+  });
+
+  it("atomically transfers ownership to another member", async () => {
+    const campaignId = await createCampaign();
+    const ownerId = await createUser();
+    const memberId = await createUser();
+    await repository.create(
+      CampaignMember.create({
+        campaignId,
+        userId: UserId.fromString(ownerId),
+        role: "OWNER",
+      }),
+    );
+    await repository.create(
+      CampaignMember.create({
+        campaignId,
+        userId: UserId.fromString(memberId),
+        role: "PLAYER",
+      }),
+    );
+
+    await repository.transferOwnership(
+      campaignId,
+      UserId.fromString(ownerId),
+      UserId.fromString(memberId),
+      "STORYTELLER",
+    );
+
+    const oldOwner = await repository.findByCampaignAndUser(
+      campaignId,
+      UserId.fromString(ownerId),
+    );
+    const newOwner = await repository.findByCampaignAndUser(
+      campaignId,
+      UserId.fromString(memberId),
+    );
+    expect(oldOwner?.Role).toBe("STORYTELLER");
+    expect(newOwner?.Role).toBe("OWNER");
+  });
 });

@@ -1,6 +1,11 @@
-import { Session, SessionId, SessionRepository } from "@storyforge/domain";
+import {
+  Session,
+  SessionId,
+  SessionRepository,
+  ValidationError,
+} from "@storyforge/domain";
 
-import { prisma } from "@storyforge/database";
+import { prisma, Prisma } from "@storyforge/database";
 import { SessionMapper } from "./SessionMapper";
 
 export class PrismaSessionRepository implements SessionRepository {
@@ -45,9 +50,21 @@ export class PrismaSessionRepository implements SessionRepository {
   }
 
   async create(session: Session): Promise<void> {
-    await prisma.session.create({
-      data: SessionMapper.toPersistence(session),
-    });
+    try {
+      await prisma.session.create({
+        data: SessionMapper.toPersistence(session),
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ValidationError(
+          "Another session was logged for this campaign at the same time. Please try again.",
+        );
+      }
+      throw error;
+    }
   }
 
   async update(session: Session): Promise<void> {

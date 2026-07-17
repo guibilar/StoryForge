@@ -325,6 +325,7 @@ export type EntitiesQuery = {
     id: string;
     name: string;
     description: string | null;
+    type: string;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   }>;
@@ -387,6 +388,19 @@ export type RegisterMutationVariables = Exact<{
 
 export type RegisterMutation = {
   registerUser: { user: { id: string; email: string } };
+};
+
+export type RelationshipsQueryVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type RelationshipsQuery = {
+  relationships: Array<{
+    id: string;
+    sourceEntityId: string;
+    targetEntityId: string;
+    type: string;
+  }>;
 };
 
 export type RemoveCampaignMemberMutationVariables = Exact<{
@@ -1682,6 +1696,7 @@ export const EntitiesDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",
@@ -2005,6 +2020,63 @@ export const RegisterDocument = {
     },
   ],
 } as unknown as DocumentNode<RegisterMutation, RegisterMutationVariables>;
+export const RelationshipsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Relationships" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "relationships" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "sourceEntityId" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "targetEntityId" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RelationshipsQuery, RelationshipsQueryVariables>;
 export const RemoveCampaignMemberDocument = {
   kind: "Document",
   definitions: [

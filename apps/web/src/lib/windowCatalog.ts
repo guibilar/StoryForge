@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { MembersWindow } from "../components/MembersWindow";
 import { NotesWindow } from "../components/NotesWindow";
 import { NpcsWindow } from "../components/NpcsWindow";
+import { RelationshipGraphWindow } from "../components/RelationshipGraphWindow";
 import { SessionsWindow } from "../components/SessionsWindow";
 import { TimelineWindow } from "../components/TimelineWindow";
 import type { LayoutMap } from "../hooks/useDesktopLayout";
@@ -52,6 +53,12 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
     // Visible to every member since KAN-63: the API filters what each role
     // can read (shared notes, plus targeted handouts addressed to you).
   },
+  {
+    id: "relationships",
+    title: "Relationship Graph",
+    render: () => createElement(RelationshipGraphWindow),
+    // View-only for v1 (no create/edit UI), so every role can see it.
+  },
 ];
 
 export function visibleWindowCatalog(
@@ -69,4 +76,12 @@ export const DEFAULT_LAYOUT: LayoutMap = {
   sessions: { x: 754, y: 24, width: 398, height: 340, hidden: false, z: 2 },
   timeline: { x: 28, y: 322, width: 480, height: 260, hidden: true, z: 1 },
   notes: { x: 526, y: 362, width: 360, height: 240, hidden: true, z: 1 },
+  relationships: {
+    x: 130,
+    y: 60,
+    width: 520,
+    height: 420,
+    hidden: true,
+    z: 1,
+  },
 };

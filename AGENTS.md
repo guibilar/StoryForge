@@ -695,7 +695,13 @@ auth flow, and the campaign desktop shell are all wired:
     hidden entirely from Players/Observers via `visibleToRoles`) are real
     now; `sessions`/`timeline`/`notes` still render `ComingSoonPanel`
     (`src/components/ComingSoonPanel.tsx`), a one-line placeholder naming
-    the tracking ticket.
+    the tracking ticket. `relationships` (`RelationshipGraphWindow`,
+    KAN-42) is also real — a `@xyflow/react` node-link diagram of
+    `entities(campaignId)`/`relationships(campaignId)`, view-only (no
+    `visibleToRoles` restriction, no create/edit UI), colored by `type`
+    via `src/lib/categoryColor.ts`'s fixed 8-hue categorical palette
+    (first-seen order, since `Entity.type`/`Relationship.type` are open
+    free strings, not enums).
 - `src/index.css` only holds `apps/web`-shell layout/typography rules;
   design tokens (colors, fonts, shadows) live in
   `@storyforge/ui/tokens.css`, imported once in `main.tsx`.

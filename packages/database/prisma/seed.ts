@@ -171,6 +171,16 @@ async function main(): Promise<void> {
         type: "LOCATED_AT",
         description: "Whisper's cult meets here.",
       },
+      // Without this edge the amulet was an isolated node in the KAN-42
+      // relationship graph — every seeded entity should show up connected.
+      {
+        id: randomUUID(),
+        campaignId: campaign.id,
+        sourceEntityId: amulet.id,
+        targetEntityId: whisper.id,
+        type: "OWNED_BY",
+        description: "The amulet channels Whisper's voice.",
+      },
     ],
   });
 

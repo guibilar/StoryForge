@@ -2,9 +2,13 @@ import { NoteVisibility } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCurrentUser } from "../../../auth/graphql/guards";
-import { requireCampaignWriter } from "../../../campaignMembers/graphql/guards";
 import type { UpdateNoteDto } from "../../application/NoteService";
-import { requireNoteWriter } from "../guards";
+import {
+  requireAuthorableVisibility,
+  requireNoteCreator,
+  requireNoteWriter,
+  requireViewableParent,
+} from "../guards";
 
 export const Mutation = {
   createNote: async (
@@ -22,10 +26,17 @@ export const Mutation = {
     context: GraphQLContext,
   ) => {
     try {
-      const membership = await requireCampaignWriter(
+      const membership = await requireNoteCreator(
         context,
         args.input.campaignId,
       );
+      requireAuthorableVisibility(
+        membership,
+        args.input.visibility ?? NoteVisibility.SHARED,
+      );
+      if (args.input.parentNoteId) {
+        await requireViewableParent(context, args.input.parentNoteId);
+      }
       return await context.noteService.createNote({
         ...args.input,
         authorId: membership.UserId.toString(),
@@ -43,7 +54,16 @@ export const Mutation = {
     try {
       requireCurrentUser(context);
       const note = await context.noteService.getNote(args.input.id);
-      await requireNoteWriter(context, note);
+      const membership = await requireNoteWriter(context, note);
+      if (
+        args.input.visibility !== undefined ||
+        args.input.recipientIds !== undefined
+      ) {
+        requireAuthorableVisibility(
+          membership,
+          args.input.visibility ?? note.Visibility,
+        );
+      }
       return await context.noteService.updateNote(args.input);
     } catch (error) {
       toGraphQLError(error);
@@ -75,6 +95,9 @@ export const Mutation = {
       requireCurrentUser(context);
       const note = await context.noteService.getNote(args.id);
       await requireNoteWriter(context, note);
+      if (args.parentNoteId) {
+        await requireViewableParent(context, args.parentNoteId);
+      }
       return await context.noteService.moveNote(
         args.id,
         args.parentNoteId ?? null,

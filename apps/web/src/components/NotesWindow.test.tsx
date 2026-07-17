@@ -62,6 +62,7 @@ const playerMembers = tableMembers.map((member) =>
 
 interface NoteFixture {
   id: string;
+  authorId: string;
   title: string;
   content: string;
   visibility: string;
@@ -71,6 +72,7 @@ interface NoteFixture {
 const notes: NoteFixture[] = [
   {
     id: "note-1",
+    authorId: CURRENT_USER_ID,
     title: "Session 1 recap",
     content: "The party met **Goblin King** and fled the mines.",
     visibility: "SHARED",
@@ -78,6 +80,7 @@ const notes: NoteFixture[] = [
   },
   {
     id: "note-2",
+    authorId: "someone-else",
     title: "House rules",
     content: "No resting inside dungeons.",
     visibility: "SHARED",
@@ -268,6 +271,7 @@ describe("NotesWindow", () => {
   it("seeds the edit modal with the note's visibility and recipients, and submits them", async () => {
     const targeted = {
       id: "note-3",
+      authorId: CURRENT_USER_ID,
       title: "Handout",
       content: "For your eyes only.",
       visibility: "TARGETED",
@@ -304,6 +308,7 @@ describe("NotesWindow", () => {
       { ...notes[0] },
       {
         id: "note-4",
+        authorId: "someone-else",
         title: "GM secrets",
         content: "hidden",
         visibility: "PRIVATE",
@@ -311,6 +316,7 @@ describe("NotesWindow", () => {
       },
       {
         id: "note-5",
+        authorId: "someone-else",
         title: "Clue for players",
         content: "psst",
         visibility: "TARGETED",
@@ -327,6 +333,7 @@ describe("NotesWindow", () => {
   it("labels a handout addressed to the current user as For you", () => {
     const handout = {
       id: "note-6",
+      authorId: "someone-else",
       title: "Just for me",
       content: "psst",
       visibility: "TARGETED",
@@ -337,8 +344,8 @@ describe("NotesWindow", () => {
 
     expect(screen.getByText("For you")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "+ New note" }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: "+ New note" }),
+    ).toBeInTheDocument();
   });
 
   it("deletes a note after confirming and refetches", async () => {
@@ -352,6 +359,91 @@ describe("NotesWindow", () => {
     expect(deleteNote).toHaveBeenCalledWith({ id: "note-1" });
     expect(reexecuteNotes).toHaveBeenCalledWith({
       requestPolicy: "network-only",
+    });
+  });
+
+  it("lets a player create a note without the Handout visibility option (KAN-90)", async () => {
+    const { createNote } = setupMocks({
+      members: playerMembers,
+      noteRoots: [],
+    });
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "+ New note" }));
+
+    const visibilitySelect = screen.getByLabelText("Visibility");
+    expect(visibilitySelect).toBeInTheDocument();
+    expect(
+      screen.queryByRole("option", { name: "Handout for specific players" }),
+    ).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Title"), "My journal");
+    await user.selectOptions(
+      visibilitySelect,
+      "Private (you and Storytellers)",
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createNote).toHaveBeenCalledWith({
+      input: {
+        campaignId: "camp-1",
+        title: "My journal",
+        content: "",
+        visibility: "PRIVATE",
+      },
+    });
+  });
+
+  it("shows edit/delete only on a player's own notes (KAN-90)", () => {
+    const ownNote: NoteFixture = {
+      id: "note-own",
+      authorId: CURRENT_USER_ID,
+      title: "My journal",
+      content: "mine",
+      visibility: "PRIVATE",
+      recipientIds: [],
+    };
+    const gmNote: NoteFixture = {
+      id: "note-gm",
+      authorId: "someone-else",
+      title: "Party log",
+      content: "shared",
+      visibility: "SHARED",
+      recipientIds: [],
+    };
+    setupMocks({ members: playerMembers, noteRoots: [ownNote, gmNote] });
+    renderWindow();
+
+    expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(1);
+
+    const ownRow = screen.getByText("My journal").closest("button");
+    const gmRow = screen.getByText("Party log").closest("button");
+    expect(ownRow).toBeEnabled();
+    expect(gmRow).toBeDisabled();
+  });
+
+  it("omits visibility from the update when it is unchanged", async () => {
+    const targeted: NoteFixture = {
+      id: "note-7",
+      authorId: CURRENT_USER_ID,
+      title: "Handout",
+      content: "psst",
+      visibility: "TARGETED",
+      recipientIds: ["player-1"],
+    };
+    const { updateNote } = setupMocks({
+      members: tableMembers,
+      noteRoots: [targeted],
+    });
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByText("Handout"));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(updateNote).toHaveBeenCalledWith({
+      input: { id: "note-7", title: "Handout", content: "psst" },
     });
   });
 });

@@ -13,6 +13,7 @@ export class TerritoryMapper {
       type: record.type,
       geometry: record.geometry as TerritoryGeometry,
       description: record.description,
+      entityId: record.entityId,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     });
@@ -26,6 +27,7 @@ export class TerritoryMapper {
       type: territory.Type,
       geometry: territory.Geometry as Prisma.InputJsonValue,
       description: territory.Description,
+      entityId: territory.EntityId,
       createdAt: territory.CreatedAt,
       updatedAt: territory.UpdatedAt,
     };

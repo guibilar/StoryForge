@@ -293,6 +293,7 @@ export type WorkspaceStateScalarFieldEnum =
 export const MarkerScalarFieldEnum = {
   id: "id",
   campaignId: "campaignId",
+  entityId: "entityId",
   name: "name",
   lat: "lat",
   lng: "lng",
@@ -307,6 +308,7 @@ export type MarkerScalarFieldEnum =
 export const TerritoryScalarFieldEnum = {
   id: "id",
   campaignId: "campaignId",
+  entityId: "entityId",
   name: "name",
   type: "type",
   geometry: "geometry",

@@ -18,10 +18,13 @@ import {
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
+import { EntitySelectField } from "./EntitySelectField";
 import styles from "./TerritoryFormWindow.module.css";
 
 export interface TerritoryRow {
   id: string;
+  entityId?: string | null;
+  entity?: { id: string; name: string; type: string } | null;
   name: string;
   type: string;
   geometry: string;
@@ -54,8 +57,9 @@ const DEFAULT_GEOMETRY = JSON.stringify(
 
 // The Add/Edit form content for a single map territory — opened via
 // useAddEditWindow, same pattern as SessionFormWindow/EventFormWindow.
-// Geometry is a raw GeoJSON textarea for now; a drawing tool on the map
-// canvas itself is future scope, not implied by this ticket.
+// The geometry textarea is normally filled in by drawing the shape on the
+// map (KAN-115); it stays editable as the escape hatch for pasting or
+// tweaking a ring by hand.
 export function TerritoryFormWindow({
   campaignId,
   mode,
@@ -73,7 +77,11 @@ export function TerritoryFormWindow({
     createState.fetching || updateState.fetching || deleteState.fetching,
   );
 
-  const initialTerritory = mode.mode === "edit" ? mode.item : null;
+  // In create mode these are seed values from whatever opened the form — a
+  // polygon drawn on the map supplies the geometry — rather than a saved row,
+  // so every field is optional.
+  const initialTerritory: Partial<TerritoryRow> | null =
+    mode.mode === "edit" ? mode.item : (mode.initial ?? null);
 
   async function handleDelete() {
     if (mode.mode !== "edit") {
@@ -96,6 +104,9 @@ export function TerritoryFormWindow({
     const type = String(data.get("type") ?? "").trim();
     const geometry = String(data.get("geometry") ?? "").trim();
     const description = String(data.get("description") ?? "").trim();
+    // The picker's "None" option submits an empty string; the API wants an
+    // explicit null to mean unlinked.
+    const entityId = String(data.get("entityId") ?? "") || null;
 
     // `required` alone doesn't stop a whitespace-only value (the browser
     // only checks the raw value is non-empty) — check each trimmed field
@@ -130,6 +141,7 @@ export function TerritoryFormWindow({
           type,
           geometry,
           description: description || null,
+          entityId,
         },
       });
       if (result.data?.createTerritory) {
@@ -144,6 +156,7 @@ export function TerritoryFormWindow({
           type,
           geometry,
           description: description || null,
+          entityId,
         },
       });
       if (result.data?.updateTerritory) {
@@ -181,16 +194,28 @@ export function TerritoryFormWindow({
           required
         />
       </FormField>
-      <FormField label="Geometry (GeoJSON)" htmlFor="territory-geometry">
+      <EntitySelectField
+        campaignId={campaignId}
+        id="territory-entity"
+        name="entityId"
+        defaultValue={initialTerritory?.entityId}
+      />
+      {/* Collapsed by default: the shape is normally drawn on the map, so the
+          raw ring is reference material rather than something to fill in. The
+          summary doubles as the field label — a FormField label inside would
+          duplicate it. */}
+      <details className={styles.geometryDetails}>
+        <summary>Geometry (GeoJSON)</summary>
         <Textarea
           id="territory-geometry"
           name="geometry"
+          aria-label="Geometry (GeoJSON)"
           className={styles.geometry}
           defaultValue={initialTerritory?.geometry ?? DEFAULT_GEOMETRY}
           rows={8}
           required
         />
-      </FormField>
+      </details>
       <FormField label="Description" htmlFor="territory-description">
         <Textarea
           id="territory-description"

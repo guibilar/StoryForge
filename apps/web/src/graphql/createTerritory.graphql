@@ -1,6 +1,12 @@
 mutation CreateTerritory($input: CreateTerritoryInput!) {
   createTerritory(input: $input) {
     id
+    entityId
+    entity {
+      id
+      name
+      type
+    }
     name
     type
     geometry

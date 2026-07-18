@@ -1,9 +1,12 @@
 import {
+  EntityId,
+  EntityRepository,
   NotFoundError,
   Territory,
   TerritoryGeometry,
   TerritoryId,
   TerritoryRepository,
+  ValidationError,
 } from "@storyforge/domain";
 
 export interface CreateTerritoryDto {
@@ -12,6 +15,7 @@ export interface CreateTerritoryDto {
   type: string;
   geometry: TerritoryGeometry;
   description?: string | null;
+  entityId?: string | null;
 }
 
 export interface UpdateTerritoryDto {
@@ -20,12 +24,20 @@ export interface UpdateTerritoryDto {
   type?: string;
   geometry?: TerritoryGeometry;
   description?: string | null;
+  entityId?: string | null;
 }
 
 export class TerritoryService {
-  constructor(private readonly repository: TerritoryRepository) {}
+  constructor(
+    private readonly repository: TerritoryRepository,
+    private readonly entityRepository: EntityRepository,
+  ) {}
 
   async createTerritory(dto: CreateTerritoryDto): Promise<Territory> {
+    if (dto.entityId) {
+      await this.requireEntityInCampaign(dto.entityId, dto.campaignId);
+    }
+
     const territory = Territory.create(dto);
 
     await this.repository.create(territory);
@@ -50,6 +62,15 @@ export class TerritoryService {
 
     if (dto.description !== undefined) {
       territory.changeDescription(dto.description);
+    }
+
+    if (dto.entityId !== undefined) {
+      if (dto.entityId) {
+        // The update DTO carries no campaignId, so the campaign of record is
+        // the existing aggregate's.
+        await this.requireEntityInCampaign(dto.entityId, territory.CampaignId);
+      }
+      territory.linkEntity(dto.entityId);
     }
 
     await this.repository.update(territory);
@@ -82,5 +103,22 @@ export class TerritoryService {
 
   async listTerritories(campaignId: string): Promise<Territory[]> {
     return this.repository.findByCampaign(campaignId);
+  }
+
+  private async requireEntityInCampaign(
+    entityId: string,
+    campaignId: string,
+  ): Promise<void> {
+    const entity = await this.entityRepository.findById(
+      EntityId.fromString(entityId),
+    );
+
+    if (!entity) {
+      throw new NotFoundError("Entity not found.");
+    }
+
+    if (entity.CampaignId !== campaignId) {
+      throw new ValidationError("Entity does not belong to this campaign.");
+    }
   }
 }

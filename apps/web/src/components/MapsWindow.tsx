@@ -19,7 +19,12 @@ import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { MapCanvas } from "./MapCanvas";
-import type { MapMarkerPoint, MapTerritoryShape } from "./MapCanvas";
+import type {
+  MapDrawMode,
+  MapMarkerPoint,
+  MapPosition,
+  MapTerritoryShape,
+} from "./MapCanvas";
 import { MarkerFormWindow } from "./MarkerFormWindow";
 import type { MarkerRow } from "./MarkerFormWindow";
 import { TerritoryFormWindow } from "./TerritoryFormWindow";
@@ -30,6 +35,12 @@ import styles from "./MapsWindow.module.css";
 // — checking client-side first avoids uploading a large file in full only
 // to have the server reject it afterwards.
 const MAX_MAP_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const COORDINATE_DECIMALS = 6;
+
+function roundCoordinate(value: number): number {
+  return Number(value.toFixed(COORDINATE_DECIMALS));
+}
 
 // Fetches and renders a campaign's markers/territories on top of KAN-50's
 // MapCanvas, plus (for campaign writers) the create/edit forms for each —
@@ -79,6 +90,12 @@ export function MapsWindow() {
   const [uploadValidationError, setUploadValidationError] = useState<
     string | null
   >(null);
+  const [drawMode, setDrawMode] = useState<MapDrawMode>("none");
+  // What was drawn doesn't make a placement unique — the same spot clicked
+  // twice rounds to the same coordinates — so a counter guarantees each open
+  // create form gets its own window instead of replacing the previous one.
+  // Shared across markers and territories; it only has to vary.
+  const placementCountRef = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { openAddEditWindow: openMarkerWindow } = useAddEditWindow({
@@ -130,6 +147,7 @@ export function MapsWindow() {
         name: territory.name,
         type: territory.type,
         description: territory.description,
+        entity: territory.entity,
         geometry,
       });
     }
@@ -176,18 +194,46 @@ export function MapsWindow() {
     }
   }
 
-  function openCreateMarkerWindow() {
+  function openCreateMarkerWindow(position?: MapPosition) {
     if (!campaignId) {
       return;
     }
-    openMarkerWindow<MarkerRow>({ mode: "create" }, "New Marker", (close) => (
-      <MarkerFormWindow
-        campaignId={campaignId}
-        mode={{ mode: "create" }}
-        onSaved={refetch}
-        onClose={close}
-      />
-    ));
+    // Leaflet reports full float precision; six decimals is ~0.1m of
+    // geographic accuracy and still sub-pixel on a custom map image, so it
+    // reads as a coordinate rather than a wall of digits in the form.
+    const initial = position
+      ? {
+          lat: roundCoordinate(position.lat),
+          lng: roundCoordinate(position.lng),
+        }
+      : undefined;
+    // Two placements in a row must not land on the same window id, or the
+    // second silently replaces the first along with anything typed into it.
+    // The coordinates are in the id for readability; the counter is what
+    // actually makes it unique when the same spot is clicked twice.
+    const key = initial
+      ? `${++placementCountRef.current}@${initial.lat},${initial.lng}`
+      : undefined;
+
+    openMarkerWindow<MarkerRow>(
+      { mode: "create", initial, key },
+      "New Marker",
+      (close) => (
+        <MarkerFormWindow
+          campaignId={campaignId}
+          mode={{ mode: "create", initial }}
+          onSaved={refetch}
+          onClose={close}
+        />
+      ),
+    );
+  }
+
+  // Placing a point is a one-shot gesture: disarm first so a stray second
+  // click doesn't open a second form behind the one just opened.
+  function handlePlaceMarker(position: MapPosition) {
+    setDrawMode("none");
+    openCreateMarkerWindow(position);
   }
 
   function openEditMarkerWindow(marker: MapMarkerPoint) {
@@ -219,22 +265,36 @@ export function MapsWindow() {
     }
   }
 
-  function openCreateTerritoryWindow() {
+  function openCreateTerritoryWindow(geometry?: Record<string, unknown>) {
     if (!campaignId) {
       return;
     }
+    // Geometry crosses the wire — and lives in the form field — as a JSON
+    // string, not an object; MapsWindow does the inverse parse when reading
+    // territories back for the canvas.
+    const initial = geometry
+      ? { geometry: JSON.stringify(geometry, null, 2) }
+      : undefined;
+    const key = initial ? `${++placementCountRef.current}` : undefined;
+
     openTerritoryWindow<TerritoryRow>(
-      { mode: "create" },
+      { mode: "create", initial, key },
       "New Territory",
       (close) => (
         <TerritoryFormWindow
           campaignId={campaignId}
-          mode={{ mode: "create" }}
+          mode={{ mode: "create", initial }}
           onSaved={refetch}
           onClose={close}
         />
       ),
     );
+  }
+
+  // Finishing a shape is a one-shot gesture, same as placing a marker.
+  function handleCompleteTerritory(geometry: Record<string, unknown>) {
+    setDrawMode("none");
+    openCreateTerritoryWindow(geometry);
   }
 
   function openEditTerritoryWindow(territory: MapTerritoryShape) {
@@ -262,7 +322,11 @@ export function MapsWindow() {
   const fetching = markersFetching || territoriesFetching;
   useWindowChromeSync(fetching, refetch);
 
-  if (fetching) {
+  // Only the very first load blocks. Saving a marker triggers a network-only
+  // refetch, and unmounting the canvas for that would rebuild the Leaflet map
+  // from scratch — throwing away wherever the user had panned and zoomed to.
+  const loaded = Boolean(markersData && territoriesData);
+  if (fetching && !loaded) {
     return <p>Loading map…</p>;
   }
 
@@ -285,6 +349,10 @@ export function MapsWindow() {
           territories={mapTerritories}
           imageOverlay={imageOverlay}
           markerActionPending={deleteMarkerState.fetching}
+          drawMode={drawMode}
+          onDrawModeChange={isWriter ? setDrawMode : undefined}
+          onPlaceMarker={isWriter ? handlePlaceMarker : undefined}
+          onCompleteTerritory={isWriter ? handleCompleteTerritory : undefined}
           onEditMarker={openEditMarkerWindow}
           onDeleteMarker={handleDeleteMarker}
           onTerritoryClick={isWriter ? openEditTerritoryWindow : undefined}
@@ -292,16 +360,26 @@ export function MapsWindow() {
       </div>
       {isWriter ? (
         <div className={styles.actions}>
-          <Button type="button" onClick={openCreateMarkerWindow}>
-            + Add Marker
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={openCreateTerritoryWindow}
-          >
-            + Add Territory
-          </Button>
+          {/* Typing coordinates by hand only makes sense on a custom map
+              image, where a marker's position is a pixel offset the user
+              might already know. On the geographic tile layer, drawing on
+              the canvas is the only sensible way in, so these stay hidden.
+              Wrapped rather than passed directly: onClick would otherwise
+              hand the MouseEvent to the position parameter. */}
+          {mapImage ? (
+            <>
+              <Button type="button" onClick={() => openCreateMarkerWindow()}>
+                + Add Marker
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => openCreateTerritoryWindow()}
+              >
+                + Add Territory
+              </Button>
+            </>
+          ) : null}
           <input
             ref={fileInputRef}
             type="file"

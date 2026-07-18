@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { useMutation } from "urql";
+import { useMutation, useQuery } from "urql";
 
 import { MarkerFormWindow } from "./MarkerFormWindow";
 import type { MarkerRow } from "./MarkerFormWindow";
@@ -10,7 +10,7 @@ import { CreateMarkerDocument, UpdateMarkerDocument } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useMutation: vi.fn() };
+  return { ...actual, useMutation: vi.fn(), useQuery: vi.fn() };
 });
 
 function setupMocks({
@@ -19,7 +19,14 @@ function setupMocks({
     .mockResolvedValue({ data: { createMarker: { id: "marker-2" } } }),
   updateMarker = vi.fn().mockResolvedValue({ data: { updateMarker: {} } }),
   createFetching = false,
+  entities = [] as { id: string; name: string; type: string }[],
 } = {}) {
+  // EntitySelectField loads the campaign's entities for the link picker.
+  vi.mocked(useQuery).mockReturnValue([
+    { data: { entities }, fetching: false, stale: false },
+    vi.fn(),
+  ] as never);
+
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === CreateMarkerDocument) {
       return [
@@ -65,6 +72,60 @@ function renderEdit(marker: MarkerRow, onSaved = vi.fn(), onClose = vi.fn()) {
 }
 
 describe("MarkerFormWindow", () => {
+  it("defaults the coordinates to 0 when create mode has no seed values", () => {
+    setupMocks();
+    renderCreate();
+
+    expect(screen.getByLabelText("Latitude")).toHaveValue(0);
+    expect(screen.getByLabelText("Longitude")).toHaveValue(0);
+  });
+
+  it("prefills the coordinates from create-mode seed values", () => {
+    setupMocks();
+    render(
+      <MarkerFormWindow
+        campaignId="camp-1"
+        mode={{ mode: "create", initial: { lat: 51.505, lng: -0.09 } }}
+        onSaved={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByLabelText("Latitude")).toHaveValue(51.505);
+    expect(screen.getByLabelText("Longitude")).toHaveValue(-0.09);
+    // Only the coordinates are seeded — the user still names the marker.
+    expect(screen.getByLabelText("Name")).toHaveValue("");
+  });
+
+  it("accepts seeded pixel coordinates from a custom map image", async () => {
+    const { createMarker } = setupMocks();
+    const user = userEvent.setup();
+    render(
+      <MarkerFormWindow
+        campaignId="camp-1"
+        mode={{ mode: "create", initial: { lat: 1387.5, lng: 1902.25 } }}
+        onSaved={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByLabelText("Name"), "Watchtower");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    // Far outside geographic ranges — these must survive to the mutation
+    // rather than being clamped or rejected.
+    expect(createMarker).toHaveBeenCalledWith({
+      input: {
+        campaignId: "camp-1",
+        name: "Watchtower",
+        lat: 1387.5,
+        lng: 1902.25,
+        description: null,
+        entityId: null,
+      },
+    });
+  });
+
   it("creates a marker and calls onSaved/onClose", async () => {
     const { createMarker } = setupMocks();
     const user = userEvent.setup();
@@ -84,6 +145,7 @@ describe("MarkerFormWindow", () => {
         lat: 51.505,
         lng: -0.09,
         description: null,
+        entityId: null,
       },
     });
     expect(onSaved).toHaveBeenCalledTimes(1);
@@ -118,6 +180,7 @@ describe("MarkerFormWindow", () => {
         lat: 51.505,
         lng: -0.09,
         description: "Abandoned mill",
+        entityId: null,
       },
     });
   });
@@ -153,6 +216,7 @@ describe("MarkerFormWindow", () => {
         lat: 1200,
         lng: 900,
         description: null,
+        entityId: null,
       },
     });
   });
@@ -184,5 +248,64 @@ describe("MarkerFormWindow", () => {
     );
 
     expect(chromeApi.setLoading).toHaveBeenCalledWith(true);
+  });
+
+  it("links the marker to the chosen entity", async () => {
+    const { createMarker } = setupMocks({
+      entities: [
+        { id: "entity-1", name: "Riverwood", type: "location" },
+        { id: "entity-2", name: "Bandit Chief", type: "npc" },
+      ],
+    });
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Name"), "Old Mill");
+    await user.selectOptions(screen.getByLabelText("Entity"), "entity-2");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createMarker).toHaveBeenCalledWith({
+      input: expect.objectContaining({ entityId: "entity-2" }),
+    });
+  });
+
+  it("submits null rather than an empty string when left unlinked", async () => {
+    const { createMarker } = setupMocks({
+      entities: [{ id: "entity-1", name: "Riverwood", type: "location" }],
+    });
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Name"), "Old Mill");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    // The picker's "None" option has an empty-string value; the API needs a
+    // real null to mean unlinked.
+    expect(createMarker).toHaveBeenCalledWith({
+      input: expect.objectContaining({ entityId: null }),
+    });
+  });
+
+  it("preselects the existing link when editing and can clear it", async () => {
+    const { updateMarker } = setupMocks({
+      entities: [{ id: "entity-1", name: "Riverwood", type: "location" }],
+    });
+    const user = userEvent.setup();
+    renderEdit({
+      id: "marker-1",
+      name: "Old Mill",
+      lat: 1,
+      lng: 2,
+      entityId: "entity-1",
+    });
+
+    expect(screen.getByLabelText("Entity")).toHaveValue("entity-1");
+
+    await user.selectOptions(screen.getByLabelText("Entity"), "");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(updateMarker).toHaveBeenCalledWith({
+      input: expect.objectContaining({ entityId: null }),
+    });
   });
 });

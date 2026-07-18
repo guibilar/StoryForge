@@ -7,6 +7,7 @@ export interface CreateMarkerProps {
   lat: number;
   lng: number;
   description?: string | null;
+  entityId?: string | null;
 }
 
 export interface RehydrateMarkerProps {
@@ -16,14 +17,16 @@ export interface RehydrateMarkerProps {
   lat: number;
   lng: number;
   description: string | null;
+  entityId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// A single point on a campaign's map (KAN-51). Deliberately not tied to an
-// Entity — a marker can label a place ("Old Mill", "Ambush site") without
-// there being a corresponding world-data Entity for it. Linking a marker to
-// an Entity is a decision for a future ticket, not implied by this one.
+// A single point on a campaign's map (KAN-51). The link to an Entity is
+// optional (KAN-116) and stays that way: a marker can label a place ("Old
+// Mill", "Ambush site") without there being a corresponding world-data Entity
+// for it. Whether the linked entity belongs to the same campaign is checked by
+// MarkerService, which has the campaign in hand — same split as Event/Session.
 //
 // lat/lng are coordinates in whatever CRS the campaign's map is currently
 // using, not necessarily real-world geographic degrees: under the default
@@ -40,6 +43,7 @@ export class Marker {
     private latValue: number,
     private lngValue: number,
     private descriptionValue: string | null,
+    private entityIdValue: string | null,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
   ) {
@@ -56,6 +60,7 @@ export class Marker {
       props.lat,
       props.lng,
       props.description ?? null,
+      props.entityId ?? null,
       new Date(),
       new Date(),
     );
@@ -69,6 +74,7 @@ export class Marker {
       props.lat,
       props.lng,
       props.description,
+      props.entityId,
       props.createdAt,
       props.updatedAt,
     );
@@ -98,6 +104,10 @@ export class Marker {
     return this.descriptionValue;
   }
 
+  get EntityId(): string | null {
+    return this.entityIdValue;
+  }
+
   get CreatedAt(): Date {
     return this.createdAtValue;
   }
@@ -125,6 +135,14 @@ export class Marker {
     this.validateDescription(description);
 
     this.descriptionValue = description;
+    this.updatedAtValue = new Date();
+  }
+
+  // No validation here — that the entity exists and belongs to this marker's
+  // campaign is a cross-aggregate question, answered in MarkerService. Mirrors
+  // Event.changeSession.
+  linkEntity(entityId: string | null): void {
+    this.entityIdValue = entityId;
     this.updatedAtValue = new Date();
   }
 

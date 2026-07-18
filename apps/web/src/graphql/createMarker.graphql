@@ -1,6 +1,12 @@
 mutation CreateMarker($input: CreateMarkerInput!) {
   createMarker(input: $input) {
     id
+    entityId
+    entity {
+      id
+      name
+      type
+    }
     name
     lat
     lng

@@ -105,6 +105,15 @@ export class EntityService {
     await this.noteLinkRepository.deleteByTargetEntity(id);
   }
 
+  // Nullable counterpart to getEntity, for callers holding a reference that
+  // may no longer resolve. Entities are soft-deleted (deletedAt) and
+  // findById filters those out, so a Marker/Territory entityId can outlive
+  // the entity it points at — the database's ON DELETE SET NULL only fires
+  // on a hard delete. Mirrors SessionService.findSession.
+  async findEntity(id: string): Promise<Entity | null> {
+    return this.repository.findById(EntityId.fromString(id));
+  }
+
   async getEntity(id: string): Promise<Entity> {
     const entity = await this.repository.findById(EntityId.fromString(id));
 

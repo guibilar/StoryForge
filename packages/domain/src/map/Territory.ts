@@ -9,6 +9,7 @@ export interface CreateTerritoryProps {
   type: string;
   geometry: TerritoryGeometry;
   description?: string | null;
+  entityId?: string | null;
 }
 
 export interface RehydrateTerritoryProps {
@@ -18,6 +19,7 @@ export interface RehydrateTerritoryProps {
   type: string;
   geometry: TerritoryGeometry;
   description: string | null;
+  entityId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +31,9 @@ const MAX_GEOMETRY_JSON_LENGTH = 50_000;
 // `type` (e.g. "territory", "region", "district", or any campaign-specific
 // label), matching the Entity/Relationship pattern used elsewhere in the
 // domain rather than a bespoke Region/District class hierarchy.
+//
+// The link to an Entity is optional (KAN-116); TerritoryService checks that
+// the entity belongs to the same campaign.
 export class Territory {
   private constructor(
     private readonly idValue: TerritoryId,
@@ -37,6 +42,7 @@ export class Territory {
     private typeValue: string,
     private geometryValue: TerritoryGeometry,
     private descriptionValue: string | null,
+    private entityIdValue: string | null,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
   ) {
@@ -54,6 +60,7 @@ export class Territory {
       props.type,
       props.geometry,
       props.description ?? null,
+      props.entityId ?? null,
       new Date(),
       new Date(),
     );
@@ -67,6 +74,7 @@ export class Territory {
       props.type,
       props.geometry,
       props.description,
+      props.entityId,
       props.createdAt,
       props.updatedAt,
     );
@@ -94,6 +102,10 @@ export class Territory {
 
   get Description(): string | null {
     return this.descriptionValue;
+  }
+
+  get EntityId(): string | null {
+    return this.entityIdValue;
   }
 
   get CreatedAt(): Date {
@@ -129,6 +141,12 @@ export class Territory {
     this.validateDescription(description);
 
     this.descriptionValue = description;
+    this.updatedAtValue = new Date();
+  }
+
+  // Cross-aggregate validation lives in TerritoryService — see Marker.linkEntity.
+  linkEntity(entityId: string | null): void {
+    this.entityIdValue = entityId;
     this.updatedAtValue = new Date();
   }
 

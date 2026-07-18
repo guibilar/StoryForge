@@ -1,6 +1,7 @@
 .wrap {
   height: 100%;
   width: 100%;
+  position: relative;
 }
 
 .map {
@@ -8,11 +9,33 @@
   width: 100%;
 }
 
+/* Two classes beats Leaflet's own single-class `.leaflet-grab` cursor rule
+   without needing !important. */
+.map.drawing {
+  cursor: crosshair;
+}
+
+/* Top-right so it never collides with Leaflet's zoom control (top-left).
+   Leaflet's own controls sit at z-index 1000; this has to clear them. */
+.toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1001;
+  display: flex;
+  gap: 8px;
+}
+
 .popup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   min-width: 10rem;
+}
+
+.entityTag {
+  font-size: 0.85em;
+  opacity: 0.75;
 }
 
 .popupActions {

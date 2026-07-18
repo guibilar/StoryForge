@@ -1,6 +1,12 @@
 query Markers($campaignId: ID!) {
   markers(campaignId: $campaignId) {
     id
+    entityId
+    entity {
+      id
+      name
+      type
+    }
     name
     lat
     lng

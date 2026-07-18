@@ -53,6 +53,40 @@ vi.mock("./MapCanvas", () => ({
           Territory {territory.name}
         </button>
       ))}
+      <span data-testid="draw-mode">{props.drawMode}</span>
+      {props.onDrawModeChange ? (
+        <button onClick={() => props.onDrawModeChange?.("marker")}>
+          Arm marker mode
+        </button>
+      ) : null}
+      {props.onPlaceMarker ? (
+        <button
+          onClick={() =>
+            props.onPlaceMarker?.({ lat: 51.5051234567, lng: -0.0901234567 })
+          }
+        >
+          Place marker
+        </button>
+      ) : null}
+      {props.onCompleteTerritory ? (
+        <button
+          onClick={() =>
+            props.onCompleteTerritory?.({
+              type: "Polygon",
+              coordinates: [
+                [
+                  [0, 0],
+                  [1, 0],
+                  [1, 1],
+                  [0, 0],
+                ],
+              ],
+            })
+          }
+        >
+          Complete territory
+        </button>
+      ) : null}
     </div>
   ),
 }));
@@ -105,6 +139,16 @@ const territories = [
   },
 ];
 
+// Manual-coordinate entry ("+ Add Marker"/"+ Add Territory") only appears on
+// a custom map image, so tests that exercise it have to set one.
+const imageMap = {
+  id: "map-image-1",
+  url: "/uploads/camp-1/map.png",
+  fileName: "map.png",
+  width: 2000,
+  height: 1500,
+};
+
 function setupMocks({
   members = ownerMembers,
   markerList = markers,
@@ -130,6 +174,8 @@ function setupMocks({
   deleteMarkerError = undefined as { graphQLErrors: unknown[] } | undefined,
   deleteMapImageFetching = false,
   deleteMapImageError = undefined as { graphQLErrors: unknown[] } | undefined,
+  markersFetching = false,
+  markersLoaded = true,
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === MeDocument) {
@@ -156,7 +202,11 @@ function setupMocks({
 
     if (args.query === MarkersDocument) {
       return [
-        { data: { markers: markerList }, fetching: false, stale: false },
+        {
+          data: markersLoaded ? { markers: markerList } : undefined,
+          fetching: markersFetching,
+          stale: false,
+        },
         reexecuteMarkers,
       ];
     }
@@ -269,8 +319,8 @@ describe("MapsWindow", () => {
     expect(screen.getByText("Territory Thornwood")).toBeInTheDocument();
   });
 
-  it("shows Add Marker/Add Territory controls for an Owner", () => {
-    setupMocks();
+  it("shows Add Marker/Add Territory controls for an Owner on an image map", () => {
+    setupMocks({ mapImage: imageMap });
     setupDesktopWindows();
     renderWindow();
 
@@ -282,8 +332,48 @@ describe("MapsWindow", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps the canvas mounted while refetching so the viewport survives", () => {
+    // A save triggers a network-only refetch with data already in hand.
+    // Swapping in a loading placeholder here would unmount Leaflet and
+    // rebuild the map at its default center/zoom, losing wherever the user
+    // had panned to.
+    setupMocks({ markersFetching: true });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(screen.getByTestId("map-canvas")).toBeInTheDocument();
+    expect(screen.queryByText("Loading map…")).not.toBeInTheDocument();
+  });
+
+  it("blocks on the very first load, before any data has arrived", () => {
+    setupMocks({ markersFetching: true, markersLoaded: false });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(screen.getByText("Loading map…")).toBeInTheDocument();
+  });
+
+  it("hides manual-coordinate entry on the geographic tile layer", () => {
+    setupMocks({ mapImage: null });
+    setupDesktopWindows();
+    renderWindow();
+
+    // Typing lat/lng by hand has no place on a tile map — drawing on the
+    // canvas is the way in. Upload stays, or there'd be no way to add an
+    // image in the first place.
+    expect(
+      screen.queryByRole("button", { name: "+ Add Marker" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "+ Add Territory" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Upload Map Image" }),
+    ).toBeInTheDocument();
+  });
+
   it("hides write controls for a Player (read-only)", () => {
-    setupMocks({ members: playerMembers });
+    setupMocks({ members: playerMembers, mapImage: imageMap });
     setupDesktopWindows();
     renderWindow();
 
@@ -296,7 +386,7 @@ describe("MapsWindow", () => {
   });
 
   it("opens a create marker window when + Add Marker is clicked", async () => {
-    setupMocks();
+    setupMocks({ mapImage: imageMap });
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
@@ -308,8 +398,160 @@ describe("MapsWindow", () => {
     );
   });
 
-  it("opens a create territory window when + Add Territory is clicked", async () => {
+  it("gives the canvas draw-mode control for a writer", () => {
     setupMocks();
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.getByRole("button", { name: "Arm marker mode" }),
+    ).toBeInTheDocument();
+  });
+
+  it("withholds draw-mode control from a Player (read-only)", () => {
+    setupMocks({ members: playerMembers });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.queryByRole("button", { name: "Arm marker mode" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Place marker" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("tracks the armed draw mode and disarms it once a marker is placed", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    expect(screen.getByTestId("draw-mode")).toHaveTextContent("none");
+
+    await user.click(screen.getByRole("button", { name: "Arm marker mode" }));
+    expect(screen.getByTestId("draw-mode")).toHaveTextContent("marker");
+
+    await user.click(screen.getByRole("button", { name: "Place marker" }));
+
+    expect(screen.getByTestId("draw-mode")).toHaveTextContent("none");
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "marker-form:new:1@51.505123,-0.090123",
+        title: "New Marker",
+      }),
+    );
+  });
+
+  it("gives each placement its own window even when the same spot is clicked twice", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    const place = screen.getByRole("button", { name: "Place marker" });
+    await user.click(place);
+    await user.click(place);
+
+    // Identical coordinates both times — without the counter these would
+    // collide and the second form would replace the first, discarding
+    // whatever had been typed into it.
+    const ids = openWindow.mock.calls.map(
+      (call) => (call[0] as { id: string }).id,
+    );
+    expect(ids).toEqual([
+      "marker-form:new:1@51.505123,-0.090123",
+      "marker-form:new:2@51.505123,-0.090123",
+    ]);
+  });
+
+  it("seeds the create marker form with the clicked coordinates", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "Place marker" }));
+
+    const request = openWindow.mock.calls[0][0] as {
+      render: () => { props: { mode: { initial?: unknown } } };
+    };
+    expect(request.render().props.mode).toEqual({
+      mode: "create",
+      initial: { lat: 51.505123, lng: -0.090123 },
+    });
+  });
+
+  it("seeds the create territory form with the drawn geometry as a JSON string", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(
+      screen.getByRole("button", { name: "Complete territory" }),
+    );
+
+    expect(screen.getByTestId("draw-mode")).toHaveTextContent("none");
+    const request = openWindow.mock.calls[0][0] as {
+      id: string;
+      render: () => { props: { mode: { initial?: { geometry: string } } } };
+    };
+    expect(request.id).toBe("territory-form:new:1");
+
+    // The form field and the wire both carry geometry as a string, not an
+    // object — round-tripping it must give back what was drawn.
+    const geometry = request.render().props.mode.initial?.geometry;
+    expect(JSON.parse(geometry!)).toEqual({
+      type: "Polygon",
+      coordinates: [
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+        ],
+      ],
+    });
+  });
+
+  it("opens an unseeded create territory window from the + Add Territory button", async () => {
+    setupMocks({ mapImage: imageMap });
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "+ Add Territory" }));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "territory-form:new" }),
+    );
+  });
+
+  it("opens an unseeded create marker window from the + Add Marker button", async () => {
+    setupMocks({ mapImage: imageMap });
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "+ Add Marker" }));
+
+    // The click handler must not leak its MouseEvent into the position
+    // parameter — the id stays unsuffixed and nothing is prefilled.
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "marker-form:new" }),
+    );
+    const request = openWindow.mock.calls[0][0] as {
+      render: () => { props: { mode: { initial?: unknown } } };
+    };
+    expect(request.render().props.mode).toEqual({
+      mode: "create",
+      initial: undefined,
+    });
+  });
+
+  it("opens a create territory window when + Add Territory is clicked", async () => {
+    setupMocks({ mapImage: imageMap });
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();

@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import L from "leaflet";
 
 import { MapCanvas } from "./MapCanvas";
 import type { MapMarkerPoint, MapTerritoryShape } from "./MapCanvas";
@@ -147,5 +149,524 @@ describe("MapCanvas", () => {
 
     expect(container.querySelector(".leaflet-image-layer")).toBeFalsy();
     expect(container.querySelector(".leaflet-tile")).toBeTruthy();
+  });
+
+  it("recomputes its size when the container is resized", () => {
+    const observed: Element[] = [];
+    let trigger: (() => void) | undefined;
+    const disconnect = vi.fn();
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(callback: () => void) {
+          trigger = callback;
+        }
+        observe(element: Element) {
+          observed.push(element);
+        }
+        disconnect = disconnect;
+      },
+    );
+
+    const invalidateSize = vi.spyOn(L.Map.prototype, "invalidateSize");
+    const { container, unmount } = render(<MapCanvas />);
+    const mapEl = container.querySelector<HTMLElement>(".leaflet-container");
+
+    // Desktop windows resize by dragging their own handle, which fires no
+    // window resize event — so the observer has to watch the container.
+    expect(observed).toContain(mapEl);
+
+    invalidateSize.mockClear();
+    trigger!();
+    expect(invalidateSize).toHaveBeenCalled();
+
+    unmount();
+    expect(disconnect).toHaveBeenCalled();
+    invalidateSize.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  describe("draw modes", () => {
+    it("shows no draw toolbar without the callbacks that drive it", () => {
+      render(<MapCanvas />);
+
+      expect(
+        screen.queryByRole("button", { name: "Add marker" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("arms and disarms marker mode from the toolbar", async () => {
+      const user = userEvent.setup();
+      const onDrawModeChange = vi.fn();
+      const { rerender } = render(
+        <MapCanvas
+          onDrawModeChange={onDrawModeChange}
+          onPlaceMarker={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Add marker" }));
+      expect(onDrawModeChange).toHaveBeenCalledWith("marker");
+
+      rerender(
+        <MapCanvas
+          drawMode="marker"
+          onDrawModeChange={onDrawModeChange}
+          onPlaceMarker={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+      expect(onDrawModeChange).toHaveBeenLastCalledWith("none");
+    });
+
+    it("reports the clicked coordinates only while marker mode is armed", () => {
+      const onPlaceMarker = vi.fn();
+      const { container, rerender } = render(
+        <MapCanvas onDrawModeChange={vi.fn()} onPlaceMarker={onPlaceMarker} />,
+      );
+
+      const map = container.querySelector<HTMLElement>(".leaflet-container");
+      fireEvent.click(map!, { clientX: 100, clientY: 80 });
+      expect(onPlaceMarker).not.toHaveBeenCalled();
+
+      rerender(
+        <MapCanvas
+          drawMode="marker"
+          onDrawModeChange={vi.fn()}
+          onPlaceMarker={onPlaceMarker}
+        />,
+      );
+      fireEvent.click(map!, { clientX: 100, clientY: 80 });
+
+      expect(onPlaceMarker).toHaveBeenCalledTimes(1);
+      const position = onPlaceMarker.mock.calls[0][0];
+      expect(Number.isFinite(position.lat)).toBe(true);
+      expect(Number.isFinite(position.lng)).toBe(true);
+    });
+
+    it("reports pixel-space coordinates under a custom map image", () => {
+      const onPlaceMarker = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="marker"
+          imageOverlay={{
+            url: "/uploads/campaign-1/map.png",
+            width: 2000,
+            height: 1500,
+          }}
+          onDrawModeChange={vi.fn()}
+          onPlaceMarker={onPlaceMarker}
+        />,
+      );
+
+      const map = container.querySelector<HTMLElement>(".leaflet-container");
+      fireEvent.click(map!, { clientX: 100, clientY: 80 });
+
+      // CRS.Simple means these are offsets into the image, not degrees — the
+      // assertion that matters is that they're passed through unclamped.
+      expect(onPlaceMarker).toHaveBeenCalledTimes(1);
+      const position = onPlaceMarker.mock.calls[0][0];
+      expect(Number.isFinite(position.lat)).toBe(true);
+      expect(Number.isFinite(position.lng)).toBe(true);
+    });
+
+    it("suppresses territory edit clicks while a mode is armed", () => {
+      const onTerritoryClick = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="marker"
+          territories={[territory]}
+          onDrawModeChange={vi.fn()}
+          onPlaceMarker={vi.fn()}
+          onTerritoryClick={onTerritoryClick}
+        />,
+      );
+
+      const shape = container.querySelector<SVGElement>(".leaflet-interactive");
+      fireEvent.click(shape!);
+
+      expect(onTerritoryClick).not.toHaveBeenCalled();
+    });
+
+    it("disarms on Escape", () => {
+      const onDrawModeChange = vi.fn();
+      render(
+        <MapCanvas
+          drawMode="marker"
+          onDrawModeChange={onDrawModeChange}
+          onPlaceMarker={vi.fn()}
+        />,
+      );
+
+      fireEvent.keyDown(document, { key: "Escape" });
+
+      expect(onDrawModeChange).toHaveBeenCalledWith("none");
+    });
+
+    it("shows no territory toggle without an onCompleteTerritory handler", () => {
+      render(<MapCanvas onDrawModeChange={vi.fn()} onPlaceMarker={vi.fn()} />);
+
+      expect(
+        screen.queryByRole("button", { name: "Draw territory" }),
+      ).not.toBeInTheDocument();
+    });
+
+    function drawTerritory(container: HTMLElement, points: number[][]) {
+      const map = container.querySelector<HTMLElement>(".leaflet-container");
+      for (const [clientX, clientY] of points) {
+        fireEvent.click(map!, { clientX, clientY });
+      }
+      return map!;
+    }
+
+    it("emits a closed [lng, lat] polygon when the ring is finished", () => {
+      const onCompleteTerritory = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={onCompleteTerritory}
+        />,
+      );
+
+      const map = drawTerritory(container, [
+        [100, 80],
+        [200, 80],
+        [200, 180],
+      ]);
+      fireEvent.dblClick(map, { clientX: 200, clientY: 180 });
+
+      expect(onCompleteTerritory).toHaveBeenCalledTimes(1);
+      const geometry = onCompleteTerritory.mock.calls[0][0];
+      expect(geometry.type).toBe("Polygon");
+
+      const ring = geometry.coordinates[0];
+      // Three clicked vertices plus the repeated first position.
+      expect(ring).toHaveLength(4);
+      expect(ring[0]).toEqual(ring[ring.length - 1]);
+
+      // GeoJSON is [lng, lat]: clicking further right raises longitude, and
+      // further down lowers latitude. If the pair were swapped, these two
+      // assertions would disagree with each other.
+      expect(ring[1][0]).toBeGreaterThan(ring[0][0]);
+      expect(ring[2][1]).toBeLessThan(ring[1][1]);
+    });
+
+    it("does not duplicate vertices when a real double-click closes the ring", () => {
+      const onCompleteTerritory = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={onCompleteTerritory}
+        />,
+      );
+
+      // A browser double-click fires click, click, then dblclick — so the
+      // final point gets appended twice before the ring is built.
+      const map = drawTerritory(container, [
+        [100, 80],
+        [200, 80],
+        [200, 180],
+        [200, 180],
+      ]);
+      fireEvent.dblClick(map, { clientX: 200, clientY: 180 });
+
+      const ring = onCompleteTerritory.mock.calls[0][0].coordinates[0];
+      expect(ring).toHaveLength(4);
+      expect(ring[2]).not.toEqual(ring[1]);
+    });
+
+    it("closes the ring when the first vertex is clicked", () => {
+      const onCompleteTerritory = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={onCompleteTerritory}
+        />,
+      );
+
+      drawTerritory(container, [
+        [100, 80],
+        [200, 80],
+        [200, 180],
+      ]);
+
+      // The first vertex is the larger circle, rendered before the others.
+      const vertexCircles = container.querySelectorAll<SVGElement>(
+        "path.leaflet-interactive",
+      );
+      fireEvent.click(vertexCircles[vertexCircles.length - 3]!);
+
+      expect(onCompleteTerritory).toHaveBeenCalledTimes(1);
+      const ring = onCompleteTerritory.mock.calls[0][0].coordinates[0];
+      // Closing on the first vertex must not append a fourth point: the ring
+      // is the three clicked corners plus the repeated first position.
+      expect(ring).toHaveLength(4);
+      expect(ring[0]).toEqual(ring[3]);
+    });
+
+    it("clears a half-drawn ring on Escape", () => {
+      const onDrawModeChange = vi.fn();
+      const onCompleteTerritory = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={onDrawModeChange}
+          onCompleteTerritory={onCompleteTerritory}
+        />,
+      );
+
+      drawTerritory(container, [
+        [100, 80],
+        [200, 80],
+      ]);
+      fireEvent.keyDown(document, { key: "Escape" });
+
+      expect(onDrawModeChange).toHaveBeenCalledWith("none");
+      expect(
+        container.querySelectorAll("path.leaflet-interactive"),
+      ).toHaveLength(0);
+      expect(onCompleteTerritory).not.toHaveBeenCalled();
+    });
+
+    it("leaves Backspace alone while the user is typing in a field", () => {
+      const { container } = render(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={vi.fn()}
+        />,
+      );
+
+      drawTerritory(container, [
+        [100, 80],
+        [200, 80],
+      ]);
+      const before = container.querySelectorAll(
+        "path.leaflet-interactive",
+      ).length;
+
+      // A create form opened by an earlier placement is a real place for the
+      // cursor to be while the map is still armed.
+      const input = document.createElement("input");
+      document.body.appendChild(input);
+      input.focus();
+      fireEvent.keyDown(input, { key: "Backspace" });
+
+      expect(
+        container.querySelectorAll("path.leaflet-interactive"),
+      ).toHaveLength(before);
+      input.remove();
+    });
+
+    it("ignores the finish gesture below three vertices", () => {
+      const onCompleteTerritory = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={onCompleteTerritory}
+        />,
+      );
+
+      const map = drawTerritory(container, [
+        [100, 80],
+        [200, 80],
+      ]);
+      fireEvent.dblClick(map, { clientX: 200, clientY: 80 });
+
+      expect(onCompleteTerritory).not.toHaveBeenCalled();
+    });
+
+    it("renders a vertex per click while drawing", () => {
+      const { container } = render(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={vi.fn()}
+        />,
+      );
+
+      expect(
+        container.querySelectorAll("path.leaflet-interactive"),
+      ).toHaveLength(0);
+
+      drawTerritory(container, [[100, 80]]);
+      // One vertex circle plus the (still empty) connecting line.
+      expect(
+        container.querySelectorAll("path.leaflet-interactive"),
+      ).toHaveLength(2);
+
+      drawTerritory(container, [[200, 80]]);
+      expect(
+        container.querySelectorAll("path.leaflet-interactive"),
+      ).toHaveLength(3);
+    });
+
+    it("undoes the last vertex on Backspace", () => {
+      const onCompleteTerritory = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={onCompleteTerritory}
+        />,
+      );
+
+      const map = drawTerritory(container, [
+        [100, 80],
+        [200, 80],
+        [200, 180],
+      ]);
+      fireEvent.keyDown(document, { key: "Backspace" });
+      fireEvent.dblClick(map, { clientX: 200, clientY: 180 });
+
+      // Back down to two vertices, so the finish gesture is refused.
+      expect(onCompleteTerritory).not.toHaveBeenCalled();
+    });
+
+    it("discards a half-drawn ring when the mode is disarmed", () => {
+      const onCompleteTerritory = vi.fn();
+      const { container, rerender } = render(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={onCompleteTerritory}
+        />,
+      );
+
+      drawTerritory(container, [
+        [100, 80],
+        [200, 80],
+      ]);
+
+      rerender(
+        <MapCanvas
+          drawMode="none"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={onCompleteTerritory}
+        />,
+      );
+      rerender(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={onCompleteTerritory}
+        />,
+      );
+
+      // The earlier points must not still be there — two fresh clicks plus
+      // the stale pair would otherwise be enough to close a ring.
+      const map = drawTerritory(container, [
+        [300, 80],
+        [300, 180],
+      ]);
+      fireEvent.dblClick(map, { clientX: 300, clientY: 180 });
+
+      expect(onCompleteTerritory).not.toHaveBeenCalled();
+    });
+
+    it("does not zoom on double-click while armed", () => {
+      const { container } = render(
+        <MapCanvas
+          drawMode="marker"
+          onDrawModeChange={vi.fn()}
+          onPlaceMarker={vi.fn()}
+        />,
+      );
+
+      const map = container.querySelector<HTMLElement>(".leaflet-container");
+      const initialTile =
+        container.querySelector<HTMLImageElement>(".leaflet-tile")?.src;
+
+      // Double-click is KAN-115's "close the ring" gesture; if it still
+      // zoomed, the tile URLs would change to the next zoom level.
+      fireEvent.dblClick(map!, { clientX: 100, clientY: 80 });
+
+      expect(
+        container.querySelector<HTMLImageElement>(".leaflet-tile")?.src,
+      ).toEqual(initialTile);
+    });
+  });
+
+  describe("entity colouring", () => {
+    function markerWithEntity(type: string | null) {
+      return {
+        ...marker,
+        entity: type ? { id: "e-1", name: "Riverwood", type } : null,
+      };
+    }
+
+    function pinFill(container: HTMLElement): string | null {
+      return (
+        container
+          .querySelector(".leaflet-marker-icon svg path")
+          ?.getAttribute("fill") ?? null
+      );
+    }
+
+    it("gives markers of the same entity type the same colour", () => {
+      const { container: a } = render(
+        <MapCanvas markers={[markerWithEntity("city")]} />,
+      );
+      const { container: b } = render(
+        <MapCanvas
+          markers={[{ ...markerWithEntity("city"), id: "marker-2" }]}
+        />,
+      );
+
+      expect(pinFill(a)).toBe(pinFill(b));
+    });
+
+    it("gives different entity types different colours", () => {
+      const { container: city } = render(
+        <MapCanvas markers={[markerWithEntity("city")]} />,
+      );
+      const { container: dungeon } = render(
+        <MapCanvas markers={[markerWithEntity("dungeon")]} />,
+      );
+
+      expect(pinFill(city)).not.toBe(pinFill(dungeon));
+    });
+
+    it("leaves unlinked markers the neutral default", () => {
+      const { container: unlinked } = render(
+        <MapCanvas markers={[markerWithEntity(null)]} />,
+      );
+      const { container: linked } = render(
+        <MapCanvas markers={[markerWithEntity("city")]} />,
+      );
+
+      expect(pinFill(unlinked)).toBe("#3388ff");
+      expect(pinFill(linked)).not.toBe("#3388ff");
+    });
+
+    it("colours a territory by its linked entity type", () => {
+      const { container } = render(
+        <MapCanvas
+          territories={[
+            { ...territory, entity: { id: "e-1", name: "R", type: "city" } },
+          ]}
+        />,
+      );
+
+      const shape = container.querySelector("path.leaflet-interactive");
+      expect(shape?.getAttribute("stroke")).not.toBe("#3388ff");
+    });
+
+    it("names the linked entity in the marker popup", () => {
+      const { container } = render(
+        <MapCanvas markers={[markerWithEntity("city")]} />,
+      );
+
+      fireEvent.click(
+        container.querySelector<HTMLElement>(".leaflet-marker-icon")!,
+      );
+
+      expect(screen.getByText(/Riverwood/)).toBeInTheDocument();
+    });
   });
 });

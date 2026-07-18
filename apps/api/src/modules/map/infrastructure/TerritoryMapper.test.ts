@@ -59,6 +59,7 @@ describe("TerritoryMapper", () => {
       type: territory.Type,
       geometry: territory.Geometry,
       description: territory.Description,
+      entityId: null,
       createdAt: territory.CreatedAt,
       updatedAt: territory.UpdatedAt,
     });

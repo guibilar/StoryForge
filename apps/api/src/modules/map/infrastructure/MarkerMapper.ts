@@ -10,6 +10,7 @@ export class MarkerMapper {
       lat: record.lat,
       lng: record.lng,
       description: record.description,
+      entityId: record.entityId,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     });
@@ -23,6 +24,7 @@ export class MarkerMapper {
       lat: marker.Lat,
       lng: marker.Lng,
       description: marker.Description,
+      entityId: marker.EntityId,
       createdAt: marker.CreatedAt,
       updatedAt: marker.UpdatedAt,
     };

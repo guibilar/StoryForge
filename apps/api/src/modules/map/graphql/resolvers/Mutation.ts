@@ -8,6 +8,7 @@ import { requireCampaignWriter } from "../../../campaignMembers/graphql/guards";
 
 export interface CreateMarkerInput {
   campaignId: string;
+  entityId?: string | null;
   name: string;
   lat: number;
   lng: number;
@@ -16,6 +17,7 @@ export interface CreateMarkerInput {
 
 export interface UpdateMarkerInput {
   id: string;
+  entityId?: string | null;
   name?: string;
   lat?: number;
   lng?: number;
@@ -24,6 +26,7 @@ export interface UpdateMarkerInput {
 
 export interface CreateTerritoryInput {
   campaignId: string;
+  entityId?: string | null;
   name: string;
   type: string;
   geometry: string;
@@ -32,6 +35,7 @@ export interface CreateTerritoryInput {
 
 export interface UpdateTerritoryInput {
   id: string;
+  entityId?: string | null;
   name?: string;
   type?: string;
   geometry?: string;

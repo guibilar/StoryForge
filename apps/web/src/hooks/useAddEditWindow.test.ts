@@ -59,6 +59,31 @@ describe("useAddEditWindow", () => {
     );
   });
 
+  it("gives each keyed create its own window id so one can't replace another", () => {
+    const { openWindow } = setupDesktopWindows();
+    const { result } = renderHook(() =>
+      useAddEditWindow({ idPrefix: "marker-form", width: 400, height: 500 }),
+    );
+
+    result.current.openAddEditWindow<Item>(
+      { mode: "create", key: "12,34" },
+      "New Marker",
+      () => null,
+    );
+    result.current.openAddEditWindow<Item>(
+      { mode: "create", key: "56,78" },
+      "New Marker",
+      () => null,
+    );
+
+    expect(openWindow.mock.calls[0][0]).toMatchObject({
+      id: "marker-form:new:12,34",
+    });
+    expect(openWindow.mock.calls[1][0]).toMatchObject({
+      id: "marker-form:new:56,78",
+    });
+  });
+
   it("opens a window id keyed by the item's id for edit mode", () => {
     const { openWindow } = setupDesktopWindows();
     const { result } = renderHook(() =>

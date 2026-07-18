@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { useMutation } from "urql";
+import { useMutation, useQuery } from "urql";
 
 import { TerritoryFormWindow } from "./TerritoryFormWindow";
 import type { TerritoryRow } from "./TerritoryFormWindow";
@@ -14,7 +14,7 @@ import {
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useMutation: vi.fn() };
+  return { ...actual, useMutation: vi.fn(), useQuery: vi.fn() };
 });
 
 const geometry = JSON.stringify({
@@ -42,6 +42,12 @@ function setupMocks({
     .mockResolvedValue({ data: { deleteTerritory: true } }),
   createFetching = false,
 } = {}) {
+  // EntitySelectField loads the campaign's entities for the link picker.
+  vi.mocked(useQuery).mockReturnValue([
+    { data: { entities: [] }, fetching: false, stale: false },
+    vi.fn(),
+  ] as never);
+
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === CreateTerritoryDocument) {
       return [
@@ -97,6 +103,58 @@ function renderEdit(
 }
 
 describe("TerritoryFormWindow", () => {
+  it("collapses the geometry field by default but keeps it submittable", async () => {
+    const { createTerritory } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    const details = document.querySelector("details");
+    expect(details).toBeTruthy();
+    expect(details).not.toHaveAttribute("open");
+
+    // Collapsed is presentational only — the textarea is still in the form,
+    // so the default geometry still submits without the user opening it.
+    await user.type(screen.getByLabelText("Name"), "Thornwood");
+    await user.type(screen.getByLabelText("Type"), "region");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createTerritory).toHaveBeenCalledWith({
+      input: expect.objectContaining({ name: "Thornwood", type: "region" }),
+    });
+  });
+
+  it("prefills the geometry from create-mode seed values", () => {
+    setupMocks();
+    const drawn = JSON.stringify(
+      {
+        type: "Polygon",
+        coordinates: [
+          [
+            [2, 1],
+            [4, 1],
+            [4, 3],
+            [2, 1],
+          ],
+        ],
+      },
+      null,
+      2,
+    );
+    render(
+      <TerritoryFormWindow
+        campaignId="camp-1"
+        mode={{ mode: "create", initial: { geometry: drawn } }}
+        onSaved={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    // The drawn ring replaces the placeholder unit square, and stays
+    // editable as the manual escape hatch.
+    expect(screen.getByLabelText("Geometry (GeoJSON)")).toHaveValue(drawn);
+    expect(screen.getByLabelText("Name")).toHaveValue("");
+  });
+
   it("creates a territory and calls onSaved/onClose", async () => {
     const { createTerritory } = setupMocks();
     const user = userEvent.setup();
@@ -116,6 +174,7 @@ describe("TerritoryFormWindow", () => {
         type: "region",
         geometry,
         description: null,
+        entityId: null,
       },
     });
     expect(onSaved).toHaveBeenCalledTimes(1);

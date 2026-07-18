@@ -114,8 +114,14 @@ const eventService = new EventService(
 const workspaceService = new WorkspaceService(
   new PrismaWorkspaceStateRepository(),
 );
-const markerService = new MarkerService(new PrismaMarkerRepository());
-const territoryService = new TerritoryService(new PrismaTerritoryRepository());
+const markerService = new MarkerService(
+  new PrismaMarkerRepository(),
+  new PrismaEntityRepository(),
+);
+const territoryService = new TerritoryService(
+  new PrismaTerritoryRepository(),
+  new PrismaEntityRepository(),
+);
 const mapImageService = new MapImageService(
   new PrismaMapImageRepository(),
   imageStorage,

@@ -37,3 +37,19 @@ Object.defineProperty(globalThis, "localStorage", {
   configurable: true,
   writable: true,
 });
+
+// jsdom implements no ResizeObserver. MapCanvas uses one to keep Leaflet's
+// cached container size in step with desktop-window resizing, so without a
+// stub every test that renders a map throws on construction. Tests that need
+// to drive a resize stub their own via vi.stubGlobal.
+if (!("ResizeObserver" in globalThis)) {
+  Object.defineProperty(globalThis, "ResizeObserver", {
+    value: class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+    configurable: true,
+    writable: true,
+  });
+}

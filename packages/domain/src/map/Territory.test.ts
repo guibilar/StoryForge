@@ -123,4 +123,46 @@ describe("Territory", () => {
     expect(territory.Geometry).toEqual(newGeometry);
     expect(territory.Description).toBe("Updated.");
   });
+
+  describe("entity link", () => {
+    it("defaults to unlinked", () => {
+      const territory = Territory.create({
+        campaignId: "22222222-2222-2222-2222-222222222222",
+        name: "Thornwood",
+        type: "region",
+        geometry: { type: "Polygon", coordinates: [] },
+      });
+
+      expect(territory.EntityId).toBeNull();
+    });
+
+    it("links and unlinks, bumping updatedAt", async () => {
+      const territory = Territory.create({
+        campaignId: "22222222-2222-2222-2222-222222222222",
+        name: "Thornwood",
+        type: "region",
+        geometry: { type: "Polygon", coordinates: [] },
+      });
+      const before = territory.UpdatedAt;
+      await new Promise((resolve) => setTimeout(resolve, 1));
+
+      territory.linkEntity("entity-1");
+      expect(territory.EntityId).toBe("entity-1");
+      expect(territory.UpdatedAt.getTime()).toBeGreaterThan(before.getTime());
+
+      territory.linkEntity(null);
+      expect(territory.EntityId).toBeNull();
+    });
+
+    it("accepts any id — belonging to the campaign is the service's question", () => {
+      const territory = Territory.create({
+        campaignId: "22222222-2222-2222-2222-222222222222",
+        name: "Thornwood",
+        type: "region",
+        geometry: { type: "Polygon", coordinates: [] },
+      });
+
+      expect(() => territory.linkEntity("entity-from-anywhere")).not.toThrow();
+    });
+  });
 });

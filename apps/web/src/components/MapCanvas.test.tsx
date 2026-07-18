@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import L from "leaflet";
 
 import { MapCanvas } from "./MapCanvas";
 import type { MapMarkerPoint, MapTerritoryShape } from "./MapCanvas";
@@ -148,6 +149,41 @@ describe("MapCanvas", () => {
 
     expect(container.querySelector(".leaflet-image-layer")).toBeFalsy();
     expect(container.querySelector(".leaflet-tile")).toBeTruthy();
+  });
+
+  it("recomputes its size when the container is resized", () => {
+    const observed: Element[] = [];
+    let trigger: (() => void) | undefined;
+    const disconnect = vi.fn();
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(callback: () => void) {
+          trigger = callback;
+        }
+        observe(element: Element) {
+          observed.push(element);
+        }
+        disconnect = disconnect;
+      },
+    );
+
+    const invalidateSize = vi.spyOn(L.Map.prototype, "invalidateSize");
+    const { container, unmount } = render(<MapCanvas />);
+    const mapEl = container.querySelector<HTMLElement>(".leaflet-container");
+
+    // Desktop windows resize by dragging their own handle, which fires no
+    // window resize event — so the observer has to watch the container.
+    expect(observed).toContain(mapEl);
+
+    invalidateSize.mockClear();
+    trigger!();
+    expect(invalidateSize).toHaveBeenCalled();
+
+    unmount();
+    expect(disconnect).toHaveBeenCalled();
+    invalidateSize.mockRestore();
+    vi.unstubAllGlobals();
   });
 
   describe("draw modes", () => {

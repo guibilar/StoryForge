@@ -11,6 +11,7 @@ import {
   Polyline,
   Popup,
   TileLayer,
+  useMap,
   useMapEvents,
 } from "react-leaflet";
 import { Button } from "@storyforge/ui";
@@ -134,6 +135,26 @@ function isTypingTarget(target: EventTarget | null): boolean {
     target.tagName === "TEXTAREA" ||
     target.tagName === "SELECT"
   );
+}
+
+// Leaflet caches its container's pixel dimensions and only recomputes them on
+// a window resize. Desktop windows here are resized by dragging their own
+// handle (useDesktopWindowsController), which fires no window event — so
+// without this the map keeps rendering at its original size inside a resized
+// window: grey gutters when grown, clipped tiles when shrunk.
+function MapResizeWatcher() {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+    const observer = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [map]);
+
+  return null;
 }
 
 // react-leaflet only exposes map-level events to children of MapContainer,
@@ -369,6 +390,7 @@ export function MapCanvas({
         scrollWheelZoom
         className={drawing ? `${styles.map} ${styles.drawing}` : styles.map}
       >
+        <MapResizeWatcher />
         <MapDrawLayer
           drawMode={drawMode}
           onDrawModeChange={onDrawModeChange}

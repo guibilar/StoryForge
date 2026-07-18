@@ -5,13 +5,12 @@ import { describe, expect, it, vi } from "vitest";
 import { useMutation, useQuery } from "urql";
 
 import { NotesWindow } from "./NotesWindow";
+import { useDesktopWindows } from "../lib/DesktopWindowsContext";
 import {
   CampaignDocument,
-  CreateNoteDocument,
   DeleteNoteDocument,
   MeDocument,
   NotesDocument,
-  UpdateNoteDocument,
 } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
@@ -22,6 +21,12 @@ vi.mock("urql", async (importOriginal) => {
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useParams: () => ({ id: "camp-1" }) };
+});
+
+vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("../lib/DesktopWindowsContext")>();
+  return { ...actual, useDesktopWindows: vi.fn() };
 });
 
 const CURRENT_USER_ID = "user-1";
@@ -91,8 +96,6 @@ const notes: NoteFixture[] = [
 function setupMocks({
   members = ownerMembers,
   noteRoots = notes,
-  createNote = vi.fn().mockResolvedValue({ data: { createNote: {} } }),
-  updateNote = vi.fn().mockResolvedValue({ data: { updateNote: {} } }),
   deleteNote = vi.fn().mockResolvedValue({ data: { deleteNote: true } }),
   reexecuteNotes = vi.fn(),
 } = {}) {
@@ -134,12 +137,6 @@ function setupMocks({
   }) as never);
 
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
-    if (document === CreateNoteDocument) {
-      return [{ fetching: false, error: undefined, stale: false }, createNote];
-    }
-    if (document === UpdateNoteDocument) {
-      return [{ fetching: false, error: undefined, stale: false }, updateNote];
-    }
     if (document === DeleteNoteDocument) {
       return [{ fetching: false, error: undefined, stale: false }, deleteNote];
     }
@@ -147,7 +144,29 @@ function setupMocks({
     throw new Error("Unexpected mutation in test");
   }) as never);
 
-  return { createNote, updateNote, deleteNote, reexecuteNotes };
+  return { deleteNote, reexecuteNotes };
+}
+
+function setupDesktopWindows() {
+  const openWindow = vi.fn();
+  const closeWindow = vi.fn();
+  vi.mocked(useDesktopWindows).mockReturnValue({
+    layout: {},
+    bringToFront: vi.fn(),
+    toggle: vi.fn(),
+    startDrag: vi.fn(),
+    startResize: vi.fn(),
+    reset: vi.fn(),
+    dynamicWindows: {},
+    openWindow,
+    closeWindow,
+    recentIds: [],
+    presets: {},
+    savePreset: vi.fn(),
+    applyPreset: vi.fn(),
+    hydrateFromServer: vi.fn(),
+  });
+  return { openWindow, closeWindow };
 }
 
 function renderWindow() {
@@ -161,6 +180,7 @@ function renderWindow() {
 describe("NotesWindow", () => {
   it("lists notes with title and a truncated preview", () => {
     setupMocks();
+    setupDesktopWindows();
     renderWindow();
 
     expect(screen.getByText("Session 1 recap")).toBeInTheDocument();
@@ -172,6 +192,7 @@ describe("NotesWindow", () => {
 
   it("shows create controls for an Owner", () => {
     setupMocks();
+    setupDesktopWindows();
     renderWindow();
 
     expect(
@@ -182,6 +203,7 @@ describe("NotesWindow", () => {
 
   it("shows create controls for a Storyteller", () => {
     setupMocks({ members: storytellerMembers });
+    setupDesktopWindows();
     renderWindow();
 
     expect(
@@ -191,116 +213,39 @@ describe("NotesWindow", () => {
 
   it("shows an empty state when there are no notes", () => {
     setupMocks({ noteRoots: [] });
+    setupDesktopWindows();
     renderWindow();
 
     expect(screen.getByText("No notes yet.")).toBeInTheDocument();
   });
 
-  it("creates a note via the modal form and refetches", async () => {
-    const { createNote, reexecuteNotes } = setupMocks();
+  it("opens a create window when + New note is clicked", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
 
     await user.click(screen.getByRole("button", { name: "+ New note" }));
-    await user.type(screen.getByLabelText("Title"), "New note title");
-    await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(createNote).toHaveBeenCalledWith({
-      input: {
-        campaignId: "camp-1",
-        title: "New note title",
-        content: "",
-        visibility: "SHARED",
-      },
-    });
-    expect(reexecuteNotes).toHaveBeenCalledWith({
-      requestPolicy: "network-only",
-    });
-  });
-
-  it("creates a targeted handout with selected recipients", async () => {
-    const { createNote } = setupMocks({ members: tableMembers });
-    const user = userEvent.setup();
-    renderWindow();
-
-    await user.click(screen.getByRole("button", { name: "+ New note" }));
-    await user.type(screen.getByLabelText("Title"), "Secret clue");
-    await user.selectOptions(
-      screen.getByLabelText("Visibility"),
-      "Handout for specific players",
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "note-form:new", title: "New Note" }),
     );
-
-    const saveButton = screen.getByRole("button", { name: "Save" });
-    expect(saveButton).toBeDisabled();
-    expect(
-      screen.getByText("Select at least one recipient."),
-    ).toBeInTheDocument();
-
-    await user.click(screen.getByLabelText("player1@example.com"));
-    expect(saveButton).toBeEnabled();
-    await user.click(saveButton);
-
-    expect(createNote).toHaveBeenCalledWith({
-      input: {
-        campaignId: "camp-1",
-        title: "Secret clue",
-        content: "",
-        visibility: "TARGETED",
-        recipientIds: ["player-1"],
-      },
-    });
   });
 
-  it("does not offer the current user as a recipient", async () => {
-    setupMocks({ members: tableMembers });
+  it("opens an edit window when a modifiable note is clicked", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getByRole("button", { name: "+ New note" }));
-    await user.selectOptions(
-      screen.getByLabelText("Visibility"),
-      "Handout for specific players",
+    await user.click(screen.getByText("Session 1 recap"));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "note-form:note-1",
+        title: "Edit: Session 1 recap",
+      }),
     );
-
-    expect(
-      screen.queryByLabelText("owner@example.com"),
-    ).not.toBeInTheDocument();
-    expect(screen.getByLabelText("player1@example.com")).toBeInTheDocument();
-  });
-
-  it("seeds the edit modal with the note's visibility and recipients, and submits them", async () => {
-    const targeted = {
-      id: "note-3",
-      authorId: CURRENT_USER_ID,
-      title: "Handout",
-      content: "For your eyes only.",
-      visibility: "TARGETED",
-      recipientIds: ["player-1"],
-    };
-    const { updateNote } = setupMocks({
-      members: tableMembers,
-      noteRoots: [targeted],
-    });
-    const user = userEvent.setup();
-    renderWindow();
-
-    await user.click(screen.getByText("Handout"));
-
-    expect(screen.getByLabelText("Visibility")).toHaveValue("TARGETED");
-    expect(screen.getByLabelText("player1@example.com")).toBeChecked();
-
-    await user.click(screen.getByLabelText("player2@example.com"));
-    await user.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(updateNote).toHaveBeenCalledWith({
-      input: {
-        id: "note-3",
-        title: "Handout",
-        content: "For your eyes only.",
-        visibility: "TARGETED",
-        recipientIds: ["player-1", "player-2"],
-      },
-    });
   });
 
   it("shows visibility badges: Private, Handout count, and For you", () => {
@@ -324,6 +269,7 @@ describe("NotesWindow", () => {
       },
     ];
     setupMocks({ members: tableMembers, noteRoots: badgeNotes });
+    setupDesktopWindows();
     renderWindow();
 
     expect(screen.getByText("Private")).toBeInTheDocument();
@@ -340,6 +286,7 @@ describe("NotesWindow", () => {
       recipientIds: [CURRENT_USER_ID],
     };
     setupMocks({ members: playerMembers, noteRoots: [handout] });
+    setupDesktopWindows();
     renderWindow();
 
     expect(screen.getByText("For you")).toBeInTheDocument();
@@ -350,6 +297,7 @@ describe("NotesWindow", () => {
 
   it("deletes a note after confirming and refetches", async () => {
     const { deleteNote, reexecuteNotes } = setupMocks();
+    setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
 
@@ -359,39 +307,6 @@ describe("NotesWindow", () => {
     expect(deleteNote).toHaveBeenCalledWith({ id: "note-1" });
     expect(reexecuteNotes).toHaveBeenCalledWith({
       requestPolicy: "network-only",
-    });
-  });
-
-  it("lets a player create a note without the Handout visibility option (KAN-90)", async () => {
-    const { createNote } = setupMocks({
-      members: playerMembers,
-      noteRoots: [],
-    });
-    const user = userEvent.setup();
-    renderWindow();
-
-    await user.click(screen.getByRole("button", { name: "+ New note" }));
-
-    const visibilitySelect = screen.getByLabelText("Visibility");
-    expect(visibilitySelect).toBeInTheDocument();
-    expect(
-      screen.queryByRole("option", { name: "Handout for specific players" }),
-    ).not.toBeInTheDocument();
-
-    await user.type(screen.getByLabelText("Title"), "My journal");
-    await user.selectOptions(
-      visibilitySelect,
-      "Private (you and Storytellers)",
-    );
-    await user.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(createNote).toHaveBeenCalledWith({
-      input: {
-        campaignId: "camp-1",
-        title: "My journal",
-        content: "",
-        visibility: "PRIVATE",
-      },
     });
   });
 
@@ -413,6 +328,7 @@ describe("NotesWindow", () => {
       recipientIds: [],
     };
     setupMocks({ members: playerMembers, noteRoots: [ownNote, gmNote] });
+    setupDesktopWindows();
     renderWindow();
 
     expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(1);
@@ -421,29 +337,5 @@ describe("NotesWindow", () => {
     const gmRow = screen.getByText("Party log").closest("button");
     expect(ownRow).toBeEnabled();
     expect(gmRow).toBeDisabled();
-  });
-
-  it("omits visibility from the update when it is unchanged", async () => {
-    const targeted: NoteFixture = {
-      id: "note-7",
-      authorId: CURRENT_USER_ID,
-      title: "Handout",
-      content: "psst",
-      visibility: "TARGETED",
-      recipientIds: ["player-1"],
-    };
-    const { updateNote } = setupMocks({
-      members: tableMembers,
-      noteRoots: [targeted],
-    });
-    const user = userEvent.setup();
-    renderWindow();
-
-    await user.click(screen.getByText("Handout"));
-    await user.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(updateNote).toHaveBeenCalledWith({
-      input: { id: "note-7", title: "Handout", content: "psst" },
-    });
   });
 });

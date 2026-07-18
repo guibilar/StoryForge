@@ -38,6 +38,62 @@
   opacity: 0.75;
 }
 
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* A button, not an anchor — it opens a desktop window rather than navigating,
+   so it must not look like it has a URL behind it, while still reading as
+   something clickable. */
+.entityLink {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85em;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.entityLink:hover,
+.entityLink:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+/* Leaflet tooltips default to a bordered white box; territory labels want to
+   read as text written on the map itself. */
+.territoryLabel {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #1f2937;
+  text-shadow:
+    0 0 3px #ffffff,
+    0 0 3px #ffffff;
+  white-space: nowrap;
+}
+
+.territoryLabel::before {
+  /* Kills the tooltip's little pointer arrow. */
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .territoryLabel {
+    color: #f3f4f6;
+    text-shadow:
+      0 0 3px #111827,
+      0 0 3px #111827;
+  }
+}
+
 .popupActions {
   display: flex;
   gap: 0.5rem;

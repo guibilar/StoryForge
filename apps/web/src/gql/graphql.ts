@@ -289,7 +289,13 @@ export type CreateMarkerMutation = {
     lat: number;
     lng: number;
     description: string | null;
-    entity: { id: string; name: string; type: string } | null;
+    entity: {
+      id: string;
+      name: string;
+      type: string;
+      description: string | null;
+      visibility: EntityVisibility;
+    } | null;
   };
 };
 
@@ -337,7 +343,13 @@ export type CreateTerritoryMutation = {
     type: string;
     geometry: string;
     description: string | null;
-    entity: { id: string; name: string; type: string } | null;
+    entity: {
+      id: string;
+      name: string;
+      type: string;
+      description: string | null;
+      visibility: EntityVisibility;
+    } | null;
   };
 };
 
@@ -478,7 +490,13 @@ export type MarkersQuery = {
     lat: number;
     lng: number;
     description: string | null;
-    entity: { id: string; name: string; type: string } | null;
+    entity: {
+      id: string;
+      name: string;
+      type: string;
+      description: string | null;
+      visibility: EntityVisibility;
+    } | null;
   }>;
 };
 
@@ -581,7 +599,13 @@ export type TerritoriesQuery = {
     type: string;
     geometry: string;
     description: string | null;
-    entity: { id: string; name: string; type: string } | null;
+    entity: {
+      id: string;
+      name: string;
+      type: string;
+      description: string | null;
+      visibility: EntityVisibility;
+    } | null;
   }>;
 };
 
@@ -651,7 +675,13 @@ export type UpdateMarkerMutation = {
     lat: number;
     lng: number;
     description: string | null;
-    entity: { id: string; name: string; type: string } | null;
+    entity: {
+      id: string;
+      name: string;
+      type: string;
+      description: string | null;
+      visibility: EntityVisibility;
+    } | null;
   };
 };
 
@@ -699,7 +729,13 @@ export type UpdateTerritoryMutation = {
     type: string;
     geometry: string;
     description: string | null;
-    entity: { id: string; name: string; type: string } | null;
+    entity: {
+      id: string;
+      name: string;
+      type: string;
+      description: string | null;
+      visibility: EntityVisibility;
+    } | null;
   };
 };
 
@@ -1401,6 +1437,14 @@ export const CreateMarkerDocument = {
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
                       { kind: "Field", name: { kind: "Name", value: "type" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "visibility" },
+                      },
                     ],
                   },
                 },
@@ -1624,6 +1668,14 @@ export const CreateTerritoryDocument = {
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
                       { kind: "Field", name: { kind: "Name", value: "type" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "visibility" },
+                      },
                     ],
                   },
                 },
@@ -2455,6 +2507,14 @@ export const MarkersDocument = {
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
                       { kind: "Field", name: { kind: "Name", value: "type" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "visibility" },
+                      },
                     ],
                   },
                 },
@@ -3000,6 +3060,14 @@ export const TerritoriesDocument = {
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
                       { kind: "Field", name: { kind: "Name", value: "type" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "visibility" },
+                      },
                     ],
                   },
                 },
@@ -3331,6 +3399,14 @@ export const UpdateMarkerDocument = {
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
                       { kind: "Field", name: { kind: "Name", value: "type" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "visibility" },
+                      },
                     ],
                   },
                 },
@@ -3554,6 +3630,14 @@ export const UpdateTerritoryDocument = {
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
                       { kind: "Field", name: { kind: "Name", value: "type" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "visibility" },
+                      },
                     ],
                   },
                 },

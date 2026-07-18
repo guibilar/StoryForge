@@ -20,7 +20,13 @@ import styles from "./MarkerFormWindow.module.css";
 export interface MarkerRow {
   id: string;
   entityId?: string | null;
-  entity?: { id: string; name: string; type: string } | null;
+  entity?: {
+    id: string;
+    name: string;
+    type: string;
+    description?: string | null;
+    visibility: string;
+  } | null;
   name: string;
   lat: number;
   lng: number;

@@ -6,6 +6,8 @@ mutation CreateTerritory($input: CreateTerritoryInput!) {
       id
       name
       type
+      description
+      visibility
     }
     name
     type

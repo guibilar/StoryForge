@@ -6,6 +6,8 @@ query Territories($campaignId: ID!) {
       id
       name
       type
+      description
+      visibility
     }
     name
     type

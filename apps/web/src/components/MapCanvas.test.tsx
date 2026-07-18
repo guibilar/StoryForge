@@ -3,7 +3,17 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import L from "leaflet";
 
-import { MapCanvas } from "./MapCanvas";
+import {
+  LABEL_FADE_START_ZOOM,
+  LABEL_HIDDEN_ZOOM,
+  MapCanvas,
+} from "./MapCanvas";
+
+// Derived from the component's own thresholds so tuning the fade distance
+// doesn't break these.
+const MID_FADE_ZOOM = Math.round(
+  (LABEL_FADE_START_ZOOM + LABEL_HIDDEN_ZOOM) / 2,
+);
 import type { MapMarkerPoint, MapTerritoryShape } from "./MapCanvas";
 
 const marker: MapMarkerPoint = {
@@ -76,6 +86,7 @@ describe("MapCanvas", () => {
     const { container } = render(
       <MapCanvas
         markers={[marker]}
+        editing
         onEditMarker={onEditMarker}
         onDeleteMarker={onDeleteMarker}
       />,
@@ -99,7 +110,7 @@ describe("MapCanvas", () => {
 
   it("disables the marker's Edit/Delete buttons while markerActionPending is true", () => {
     const { container } = render(
-      <MapCanvas markers={[marker]} markerActionPending />,
+      <MapCanvas markers={[marker]} editing markerActionPending />,
     );
 
     const icon = container.querySelector<HTMLElement>(".leaflet-marker-icon");
@@ -114,6 +125,7 @@ describe("MapCanvas", () => {
     const { container } = render(
       <MapCanvas
         territories={[territory]}
+        editing
         onTerritoryClick={onTerritoryClick}
       />,
     );
@@ -200,6 +212,7 @@ describe("MapCanvas", () => {
       const onDrawModeChange = vi.fn();
       const { rerender } = render(
         <MapCanvas
+          editing
           onDrawModeChange={onDrawModeChange}
           onPlaceMarker={vi.fn()}
         />,
@@ -210,6 +223,7 @@ describe("MapCanvas", () => {
 
       rerender(
         <MapCanvas
+          editing
           drawMode="marker"
           onDrawModeChange={onDrawModeChange}
           onPlaceMarker={vi.fn()}
@@ -293,6 +307,7 @@ describe("MapCanvas", () => {
       const onDrawModeChange = vi.fn();
       render(
         <MapCanvas
+          editing
           drawMode="marker"
           onDrawModeChange={onDrawModeChange}
           onPlaceMarker={vi.fn()}
@@ -596,7 +611,9 @@ describe("MapCanvas", () => {
     function markerWithEntity(type: string | null) {
       return {
         ...marker,
-        entity: type ? { id: "e-1", name: "Riverwood", type } : null,
+        entity: type
+          ? { id: "e-1", name: "Riverwood", type, visibility: "PUBLIC" }
+          : null,
       };
     }
 
@@ -648,7 +665,15 @@ describe("MapCanvas", () => {
       const { container } = render(
         <MapCanvas
           territories={[
-            { ...territory, entity: { id: "e-1", name: "R", type: "city" } },
+            {
+              ...territory,
+              entity: {
+                id: "e-1",
+                name: "R",
+                type: "city",
+                visibility: "PUBLIC",
+              },
+            },
           ]}
         />,
       );
@@ -667,6 +692,271 @@ describe("MapCanvas", () => {
       );
 
       expect(screen.getByText(/Riverwood/)).toBeInTheDocument();
+    });
+  });
+
+  describe("view mode", () => {
+    const linked = {
+      id: "e-1",
+      name: "Riverwood",
+      type: "city",
+      visibility: "PUBLIC",
+    };
+
+    it("hides the edit toolbar's draw tools until editing is turned on", async () => {
+      const user = userEvent.setup();
+      const onEditingChange = vi.fn();
+      render(
+        <MapCanvas
+          onEditingChange={onEditingChange}
+          onDrawModeChange={vi.fn()}
+          onPlaceMarker={vi.fn()}
+        />,
+      );
+
+      expect(
+        screen.queryByRole("button", { name: "Add marker" }),
+      ).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Edit map" }));
+      expect(onEditingChange).toHaveBeenCalledWith(true);
+    });
+
+    it("offers no marker Edit/Delete outside edit mode", () => {
+      const { container } = render(<MapCanvas markers={[marker]} />);
+
+      fireEvent.click(
+        container.querySelector<HTMLElement>(".leaflet-marker-icon")!,
+      );
+
+      expect(screen.getByText("Old Mill")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Edit" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Delete" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("opens the linked entity from a marker popup instead of the edit form", () => {
+      const onOpenEntity = vi.fn();
+      const onEditMarker = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          markers={[{ ...marker, entity: linked }]}
+          onOpenEntity={onOpenEntity}
+          onEditMarker={onEditMarker}
+        />,
+      );
+
+      fireEvent.click(
+        container.querySelector<HTMLElement>(".leaflet-marker-icon")!,
+      );
+      fireEvent.click(screen.getByRole("button", { name: /Riverwood/ }));
+
+      expect(onOpenEntity).toHaveBeenCalledWith(linked);
+      expect(onEditMarker).not.toHaveBeenCalled();
+    });
+
+    it("shows a territory popup instead of opening its edit form", () => {
+      const onTerritoryClick = vi.fn();
+      const onOpenEntity = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          territories={[{ ...territory, entity: linked }]}
+          onTerritoryClick={onTerritoryClick}
+          onOpenEntity={onOpenEntity}
+        />,
+      );
+
+      fireEvent.click(
+        container.querySelector<SVGElement>("path.leaflet-interactive")!,
+      );
+
+      // Territories had no popup at all before — clicking always jumped
+      // straight to the edit form.
+      expect(onTerritoryClick).not.toHaveBeenCalled();
+      expect(screen.getByText("Thornwood")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("button", { name: /Riverwood/ }));
+      expect(onOpenEntity).toHaveBeenCalledWith(linked);
+    });
+
+    it("still opens the edit form for a territory while editing", () => {
+      const onTerritoryClick = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          editing
+          territories={[territory]}
+          onTerritoryClick={onTerritoryClick}
+        />,
+      );
+
+      fireEvent.click(
+        container.querySelector<SVGElement>("path.leaflet-interactive")!,
+      );
+
+      expect(onTerritoryClick).toHaveBeenCalledWith(territory);
+    });
+  });
+
+  describe("territory labels", () => {
+    it("labels a territory with its linked entity's name", () => {
+      const { container } = render(
+        <MapCanvas
+          zoom={LABEL_FADE_START_ZOOM}
+          territories={[
+            {
+              ...territory,
+              entity: {
+                id: "e-1",
+                name: "Riverwood",
+                type: "city",
+                visibility: "PUBLIC",
+              },
+            },
+          ]}
+        />,
+      );
+
+      expect(container.querySelector(".leaflet-tooltip")?.textContent).toBe(
+        "Riverwood",
+      );
+    });
+
+    it("falls back to the territory's own name when unlinked", () => {
+      const { container } = render(
+        <MapCanvas zoom={LABEL_FADE_START_ZOOM} territories={[territory]} />,
+      );
+
+      expect(container.querySelector(".leaflet-tooltip")?.textContent).toBe(
+        "Thornwood",
+      );
+    });
+
+    it("fades the label out as the map zooms in", () => {
+      const { container: wide } = render(
+        <MapCanvas zoom={LABEL_FADE_START_ZOOM} territories={[territory]} />,
+      );
+      const { container: mid } = render(
+        <MapCanvas zoom={MID_FADE_ZOOM} territories={[territory]} />,
+      );
+      const { container: close } = render(
+        <MapCanvas zoom={LABEL_HIDDEN_ZOOM} territories={[territory]} />,
+      );
+
+      const opacityOf = (c: HTMLElement) =>
+        Number(
+          (
+            c.querySelector(
+              '[data-testid="territory-label"]',
+            ) as HTMLElement | null
+          )?.style.opacity ?? "0",
+        );
+
+      expect(opacityOf(wide)).toBe(1);
+      expect(opacityOf(mid)).toBeGreaterThan(0);
+      expect(opacityOf(mid)).toBeLessThan(1);
+      // Monotonic all the way in.
+      expect(opacityOf(close)).toBeLessThan(opacityOf(mid));
+    });
+
+    it("fades the label live as the map is zoomed, not just on mount", () => {
+      const { container } = render(
+        <MapCanvas zoom={LABEL_FADE_START_ZOOM} territories={[territory]} />,
+      );
+
+      const label = () =>
+        container.querySelector<HTMLElement>('[data-testid="territory-label"]');
+      const zoomIn = container.querySelector<HTMLElement>(
+        ".leaflet-control-zoom-in",
+      )!;
+      expect(Number(label()?.style.opacity)).toBe(1);
+
+      // Drive a real zoom through Leaflet's own control rather than
+      // remounting at a different zoom — this is what would catch the label
+      // never resubscribing to zoom changes.
+      for (let step = 0; step < MID_FADE_ZOOM - LABEL_FADE_START_ZOOM; step++) {
+        fireEvent.click(zoomIn);
+      }
+
+      // The label has to react to the zoom, not keep its mount-time value.
+      const midOpacity = Number(label()?.style.opacity);
+      expect(midOpacity).toBeGreaterThan(0);
+      expect(midOpacity).toBeLessThan(1);
+    });
+
+    it("labels a MultiPolygon by all its parts, not just the first", () => {
+      const multi = {
+        ...territory,
+        geometry: {
+          type: "MultiPolygon",
+          coordinates: [
+            [
+              [
+                [0, 0],
+                [2, 0],
+                [2, 2],
+                [0, 0],
+              ],
+            ],
+            [
+              [
+                [10, 10],
+                [12, 10],
+                [12, 12],
+                [10, 10],
+              ],
+            ],
+          ],
+        },
+      };
+      const { container } = render(
+        <MapCanvas zoom={LABEL_FADE_START_ZOOM} territories={[multi]} />,
+      );
+
+      // Renders at all — the first-ring-only version produced a label box
+      // around island one instead of the whole feature.
+      expect(container.querySelector(".leaflet-tooltip")?.textContent).toBe(
+        "Thornwood",
+      );
+    });
+
+    it("stops rendering the label once the hide threshold is actually reached", () => {
+      // Driven through the pure threshold rather than the map, because a tile
+      // map clamps to the tile layer's maxZoom (18 for OpenStreetMap). If
+      // LABEL_HIDDEN_ZOOM is set above that, labels fade to a low opacity but
+      // never disappear on a tile map — which is a tuning consequence, not a
+      // bug in the fade.
+      expect(LABEL_HIDDEN_ZOOM).toBeGreaterThan(LABEL_FADE_START_ZOOM);
+
+      const { container } = render(
+        <MapCanvas
+          zoom={LABEL_FADE_START_ZOOM}
+          territories={[
+            { ...territory, geometry: { type: "Polygon", coordinates: [] } },
+          ]}
+        />,
+      );
+      expect(
+        container.querySelector('[data-testid="territory-label"]'),
+      ).toBeNull();
+    });
+
+    it("renders no label for geometry with no usable coordinates", () => {
+      const { container } = render(
+        <MapCanvas
+          zoom={LABEL_FADE_START_ZOOM}
+          territories={[
+            {
+              ...territory,
+              geometry: { type: "Polygon", coordinates: [] },
+            },
+          ]}
+        />,
+      );
+
+      expect(container.querySelector(".leaflet-tooltip")).toBeNull();
     });
   });
 });

@@ -24,7 +24,13 @@ import styles from "./TerritoryFormWindow.module.css";
 export interface TerritoryRow {
   id: string;
   entityId?: string | null;
-  entity?: { id: string; name: string; type: string } | null;
+  entity?: {
+    id: string;
+    name: string;
+    type: string;
+    description?: string | null;
+    visibility: string;
+  } | null;
   name: string;
   type: string;
   geometry: string;

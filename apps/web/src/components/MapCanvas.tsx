@@ -11,6 +11,7 @@ import {
   Polyline,
   Popup,
   TileLayer,
+  Tooltip,
   useMap,
   useMapEvents,
 } from "react-leaflet";
@@ -39,10 +40,14 @@ L.Icon.Default.mergeOptions({
 const DEFAULT_CENTER: LatLngExpression = [20, 0];
 const DEFAULT_ZOOM = 3;
 
+// Mirrors EntitySummary (EntityWindow.tsx) so a popup's entity link can open
+// the real entity window without a second fetch.
 export interface MapLinkedEntity {
   id: string;
   name: string;
   type: string;
+  description?: string | null;
+  visibility: string;
 }
 
 export interface MapMarkerPoint {
@@ -89,6 +94,13 @@ export interface MapCanvasProps {
   // Disables every marker popup's Edit/Delete buttons while a delete is in
   // flight, so a slow response can't be raced by a second click.
   markerActionPending?: boolean;
+  // Editing is opt-in (view mode is the default): in view mode clicking a
+  // feature explains it, in edit mode clicking it changes it. Keeps reading
+  // the map during play free of accidental edits.
+  editing?: boolean;
+  onEditingChange?: (editing: boolean) => void;
+  // Opens the world-data window for a feature's linked entity.
+  onOpenEntity?: (entity: MapLinkedEntity) => void;
   drawMode?: MapDrawMode;
   // Presence of this callback is what makes the draw toolbar appear — only
   // campaign writers get one, mirroring how onTerritoryClick already gates
@@ -211,6 +223,173 @@ function MapResizeWatcher() {
     observer.observe(container);
     return () => observer.disconnect();
   }, [map]);
+
+  return null;
+}
+
+// Territory labels are for orienting yourself across the whole map. Once
+// you've zoomed past this, the shapes fill the view and their names become
+// clutter sitting on top of whatever you zoomed in to look at.
+// Exported so tests can derive their zoom levels from them: these are meant
+// to be tuned, and a test pinned to hardcoded zooms would break every time.
+export const LABEL_FADE_START_ZOOM = 12;
+export const LABEL_HIDDEN_ZOOM = 20;
+
+function labelOpacityForZoom(zoom: number): number {
+  if (zoom <= LABEL_FADE_START_ZOOM) {
+    return 1;
+  }
+  if (zoom >= LABEL_HIDDEN_ZOOM) {
+    return 0;
+  }
+  // Linear ramp between the two thresholds so the label dissolves rather
+  // than popping out at a single zoom step.
+  return (
+    (LABEL_HIDDEN_ZOOM - zoom) / (LABEL_HIDDEN_ZOOM - LABEL_FADE_START_ZOOM)
+  );
+}
+
+// Centroid of the geometry's bounding box — good enough to sit a label inside
+// a convex-ish territory, and far cheaper than a true polygon centroid. A
+// crescent-shaped territory can push its label outside itself; that's the
+// accepted trade for not pulling in a geometry library.
+//
+// Walks the nested coordinate arrays rather than reading coordinates[0], so a
+// MultiPolygon is labelled by the box around all its parts instead of by its
+// first island alone.
+function labelPositionFor(
+  geometry: Record<string, unknown>,
+): MapPosition | null {
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  let minLng = Infinity;
+  let maxLng = -Infinity;
+
+  function visit(node: unknown): void {
+    if (!Array.isArray(node)) {
+      return;
+    }
+    // A position is [lng, lat] — a flat pair of numbers. Anything else is a
+    // deeper nesting level (ring, polygon, multi-polygon).
+    if (typeof node[0] === "number" && typeof node[1] === "number") {
+      const [lng, lat] = node as [number, number];
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        minLat = Math.min(minLat, lat);
+        maxLat = Math.max(maxLat, lat);
+        minLng = Math.min(minLng, lng);
+        maxLng = Math.max(maxLng, lng);
+      }
+      return;
+    }
+    for (const child of node) {
+      visit(child);
+    }
+  }
+
+  visit(geometry.coordinates);
+
+  if (!Number.isFinite(minLat) || !Number.isFinite(minLng)) {
+    return null;
+  }
+
+  return { lat: (minLat + maxLat) / 2, lng: (minLng + maxLng) / 2 };
+}
+
+// A territory's name written across the shape, fading out as the map zooms
+// in. Uses a permanent Tooltip rather than a DivIcon Marker so it can't be
+// clicked and never steals the territory's own click.
+function TerritoryLabel({
+  territory,
+  position,
+  zoom,
+}: {
+  territory: MapTerritoryShape;
+  position: MapPosition | null;
+  // Passed in rather than read here: one zoom subscription for the map beats
+  // one per territory, which would fire N re-renders on every zoomend.
+  zoom: number;
+}) {
+  const opacity = labelOpacityForZoom(zoom);
+  if (!position || opacity === 0) {
+    return null;
+  }
+
+  // The entity name when linked, since that's the world-data thing the shape
+  // stands for; the territory's own name otherwise, so nothing is anonymous.
+  const label = territory.entity?.name ?? territory.name;
+
+  // The fade lives on an inner span, not the Tooltip's `opacity` prop:
+  // react-leaflet binds that once and never re-applies it, so the label
+  // would keep its mount-time opacity forever while the map zoomed. Children
+  // are ordinary React content and do re-render. The tooltip box itself is
+  // styled transparent, so this is visually equivalent.
+  return (
+    <Tooltip
+      permanent
+      direction="center"
+      position={[position.lat, position.lng]}
+      className={styles.territoryLabel}
+      interactive={false}
+    >
+      <span data-testid="territory-label" style={{ opacity }}>
+        {label}
+      </span>
+    </Tooltip>
+  );
+}
+
+// Shared popup body for a marker or territory in view mode. The entity link
+// is a button rather than an anchor: it opens a desktop window, not a URL.
+function FeatureDetails({
+  name,
+  subtitle,
+  description,
+  entity,
+  onOpenEntity,
+}: {
+  name: string;
+  subtitle?: string;
+  description?: string | null;
+  entity?: MapLinkedEntity | null;
+  onOpenEntity?: (entity: MapLinkedEntity) => void;
+}) {
+  return (
+    <div className={styles.details}>
+      <strong>{name}</strong>
+      {subtitle ? <span className={styles.entityTag}>{subtitle}</span> : null}
+      {description ? <p>{description}</p> : null}
+      {entity ? (
+        onOpenEntity ? (
+          <button
+            type="button"
+            className={styles.entityLink}
+            onClick={() => onOpenEntity(entity)}
+          >
+            {entity.name} · {entity.type}
+          </button>
+        ) : (
+          <span className={styles.entityTag}>
+            {entity.name} · {entity.type}
+          </span>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+// One subscription for the whole map, feeding every territory label.
+function MapZoomWatcher({ onZoom }: { onZoom: (zoom: number) => void }) {
+  const map = useMap();
+
+  useEffect(() => {
+    onZoom(map.getZoom());
+  }, [map, onZoom]);
+
+  useMapEvents({
+    zoomend() {
+      onZoom(map.getZoom());
+    },
+  });
 
   return null;
 }
@@ -387,6 +566,9 @@ export function MapCanvas({
   territories = [],
   imageOverlay = null,
   markerActionPending = false,
+  editing = false,
+  onEditingChange,
+  onOpenEntity,
   drawMode = "none",
   onDrawModeChange,
   onPlaceMarker,
@@ -404,9 +586,14 @@ export function MapCanvas({
     ? { crs: L.CRS.Simple, bounds: boundsFor(imageOverlay) }
     : { center, zoom };
 
+  const [mapZoom, setMapZoom] = useState(zoom);
+
   const drawing = drawMode !== "none";
-  const canDrawMarker = Boolean(onDrawModeChange && onPlaceMarker);
-  const canDrawTerritory = Boolean(onDrawModeChange && onCompleteTerritory);
+  // Draw tools exist only while editing — the toggle is what reveals them.
+  const canDrawMarker = editing && Boolean(onDrawModeChange && onPlaceMarker);
+  const canDrawTerritory =
+    editing && Boolean(onDrawModeChange && onCompleteTerritory);
+  const canEdit = Boolean(onEditingChange);
 
   function toggleDrawMode(mode: MapDrawMode) {
     onDrawModeChange?.(drawMode === mode ? "none" : mode);
@@ -414,8 +601,20 @@ export function MapCanvas({
 
   return (
     <div className={styles.wrap}>
-      {canDrawMarker || canDrawTerritory ? (
+      {/* The toolbar appears if any of its buttons would — the edit toggle
+          and the draw tools are independently wired. */}
+      {canEdit || canDrawMarker || canDrawTerritory ? (
         <div className={styles.toolbar}>
+          {canEdit ? (
+            <Button
+              type="button"
+              variant={editing ? "primary" : "secondary"}
+              aria-pressed={editing}
+              onClick={() => onEditingChange?.(!editing)}
+            >
+              {editing ? "Done editing" : "Edit map"}
+            </Button>
+          ) : null}
           {canDrawMarker ? (
             <Button
               type="button"
@@ -449,6 +648,7 @@ export function MapCanvas({
         className={drawing ? `${styles.map} ${styles.drawing}` : styles.map}
       >
         <MapResizeWatcher />
+        <MapZoomWatcher onZoom={setMapZoom} />
         <MapDrawLayer
           drawMode={drawMode}
           onDrawModeChange={onDrawModeChange}
@@ -468,20 +668,38 @@ export function MapCanvas({
         )}
         {territories.map((territory) => (
           <GeoJSON
-            key={territory.id}
+            key={`${territory.id}:${editing}`}
             data={territory.geometry as unknown as GeoJsonObject}
             style={{ color: colorForEntityType(territory.entity?.type) }}
             eventHandlers={{
               // While a mode is armed, a click that lands on an existing
               // territory is the user placing a point on top of it — not a
-              // request to edit that territory.
+              // request to edit that territory. Outside edit mode the click
+              // opens the popup below instead of the edit form.
               click: () => {
-                if (!drawing) {
+                if (!drawing && editing) {
                   onTerritoryClick?.(territory);
                 }
               },
             }}
-          />
+          >
+            {!editing ? (
+              <Popup>
+                <FeatureDetails
+                  name={territory.name}
+                  subtitle={territory.type}
+                  description={territory.description}
+                  entity={territory.entity}
+                  onOpenEntity={onOpenEntity}
+                />
+              </Popup>
+            ) : null}
+            <TerritoryLabel
+              territory={territory}
+              position={labelPositionFor(territory.geometry)}
+              zoom={mapZoom}
+            />
+          </GeoJSON>
         ))}
         {markers.map((marker) => (
           <Marker
@@ -491,31 +709,34 @@ export function MapCanvas({
           >
             <Popup>
               <div className={styles.popup}>
-                <strong>{marker.name}</strong>
-                {marker.entity ? (
-                  <span className={styles.entityTag}>
-                    {marker.entity.name} · {marker.entity.type}
-                  </span>
+                <FeatureDetails
+                  name={marker.name}
+                  description={marker.description}
+                  entity={marker.entity}
+                  onOpenEntity={onOpenEntity}
+                />
+                {/* Destructive and mutating actions exist only while
+                    editing; reading the map never offers them. */}
+                {editing ? (
+                  <div className={styles.popupActions}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={markerActionPending}
+                      onClick={() => onEditMarker?.(marker)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={markerActionPending}
+                      onClick={() => onDeleteMarker?.(marker)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 ) : null}
-                {marker.description ? <p>{marker.description}</p> : null}
-                <div className={styles.popupActions}>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={markerActionPending}
-                    onClick={() => onEditMarker?.(marker)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={markerActionPending}
-                    onClick={() => onDeleteMarker?.(marker)}
-                  >
-                    Delete
-                  </Button>
-                </div>
               </div>
             </Popup>
           </Marker>

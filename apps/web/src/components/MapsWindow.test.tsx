@@ -54,6 +54,12 @@ vi.mock("./MapCanvas", () => ({
         </button>
       ))}
       <span data-testid="draw-mode">{props.drawMode}</span>
+      <span data-testid="editing">{String(props.editing)}</span>
+      {props.onEditingChange ? (
+        <button onClick={() => props.onEditingChange?.(!props.editing)}>
+          {props.editing ? "Done editing" : "Edit map"}
+        </button>
+      ) : null}
       {props.onDrawModeChange ? (
         <button onClick={() => props.onDrawModeChange?.("marker")}>
           Arm marker mode
@@ -319,10 +325,14 @@ describe("MapsWindow", () => {
     expect(screen.getByText("Territory Thornwood")).toBeInTheDocument();
   });
 
-  it("shows Add Marker/Add Territory controls for an Owner on an image map", () => {
+  it("shows Add Marker/Add Territory controls for an Owner on an image map", async () => {
     setupMocks({ mapImage: imageMap });
     setupDesktopWindows();
+    const user = userEvent.setup();
     renderWindow();
+
+    // Edit affordances are opt-in now — enter edit mode first.
+    await user.click(screen.getByRole("button", { name: "Edit map" }));
 
     expect(
       screen.getByRole("button", { name: "+ Add Marker" }),
@@ -390,6 +400,9 @@ describe("MapsWindow", () => {
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
+
+    // Edit affordances are opt-in now — enter edit mode first.
+    await user.click(screen.getByRole("button", { name: "Edit map" }));
 
     await user.click(screen.getByRole("button", { name: "+ Add Marker" }));
 
@@ -521,6 +534,9 @@ describe("MapsWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
+    // Edit affordances are opt-in now — enter edit mode first.
+    await user.click(screen.getByRole("button", { name: "Edit map" }));
+
     await user.click(screen.getByRole("button", { name: "+ Add Territory" }));
 
     expect(openWindow).toHaveBeenCalledWith(
@@ -533,6 +549,9 @@ describe("MapsWindow", () => {
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
+
+    // Edit affordances are opt-in now — enter edit mode first.
+    await user.click(screen.getByRole("button", { name: "Edit map" }));
 
     await user.click(screen.getByRole("button", { name: "+ Add Marker" }));
 
@@ -555,6 +574,9 @@ describe("MapsWindow", () => {
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
+
+    // Edit affordances are opt-in now — enter edit mode first.
+    await user.click(screen.getByRole("button", { name: "Edit map" }));
 
     await user.click(screen.getByRole("button", { name: "+ Add Territory" }));
 
@@ -609,6 +631,9 @@ describe("MapsWindow", () => {
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
+
+    // Edit affordances are opt-in now — enter edit mode first.
+    await user.click(screen.getByRole("button", { name: "Edit map" }));
 
     await user.click(
       screen.getByRole("button", { name: "Territory Thornwood" }),

@@ -6,6 +6,8 @@ mutation CreateMarker($input: CreateMarkerInput!) {
       id
       name
       type
+      description
+      visibility
     }
     name
     lat

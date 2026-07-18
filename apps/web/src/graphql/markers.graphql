@@ -6,6 +6,8 @@ query Markers($campaignId: ID!) {
       id
       name
       type
+      description
+      visibility
     }
     name
     lat

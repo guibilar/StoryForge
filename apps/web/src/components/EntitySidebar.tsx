@@ -1,14 +1,15 @@
-import { useState } from "react";
 import { useQuery } from "urql";
 import { Button } from "@storyforge/ui";
 
 import { EntitiesDocument } from "../gql/graphql";
 import type { CampaignRole } from "../gql/graphql";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
-import { CreateEntityModal } from "./CreateEntityModal";
-import { CreateNoteModal } from "./CreateNoteModal";
+import { EntityFormWindow } from "./EntityFormWindow";
+import { NoteFormWindow } from "./NoteFormWindow";
+import type { NoteRow } from "./NoteFormWindow";
 import type { EntitySummary } from "./EntityWindow";
 import styles from "./EntitySidebar.module.css";
 
@@ -28,8 +29,6 @@ const WORLD_NAV: { id: string; label: string }[] = [
   { id: "relationships", label: "Relationship Graph" },
 ];
 
-type QuickAction = "entity" | "note" | null;
-
 function groupByType(entities: EntitySummary[]): [string, EntitySummary[]][] {
   const groups = new Map<string, EntitySummary[]>();
   for (const entity of entities) {
@@ -43,21 +42,58 @@ function groupByType(entities: EntitySummary[]): [string, EntitySummary[]][] {
 export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
   const { layout, toggle } = useDesktopWindows();
   const openEntityWindow = useOpenEntityWindow(campaignId);
+  const { openAddEditWindow: openEntityFormWindow } = useAddEditWindow({
+    idPrefix: "entity-form",
+    width: 380,
+    height: 460,
+  });
+  const { openAddEditWindow: openNoteFormWindow } = useAddEditWindow({
+    idPrefix: "note-form",
+    width: 420,
+    height: 520,
+  });
 
   const [{ data, fetching, error }, reexecuteEntities] = useQuery({
     query: EntitiesDocument,
     variables: { campaignId },
   });
 
-  const [quickAction, setQuickAction] = useState<QuickAction>(null);
-
   const isWriter =
     role === "OWNER" || role === "STORYTELLER" || role === "CO_STORYTELLER";
   const entities: EntitySummary[] = data?.entities ?? [];
   const groups = groupByType(entities);
 
-  function closeQuickAction() {
-    setQuickAction(null);
+  function openCreateEntityWindow() {
+    openEntityFormWindow<EntitySummary>(
+      { mode: "create" },
+      "New Entity",
+      (close) => (
+        <EntityFormWindow
+          campaignId={campaignId}
+          onCreated={() => reexecuteEntities({ requestPolicy: "network-only" })}
+          onClose={close}
+        />
+      ),
+    );
+  }
+
+  function openCreateNoteWindow() {
+    openNoteFormWindow<NoteRow>({ mode: "create" }, "New Note", (close) => (
+      <NoteFormWindow
+        campaignId={campaignId}
+        mode={{ mode: "create" }}
+        // Notes window unmounts entirely while hidden (see DesktopBoard.tsx),
+        // so toggling it visible is enough to pick up the new note on its
+        // own fresh fetch. If it's already open, leave it be rather than
+        // toggling it closed — its own refresh (KAN-110) covers that case.
+        onSaved={() => {
+          if (layout.notes?.hidden) {
+            toggle("notes");
+          }
+        }}
+        onClose={close}
+      />
+    ));
   }
 
   return (
@@ -118,31 +154,19 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => setQuickAction("entity")}
+            onClick={openCreateEntityWindow}
           >
             + New Entity
           </Button>
           <Button
             type="button"
             variant="secondary"
-            onClick={() => setQuickAction("note")}
+            onClick={openCreateNoteWindow}
           >
             + New Note
           </Button>
         </div>
       ) : null}
-
-      <CreateEntityModal
-        open={quickAction === "entity"}
-        campaignId={campaignId}
-        onClose={closeQuickAction}
-        onCreated={() => reexecuteEntities({ requestPolicy: "network-only" })}
-      />
-      <CreateNoteModal
-        open={quickAction === "note"}
-        campaignId={campaignId}
-        onClose={closeQuickAction}
-      />
     </nav>
   );
 }

@@ -10,10 +10,12 @@ import {
 } from "../gql/graphql";
 import type { CampaignRole } from "../gql/graphql";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { scoreMatch } from "../lib/commandScore";
-import { CreateEntityModal } from "./CreateEntityModal";
-import { CreateNoteModal } from "./CreateNoteModal";
+import { EntityFormWindow } from "./EntityFormWindow";
+import { NoteFormWindow } from "./NoteFormWindow";
+import type { NoteRow } from "./NoteFormWindow";
 import type { EntitySummary } from "./EntityWindow";
 
 export interface AppCommandPaletteProps {
@@ -63,15 +65,22 @@ export function AppCommandPalette({
   campaignId,
   role,
 }: AppCommandPaletteProps) {
-  const { toggle, recentIds } = useDesktopWindows();
+  const { layout, toggle, recentIds } = useDesktopWindows();
   const openEntityWindow = useOpenEntityWindow(campaignId);
+  const { openAddEditWindow: openEntityFormWindow } = useAddEditWindow({
+    idPrefix: "entity-form",
+    width: 380,
+    height: 460,
+  });
+  const { openAddEditWindow: openNoteFormWindow } = useAddEditWindow({
+    idPrefix: "note-form",
+    width: 420,
+    height: 520,
+  });
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [quickAction, setQuickAction] = useState<"entity" | "note" | null>(
-    null,
-  );
 
   const [{ data: entitiesData }, reexecuteEntities] = useQuery({
     query: EntitiesDocument,
@@ -232,6 +241,35 @@ export function AppCommandPalette({
     },
   ].filter((section) => section.items.length > 0);
 
+  function openCreateEntityWindow() {
+    openEntityFormWindow<EntitySummary>(
+      { mode: "create" },
+      "New Entity",
+      (close) => (
+        <EntityFormWindow
+          campaignId={campaignId}
+          onCreated={() => reexecuteEntities({ requestPolicy: "network-only" })}
+          onClose={close}
+        />
+      ),
+    );
+  }
+
+  function openCreateNoteWindow() {
+    openNoteFormWindow<NoteRow>({ mode: "create" }, "New Note", (close) => (
+      <NoteFormWindow
+        campaignId={campaignId}
+        mode={{ mode: "create" }}
+        onSaved={() => {
+          if (layout.notes?.hidden) {
+            toggle("notes");
+          }
+        }}
+        onClose={close}
+      />
+    ));
+  }
+
   function handleCommit(id: string) {
     const separatorIndex = id.indexOf(":");
     const kind = id.slice(0, separatorIndex);
@@ -247,37 +285,24 @@ export function AppCommandPalette({
     } else if (kind === "session") {
       toggle("sessions");
     } else if (kind === "action" && value === "new-entity") {
-      setQuickAction("entity");
+      openCreateEntityWindow();
     } else if (kind === "action" && value === "new-note") {
-      setQuickAction("note");
+      openCreateNoteWindow();
     }
 
     closePalette();
   }
 
   return (
-    <>
-      <CommandPalette
-        open={open}
-        query={query}
-        onQueryChange={setQuery}
-        sections={sections}
-        activeId={activeId}
-        onActiveChange={setActiveId}
-        onCommit={handleCommit}
-        onClose={closePalette}
-      />
-      <CreateEntityModal
-        open={quickAction === "entity"}
-        campaignId={campaignId}
-        onClose={() => setQuickAction(null)}
-        onCreated={() => reexecuteEntities({ requestPolicy: "network-only" })}
-      />
-      <CreateNoteModal
-        open={quickAction === "note"}
-        campaignId={campaignId}
-        onClose={() => setQuickAction(null)}
-      />
-    </>
+    <CommandPalette
+      open={open}
+      query={query}
+      onQueryChange={setQuery}
+      sections={sections}
+      activeId={activeId}
+      onActiveChange={setActiveId}
+      onCommit={handleCommit}
+      onClose={closePalette}
+    />
   );
 }

@@ -1,13 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useMutation, useQuery } from "urql";
+import { useQuery } from "urql";
 
 import { AppCommandPalette } from "./AppCommandPalette";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import type { OpenWindowRequest } from "../lib/DesktopWindowsContext";
 import {
-  CreateEntityDocument,
-  CreateNoteDocument,
   EntitiesDocument,
   NotesDocument,
   SessionsDocument,
@@ -15,7 +14,7 @@ import {
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useMutation: vi.fn(), useQuery: vi.fn() };
+  return { ...actual, useQuery: vi.fn() };
 });
 
 vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
@@ -87,20 +86,16 @@ function setupQueries() {
     }
     throw new Error("Unexpected query in test");
   }) as never);
-
-  vi.mocked(useMutation).mockImplementation(((doc: unknown) => {
-    if (doc === CreateEntityDocument || doc === CreateNoteDocument) {
-      return [{ fetching: false, stale: false }, vi.fn()];
-    }
-    throw new Error("Unexpected mutation in test");
-  }) as never);
 }
 
-function setupDesktopWindows({ recentIds = [] as string[] } = {}) {
+function setupDesktopWindows({
+  recentIds = [] as string[],
+  layout = {} as Record<string, { hidden: boolean }>,
+} = {}) {
   const toggle = vi.fn();
   const openWindow = vi.fn();
   vi.mocked(useDesktopWindows).mockReturnValue({
-    layout: {},
+    layout: layout as never,
     bringToFront: vi.fn(),
     toggle,
     startDrag: vi.fn(),
@@ -253,10 +248,10 @@ describe("AppCommandPalette", () => {
     expect(toggle).toHaveBeenCalledWith("sessions");
   });
 
-  it("shows New Entity/New Note actions for a writer and opens the create form", async () => {
+  it("shows New Entity/New Note actions for a writer and opens the create-entity window", async () => {
     const user = userEvent.setup();
     setupQueries();
-    setupDesktopWindows();
+    const { openWindow } = setupDesktopWindows();
     render(<AppCommandPalette campaignId="camp-1" role="OWNER" />);
 
     await user.keyboard("{Meta>}k{/Meta}");
@@ -269,11 +264,33 @@ describe("AppCommandPalette", () => {
 
     await user.click(screen.getByRole("option", { name: /^New Entity/ }));
 
-    // The palette itself closes on commit, leaving only the now-open
-    // CreateEntityModal's heading — unambiguous once the option is gone.
-    expect(
-      screen.getByRole("heading", { name: "New Entity" }),
-    ).toBeInTheDocument();
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "entity-form:new", title: "New Entity" }),
+    );
+    // The palette itself closes on commit.
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("opens the create-note window when New Note is selected, opening Notes on save if hidden", async () => {
+    const user = userEvent.setup();
+    setupQueries();
+    const { openWindow, toggle } = setupDesktopWindows({
+      layout: { notes: { hidden: true } },
+    });
+    render(<AppCommandPalette campaignId="camp-1" role="OWNER" />);
+
+    await user.keyboard("{Meta>}k{/Meta}");
+    await user.click(screen.getByRole("option", { name: /^New Note/ }));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "note-form:new", title: "New Note" }),
+    );
+
+    const request = openWindow.mock.calls[0][0] as OpenWindowRequest;
+    const element = request.render() as { props: { onSaved: () => void } };
+    element.props.onSaved();
+
+    expect(toggle).toHaveBeenCalledWith("notes");
   });
 
   it("hides Actions for a non-writer role", async () => {

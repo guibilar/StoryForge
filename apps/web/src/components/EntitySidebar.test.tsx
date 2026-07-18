@@ -1,19 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useMutation, useQuery } from "urql";
+import { useQuery } from "urql";
 
 import { EntitySidebar } from "./EntitySidebar";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
-import {
-  CreateEntityDocument,
-  CreateNoteDocument,
-  EntitiesDocument,
-} from "../gql/graphql";
+import type { OpenWindowRequest } from "../lib/DesktopWindowsContext";
+import { EntitiesDocument } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useMutation: vi.fn(), useQuery: vi.fn() };
+  return { ...actual, useQuery: vi.fn() };
 });
 
 vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
@@ -46,12 +43,7 @@ const ENTITIES = [
   },
 ];
 
-function setupQueries({
-  entities = ENTITIES,
-  createEntity = vi.fn().mockResolvedValue({ data: { createEntity: {} } }),
-  createNote = vi.fn().mockResolvedValue({ data: { createNote: {} } }),
-  reexecute = vi.fn(),
-} = {}) {
+function setupQueries({ entities = ENTITIES, reexecute = vi.fn() } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === EntitiesDocument) {
       return [{ data: { entities }, fetching: false, stale: false }, reexecute];
@@ -59,26 +51,23 @@ function setupQueries({
     throw new Error("Unexpected query in test");
   }) as never);
 
-  vi.mocked(useMutation).mockImplementation(((doc: unknown) => {
-    if (doc === CreateEntityDocument) {
-      return [{ fetching: false, stale: false }, createEntity];
-    }
-    if (doc === CreateNoteDocument) {
-      return [{ fetching: false, stale: false }, createNote];
-    }
-    throw new Error("Unexpected mutation in test");
-  }) as never);
-
-  return { createEntity, createNote, reexecute };
+  return { reexecute };
 }
 
-function setupDesktopWindows() {
+function setupDesktopWindows({ notesHidden = true } = {}) {
   const toggle = vi.fn();
   const openWindow = vi.fn();
   const hiddenLayout = Object.fromEntries(
     ["timeline", "sessions", "notes", "members", "relationships"].map((id) => [
       id,
-      { x: 0, y: 0, width: 0, height: 0, hidden: true, z: 0 },
+      {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        hidden: id === "notes" ? notesHidden : true,
+        z: 0,
+      },
     ]),
   );
   vi.mocked(useDesktopWindows).mockReturnValue({
@@ -163,47 +152,60 @@ describe("EntitySidebar", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("creates a new entity via the quick action and refetches", async () => {
+  it("opens a create-entity window when + New Entity is clicked, wired to refetch on save", async () => {
     const user = userEvent.setup();
-    const { createEntity, reexecute } = setupQueries();
-    setupDesktopWindows();
+    const { reexecute } = setupQueries();
+    const { openWindow } = setupDesktopWindows();
     renderSidebar("OWNER");
 
     await user.click(screen.getByRole("button", { name: "+ New Entity" }));
-    await user.type(screen.getByLabelText("Name"), "Lucien Dubois");
-    await user.type(screen.getByLabelText("Type"), "Character");
-    await user.click(screen.getByRole("button", { name: "Create" }));
 
-    expect(createEntity).toHaveBeenCalledWith({
-      input: {
-        campaignId: "camp-1",
-        type: "Character",
-        name: "Lucien Dubois",
-        description: null,
-        visibility: "PUBLIC",
-      },
-    });
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "entity-form:new", title: "New Entity" }),
+    );
+
+    const request = openWindow.mock.calls[0][0] as OpenWindowRequest;
+    const element = request.render() as {
+      props: { campaignId: string; onCreated: () => void };
+    };
+    expect(element.props.campaignId).toBe("camp-1");
+    element.props.onCreated();
     expect(reexecute).toHaveBeenCalledWith({ requestPolicy: "network-only" });
   });
 
-  it("creates a new note via the quick action and opens the Notes window", async () => {
+  it("opens a create-note window when + New Note is clicked, and opens Notes on save if it was hidden", async () => {
     const user = userEvent.setup();
-    const { createNote } = setupQueries();
-    const { toggle } = setupDesktopWindows();
+    setupQueries();
+    const { openWindow, toggle } = setupDesktopWindows({ notesHidden: true });
     renderSidebar("OWNER");
 
     await user.click(screen.getByRole("button", { name: "+ New Note" }));
-    await user.type(screen.getByLabelText("Title"), "Council Meeting");
-    await user.click(screen.getByRole("button", { name: "Create" }));
 
-    expect(createNote).toHaveBeenCalledWith({
-      input: {
-        campaignId: "camp-1",
-        title: "Council Meeting",
-        content: null,
-        visibility: "SHARED",
-      },
-    });
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "note-form:new", title: "New Note" }),
+    );
+
+    const request = openWindow.mock.calls[0][0] as OpenWindowRequest;
+    const element = request.render() as {
+      props: { campaignId: string; onSaved: () => void };
+    };
+    expect(element.props.campaignId).toBe("camp-1");
+    element.props.onSaved();
     expect(toggle).toHaveBeenCalledWith("notes");
+  });
+
+  it("does not toggle Notes closed on save if it was already open", async () => {
+    const user = userEvent.setup();
+    setupQueries();
+    const { openWindow, toggle } = setupDesktopWindows({ notesHidden: false });
+    renderSidebar("OWNER");
+
+    await user.click(screen.getByRole("button", { name: "+ New Note" }));
+
+    const request = openWindow.mock.calls[0][0] as OpenWindowRequest;
+    const element = request.render() as { props: { onSaved: () => void } };
+    element.props.onSaved();
+
+    expect(toggle).not.toHaveBeenCalled();
   });
 });

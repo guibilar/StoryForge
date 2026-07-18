@@ -5,15 +5,13 @@ import { describe, expect, it, vi } from "vitest";
 import { useMutation, useQuery } from "urql";
 
 import { SessionsWindow } from "./SessionsWindow";
+import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
-  AttachSessionAttendeeDocument,
   CampaignDocument,
-  CreateSessionDocument,
   DeleteSessionDocument,
-  DetachSessionAttendeeDocument,
   MeDocument,
   SessionsDocument,
-  UpdateSessionDocument,
 } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
@@ -24,6 +22,12 @@ vi.mock("urql", async (importOriginal) => {
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useParams: () => ({ id: "camp-1" }) };
+});
+
+vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("../lib/DesktopWindowsContext")>();
+  return { ...actual, useDesktopWindows: vi.fn() };
 });
 
 const CURRENT_USER_ID = "user-1";
@@ -75,17 +79,7 @@ const sessions = [
 function setupMocks({
   members = ownerMembers,
   sessionList = sessions,
-  createSession = vi
-    .fn()
-    .mockResolvedValue({ data: { createSession: { id: "sess-3" } } }),
-  updateSession = vi.fn().mockResolvedValue({ data: { updateSession: {} } }),
   deleteSession = vi.fn().mockResolvedValue({ data: { deleteSession: true } }),
-  attachSessionAttendee = vi
-    .fn()
-    .mockResolvedValue({ data: { attachSessionAttendee: {} } }),
-  detachSessionAttendee = vi
-    .fn()
-    .mockResolvedValue({ data: { detachSessionAttendee: {} } }),
   reexecuteSessions = vi.fn(),
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
@@ -122,61 +116,57 @@ function setupMocks({
   }) as never);
 
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
-    if (document === CreateSessionDocument) {
-      return [
-        { fetching: false, error: undefined, stale: false },
-        createSession,
-      ];
-    }
-    if (document === UpdateSessionDocument) {
-      return [
-        { fetching: false, error: undefined, stale: false },
-        updateSession,
-      ];
-    }
     if (document === DeleteSessionDocument) {
       return [
         { fetching: false, error: undefined, stale: false },
         deleteSession,
       ];
     }
-    if (document === AttachSessionAttendeeDocument) {
-      return [
-        { fetching: false, error: undefined, stale: false },
-        attachSessionAttendee,
-      ];
-    }
-    if (document === DetachSessionAttendeeDocument) {
-      return [
-        { fetching: false, error: undefined, stale: false },
-        detachSessionAttendee,
-      ];
-    }
 
     throw new Error("Unexpected mutation in test");
   }) as never);
 
-  return {
-    createSession,
-    updateSession,
-    deleteSession,
-    attachSessionAttendee,
-    detachSessionAttendee,
-    reexecuteSessions,
-  };
+  return { deleteSession, reexecuteSessions };
+}
+
+function setupDesktopWindows() {
+  const openWindow = vi.fn();
+  const closeWindow = vi.fn();
+  vi.mocked(useDesktopWindows).mockReturnValue({
+    layout: {},
+    bringToFront: vi.fn(),
+    toggle: vi.fn(),
+    startDrag: vi.fn(),
+    startResize: vi.fn(),
+    reset: vi.fn(),
+    dynamicWindows: {},
+    openWindow,
+    closeWindow,
+    recentIds: [],
+    presets: {},
+    savePreset: vi.fn(),
+    applyPreset: vi.fn(),
+    hydrateFromServer: vi.fn(),
+  });
+  return { openWindow, closeWindow };
 }
 
 function renderWindow() {
+  const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
   render(
-    <MemoryRouter>
-      <SessionsWindow />
-    </MemoryRouter>,
+    <WindowChromeContext.Provider value={chromeApi}>
+      <MemoryRouter>
+        <SessionsWindow />
+      </MemoryRouter>
+    </WindowChromeContext.Provider>,
   );
+  return chromeApi;
 }
 
 describe("SessionsWindow", () => {
   it("lists sessions in reverse-chronological order with attendees and recap", () => {
     setupMocks();
+    setupDesktopWindows();
     renderWindow();
 
     const badges = screen.getAllByText(/^#\d$/);
@@ -188,6 +178,7 @@ describe("SessionsWindow", () => {
 
   it("shows create/edit/delete controls for an Owner", () => {
     setupMocks();
+    setupDesktopWindows();
     renderWindow();
 
     expect(
@@ -199,6 +190,7 @@ describe("SessionsWindow", () => {
 
   it("hides write controls for a Player (read-only)", () => {
     setupMocks({ members: playerMembers });
+    setupDesktopWindows();
     renderWindow();
 
     expect(screen.getByText("The party arrived in town.")).toBeInTheDocument();
@@ -212,38 +204,44 @@ describe("SessionsWindow", () => {
 
   it("shows an empty state when there are no sessions", () => {
     setupMocks({ sessionList: [] });
+    setupDesktopWindows();
     renderWindow();
 
     expect(screen.getByText("No sessions logged yet.")).toBeInTheDocument();
   });
 
-  it("creates a session with selected attendees and refetches", async () => {
-    const { createSession, attachSessionAttendee, reexecuteSessions } =
-      setupMocks();
+  it("opens a create window when + Log session is clicked", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
 
     await user.click(screen.getByRole("button", { name: "+ Log session" }));
-    await user.type(screen.getByLabelText("Date"), "2026-07-01");
-    await user.click(
-      screen.getByRole("checkbox", { name: "owner@example.com" }),
-    );
-    await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(createSession).toHaveBeenCalledWith({
-      input: { campaignId: "camp-1", date: "2026-07-01", summary: null },
-    });
-    expect(attachSessionAttendee).toHaveBeenCalledWith({
-      sessionId: "sess-3",
-      userId: CURRENT_USER_ID,
-    });
-    expect(reexecuteSessions).toHaveBeenCalledWith({
-      requestPolicy: "network-only",
-    });
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "session-form:new", title: "Log Session" }),
+    );
+  });
+
+  it("opens an edit window when Edit is clicked", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "session-form:sess-2",
+        title: "Edit: Session #2",
+      }),
+    );
   });
 
   it("deletes a session after confirming and refetches", async () => {
     const { deleteSession, reexecuteSessions } = setupMocks();
+    setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
 
@@ -251,6 +249,21 @@ describe("SessionsWindow", () => {
     await user.click(screen.getByRole("button", { name: "Confirm" }));
 
     expect(deleteSession).toHaveBeenCalledWith({ id: "sess-2" });
+    expect(reexecuteSessions).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+  });
+
+  it("reports its loading state and a network-only refresh to the window chrome", () => {
+    const { reexecuteSessions } = setupMocks();
+    setupDesktopWindows();
+    const chromeApi = renderWindow();
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(false);
+    const registered = chromeApi.setOnRefresh.mock.calls.at(-1)?.[0]() as
+      (() => void) | undefined;
+    registered?.();
+
     expect(reexecuteSessions).toHaveBeenCalledWith({
       requestPolicy: "network-only",
     });

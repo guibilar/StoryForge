@@ -5,17 +5,14 @@ import { describe, expect, it, vi } from "vitest";
 import { useMutation, useQuery } from "urql";
 
 import { TimelineWindow } from "./TimelineWindow";
+import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
-  AttachParticipantDocument,
   CampaignDocument,
-  CreateEventDocument,
   DeleteEventDocument,
-  DetachParticipantDocument,
   EntitiesDocument,
   EventsDocument,
   MeDocument,
-  SessionsDocument,
-  UpdateEventDocument,
 } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
@@ -26,6 +23,12 @@ vi.mock("urql", async (importOriginal) => {
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useParams: () => ({ id: "camp-1" }) };
+});
+
+vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("../lib/DesktopWindowsContext")>();
+  return { ...actual, useDesktopWindows: vi.fn() };
 });
 
 const CURRENT_USER_ID = "user-1";
@@ -63,8 +66,6 @@ const entities = [
   },
 ];
 
-const sessions = [{ id: "sess-1", sessionNumber: 11, date: "2026-06-29" }];
-
 const events = [
   {
     id: "event-1",
@@ -95,17 +96,7 @@ const events = [
 function setupMocks({
   members = ownerMembers,
   eventList = events,
-  createEvent = vi
-    .fn()
-    .mockResolvedValue({ data: { createEvent: { id: "event-3" } } }),
-  updateEvent = vi.fn().mockResolvedValue({ data: { updateEvent: {} } }),
   deleteEvent = vi.fn().mockResolvedValue({ data: { deleteEvent: true } }),
-  attachParticipant = vi
-    .fn()
-    .mockResolvedValue({ data: { attachParticipant: {} } }),
-  detachParticipant = vi
-    .fn()
-    .mockResolvedValue({ data: { detachParticipant: {} } }),
   reexecuteEvents = vi.fn(),
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
@@ -142,60 +133,58 @@ function setupMocks({
       return [{ data: { entities }, fetching: false, stale: false }, vi.fn()];
     }
 
-    if (args.query === SessionsDocument) {
-      return [{ data: { sessions }, fetching: false, stale: false }, vi.fn()];
-    }
-
     throw new Error("Unexpected query in test");
   }) as never);
 
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
-    if (document === CreateEventDocument) {
-      return [{ fetching: false, error: undefined, stale: false }, createEvent];
-    }
-    if (document === UpdateEventDocument) {
-      return [{ fetching: false, error: undefined, stale: false }, updateEvent];
-    }
     if (document === DeleteEventDocument) {
       return [{ fetching: false, error: undefined, stale: false }, deleteEvent];
-    }
-    if (document === AttachParticipantDocument) {
-      return [
-        { fetching: false, error: undefined, stale: false },
-        attachParticipant,
-      ];
-    }
-    if (document === DetachParticipantDocument) {
-      return [
-        { fetching: false, error: undefined, stale: false },
-        detachParticipant,
-      ];
     }
 
     throw new Error("Unexpected mutation in test");
   }) as never);
 
-  return {
-    createEvent,
-    updateEvent,
-    deleteEvent,
-    attachParticipant,
-    detachParticipant,
-    reexecuteEvents,
-  };
+  return { deleteEvent, reexecuteEvents };
+}
+
+function setupDesktopWindows() {
+  const openWindow = vi.fn();
+  const closeWindow = vi.fn();
+  vi.mocked(useDesktopWindows).mockReturnValue({
+    layout: {},
+    bringToFront: vi.fn(),
+    toggle: vi.fn(),
+    startDrag: vi.fn(),
+    startResize: vi.fn(),
+    reset: vi.fn(),
+    dynamicWindows: {},
+    openWindow,
+    closeWindow,
+    recentIds: [],
+    presets: {},
+    savePreset: vi.fn(),
+    applyPreset: vi.fn(),
+    hydrateFromServer: vi.fn(),
+  });
+  return { openWindow, closeWindow };
 }
 
 function renderWindow() {
+  const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
   render(
-    <MemoryRouter>
-      <TimelineWindow />
-    </MemoryRouter>,
+    <WindowChromeContext.Provider value={chromeApi}>
+      <MemoryRouter>
+        <TimelineWindow />
+      </MemoryRouter>
+    </WindowChromeContext.Provider>,
   );
+  return chromeApi;
 }
 
 describe("TimelineWindow", () => {
   it("lists events in occurredAt order with participant and session chips", () => {
     setupMocks();
+    setupDesktopWindows();
     renderWindow();
 
     expect(
@@ -210,6 +199,7 @@ describe("TimelineWindow", () => {
 
   it("shows create/edit/delete controls for an Owner", () => {
     setupMocks();
+    setupDesktopWindows();
     renderWindow();
 
     expect(
@@ -221,6 +211,7 @@ describe("TimelineWindow", () => {
 
   it("hides write controls for a Player (read-only)", () => {
     setupMocks({ members: playerMembers });
+    setupDesktopWindows();
     renderWindow();
 
     expect(
@@ -236,6 +227,7 @@ describe("TimelineWindow", () => {
 
   it("filters events by search text", async () => {
     setupMocks();
+    setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
 
@@ -251,6 +243,7 @@ describe("TimelineWindow", () => {
 
   it("filters events by participant", async () => {
     setupMocks();
+    setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
 
@@ -269,42 +262,44 @@ describe("TimelineWindow", () => {
 
   it("shows an empty state when there are no events", () => {
     setupMocks({ eventList: [] });
+    setupDesktopWindows();
     renderWindow();
 
     expect(screen.getByText("No events yet.")).toBeInTheDocument();
   });
 
-  it("creates an event with selected participants and refetches", async () => {
-    const { createEvent, attachParticipant, reexecuteEvents } = setupMocks();
+  it("opens a create window when + New event is clicked", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
 
     await user.click(screen.getByRole("button", { name: "+ New event" }));
-    await user.type(screen.getByLabelText("Title"), "New event");
-    await user.type(screen.getByLabelText("Order (in-fiction)"), "Day 3");
-    await user.click(screen.getByRole("checkbox", { name: "Theo Vance" }));
-    await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(createEvent).toHaveBeenCalledWith({
-      input: {
-        campaignId: "camp-1",
-        title: "New event",
-        description: null,
-        occurredAt: "Day 3",
-        sessionId: null,
-      },
-    });
-    expect(attachParticipant).toHaveBeenCalledWith({
-      eventId: "event-3",
-      entityId: "npc-1",
-    });
-    expect(reexecuteEvents).toHaveBeenCalledWith({
-      requestPolicy: "network-only",
-    });
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "event-form:new", title: "New Event" }),
+    );
+  });
+
+  it("opens an edit window when Edit is clicked", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "event-form:event-1",
+        title: "Edit: Coterie forms an uneasy alliance",
+      }),
+    );
   });
 
   it("deletes an event after confirming and refetches", async () => {
     const { deleteEvent, reexecuteEvents } = setupMocks();
+    setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
 
@@ -312,6 +307,21 @@ describe("TimelineWindow", () => {
     await user.click(screen.getByRole("button", { name: "Confirm" }));
 
     expect(deleteEvent).toHaveBeenCalledWith({ id: "event-1" });
+    expect(reexecuteEvents).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+  });
+
+  it("reports its loading state and a network-only refresh to the window chrome", () => {
+    const { reexecuteEvents } = setupMocks();
+    setupDesktopWindows();
+    const chromeApi = renderWindow();
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(false);
+    const registered = chromeApi.setOnRefresh.mock.calls.at(-1)?.[0]() as
+      (() => void) | undefined;
+    registered?.();
+
     expect(reexecuteEvents).toHaveBeenCalledWith({
       requestPolicy: "network-only",
     });

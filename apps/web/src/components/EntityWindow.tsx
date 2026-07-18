@@ -7,6 +7,7 @@ import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
 import type { EntityVisibility } from "../gql/graphql";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./EntityWindow.module.css";
 
 export interface EntitySummary {
@@ -74,15 +75,25 @@ function RelationshipsTab({
 }) {
   const openEntityWindow = useOpenEntityWindow(campaignId);
 
-  const [{ data: entitiesData, fetching: entitiesFetching }] = useQuery({
+  const [
+    { data: entitiesData, fetching: entitiesFetching },
+    reexecuteEntities,
+  ] = useQuery({
     query: EntitiesDocument,
     variables: { campaignId },
   });
-  const [{ data: relationshipsData, fetching: relationshipsFetching, error }] =
-    useQuery({
-      query: RelationshipsDocument,
-      variables: { campaignId, entityId: entity.id },
-    });
+  const [
+    { data: relationshipsData, fetching: relationshipsFetching, error },
+    reexecuteRelationships,
+  ] = useQuery({
+    query: RelationshipsDocument,
+    variables: { campaignId, entityId: entity.id },
+  });
+
+  useWindowChromeSync(entitiesFetching || relationshipsFetching, () => {
+    reexecuteEntities({ requestPolicy: "network-only" });
+    reexecuteRelationships({ requestPolicy: "network-only" });
+  });
 
   if (entitiesFetching || relationshipsFetching) {
     return <p className={styles.empty}>Loading relationships…</p>;

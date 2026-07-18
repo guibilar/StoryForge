@@ -19,6 +19,7 @@ import {
 } from "../gql/graphql";
 import type { CampaignRole } from "../gql/graphql";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./MembersWindow.module.css";
 
 const ROLES: CampaignRole[] = [
@@ -91,6 +92,8 @@ export function MembersWindow() {
       refetch();
     }
   }
+
+  useWindowChromeSync(fetching, refetch);
 
   if (fetching) {
     return <p>Loading members…</p>;

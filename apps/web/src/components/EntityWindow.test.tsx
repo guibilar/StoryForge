@@ -5,6 +5,7 @@ import { useQuery } from "urql";
 
 import { EntityWindow } from "./EntityWindow";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
@@ -52,12 +53,14 @@ function setupQueries({
   relationships = RELATIONSHIPS,
   entitiesFetching = false,
   relationshipsFetching = false,
+  reexecuteEntities = vi.fn(),
+  reexecuteRelationships = vi.fn(),
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === EntitiesDocument) {
       return [
         { data: { entities }, fetching: entitiesFetching, stale: false },
-        vi.fn(),
+        reexecuteEntities,
       ];
     }
     if (args.query === RelationshipsDocument) {
@@ -67,11 +70,13 @@ function setupQueries({
           fetching: relationshipsFetching,
           stale: false,
         },
-        vi.fn(),
+        reexecuteRelationships,
       ];
     }
     throw new Error("Unexpected query in test");
   }) as never);
+
+  return { reexecuteEntities, reexecuteRelationships };
 }
 
 function setupDesktopWindows() {
@@ -175,5 +180,48 @@ describe("EntityWindow", () => {
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "entity:e-2", title: "Beatriz Moreau" }),
     );
+  });
+
+  it("reports loading and a network-only refresh to the window chrome while on the Relationships tab", async () => {
+    const user = userEvent.setup();
+    const { reexecuteEntities, reexecuteRelationships } = setupQueries();
+    setupDesktopWindows();
+    const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
+    render(
+      <WindowChromeContext.Provider value={chromeApi}>
+        <EntityWindow entity={ENTITY} campaignId="camp-1" />
+      </WindowChromeContext.Provider>,
+    );
+
+    await user.click(screen.getByRole("tab", { name: "Relationships" }));
+
+    expect(chromeApi.setLoading).toHaveBeenLastCalledWith(false);
+    const registered = chromeApi.setOnRefresh.mock.calls.at(-1)?.[0]() as
+      (() => void) | undefined;
+    registered?.();
+
+    expect(reexecuteEntities).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+    expect(reexecuteRelationships).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+  });
+
+  it("resets the window chrome's loading state when navigating away from Relationships", async () => {
+    const user = userEvent.setup();
+    setupQueries();
+    setupDesktopWindows();
+    const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
+    render(
+      <WindowChromeContext.Provider value={chromeApi}>
+        <EntityWindow entity={ENTITY} campaignId="camp-1" />
+      </WindowChromeContext.Provider>,
+    );
+
+    await user.click(screen.getByRole("tab", { name: "Relationships" }));
+    await user.click(screen.getByRole("tab", { name: "Overview" }));
+
+    expect(chromeApi.setLoading).toHaveBeenLastCalledWith(false);
   });
 });

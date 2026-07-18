@@ -1,6 +1,8 @@
+import { useRef } from "react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 
 import { cx } from "../../lib/cx";
+import { useFocusTrap } from "../../lib/focusTrap";
 import styles from "./Window.module.css";
 
 export interface WindowProps {
@@ -18,6 +20,13 @@ export interface WindowProps {
   // pointer events for all of them without each needing its own disabled
   // state.
   isLoading?: boolean;
+  // Whether opening this window should move keyboard focus into it and
+  // restore focus to whatever had it when the window closes — the
+  // Modal-parity behavior KAN-111 adds. Defaults to true (matches a
+  // just-opened dialog); pass false for a window that's simply present
+  // as part of the initial layout rather than one a user action opened,
+  // so loading the page doesn't yank focus into an arbitrary window.
+  autoFocus?: boolean;
   className?: string;
   children: ReactNode;
 }
@@ -31,14 +40,21 @@ export function Window({
   onPointerDownCapture,
   onRefresh,
   isLoading = false,
+  autoFocus = true,
   className,
   children,
 }: WindowProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const handleKeyDown = useFocusTrap(rootRef, onClose, autoFocus);
+
   return (
     <div
+      ref={rootRef}
       className={cx(styles.window, className)}
       style={style}
+      tabIndex={-1}
       onPointerDownCapture={onPointerDownCapture}
+      onKeyDown={handleKeyDown}
     >
       <div className={styles.titleBar} onPointerDown={onTitleBarPointerDown}>
         <span className={styles.title}>{title}</span>
@@ -62,7 +78,9 @@ export function Window({
           ×
         </button>
       </div>
-      <div className={styles.body}>{children}</div>
+      <div className={styles.body} data-window-body>
+        {children}
+      </div>
       <div
         className={styles.resizeHandle}
         aria-label={`Resize ${title}`}

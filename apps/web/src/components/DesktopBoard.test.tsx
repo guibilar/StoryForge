@@ -158,6 +158,31 @@ describe("DesktopBoard", () => {
     expect(screen.queryByText("No events yet.")).not.toBeInTheDocument();
   });
 
+  it("does not steal focus into a window that's already visible on first render", () => {
+    render(
+      <MemoryRouter>
+        <Harness campaignId="camp-1" role="OWNER" />
+      </MemoryRouter>,
+    );
+
+    // Members and Sessions are both visible by default (DEFAULT_LAYOUT) —
+    // neither was "opened" by a user action, so focus should stay wherever
+    // the page naturally starts (nothing, in this harness) rather than
+    // landing inside whichever one happened to mount last.
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("moves focus into a window that's opened via toggle after the first render", () => {
+    let windows!: DesktopWindowsApi;
+    render(<Harness campaignId="camp-1" onReady={(w) => (windows = w)} />);
+
+    act(() => windows.toggle("timeline"));
+
+    // Lands on the window's first real body content (the search field),
+    // not chrome — see useFocusTrap's body-first preference.
+    expect(screen.getByLabelText("Search events")).toHaveFocus();
+  });
+
   it("persists the arrangement so a remount restores it", () => {
     let windows!: DesktopWindowsApi;
     const { unmount } = render(

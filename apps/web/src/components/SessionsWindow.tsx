@@ -1,46 +1,20 @@
-import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import {
-  Button,
-  Checkbox,
-  Form,
-  FormError,
-  FormField,
-  Input,
-  Modal,
-  Textarea,
-} from "@storyforge/ui";
+import { Button, FormError } from "@storyforge/ui";
 
 import {
-  AttachSessionAttendeeDocument,
   CampaignDocument,
-  CreateSessionDocument,
   DeleteSessionDocument,
-  DetachSessionAttendeeDocument,
   MeDocument,
   SessionsDocument,
-  UpdateSessionDocument,
 } from "../gql/graphql";
+import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
+import { SessionFormWindow } from "./SessionFormWindow";
+import type { SessionRow } from "./SessionFormWindow";
 import styles from "./SessionsWindow.module.css";
-
-interface Attendee {
-  userId: string;
-  user: { id: string; email: string };
-}
-
-interface SessionRow {
-  id: string;
-  sessionNumber: number;
-  date: string;
-  summary?: string | null;
-  attendees: Attendee[];
-}
-
-type ModalState =
-  { mode: "create" } | { mode: "edit"; session: SessionRow } | null;
 
 function formatDate(isoDate: string): string {
   return isoDate.slice(0, 10);
@@ -63,18 +37,16 @@ export function SessionsWindow() {
     },
   );
 
-  const [createState, createSession] = useMutation(CreateSessionDocument);
-  const [updateState, updateSession] = useMutation(UpdateSessionDocument);
   const [deleteState, deleteSession] = useMutation(DeleteSessionDocument);
-  const [, attachSessionAttendee] = useMutation(AttachSessionAttendeeDocument);
-  const [, detachSessionAttendee] = useMutation(DetachSessionAttendeeDocument);
+  const { openAddEditWindow } = useAddEditWindow({
+    idPrefix: "session-form",
+    width: 420,
+    height: 480,
+  });
 
-  const [modal, setModal] = useState<ModalState>(null);
-  const [dismissedFormError, setDismissedFormError] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
     null,
   );
-  const [selectedAttendeeIds, setSelectedAttendeeIds] = useState<string[]>([]);
 
   const currentUserId = meData?.me?.id;
   const members = campaignData?.campaign?.members ?? [];
@@ -98,80 +70,40 @@ export function SessionsWindow() {
     reexecuteSessions({ requestPolicy: "network-only" });
   }
 
-  function openCreateModal() {
-    setDismissedFormError(false);
-    setSelectedAttendeeIds([]);
-    setModal({ mode: "create" });
-  }
-
-  function openEditModal(session: SessionRow) {
-    setDismissedFormError(false);
-    setSelectedAttendeeIds(session.attendees.map((a) => a.userId));
-    setModal({ mode: "edit", session });
-  }
-
-  function closeModal() {
-    setModal(null);
-    setDismissedFormError(true);
-  }
-
-  function toggleAttendee(userId: string) {
-    setSelectedAttendeeIds((current) =>
-      current.includes(userId)
-        ? current.filter((id) => id !== userId)
-        : [...current, userId],
+  function openCreateWindow() {
+    if (!campaignId) {
+      return;
+    }
+    openAddEditWindow<SessionRow>(
+      { mode: "create" },
+      "Log Session",
+      (close) => (
+        <SessionFormWindow
+          campaignId={campaignId}
+          mode={{ mode: "create" }}
+          onSaved={refetch}
+          onClose={close}
+        />
+      ),
     );
   }
 
-  async function syncAttendees(sessionId: string, previousIds: string[]) {
-    const added = selectedAttendeeIds.filter((id) => !previousIds.includes(id));
-    const removed = previousIds.filter(
-      (id) => !selectedAttendeeIds.includes(id),
+  function openEditWindow(session: SessionRow) {
+    if (!campaignId) {
+      return;
+    }
+    openAddEditWindow<SessionRow>(
+      { mode: "edit", item: session },
+      `Edit: Session #${session.sessionNumber}`,
+      (close) => (
+        <SessionFormWindow
+          campaignId={campaignId}
+          mode={{ mode: "edit", item: session }}
+          onSaved={refetch}
+          onClose={close}
+        />
+      ),
     );
-
-    await Promise.all([
-      ...added.map((userId) => attachSessionAttendee({ sessionId, userId })),
-      ...removed.map((userId) => detachSessionAttendee({ sessionId, userId })),
-    ]);
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!campaignId || !modal) {
-      return;
-    }
-
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    const date = String(data.get("date") ?? "").trim();
-    const summary = String(data.get("summary") ?? "").trim();
-
-    if (!date) {
-      return;
-    }
-
-    if (modal.mode === "create") {
-      const result = await createSession({
-        input: { campaignId, date, summary: summary || null },
-      });
-      if (result.data?.createSession) {
-        await syncAttendees(result.data.createSession.id, []);
-        closeModal();
-        refetch();
-      }
-    } else {
-      const result = await updateSession({
-        input: { id: modal.session.id, date, summary: summary || null },
-      });
-      if (result.data?.updateSession) {
-        await syncAttendees(
-          modal.session.id,
-          modal.session.attendees.map((a) => a.userId),
-        );
-        closeModal();
-        refetch();
-      }
-    }
   }
 
   async function handleDelete(id: string) {
@@ -182,6 +114,8 @@ export function SessionsWindow() {
     }
   }
 
+  useWindowChromeSync(fetching, refetch);
+
   if (fetching) {
     return <p>Loading sessions…</p>;
   }
@@ -191,11 +125,6 @@ export function SessionsWindow() {
   }
 
   const deleteError = formatGraphQLError(deleteState.error);
-  const formError = dismissedFormError
-    ? null
-    : formatGraphQLError(
-        modal?.mode === "create" ? createState.error : updateState.error,
-      );
 
   return (
     <div className={styles.wrap}>
@@ -219,7 +148,7 @@ export function SessionsWindow() {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => openEditModal(session)}
+                  onClick={() => openEditWindow(session)}
                 >
                   Edit
                 </Button>
@@ -261,65 +190,10 @@ export function SessionsWindow() {
       </ul>
 
       {isWriter ? (
-        <Button type="button" onClick={openCreateModal}>
+        <Button type="button" onClick={openCreateWindow}>
           + Log session
         </Button>
       ) : null}
-
-      <Modal open={modal !== null} onClose={closeModal}>
-        {modal ? (
-          <>
-            <h2>{modal.mode === "edit" ? "Edit session" : "Log session"}</h2>
-            <Form onSubmit={handleSubmit}>
-              <FormError>{formError}</FormError>
-              <FormField label="Date" htmlFor="session-date">
-                <Input
-                  id="session-date"
-                  name="date"
-                  type="date"
-                  defaultValue={
-                    modal.mode === "edit" ? formatDate(modal.session.date) : ""
-                  }
-                  required
-                />
-              </FormField>
-              <FormField label="Recap" htmlFor="session-summary">
-                <Textarea
-                  id="session-summary"
-                  name="summary"
-                  defaultValue={
-                    modal.mode === "edit" ? (modal.session.summary ?? "") : ""
-                  }
-                  rows={4}
-                />
-              </FormField>
-              <FormField label="Attendees" htmlFor="session-attendees">
-                <div className={styles.attendeeChecks} id="session-attendees">
-                  {members.map((member) => (
-                    <Checkbox
-                      key={member.userId}
-                      label={member.user.email}
-                      checked={selectedAttendeeIds.includes(member.userId)}
-                      onChange={() => toggleAttendee(member.userId)}
-                    />
-                  ))}
-                </div>
-              </FormField>
-              <div className={styles.modalActions}>
-                <Button type="button" variant="secondary" onClick={closeModal}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createState.fetching || updateState.fetching}
-                >
-                  Save
-                </Button>
-              </div>
-            </Form>
-          </>
-        ) : null}
-      </Modal>
     </div>
   );
 }

@@ -143,4 +143,104 @@ describe("Window", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("Loading NPCs");
   });
+
+  it("moves focus to the first focusable body element on mount", () => {
+    render(
+      <Window title="NPCs" onClose={vi.fn()}>
+        <button type="button">First field</button>
+      </Window>,
+    );
+
+    expect(screen.getByRole("button", { name: "First field" })).toHaveFocus();
+  });
+
+  it("falls back to focusing the close button when there's no focusable body content", () => {
+    render(
+      <Window title="NPCs" onClose={vi.fn()}>
+        <p>Body content</p>
+      </Window>,
+    );
+
+    expect(screen.getByRole("button", { name: "Close NPCs" })).toHaveFocus();
+  });
+
+  it("calls onClose when Escape is pressed", async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Window title="NPCs" onClose={onClose}>
+        <button type="button">First field</button>
+      </Window>,
+    );
+
+    await user.keyboard("{Escape}");
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("wraps Tab from the close button back to the first body field", async () => {
+    const user = userEvent.setup();
+    render(
+      <Window title="NPCs" onClose={vi.fn()}>
+        <button type="button">First field</button>
+      </Window>,
+    );
+
+    screen.getByRole("button", { name: "Close NPCs" }).focus();
+    await user.tab();
+
+    expect(screen.getByRole("button", { name: "First field" })).toHaveFocus();
+  });
+
+  it("restores focus to whatever had it before the window mounted, on unmount", () => {
+    function Wrapper({ mounted }: { mounted: boolean }) {
+      return (
+        <div>
+          <button type="button">Opener</button>
+          {mounted ? (
+            <Window title="NPCs" onClose={vi.fn()}>
+              <button type="button">First field</button>
+            </Window>
+          ) : null}
+        </div>
+      );
+    }
+
+    const { rerender } = render(<Wrapper mounted={false} />);
+    screen.getByRole("button", { name: "Opener" }).focus();
+
+    rerender(<Wrapper mounted={true} />);
+    expect(screen.getByRole("button", { name: "First field" })).toHaveFocus();
+
+    rerender(<Wrapper mounted={false} />);
+    expect(screen.getByRole("button", { name: "Opener" })).toHaveFocus();
+  });
+
+  it("does not steal focus on mount when autoFocus is false", () => {
+    render(<button type="button">Opener</button>);
+    screen.getByRole("button", { name: "Opener" }).focus();
+
+    render(
+      <Window title="NPCs" onClose={vi.fn()} autoFocus={false}>
+        <button type="button">First field</button>
+      </Window>,
+    );
+
+    expect(screen.getByRole("button", { name: "Opener" })).toHaveFocus();
+  });
+
+  it("still closes on Escape when autoFocus is false", async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Window title="NPCs" onClose={onClose} autoFocus={false}>
+        <button type="button">First field</button>
+      </Window>,
+    );
+
+    screen.getByRole("button", { name: "First field" }).focus();
+    await user.keyboard("{Escape}");
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });

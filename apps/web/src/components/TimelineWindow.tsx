@@ -1,50 +1,21 @@
-import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import {
-  Button,
-  Checkbox,
-  Form,
-  FormError,
-  FormField,
-  Input,
-  Modal,
-  Select,
-  Textarea,
-} from "@storyforge/ui";
+import { Button, FormError, Input, Select } from "@storyforge/ui";
 
 import {
-  AttachParticipantDocument,
   CampaignDocument,
-  CreateEventDocument,
   DeleteEventDocument,
-  DetachParticipantDocument,
   EntitiesDocument,
   EventsDocument,
   MeDocument,
-  SessionsDocument,
-  UpdateEventDocument,
 } from "../gql/graphql";
+import { useAddEditWindow } from "../hooks/useAddEditWindow";
+import { EventFormWindow } from "./EventFormWindow";
+import type { EventRow } from "./EventFormWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./TimelineWindow.module.css";
-
-interface Participant {
-  id: string;
-  name: string;
-}
-
-interface EventRow {
-  id: string;
-  title: string;
-  description?: string | null;
-  occurredAt: string;
-  sessionId?: string | null;
-  session?: { id: string; sessionNumber: number } | null;
-  participants: Participant[];
-}
-
-type ModalState = { mode: "create" } | { mode: "edit"; event: EventRow } | null;
 
 export function TimelineWindow() {
   const { id: campaignId } = useParams<{ id: string }>();
@@ -65,26 +36,17 @@ export function TimelineWindow() {
     variables: { campaignId: campaignId ?? "" },
     pause: !campaignId,
   });
-  const [{ data: sessionsData }] = useQuery({
-    query: SessionsDocument,
-    variables: { campaignId: campaignId ?? "" },
-    pause: !campaignId,
+
+  const [deleteState, deleteEvent] = useMutation(DeleteEventDocument);
+  const { openAddEditWindow } = useAddEditWindow({
+    idPrefix: "event-form",
+    width: 440,
+    height: 560,
   });
 
-  const [createState, createEvent] = useMutation(CreateEventDocument);
-  const [updateState, updateEvent] = useMutation(UpdateEventDocument);
-  const [deleteState, deleteEvent] = useMutation(DeleteEventDocument);
-  const [, attachParticipant] = useMutation(AttachParticipantDocument);
-  const [, detachParticipant] = useMutation(DetachParticipantDocument);
-
-  const [modal, setModal] = useState<ModalState>(null);
-  const [dismissedFormError, setDismissedFormError] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
     null,
   );
-  const [selectedParticipantIds, setSelectedParticipantIds] = useState<
-    string[]
-  >([]);
   const [searchText, setSearchText] = useState("");
   const [filterParticipantId, setFilterParticipantId] = useState("");
 
@@ -98,7 +60,6 @@ export function TimelineWindow() {
     myRole === "STORYTELLER" ||
     myRole === "CO_STORYTELLER";
   const entities = entitiesData?.entities ?? [];
-  const sessions = sessionsData?.sessions ?? [];
 
   const events: EventRow[] = useMemo(
     () =>
@@ -126,96 +87,36 @@ export function TimelineWindow() {
     reexecuteEvents({ requestPolicy: "network-only" });
   }
 
-  function openCreateModal() {
-    setDismissedFormError(false);
-    setSelectedParticipantIds([]);
-    setModal({ mode: "create" });
-  }
-
-  function openEditModal(event: EventRow) {
-    setDismissedFormError(false);
-    setSelectedParticipantIds(event.participants.map((p) => p.id));
-    setModal({ mode: "edit", event });
-  }
-
-  function closeModal() {
-    setModal(null);
-    setDismissedFormError(true);
-  }
-
-  function toggleParticipant(entityId: string) {
-    setSelectedParticipantIds((current) =>
-      current.includes(entityId)
-        ? current.filter((id) => id !== entityId)
-        : [...current, entityId],
-    );
-  }
-
-  async function syncParticipants(eventId: string, previousIds: string[]) {
-    const added = selectedParticipantIds.filter(
-      (id) => !previousIds.includes(id),
-    );
-    const removed = previousIds.filter(
-      (id) => !selectedParticipantIds.includes(id),
-    );
-
-    await Promise.all([
-      ...added.map((entityId) => attachParticipant({ eventId, entityId })),
-      ...removed.map((entityId) => detachParticipant({ eventId, entityId })),
-    ]);
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!campaignId || !modal) {
+  function openCreateWindow() {
+    if (!campaignId) {
       return;
     }
+    openAddEditWindow<EventRow>({ mode: "create" }, "New Event", (close) => (
+      <EventFormWindow
+        campaignId={campaignId}
+        mode={{ mode: "create" }}
+        onSaved={refetch}
+        onClose={close}
+      />
+    ));
+  }
 
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    const title = String(data.get("title") ?? "").trim();
-    const description = String(data.get("description") ?? "").trim();
-    const occurredAt = String(data.get("occurredAt") ?? "").trim();
-    const sessionId = String(data.get("sessionId") ?? "") || null;
-
-    if (!title || !occurredAt) {
+  function openEditWindow(event: EventRow) {
+    if (!campaignId) {
       return;
     }
-
-    if (modal.mode === "create") {
-      const result = await createEvent({
-        input: {
-          campaignId,
-          title,
-          description: description || null,
-          occurredAt,
-          sessionId,
-        },
-      });
-      if (result.data?.createEvent) {
-        await syncParticipants(result.data.createEvent.id, []);
-        closeModal();
-        refetch();
-      }
-    } else {
-      const result = await updateEvent({
-        input: {
-          id: modal.event.id,
-          title,
-          description: description || null,
-          occurredAt,
-          sessionId,
-        },
-      });
-      if (result.data?.updateEvent) {
-        await syncParticipants(
-          modal.event.id,
-          modal.event.participants.map((p) => p.id),
-        );
-        closeModal();
-        refetch();
-      }
-    }
+    openAddEditWindow<EventRow>(
+      { mode: "edit", item: event },
+      `Edit: ${event.title}`,
+      (close) => (
+        <EventFormWindow
+          campaignId={campaignId}
+          mode={{ mode: "edit", item: event }}
+          onSaved={refetch}
+          onClose={close}
+        />
+      ),
+    );
   }
 
   async function handleDelete(id: string) {
@@ -226,6 +127,8 @@ export function TimelineWindow() {
     }
   }
 
+  useWindowChromeSync(fetching, refetch);
+
   if (fetching) {
     return <p>Loading timeline…</p>;
   }
@@ -235,11 +138,6 @@ export function TimelineWindow() {
   }
 
   const deleteError = formatGraphQLError(deleteState.error);
-  const formError = dismissedFormError
-    ? null
-    : formatGraphQLError(
-        modal?.mode === "create" ? createState.error : updateState.error,
-      );
 
   return (
     <div className={styles.wrap}>
@@ -293,7 +191,7 @@ export function TimelineWindow() {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => openEditModal(event)}
+                  onClick={() => openEditWindow(event)}
                 >
                   Edit
                 </Button>
@@ -335,93 +233,10 @@ export function TimelineWindow() {
       </ol>
 
       {isWriter ? (
-        <Button type="button" onClick={openCreateModal}>
+        <Button type="button" onClick={openCreateWindow}>
           + New event
         </Button>
       ) : null}
-
-      <Modal open={modal !== null} onClose={closeModal}>
-        {modal ? (
-          <>
-            <h2>{modal.mode === "edit" ? "Edit event" : "New event"}</h2>
-            <Form onSubmit={handleSubmit}>
-              <FormError>{formError}</FormError>
-              <FormField label="Title" htmlFor="event-title">
-                <Input
-                  id="event-title"
-                  name="title"
-                  defaultValue={modal.mode === "edit" ? modal.event.title : ""}
-                  required
-                />
-              </FormField>
-              <FormField label="Description" htmlFor="event-description">
-                <Textarea
-                  id="event-description"
-                  name="description"
-                  defaultValue={
-                    modal.mode === "edit" ? (modal.event.description ?? "") : ""
-                  }
-                  rows={3}
-                />
-              </FormField>
-              <FormField label="Order (in-fiction)" htmlFor="event-occurredAt">
-                <Input
-                  id="event-occurredAt"
-                  name="occurredAt"
-                  placeholder="e.g. Day 14, after the masquerade"
-                  defaultValue={
-                    modal.mode === "edit" ? modal.event.occurredAt : ""
-                  }
-                  required
-                />
-              </FormField>
-              <FormField label="Logged in session" htmlFor="event-sessionId">
-                <Select
-                  id="event-sessionId"
-                  name="sessionId"
-                  defaultValue={
-                    modal.mode === "edit" ? (modal.event.sessionId ?? "") : ""
-                  }
-                  className={styles.sessionSelect}
-                >
-                  <option value="">— none —</option>
-                  {sessions.map((session) => (
-                    <option key={session.id} value={session.id}>
-                      #{session.sessionNumber} — {session.date}
-                    </option>
-                  ))}
-                </Select>
-              </FormField>
-              <FormField label="Participants" htmlFor="event-participants">
-                <div
-                  className={styles.participantChecks}
-                  id="event-participants"
-                >
-                  {entities.map((entity) => (
-                    <Checkbox
-                      key={entity.id}
-                      label={entity.name}
-                      checked={selectedParticipantIds.includes(entity.id)}
-                      onChange={() => toggleParticipant(entity.id)}
-                    />
-                  ))}
-                </div>
-              </FormField>
-              <div className={styles.modalActions}>
-                <Button type="button" variant="secondary" onClick={closeModal}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createState.fetching || updateState.fetching}
-                >
-                  Save
-                </Button>
-              </div>
-            </Form>
-          </>
-        ) : null}
-      </Modal>
     </div>
   );
 }

@@ -29,3 +29,22 @@ export const Default: Story = {
     children: <p style={{ padding: 12 }}>Window content goes here.</p>,
   },
 };
+
+export const WithRefresh: Story = {
+  args: {
+    title: "NPCs",
+    onRefresh: fn(),
+    style: { position: "absolute", left: 0, top: 0, width: 320, height: 260 },
+    children: <p style={{ padding: 12 }}>Window content goes here.</p>,
+  },
+};
+
+export const Loading: Story = {
+  args: {
+    title: "NPCs",
+    onRefresh: fn(),
+    isLoading: true,
+    style: { position: "absolute", left: 0, top: 0, width: 320, height: 260 },
+    children: <p style={{ padding: 12 }}>Window content goes here.</p>,
+  },
+};

@@ -1,55 +1,23 @@
-import type { FormEvent } from "react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import MDEditor from "@uiw/react-md-editor";
-import {
-  Button,
-  Checkbox,
-  Form,
-  FormError,
-  FormField,
-  Input,
-  Modal,
-  Select,
-} from "@storyforge/ui";
+import { Button, FormError } from "@storyforge/ui";
 
 import {
   CampaignDocument,
-  CreateNoteDocument,
   DeleteNoteDocument,
   MeDocument,
   NotesDocument,
-  UpdateNoteDocument,
 } from "../gql/graphql";
-import type { NoteVisibility } from "../gql/graphql";
+import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { NoteFormWindow } from "./NoteFormWindow";
+import type { NoteRow } from "./NoteFormWindow";
 import styles from "./NotesWindow.module.css";
-
-interface NoteRow {
-  id: string;
-  authorId: string;
-  title: string;
-  content: string;
-  visibility: NoteVisibility;
-  recipientIds: string[];
-}
-
-type ModalState = { mode: "create" } | { mode: "edit"; note: NoteRow } | null;
-
-const VISIBILITY_OPTIONS: Array<{ value: NoteVisibility; label: string }> = [
-  { value: "SHARED", label: "Shared with everyone" },
-  { value: "PRIVATE", label: "Private (you and Storytellers)" },
-  { value: "TARGETED", label: "Handout for specific players" },
-];
 
 function previewOf(content: string): string {
   const flat = content.replace(/\s+/g, " ").trim();
   return flat.length > 120 ? `${flat.slice(0, 120)}…` : flat;
-}
-
-function sameIds(a: string[], b: string[]): boolean {
-  return a.length === b.length && a.every((id) => b.includes(id));
 }
 
 export function NotesWindow() {
@@ -67,19 +35,16 @@ export function NotesWindow() {
     pause: !campaignId,
   });
 
-  const [createState, createNote] = useMutation(CreateNoteDocument);
-  const [updateState, updateNote] = useMutation(UpdateNoteDocument);
   const [deleteState, deleteNote] = useMutation(DeleteNoteDocument);
+  const { openAddEditWindow } = useAddEditWindow({
+    idPrefix: "note-form",
+    width: 420,
+    height: 520,
+  });
 
-  const [modal, setModal] = useState<ModalState>(null);
-  const [dismissedFormError, setDismissedFormError] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
     null,
   );
-  const [modalContent, setModalContent] = useState("");
-  const [modalVisibility, setModalVisibility] =
-    useState<NoteVisibility>("SHARED");
-  const [modalRecipientIds, setModalRecipientIds] = useState<string[]>([]);
 
   const currentUserId = meData?.me?.id;
   const members = campaignData?.campaign?.members ?? [];
@@ -93,27 +58,7 @@ export function NotesWindow() {
   // KAN-90: players author notes too — but only edit/delete their own, and
   // never targeted handouts (the API enforces both; the UI mirrors it).
   const canCreate = isWriter || myRole === "PLAYER";
-  const authorableOptions = isWriter
-    ? VISIBILITY_OPTIONS
-    : VISIBILITY_OPTIONS.filter((option) => option.value !== "TARGETED");
-  // Keep the select renderable when editing a note whose current level the
-  // role can't author (a player's note a Storyteller turned into a handout).
-  const visibilityOptions = authorableOptions.some(
-    (option) => option.value === modalVisibility,
-  )
-    ? authorableOptions
-    : [
-        ...authorableOptions,
-        ...VISIBILITY_OPTIONS.filter(
-          (option) => option.value === modalVisibility,
-        ),
-      ];
   const notes: NoteRow[] = notesData?.noteRoots ?? [];
-  const recipientOptions = members.filter(
-    (member) => member.userId !== currentUserId,
-  );
-  const missingRecipients =
-    modalVisibility === "TARGETED" && modalRecipientIds.length === 0;
 
   function canModify(note: NoteRow): boolean {
     return isWriter || (myRole === "PLAYER" && note.authorId === currentUserId);
@@ -123,32 +68,35 @@ export function NotesWindow() {
     reexecuteNotes({ requestPolicy: "network-only" });
   }
 
-  function openCreateModal() {
-    setDismissedFormError(false);
-    setModalContent("");
-    setModalVisibility("SHARED");
-    setModalRecipientIds([]);
-    setModal({ mode: "create" });
+  function openCreateWindow() {
+    if (!campaignId) {
+      return;
+    }
+    openAddEditWindow<NoteRow>({ mode: "create" }, "New Note", (close) => (
+      <NoteFormWindow
+        campaignId={campaignId}
+        mode={{ mode: "create" }}
+        onSaved={refetch}
+        onClose={close}
+      />
+    ));
   }
 
-  function openEditModal(note: NoteRow) {
-    setDismissedFormError(false);
-    setModalContent(note.content);
-    setModalVisibility(note.visibility);
-    setModalRecipientIds(note.recipientIds);
-    setModal({ mode: "edit", note });
-  }
-
-  function closeModal() {
-    setModal(null);
-    setDismissedFormError(true);
-  }
-
-  function toggleRecipient(userId: string) {
-    setModalRecipientIds((current) =>
-      current.includes(userId)
-        ? current.filter((id) => id !== userId)
-        : [...current, userId],
+  function openEditWindow(note: NoteRow) {
+    if (!campaignId) {
+      return;
+    }
+    openAddEditWindow<NoteRow>(
+      { mode: "edit", item: note },
+      `Edit: ${note.title}`,
+      (close) => (
+        <NoteFormWindow
+          campaignId={campaignId}
+          mode={{ mode: "edit", item: note }}
+          onSaved={refetch}
+          onClose={close}
+        />
+      ),
     );
   }
 
@@ -171,66 +119,6 @@ export function NotesWindow() {
     return null;
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!campaignId || !modal || missingRecipients) {
-      return;
-    }
-
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    const title = String(data.get("title") ?? "").trim();
-
-    if (!title) {
-      return;
-    }
-
-    // Only send visibility/recipients when they changed: an author whose
-    // role can't set the note's current level (e.g. a player renaming a note
-    // a Storyteller turned into a handout) must still be able to save.
-    const visibilityUnchanged =
-      modal.mode === "edit" &&
-      modalVisibility === modal.note.visibility &&
-      (modalVisibility !== "TARGETED" ||
-        sameIds(modalRecipientIds, modal.note.recipientIds));
-    const visibilityInput = visibilityUnchanged
-      ? {}
-      : {
-          visibility: modalVisibility,
-          ...(modalVisibility === "TARGETED"
-            ? { recipientIds: modalRecipientIds }
-            : {}),
-        };
-
-    if (modal.mode === "create") {
-      const result = await createNote({
-        input: {
-          campaignId,
-          title,
-          content: modalContent,
-          ...visibilityInput,
-        },
-      });
-      if (result.data?.createNote) {
-        closeModal();
-        refetch();
-      }
-    } else {
-      const result = await updateNote({
-        input: {
-          id: modal.note.id,
-          title,
-          content: modalContent,
-          ...visibilityInput,
-        },
-      });
-      if (result.data?.updateNote) {
-        closeModal();
-        refetch();
-      }
-    }
-  }
-
   async function handleDelete(id: string) {
     const result = await deleteNote({ id });
     if (result.data?.deleteNote) {
@@ -248,11 +136,6 @@ export function NotesWindow() {
   }
 
   const deleteError = formatGraphQLError(deleteState.error);
-  const formError = dismissedFormError
-    ? null
-    : formatGraphQLError(
-        modal?.mode === "create" ? createState.error : updateState.error,
-      );
 
   return (
     <div className={styles.wrap}>
@@ -263,7 +146,7 @@ export function NotesWindow() {
               type="button"
               className={styles.info}
               onClick={() =>
-                canModify(note) ? openEditModal(note) : undefined
+                canModify(note) ? openEditWindow(note) : undefined
               }
               disabled={!canModify(note)}
             >
@@ -313,95 +196,10 @@ export function NotesWindow() {
       </ul>
 
       {canCreate ? (
-        <Button type="button" onClick={openCreateModal}>
+        <Button type="button" onClick={openCreateWindow}>
           + New note
         </Button>
       ) : null}
-
-      <Modal open={modal !== null} onClose={closeModal}>
-        {modal ? (
-          <>
-            <h2>{modal.mode === "edit" ? "Edit note" : "New note"}</h2>
-            <Form onSubmit={handleSubmit}>
-              <FormError>{formError}</FormError>
-              <FormField label="Title" htmlFor="note-title">
-                <Input
-                  id="note-title"
-                  name="title"
-                  defaultValue={modal.mode === "edit" ? modal.note.title : ""}
-                  required
-                />
-              </FormField>
-              <FormField label="Content" htmlFor="note-content">
-                <div className={styles.editor}>
-                  <MDEditor
-                    value={modalContent}
-                    onChange={(value) => setModalContent(value ?? "")}
-                    height={280}
-                    preview="live"
-                    textareaProps={{ id: "note-content" }}
-                  />
-                </div>
-              </FormField>
-              <FormField label="Visibility" htmlFor="note-visibility">
-                <Select
-                  id="note-visibility"
-                  className={styles.select}
-                  value={modalVisibility}
-                  onChange={(event) =>
-                    setModalVisibility(event.target.value as NoteVisibility)
-                  }
-                >
-                  {visibilityOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Select>
-              </FormField>
-              {modalVisibility === "TARGETED" ? (
-                <FormField label="Recipients" htmlFor="note-recipients">
-                  <div className={styles.recipientChecks} id="note-recipients">
-                    {recipientOptions.map((member) => (
-                      <Checkbox
-                        key={member.userId}
-                        label={member.user.email}
-                        checked={modalRecipientIds.includes(member.userId)}
-                        onChange={() => toggleRecipient(member.userId)}
-                      />
-                    ))}
-                    {recipientOptions.length === 0 ? (
-                      <span className={styles.hint}>
-                        No other members to hand this out to.
-                      </span>
-                    ) : null}
-                  </div>
-                  {missingRecipients ? (
-                    <span className={styles.hint}>
-                      Select at least one recipient.
-                    </span>
-                  ) : null}
-                </FormField>
-              ) : null}
-              <div className={styles.modalActions}>
-                <Button type="button" variant="secondary" onClick={closeModal}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={
-                    createState.fetching ||
-                    updateState.fetching ||
-                    missingRecipients
-                  }
-                >
-                  Save
-                </Button>
-              </div>
-            </Form>
-          </>
-        ) : null}
-      </Modal>
     </div>
   );
 }

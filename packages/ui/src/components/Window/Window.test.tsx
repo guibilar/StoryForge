@@ -87,4 +87,60 @@ describe("Window", () => {
     expect(windowEl.style.left).toBe("28px");
     expect(windowEl.style.width).toBe("310px");
   });
+
+  it("does not render a refresh button when onRefresh is omitted", () => {
+    render(
+      <Window title="NPCs" onClose={vi.fn()}>
+        <p>Body content</p>
+      </Window>,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Refresh NPCs" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("calls onRefresh when the refresh button is clicked", async () => {
+    const onRefresh = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Window title="NPCs" onClose={vi.fn()} onRefresh={onRefresh}>
+        <p>Body content</p>
+      </Window>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Refresh NPCs" }));
+
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables the refresh button while loading", () => {
+    render(
+      <Window title="NPCs" onClose={vi.fn()} onRefresh={vi.fn()} isLoading>
+        <p>Body content</p>
+      </Window>,
+    );
+
+    expect(screen.getByRole("button", { name: "Refresh NPCs" })).toBeDisabled();
+  });
+
+  it("does not render a loading overlay by default", () => {
+    render(
+      <Window title="NPCs" onClose={vi.fn()}>
+        <p>Body content</p>
+      </Window>,
+    );
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("renders a blocking loading overlay when isLoading is true", () => {
+    render(
+      <Window title="NPCs" onClose={vi.fn()} isLoading>
+        <p>Body content</p>
+      </Window>,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("Loading NPCs");
+  });
 });

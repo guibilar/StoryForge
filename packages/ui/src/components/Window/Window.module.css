@@ -57,6 +57,35 @@
   color: var(--text-h);
 }
 
+.refresh {
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  flex: none;
+}
+
+.refresh:hover:not(:disabled) {
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+
+.refresh:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .body {
   padding: var(--space-3) 14px;
   overflow: auto;
@@ -82,4 +111,51 @@
   height: 7px;
   border-right: 2px solid var(--border);
   border-bottom: 2px solid var(--border);
+}
+
+/* Painted last in DOM order, so it stacks above the title bar, body, and
+   resize handle without needing an explicit z-index — it intercepts
+   pointer events for all of them as one blocking layer. */
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: wait;
+}
+
+.loadingOverlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  opacity: 0.75;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: window-spin 0.7s linear infinite;
+}
+
+@keyframes window-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

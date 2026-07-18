@@ -97,6 +97,26 @@ function renderEdit(
 }
 
 describe("TerritoryFormWindow", () => {
+  it("collapses the geometry field by default but keeps it submittable", async () => {
+    const { createTerritory } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    const details = document.querySelector("details");
+    expect(details).toBeTruthy();
+    expect(details).not.toHaveAttribute("open");
+
+    // Collapsed is presentational only — the textarea is still in the form,
+    // so the default geometry still submits without the user opening it.
+    await user.type(screen.getByLabelText("Name"), "Thornwood");
+    await user.type(screen.getByLabelText("Type"), "region");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createTerritory).toHaveBeenCalledWith({
+      input: expect.objectContaining({ name: "Thornwood", type: "region" }),
+    });
+  });
+
   it("prefills the geometry from create-mode seed values", () => {
     setupMocks();
     const drawn = JSON.stringify(

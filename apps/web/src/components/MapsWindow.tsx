@@ -321,7 +321,11 @@ export function MapsWindow() {
   const fetching = markersFetching || territoriesFetching;
   useWindowChromeSync(fetching, refetch);
 
-  if (fetching) {
+  // Only the very first load blocks. Saving a marker triggers a network-only
+  // refetch, and unmounting the canvas for that would rebuild the Leaflet map
+  // from scratch — throwing away wherever the user had panned and zoomed to.
+  const loaded = Boolean(markersData && territoriesData);
+  if (fetching && !loaded) {
     return <p>Loading map…</p>;
   }
 
@@ -355,18 +359,26 @@ export function MapsWindow() {
       </div>
       {isWriter ? (
         <div className={styles.actions}>
-          {/* Wrapped rather than passed directly: onClick would otherwise
+          {/* Typing coordinates by hand only makes sense on a custom map
+              image, where a marker's position is a pixel offset the user
+              might already know. On the geographic tile layer, drawing on
+              the canvas is the only sensible way in, so these stay hidden.
+              Wrapped rather than passed directly: onClick would otherwise
               hand the MouseEvent to the position parameter. */}
-          <Button type="button" onClick={() => openCreateMarkerWindow()}>
-            + Add Marker
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => openCreateTerritoryWindow()}
-          >
-            + Add Territory
-          </Button>
+          {mapImage ? (
+            <>
+              <Button type="button" onClick={() => openCreateMarkerWindow()}>
+                + Add Marker
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => openCreateTerritoryWindow()}
+              >
+                + Add Territory
+              </Button>
+            </>
+          ) : null}
           <input
             ref={fileInputRef}
             type="file"

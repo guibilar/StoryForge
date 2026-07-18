@@ -139,6 +139,16 @@ const territories = [
   },
 ];
 
+// Manual-coordinate entry ("+ Add Marker"/"+ Add Territory") only appears on
+// a custom map image, so tests that exercise it have to set one.
+const imageMap = {
+  id: "map-image-1",
+  url: "/uploads/camp-1/map.png",
+  fileName: "map.png",
+  width: 2000,
+  height: 1500,
+};
+
 function setupMocks({
   members = ownerMembers,
   markerList = markers,
@@ -164,6 +174,8 @@ function setupMocks({
   deleteMarkerError = undefined as { graphQLErrors: unknown[] } | undefined,
   deleteMapImageFetching = false,
   deleteMapImageError = undefined as { graphQLErrors: unknown[] } | undefined,
+  markersFetching = false,
+  markersLoaded = true,
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === MeDocument) {
@@ -190,7 +202,11 @@ function setupMocks({
 
     if (args.query === MarkersDocument) {
       return [
-        { data: { markers: markerList }, fetching: false, stale: false },
+        {
+          data: markersLoaded ? { markers: markerList } : undefined,
+          fetching: markersFetching,
+          stale: false,
+        },
         reexecuteMarkers,
       ];
     }
@@ -303,8 +319,8 @@ describe("MapsWindow", () => {
     expect(screen.getByText("Territory Thornwood")).toBeInTheDocument();
   });
 
-  it("shows Add Marker/Add Territory controls for an Owner", () => {
-    setupMocks();
+  it("shows Add Marker/Add Territory controls for an Owner on an image map", () => {
+    setupMocks({ mapImage: imageMap });
     setupDesktopWindows();
     renderWindow();
 
@@ -316,8 +332,48 @@ describe("MapsWindow", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps the canvas mounted while refetching so the viewport survives", () => {
+    // A save triggers a network-only refetch with data already in hand.
+    // Swapping in a loading placeholder here would unmount Leaflet and
+    // rebuild the map at its default center/zoom, losing wherever the user
+    // had panned to.
+    setupMocks({ markersFetching: true });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(screen.getByTestId("map-canvas")).toBeInTheDocument();
+    expect(screen.queryByText("Loading map…")).not.toBeInTheDocument();
+  });
+
+  it("blocks on the very first load, before any data has arrived", () => {
+    setupMocks({ markersFetching: true, markersLoaded: false });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(screen.getByText("Loading map…")).toBeInTheDocument();
+  });
+
+  it("hides manual-coordinate entry on the geographic tile layer", () => {
+    setupMocks({ mapImage: null });
+    setupDesktopWindows();
+    renderWindow();
+
+    // Typing lat/lng by hand has no place on a tile map — drawing on the
+    // canvas is the way in. Upload stays, or there'd be no way to add an
+    // image in the first place.
+    expect(
+      screen.queryByRole("button", { name: "+ Add Marker" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "+ Add Territory" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Upload Map Image" }),
+    ).toBeInTheDocument();
+  });
+
   it("hides write controls for a Player (read-only)", () => {
-    setupMocks({ members: playerMembers });
+    setupMocks({ members: playerMembers, mapImage: imageMap });
     setupDesktopWindows();
     renderWindow();
 
@@ -330,7 +386,7 @@ describe("MapsWindow", () => {
   });
 
   it("opens a create marker window when + Add Marker is clicked", async () => {
-    setupMocks();
+    setupMocks({ mapImage: imageMap });
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
@@ -460,7 +516,7 @@ describe("MapsWindow", () => {
   });
 
   it("opens an unseeded create territory window from the + Add Territory button", async () => {
-    setupMocks();
+    setupMocks({ mapImage: imageMap });
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
@@ -473,7 +529,7 @@ describe("MapsWindow", () => {
   });
 
   it("opens an unseeded create marker window from the + Add Marker button", async () => {
-    setupMocks();
+    setupMocks({ mapImage: imageMap });
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();
@@ -495,7 +551,7 @@ describe("MapsWindow", () => {
   });
 
   it("opens a create territory window when + Add Territory is clicked", async () => {
-    setupMocks();
+    setupMocks({ mapImage: imageMap });
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
     renderWindow();

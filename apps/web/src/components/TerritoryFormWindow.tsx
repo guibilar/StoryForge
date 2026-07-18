@@ -186,16 +186,22 @@ export function TerritoryFormWindow({
           required
         />
       </FormField>
-      <FormField label="Geometry (GeoJSON)" htmlFor="territory-geometry">
+      {/* Collapsed by default: the shape is normally drawn on the map, so the
+          raw ring is reference material rather than something to fill in. The
+          summary doubles as the field label — a FormField label inside would
+          duplicate it. */}
+      <details className={styles.geometryDetails}>
+        <summary>Geometry (GeoJSON)</summary>
         <Textarea
           id="territory-geometry"
           name="geometry"
+          aria-label="Geometry (GeoJSON)"
           className={styles.geometry}
           defaultValue={initialTerritory?.geometry ?? DEFAULT_GEOMETRY}
           rows={8}
           required
         />
-      </FormField>
+      </details>
       <FormField label="Description" htmlFor="territory-description">
         <Textarea
           id="territory-description"

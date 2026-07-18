@@ -3,6 +3,16 @@
   font-size: 0.85em;
 }
 
+.geometryDetails > summary {
+  cursor: pointer;
+  user-select: none;
+  /* Matches the weight/size FormField gives its own labels, so the collapsed
+     row reads as one of the form's fields rather than a stray disclosure. */
+  font-size: 0.9em;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

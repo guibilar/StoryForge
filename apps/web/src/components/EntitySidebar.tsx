@@ -17,9 +17,9 @@ export interface EntitySidebarProps {
   role?: CampaignRole;
 }
 
-// The 5 existing windowCatalog entries other than "npcs" — NPCs are reached
-// through the Entities section below instead (they're just entities of type
-// "NPC"), so surfacing a separate "NPCs" nav toggle here would be redundant.
+// Mirrors the windowCatalog entries (see windowCatalog.ts) as toggle links.
+// NPCs have no dedicated catalog window — they're entities of type "NPC",
+// reached through the Entities section below like any other entity.
 const WORLD_NAV: { id: string; label: string }[] = [
   { id: "timeline", label: "Timeline" },
   { id: "sessions", label: "Sessions" },

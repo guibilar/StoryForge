@@ -31,14 +31,6 @@
   background: var(--code-bg);
 }
 
-.dock {
-  position: absolute;
-  left: 50%;
-  bottom: 16px;
-  transform: translateX(-50%);
-  z-index: var(--z-dock);
-}
-
 /* Applied to <Window> only for a brief window right after applying a
    preset (see DesktopBoard.tsx) — never left on permanently, or it would
    fight the per-pointermove inline-style updates during drag/resize. */

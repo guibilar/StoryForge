@@ -47,7 +47,7 @@ packages/
     plugin-sdk/             empty — not started
     shared/                 empty — not started
     ui/                     shared React components (Button, Input, Form, Link,
-                             Modal, Window, Dock) + Storybook — see packages/ui
+                             Modal, Window) + Storybook — see packages/ui
     vtm-plugin/             empty — not started (Vampire plugin placeholder)
 
 docs/
@@ -358,7 +358,7 @@ Core depends only on interfaces.
 
 ---
 
-## packages/ui (KAN-75/KAN-31/KAN-80 — thin scope: Button, Input, Form, Link, Modal, Window, Dock; plus Storybook)
+## packages/ui (KAN-75/KAN-31/KAN-80 — thin scope: Button, Input, Form, Link, Modal, Window; plus Storybook)
 
 `@storyforge/ui`, consumed by `apps/web` today. Deliberately not a full
 design system yet — built to exactly what each landed ticket needed
@@ -422,16 +422,12 @@ from `src/index.ts`):
   so the consumer's own pointer-event logic (`apps/web`'s
   `useDesktopLayout` hook) can drive position/size/z-index externally.
   Pure presentational component, no internal state.
-- `Dock` (KAN-80) — row of toggle buttons, one per `DockItem {id, title,
-open}`, calling `onToggle(id)` on click; `open` renders a filled dot
-  indicator. Used to reopen windows closed via `Window`'s × button.
 
 Usage from `apps/web`:
 
 ```tsx
 import {
   Button,
-  Dock,
   Form,
   FormField,
   Input,
@@ -443,7 +439,13 @@ import {
 
 Real consumers: `LoginPage.tsx`, `RegisterPage.tsx`, `DashboardPage.tsx`
 (KAN-31 — `Button`/`Form`/`Input`/`Link`/`Modal`), and `DesktopBoard.tsx`
-(KAN-80 — `Window`/`Dock`, see `apps/web` section below).
+(KAN-80 — `Window`, see `apps/web` section below).
+
+The `Dock` component (KAN-80 — row of toggle buttons reopening closed
+windows) and the dedicated `npcs` catalog window/`NpcsWindow` were
+removed: NPCs are entities like any other, and reopening a catalog window
+is now handled entirely by `EntitySidebar`'s World nav, which duplicated
+the Dock's job for every window except NPCs.
 
 React is a `peerDependency` only (not a devDependency of this package)
 — deliberately, to avoid a second physical React copy under
@@ -678,9 +680,11 @@ auth flow, and the campaign desktop shell are all wired:
     and persists the full layout to `localStorage` under
     `storyforge:desktop:<campaignId>` on every drag/resize-end and toggle
     — so
-    arrangement survives a page reload, scoped per campaign. A `Dock`
-    lists every catalog entry and toggles visibility; a "Reset layout"
-    button clears storage and restores `DEFAULT_LAYOUT`.
+    arrangement survives a page reload, scoped per campaign. `EntitySidebar`'s
+    World nav (sibling of `DesktopBoard`, sharing state via
+    `DesktopWindowsContext`) lists every catalog entry and toggles
+    visibility; a "Reset layout" button clears storage and restores
+    `DEFAULT_LAYOUT`.
   - `MobileDesktop` (`src/components/MobileDesktop.tsx`) — the same
     `WINDOW_CATALOG`, rendered as a single active panel with a tab bar
     instead of draggable windows. No layout persistence (nothing to
@@ -688,12 +692,13 @@ auth flow, and the campaign desktop shell are all wired:
   - `WINDOW_CATALOG` (`src/lib/windowCatalog.ts`) is data-driven —
     `{id, title, render, visibleToRoles?}` entries — specifically so
     KAN-39/81/84/49/85 can each swap their entry's `render` for a real
-    component without touching `DesktopBoard`/`MobileDesktop`. `npcs`
-    (`NpcsWindow` — role-aware CRUD, Players/Observers get a read-only
-    list) and `members` (`MembersWindow` — Owner gets add/remove/
-    change-role with mutation errors surfaced in a `FormError` banner;
-    hidden entirely from Players/Observers via `visibleToRoles`) are real
-    now; `sessions`/`timeline`/`notes` still render `ComingSoonPanel`
+    component without touching `DesktopBoard`/`MobileDesktop`. There is no
+    dedicated `npcs` entry — NPCs are entities like any other, reached via
+    `EntitySidebar`'s Entities list. `members` (`MembersWindow` — Owner
+    gets add/remove/change-role with mutation errors surfaced in a
+    `FormError` banner; hidden entirely from Players/Observers via
+    `visibleToRoles`) is real now; `sessions`/`timeline`/`notes` still
+    render `ComingSoonPanel`
     (`src/components/ComingSoonPanel.tsx`), a one-line placeholder naming
     the tracking ticket. `relationships` (`RelationshipGraphWindow`,
     KAN-42) is also real — a `@xyflow/react` node-link diagram of
@@ -1187,7 +1192,7 @@ Gotchas learned building this out, worth knowing before adding more:
 (`LoginPage`/`RegisterPage`/`DashboardPage`/`CampaignDesktopPage.test.tsx`),
 component-level tests for the KAN-80 shell (`DesktopBoard.test.tsx`,
 `MobileDesktop.test.tsx`), and per-component `*.test.tsx` files under
-`packages/ui/src/components/` (including `Window`/`Dock`) — run via the
+`packages/ui/src/components/` (including `Window`) — run via the
 same root `pnpm turbo run lint build test` as everything else. No
 frontend end-to-end (real browser, real backend) test infra exists yet
 — see KAN-87 (frontend e2e tests). No test infra for the compiler

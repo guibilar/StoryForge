@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { Button, Dock, Window } from "@storyforge/ui";
+import { Button, Window } from "@storyforge/ui";
 
 import { visibleWindowCatalog } from "../lib/windowCatalog";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
@@ -53,12 +53,6 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
       savePreset(name);
     }
   }
-
-  const dockItems = catalog.map((entry) => ({
-    id: entry.id,
-    title: entry.title,
-    open: !layout[entry.id].hidden,
-  }));
 
   function renderWindow(
     id: string,
@@ -149,8 +143,6 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
             closeWindow(id),
           ),
         )}
-
-        <Dock items={dockItems} onToggle={toggle} className={styles.dock} />
       </div>
     </div>
   );

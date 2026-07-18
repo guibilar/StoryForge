@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 
 import { MembersWindow } from "../components/MembersWindow";
 import { NotesWindow } from "../components/NotesWindow";
-import { NpcsWindow } from "../components/NpcsWindow";
 import { RelationshipGraphWindow } from "../components/RelationshipGraphWindow";
 import { SessionsWindow } from "../components/SessionsWindow";
 import { TimelineWindow } from "../components/TimelineWindow";
@@ -22,11 +21,6 @@ export interface WindowCatalogEntry {
 // Data-driven so future windows (Relationships, Maps, ...) can plug in by
 // adding a catalog entry, without touching the desktop shell.
 export const WINDOW_CATALOG: WindowCatalogEntry[] = [
-  {
-    id: "npcs",
-    title: "NPCs",
-    render: () => createElement(NpcsWindow),
-  },
   {
     id: "members",
     title: "Members",
@@ -71,7 +65,6 @@ export function visibleWindowCatalog(
 }
 
 export const DEFAULT_LAYOUT: LayoutMap = {
-  npcs: { x: 28, y: 24, width: 310, height: 280, hidden: false, z: 2 },
   members: { x: 356, y: 24, width: 380, height: 320, hidden: false, z: 3 },
   sessions: { x: 754, y: 24, width: 398, height: 340, hidden: false, z: 2 },
   timeline: { x: 28, y: 322, width: 480, height: 260, hidden: true, z: 1 },

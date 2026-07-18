@@ -91,7 +91,9 @@ describe("MobileDesktop", () => {
   it("shows the first catalog window's panel by default", () => {
     renderMobileDesktop();
 
-    expect(screen.getByRole("heading", { name: "NPCs" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Sessions" }),
+    ).toBeInTheDocument();
   });
 
   it("switches panels when a tab is clicked", async () => {
@@ -105,7 +107,7 @@ describe("MobileDesktop", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("No events yet.")).toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { name: "NPCs" }),
+      screen.queryByRole("heading", { name: "Sessions" }),
     ).not.toBeInTheDocument();
   });
 
@@ -113,13 +115,13 @@ describe("MobileDesktop", () => {
     const user = userEvent.setup();
     renderMobileDesktop();
 
-    await user.click(screen.getByRole("button", { name: "Sessions" }));
+    await user.click(screen.getByRole("button", { name: "Timeline" }));
 
-    expect(screen.getByRole("button", { name: "Sessions" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Timeline" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
-    expect(screen.getByRole("button", { name: "NPCs" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Sessions" })).toHaveAttribute(
       "aria-pressed",
       "false",
     );

@@ -33,22 +33,6 @@ describe("visibleWindowCatalog", () => {
     "CO_STORYTELLER",
     "PLAYER",
     "OBSERVER",
-    undefined,
-  ] satisfies (CampaignRole | undefined)[])(
-    "always includes the NPCs window for %s",
-    (role) => {
-      const ids = visibleWindowCatalog(role).map((entry) => entry.id);
-
-      expect(ids).toContain("npcs");
-    },
-  );
-
-  it.each([
-    "OWNER",
-    "STORYTELLER",
-    "CO_STORYTELLER",
-    "PLAYER",
-    "OBSERVER",
   ] satisfies CampaignRole[])(
     "includes the Notes window for %s now that the API filters note visibility",
     (role) => {

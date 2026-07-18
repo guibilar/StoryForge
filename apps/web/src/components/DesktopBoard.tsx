@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Button } from "@storyforge/ui";
 
@@ -33,6 +33,25 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
     applyPreset,
   } = useDesktopWindows();
   const catalog = visibleWindowCatalog(role);
+
+  // False only during this DesktopBoard instance's very first render.
+  // Windows that are already visible then are just part of the
+  // initial/persisted layout for this campaign — nobody "opened" them, so
+  // they shouldn't steal keyboard focus from wherever the page naturally
+  // starts. A window that mounts on any later render (a toggle, a fresh
+  // dynamic openWindow call) genuinely was just opened by a user action, so
+  // it should get Window's autoFocus behavior — see useFocusTrap.
+  // Deliberately not reset by reset()/applyPreset(): those reposition
+  // windows that already exist, not open new ones. Scoped to this
+  // component instance (not module state) so navigating to a different
+  // campaign's desktop gets its own honest "first render" again.
+  const [hasRenderedOnce, setHasRenderedOnce] = useState(false);
+  useEffect(() => {
+    // One-shot mount-boundary flag, not state derived from props/other
+    // state — the pattern react-hooks/set-state-in-effect warns against.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHasRenderedOnce(true);
+  }, []);
 
   // Only applied to window chrome briefly after applying a preset — a
   // permanent CSS transition on left/top/width/height would fight the
@@ -70,6 +89,7 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
       <WindowChromeHost
         key={id}
         title={title}
+        autoFocus={hasRenderedOnce}
         className={animating ? styles.animating : undefined}
         style={{
           left: windowLayout.x,

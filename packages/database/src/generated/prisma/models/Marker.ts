@@ -39,6 +39,7 @@ export type MarkerSumAggregateOutputType = {
 export type MarkerMinAggregateOutputType = {
   id: string | null;
   campaignId: string | null;
+  entityId: string | null;
   name: string | null;
   lat: number | null;
   lng: number | null;
@@ -50,6 +51,7 @@ export type MarkerMinAggregateOutputType = {
 export type MarkerMaxAggregateOutputType = {
   id: string | null;
   campaignId: string | null;
+  entityId: string | null;
   name: string | null;
   lat: number | null;
   lng: number | null;
@@ -61,6 +63,7 @@ export type MarkerMaxAggregateOutputType = {
 export type MarkerCountAggregateOutputType = {
   id: number;
   campaignId: number;
+  entityId: number;
   name: number;
   lat: number;
   lng: number;
@@ -83,6 +86,7 @@ export type MarkerSumAggregateInputType = {
 export type MarkerMinAggregateInputType = {
   id?: true;
   campaignId?: true;
+  entityId?: true;
   name?: true;
   lat?: true;
   lng?: true;
@@ -94,6 +98,7 @@ export type MarkerMinAggregateInputType = {
 export type MarkerMaxAggregateInputType = {
   id?: true;
   campaignId?: true;
+  entityId?: true;
   name?: true;
   lat?: true;
   lng?: true;
@@ -105,6 +110,7 @@ export type MarkerMaxAggregateInputType = {
 export type MarkerCountAggregateInputType = {
   id?: true;
   campaignId?: true;
+  entityId?: true;
   name?: true;
   lat?: true;
   lng?: true;
@@ -210,6 +216,7 @@ export type MarkerGroupByArgs<
 export type MarkerGroupByOutputType = {
   id: string;
   campaignId: string;
+  entityId: string | null;
   name: string;
   lat: number;
   lng: number;
@@ -242,6 +249,7 @@ export type MarkerWhereInput = {
   NOT?: Prisma.MarkerWhereInput | Prisma.MarkerWhereInput[];
   id?: Prisma.StringFilter<"Marker"> | string;
   campaignId?: Prisma.StringFilter<"Marker"> | string;
+  entityId?: Prisma.StringNullableFilter<"Marker"> | string | null;
   name?: Prisma.StringFilter<"Marker"> | string;
   lat?: Prisma.FloatFilter<"Marker"> | number;
   lng?: Prisma.FloatFilter<"Marker"> | number;
@@ -252,11 +260,16 @@ export type MarkerWhereInput = {
     Prisma.CampaignScalarRelationFilter,
     Prisma.CampaignWhereInput
   >;
+  entity?: Prisma.XOR<
+    Prisma.EntityNullableScalarRelationFilter,
+    Prisma.EntityWhereInput
+  > | null;
 };
 
 export type MarkerOrderByWithRelationInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  entityId?: Prisma.SortOrderInput | Prisma.SortOrder;
   name?: Prisma.SortOrder;
   lat?: Prisma.SortOrder;
   lng?: Prisma.SortOrder;
@@ -264,6 +277,7 @@ export type MarkerOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   campaign?: Prisma.CampaignOrderByWithRelationInput;
+  entity?: Prisma.EntityOrderByWithRelationInput;
 };
 
 export type MarkerWhereUniqueInput = Prisma.AtLeast<
@@ -273,6 +287,7 @@ export type MarkerWhereUniqueInput = Prisma.AtLeast<
     OR?: Prisma.MarkerWhereInput[];
     NOT?: Prisma.MarkerWhereInput | Prisma.MarkerWhereInput[];
     campaignId?: Prisma.StringFilter<"Marker"> | string;
+    entityId?: Prisma.StringNullableFilter<"Marker"> | string | null;
     name?: Prisma.StringFilter<"Marker"> | string;
     lat?: Prisma.FloatFilter<"Marker"> | number;
     lng?: Prisma.FloatFilter<"Marker"> | number;
@@ -283,6 +298,10 @@ export type MarkerWhereUniqueInput = Prisma.AtLeast<
       Prisma.CampaignScalarRelationFilter,
       Prisma.CampaignWhereInput
     >;
+    entity?: Prisma.XOR<
+      Prisma.EntityNullableScalarRelationFilter,
+      Prisma.EntityWhereInput
+    > | null;
   },
   "id"
 >;
@@ -290,6 +309,7 @@ export type MarkerWhereUniqueInput = Prisma.AtLeast<
 export type MarkerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  entityId?: Prisma.SortOrderInput | Prisma.SortOrder;
   name?: Prisma.SortOrder;
   lat?: Prisma.SortOrder;
   lng?: Prisma.SortOrder;
@@ -313,6 +333,8 @@ export type MarkerScalarWhereWithAggregatesInput = {
     | Prisma.MarkerScalarWhereWithAggregatesInput[];
   id?: Prisma.StringWithAggregatesFilter<"Marker"> | string;
   campaignId?: Prisma.StringWithAggregatesFilter<"Marker"> | string;
+  entityId?:
+    Prisma.StringNullableWithAggregatesFilter<"Marker"> | string | null;
   name?: Prisma.StringWithAggregatesFilter<"Marker"> | string;
   lat?: Prisma.FloatWithAggregatesFilter<"Marker"> | number;
   lng?: Prisma.FloatWithAggregatesFilter<"Marker"> | number;
@@ -331,11 +353,13 @@ export type MarkerCreateInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   campaign: Prisma.CampaignCreateNestedOneWithoutMarkersInput;
+  entity?: Prisma.EntityCreateNestedOneWithoutMarkersInput;
 };
 
 export type MarkerUncheckedCreateInput = {
   id?: string;
   campaignId: string;
+  entityId?: string | null;
   name: string;
   lat: number;
   lng: number;
@@ -353,11 +377,13 @@ export type MarkerUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutMarkersNestedInput;
+  entity?: Prisma.EntityUpdateOneWithoutMarkersNestedInput;
 };
 
 export type MarkerUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   lat?: Prisma.FloatFieldUpdateOperationsInput | number;
   lng?: Prisma.FloatFieldUpdateOperationsInput | number;
@@ -369,6 +395,7 @@ export type MarkerUncheckedUpdateInput = {
 export type MarkerCreateManyInput = {
   id?: string;
   campaignId: string;
+  entityId?: string | null;
   name: string;
   lat: number;
   lng: number;
@@ -390,6 +417,7 @@ export type MarkerUpdateManyMutationInput = {
 export type MarkerUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   lat?: Prisma.FloatFieldUpdateOperationsInput | number;
   lng?: Prisma.FloatFieldUpdateOperationsInput | number;
@@ -411,6 +439,7 @@ export type MarkerOrderByRelationAggregateInput = {
 export type MarkerCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  entityId?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   lat?: Prisma.SortOrder;
   lng?: Prisma.SortOrder;
@@ -427,6 +456,7 @@ export type MarkerAvgOrderByAggregateInput = {
 export type MarkerMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  entityId?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   lat?: Prisma.SortOrder;
   lng?: Prisma.SortOrder;
@@ -438,6 +468,7 @@ export type MarkerMaxOrderByAggregateInput = {
 export type MarkerMinOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  entityId?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   lat?: Prisma.SortOrder;
   lng?: Prisma.SortOrder;
@@ -537,6 +568,92 @@ export type MarkerUncheckedUpdateManyWithoutCampaignNestedInput = {
   deleteMany?: Prisma.MarkerScalarWhereInput | Prisma.MarkerScalarWhereInput[];
 };
 
+export type MarkerCreateNestedManyWithoutEntityInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.MarkerCreateWithoutEntityInput,
+        Prisma.MarkerUncheckedCreateWithoutEntityInput
+      >
+    | Prisma.MarkerCreateWithoutEntityInput[]
+    | Prisma.MarkerUncheckedCreateWithoutEntityInput[];
+  connectOrCreate?:
+    | Prisma.MarkerCreateOrConnectWithoutEntityInput
+    | Prisma.MarkerCreateOrConnectWithoutEntityInput[];
+  createMany?: Prisma.MarkerCreateManyEntityInputEnvelope;
+  connect?: Prisma.MarkerWhereUniqueInput | Prisma.MarkerWhereUniqueInput[];
+};
+
+export type MarkerUncheckedCreateNestedManyWithoutEntityInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.MarkerCreateWithoutEntityInput,
+        Prisma.MarkerUncheckedCreateWithoutEntityInput
+      >
+    | Prisma.MarkerCreateWithoutEntityInput[]
+    | Prisma.MarkerUncheckedCreateWithoutEntityInput[];
+  connectOrCreate?:
+    | Prisma.MarkerCreateOrConnectWithoutEntityInput
+    | Prisma.MarkerCreateOrConnectWithoutEntityInput[];
+  createMany?: Prisma.MarkerCreateManyEntityInputEnvelope;
+  connect?: Prisma.MarkerWhereUniqueInput | Prisma.MarkerWhereUniqueInput[];
+};
+
+export type MarkerUpdateManyWithoutEntityNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.MarkerCreateWithoutEntityInput,
+        Prisma.MarkerUncheckedCreateWithoutEntityInput
+      >
+    | Prisma.MarkerCreateWithoutEntityInput[]
+    | Prisma.MarkerUncheckedCreateWithoutEntityInput[];
+  connectOrCreate?:
+    | Prisma.MarkerCreateOrConnectWithoutEntityInput
+    | Prisma.MarkerCreateOrConnectWithoutEntityInput[];
+  upsert?:
+    | Prisma.MarkerUpsertWithWhereUniqueWithoutEntityInput
+    | Prisma.MarkerUpsertWithWhereUniqueWithoutEntityInput[];
+  createMany?: Prisma.MarkerCreateManyEntityInputEnvelope;
+  set?: Prisma.MarkerWhereUniqueInput | Prisma.MarkerWhereUniqueInput[];
+  disconnect?: Prisma.MarkerWhereUniqueInput | Prisma.MarkerWhereUniqueInput[];
+  delete?: Prisma.MarkerWhereUniqueInput | Prisma.MarkerWhereUniqueInput[];
+  connect?: Prisma.MarkerWhereUniqueInput | Prisma.MarkerWhereUniqueInput[];
+  update?:
+    | Prisma.MarkerUpdateWithWhereUniqueWithoutEntityInput
+    | Prisma.MarkerUpdateWithWhereUniqueWithoutEntityInput[];
+  updateMany?:
+    | Prisma.MarkerUpdateManyWithWhereWithoutEntityInput
+    | Prisma.MarkerUpdateManyWithWhereWithoutEntityInput[];
+  deleteMany?: Prisma.MarkerScalarWhereInput | Prisma.MarkerScalarWhereInput[];
+};
+
+export type MarkerUncheckedUpdateManyWithoutEntityNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.MarkerCreateWithoutEntityInput,
+        Prisma.MarkerUncheckedCreateWithoutEntityInput
+      >
+    | Prisma.MarkerCreateWithoutEntityInput[]
+    | Prisma.MarkerUncheckedCreateWithoutEntityInput[];
+  connectOrCreate?:
+    | Prisma.MarkerCreateOrConnectWithoutEntityInput
+    | Prisma.MarkerCreateOrConnectWithoutEntityInput[];
+  upsert?:
+    | Prisma.MarkerUpsertWithWhereUniqueWithoutEntityInput
+    | Prisma.MarkerUpsertWithWhereUniqueWithoutEntityInput[];
+  createMany?: Prisma.MarkerCreateManyEntityInputEnvelope;
+  set?: Prisma.MarkerWhereUniqueInput | Prisma.MarkerWhereUniqueInput[];
+  disconnect?: Prisma.MarkerWhereUniqueInput | Prisma.MarkerWhereUniqueInput[];
+  delete?: Prisma.MarkerWhereUniqueInput | Prisma.MarkerWhereUniqueInput[];
+  connect?: Prisma.MarkerWhereUniqueInput | Prisma.MarkerWhereUniqueInput[];
+  update?:
+    | Prisma.MarkerUpdateWithWhereUniqueWithoutEntityInput
+    | Prisma.MarkerUpdateWithWhereUniqueWithoutEntityInput[];
+  updateMany?:
+    | Prisma.MarkerUpdateManyWithWhereWithoutEntityInput
+    | Prisma.MarkerUpdateManyWithWhereWithoutEntityInput[];
+  deleteMany?: Prisma.MarkerScalarWhereInput | Prisma.MarkerScalarWhereInput[];
+};
+
 export type FloatFieldUpdateOperationsInput = {
   set?: number;
   increment?: number;
@@ -553,10 +670,12 @@ export type MarkerCreateWithoutCampaignInput = {
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  entity?: Prisma.EntityCreateNestedOneWithoutMarkersInput;
 };
 
 export type MarkerUncheckedCreateWithoutCampaignInput = {
   id?: string;
+  entityId?: string | null;
   name: string;
   lat: number;
   lng: number;
@@ -614,6 +733,7 @@ export type MarkerScalarWhereInput = {
   NOT?: Prisma.MarkerScalarWhereInput | Prisma.MarkerScalarWhereInput[];
   id?: Prisma.StringFilter<"Marker"> | string;
   campaignId?: Prisma.StringFilter<"Marker"> | string;
+  entityId?: Prisma.StringNullableFilter<"Marker"> | string | null;
   name?: Prisma.StringFilter<"Marker"> | string;
   lat?: Prisma.FloatFilter<"Marker"> | number;
   lng?: Prisma.FloatFilter<"Marker"> | number;
@@ -622,8 +742,73 @@ export type MarkerScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Marker"> | Date | string;
 };
 
+export type MarkerCreateWithoutEntityInput = {
+  id?: string;
+  name: string;
+  lat: number;
+  lng: number;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  campaign: Prisma.CampaignCreateNestedOneWithoutMarkersInput;
+};
+
+export type MarkerUncheckedCreateWithoutEntityInput = {
+  id?: string;
+  campaignId: string;
+  name: string;
+  lat: number;
+  lng: number;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type MarkerCreateOrConnectWithoutEntityInput = {
+  where: Prisma.MarkerWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.MarkerCreateWithoutEntityInput,
+    Prisma.MarkerUncheckedCreateWithoutEntityInput
+  >;
+};
+
+export type MarkerCreateManyEntityInputEnvelope = {
+  data:
+    Prisma.MarkerCreateManyEntityInput | Prisma.MarkerCreateManyEntityInput[];
+  skipDuplicates?: boolean;
+};
+
+export type MarkerUpsertWithWhereUniqueWithoutEntityInput = {
+  where: Prisma.MarkerWhereUniqueInput;
+  update: Prisma.XOR<
+    Prisma.MarkerUpdateWithoutEntityInput,
+    Prisma.MarkerUncheckedUpdateWithoutEntityInput
+  >;
+  create: Prisma.XOR<
+    Prisma.MarkerCreateWithoutEntityInput,
+    Prisma.MarkerUncheckedCreateWithoutEntityInput
+  >;
+};
+
+export type MarkerUpdateWithWhereUniqueWithoutEntityInput = {
+  where: Prisma.MarkerWhereUniqueInput;
+  data: Prisma.XOR<
+    Prisma.MarkerUpdateWithoutEntityInput,
+    Prisma.MarkerUncheckedUpdateWithoutEntityInput
+  >;
+};
+
+export type MarkerUpdateManyWithWhereWithoutEntityInput = {
+  where: Prisma.MarkerScalarWhereInput;
+  data: Prisma.XOR<
+    Prisma.MarkerUpdateManyMutationInput,
+    Prisma.MarkerUncheckedUpdateManyWithoutEntityInput
+  >;
+};
+
 export type MarkerCreateManyCampaignInput = {
   id?: string;
+  entityId?: string | null;
   name: string;
   lat: number;
   lng: number;
@@ -640,10 +825,12 @@ export type MarkerUpdateWithoutCampaignInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  entity?: Prisma.EntityUpdateOneWithoutMarkersNestedInput;
 };
 
 export type MarkerUncheckedUpdateWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   lat?: Prisma.FloatFieldUpdateOperationsInput | number;
   lng?: Prisma.FloatFieldUpdateOperationsInput | number;
@@ -654,6 +841,51 @@ export type MarkerUncheckedUpdateWithoutCampaignInput = {
 
 export type MarkerUncheckedUpdateManyWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  lat?: Prisma.FloatFieldUpdateOperationsInput | number;
+  lng?: Prisma.FloatFieldUpdateOperationsInput | number;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type MarkerCreateManyEntityInput = {
+  id?: string;
+  campaignId: string;
+  name: string;
+  lat: number;
+  lng: number;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type MarkerUpdateWithoutEntityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  lat?: Prisma.FloatFieldUpdateOperationsInput | number;
+  lng?: Prisma.FloatFieldUpdateOperationsInput | number;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  campaign?: Prisma.CampaignUpdateOneRequiredWithoutMarkersNestedInput;
+};
+
+export type MarkerUncheckedUpdateWithoutEntityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  lat?: Prisma.FloatFieldUpdateOperationsInput | number;
+  lng?: Prisma.FloatFieldUpdateOperationsInput | number;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type MarkerUncheckedUpdateManyWithoutEntityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   lat?: Prisma.FloatFieldUpdateOperationsInput | number;
   lng?: Prisma.FloatFieldUpdateOperationsInput | number;
@@ -669,6 +901,7 @@ export type MarkerSelect<
   {
     id?: boolean;
     campaignId?: boolean;
+    entityId?: boolean;
     name?: boolean;
     lat?: boolean;
     lng?: boolean;
@@ -676,6 +909,7 @@ export type MarkerSelect<
     createdAt?: boolean;
     updatedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    entity?: boolean | Prisma.Marker$entityArgs<ExtArgs>;
   },
   ExtArgs["result"]["marker"]
 >;
@@ -687,6 +921,7 @@ export type MarkerSelectCreateManyAndReturn<
   {
     id?: boolean;
     campaignId?: boolean;
+    entityId?: boolean;
     name?: boolean;
     lat?: boolean;
     lng?: boolean;
@@ -694,6 +929,7 @@ export type MarkerSelectCreateManyAndReturn<
     createdAt?: boolean;
     updatedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    entity?: boolean | Prisma.Marker$entityArgs<ExtArgs>;
   },
   ExtArgs["result"]["marker"]
 >;
@@ -705,6 +941,7 @@ export type MarkerSelectUpdateManyAndReturn<
   {
     id?: boolean;
     campaignId?: boolean;
+    entityId?: boolean;
     name?: boolean;
     lat?: boolean;
     lng?: boolean;
@@ -712,6 +949,7 @@ export type MarkerSelectUpdateManyAndReturn<
     createdAt?: boolean;
     updatedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    entity?: boolean | Prisma.Marker$entityArgs<ExtArgs>;
   },
   ExtArgs["result"]["marker"]
 >;
@@ -719,6 +957,7 @@ export type MarkerSelectUpdateManyAndReturn<
 export type MarkerSelectScalar = {
   id?: boolean;
   campaignId?: boolean;
+  entityId?: boolean;
   name?: boolean;
   lat?: boolean;
   lng?: boolean;
@@ -733,6 +972,7 @@ export type MarkerOmit<
 > = runtime.Types.Extensions.GetOmit<
   | "id"
   | "campaignId"
+  | "entityId"
   | "name"
   | "lat"
   | "lng"
@@ -746,18 +986,21 @@ export type MarkerInclude<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  entity?: boolean | Prisma.Marker$entityArgs<ExtArgs>;
 };
 export type MarkerIncludeCreateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  entity?: boolean | Prisma.Marker$entityArgs<ExtArgs>;
 };
 export type MarkerIncludeUpdateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  entity?: boolean | Prisma.Marker$entityArgs<ExtArgs>;
 };
 
 export type $MarkerPayload<
@@ -767,11 +1010,13 @@ export type $MarkerPayload<
   name: "Marker";
   objects: {
     campaign: Prisma.$CampaignPayload<ExtArgs>;
+    entity: Prisma.$EntityPayload<ExtArgs> | null;
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
       id: string;
       campaignId: string;
+      entityId: string | null;
       name: string;
       lat: number;
       lng: number;
@@ -1342,6 +1587,19 @@ export interface Prisma__MarkerClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  entity<T extends Prisma.Marker$entityArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Marker$entityArgs<ExtArgs>>,
+  ): Prisma.Prisma__EntityClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$EntityPayload<ExtArgs>,
+      T,
+      "findUniqueOrThrow",
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1380,6 +1638,7 @@ export interface Prisma__MarkerClient<
 export interface MarkerFieldRefs {
   readonly id: Prisma.FieldRef<"Marker", "String">;
   readonly campaignId: Prisma.FieldRef<"Marker", "String">;
+  readonly entityId: Prisma.FieldRef<"Marker", "String">;
   readonly name: Prisma.FieldRef<"Marker", "String">;
   readonly lat: Prisma.FieldRef<"Marker", "Float">;
   readonly lng: Prisma.FieldRef<"Marker", "Float">;
@@ -1843,6 +2102,28 @@ export type MarkerDeleteManyArgs<
    * Limit how many Markers to delete.
    */
   limit?: number;
+};
+
+/**
+ * Marker.entity
+ */
+export type Marker$entityArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Entity
+   */
+  select?: Prisma.EntitySelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Entity
+   */
+  omit?: Prisma.EntityOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EntityInclude<ExtArgs> | null;
+  where?: Prisma.EntityWhereInput;
 };
 
 /**

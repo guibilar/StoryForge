@@ -147,6 +147,7 @@ export function MapsWindow() {
         name: territory.name,
         type: territory.type,
         description: territory.description,
+        entity: territory.entity,
         geometry,
       });
     }

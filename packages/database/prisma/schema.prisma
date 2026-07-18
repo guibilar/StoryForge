@@ -80,6 +80,8 @@ model Entity {
   backlinks NoteLink[] @relation("NoteLinkTargetEntity")
 
   eventParticipations EventParticipant[]
+  markers             Marker[]
+  territories         Territory[]
 
   // Actual uniqueness is a partial index excluding soft-deleted rows
   // (see migration 20260715120000_partial_unique_soft_delete) — Prisma's
@@ -360,10 +362,15 @@ model WorkspaceState {
 // A single point on a campaign's map (KAN-51), rendered as a Leaflet marker
 // on top of KAN-50's base map canvas.
 model Marker {
-  id         String @id @default(uuid())
+  id         String  @id @default(uuid())
   campaignId String
+  entityId   String?
 
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  // SetNull, unlike the Cascade on campaign: deleting the entity a marker
+  // points at must clear the link, not erase the annotation. Someone tidying
+  // up world data shouldn't silently remove pins from the map.
+  entity   Entity?  @relation(fields: [entityId], references: [id], onDelete: SetNull)
 
   name        String
   lat         Float
@@ -374,6 +381,7 @@ model Marker {
   updatedAt DateTime @updatedAt
 
   @@index([campaignId])
+  @@index([entityId])
 }
 
 // A shaped area on a campaign's map (KAN-51) — territories, regions, and
@@ -382,10 +390,13 @@ model Marker {
 // Region/District tables. `geometry` is a GeoJSON object (validated at the
 // domain layer, not here).
 model Territory {
-  id         String @id @default(uuid())
+  id         String  @id @default(uuid())
   campaignId String
+  entityId   String?
 
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  // SetNull for the same reason as Marker.entity.
+  entity   Entity?  @relation(fields: [entityId], references: [id], onDelete: SetNull)
 
   name        String
   type        String
@@ -396,6 +407,7 @@ model Territory {
   updatedAt DateTime @updatedAt
 
   @@index([campaignId])
+  @@index([entityId])
 }
 
 // A campaign's custom map background (KAN-52) — one per campaign, rendered

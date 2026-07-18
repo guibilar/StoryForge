@@ -116,4 +116,46 @@ describe("Marker", () => {
       "Marker latitude must be a finite number.",
     );
   });
+
+  describe("entity link", () => {
+    it("defaults to unlinked", () => {
+      const marker = Marker.create({
+        campaignId: "22222222-2222-2222-2222-222222222222",
+        name: "Old Mill",
+        lat: 51.505,
+        lng: -0.09,
+      });
+
+      expect(marker.EntityId).toBeNull();
+    });
+
+    it("links and unlinks, bumping updatedAt", async () => {
+      const marker = Marker.create({
+        campaignId: "22222222-2222-2222-2222-222222222222",
+        name: "Old Mill",
+        lat: 51.505,
+        lng: -0.09,
+      });
+      const before = marker.UpdatedAt;
+      await new Promise((resolve) => setTimeout(resolve, 1));
+
+      marker.linkEntity("entity-1");
+      expect(marker.EntityId).toBe("entity-1");
+      expect(marker.UpdatedAt.getTime()).toBeGreaterThan(before.getTime());
+
+      marker.linkEntity(null);
+      expect(marker.EntityId).toBeNull();
+    });
+
+    it("accepts any id — belonging to the campaign is the service's question", () => {
+      const marker = Marker.create({
+        campaignId: "22222222-2222-2222-2222-222222222222",
+        name: "Old Mill",
+        lat: 51.505,
+        lng: -0.09,
+      });
+
+      expect(() => marker.linkEntity("entity-from-anywhere")).not.toThrow();
+    });
+  });
 });

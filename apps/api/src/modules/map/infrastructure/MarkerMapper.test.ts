@@ -46,6 +46,7 @@ describe("MarkerMapper", () => {
       lat: marker.Lat,
       lng: marker.Lng,
       description: marker.Description,
+      entityId: null,
       createdAt: marker.CreatedAt,
       updatedAt: marker.UpdatedAt,
     });

@@ -18,10 +18,13 @@ import {
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
+import { EntitySelectField } from "./EntitySelectField";
 import styles from "./TerritoryFormWindow.module.css";
 
 export interface TerritoryRow {
   id: string;
+  entityId?: string | null;
+  entity?: { id: string; name: string; type: string } | null;
   name: string;
   type: string;
   geometry: string;
@@ -101,6 +104,9 @@ export function TerritoryFormWindow({
     const type = String(data.get("type") ?? "").trim();
     const geometry = String(data.get("geometry") ?? "").trim();
     const description = String(data.get("description") ?? "").trim();
+    // The picker's "None" option submits an empty string; the API wants an
+    // explicit null to mean unlinked.
+    const entityId = String(data.get("entityId") ?? "") || null;
 
     // `required` alone doesn't stop a whitespace-only value (the browser
     // only checks the raw value is non-empty) — check each trimmed field
@@ -135,6 +141,7 @@ export function TerritoryFormWindow({
           type,
           geometry,
           description: description || null,
+          entityId,
         },
       });
       if (result.data?.createTerritory) {
@@ -149,6 +156,7 @@ export function TerritoryFormWindow({
           type,
           geometry,
           description: description || null,
+          entityId,
         },
       });
       if (result.data?.updateTerritory) {
@@ -186,6 +194,12 @@ export function TerritoryFormWindow({
           required
         />
       </FormField>
+      <EntitySelectField
+        campaignId={campaignId}
+        id="territory-entity"
+        name="entityId"
+        defaultValue={initialTerritory?.entityId}
+      />
       {/* Collapsed by default: the shape is normally drawn on the map, so the
           raw ring is reference material rather than something to fill in. The
           summary doubles as the field label — a FormField label inside would

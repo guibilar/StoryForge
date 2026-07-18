@@ -1,6 +1,11 @@
 type Marker {
   id: ID!
   campaignId: ID!
+  # Optional link to the world-data Entity this pin represents (KAN-116).
+  # `entity` resolves to null when the entity has been soft-deleted, so
+  # clients must not assume entityId implies a resolvable entity.
+  entityId: ID
+  entity: Entity
   name: String!
   lat: Float!
   lng: Float!

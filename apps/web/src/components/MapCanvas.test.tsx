@@ -591,4 +591,82 @@ describe("MapCanvas", () => {
       ).toEqual(initialTile);
     });
   });
+
+  describe("entity colouring", () => {
+    function markerWithEntity(type: string | null) {
+      return {
+        ...marker,
+        entity: type ? { id: "e-1", name: "Riverwood", type } : null,
+      };
+    }
+
+    function pinFill(container: HTMLElement): string | null {
+      return (
+        container
+          .querySelector(".leaflet-marker-icon svg path")
+          ?.getAttribute("fill") ?? null
+      );
+    }
+
+    it("gives markers of the same entity type the same colour", () => {
+      const { container: a } = render(
+        <MapCanvas markers={[markerWithEntity("city")]} />,
+      );
+      const { container: b } = render(
+        <MapCanvas
+          markers={[{ ...markerWithEntity("city"), id: "marker-2" }]}
+        />,
+      );
+
+      expect(pinFill(a)).toBe(pinFill(b));
+    });
+
+    it("gives different entity types different colours", () => {
+      const { container: city } = render(
+        <MapCanvas markers={[markerWithEntity("city")]} />,
+      );
+      const { container: dungeon } = render(
+        <MapCanvas markers={[markerWithEntity("dungeon")]} />,
+      );
+
+      expect(pinFill(city)).not.toBe(pinFill(dungeon));
+    });
+
+    it("leaves unlinked markers the neutral default", () => {
+      const { container: unlinked } = render(
+        <MapCanvas markers={[markerWithEntity(null)]} />,
+      );
+      const { container: linked } = render(
+        <MapCanvas markers={[markerWithEntity("city")]} />,
+      );
+
+      expect(pinFill(unlinked)).toBe("#3388ff");
+      expect(pinFill(linked)).not.toBe("#3388ff");
+    });
+
+    it("colours a territory by its linked entity type", () => {
+      const { container } = render(
+        <MapCanvas
+          territories={[
+            { ...territory, entity: { id: "e-1", name: "R", type: "city" } },
+          ]}
+        />,
+      );
+
+      const shape = container.querySelector("path.leaflet-interactive");
+      expect(shape?.getAttribute("stroke")).not.toBe("#3388ff");
+    });
+
+    it("names the linked entity in the marker popup", () => {
+      const { container } = render(
+        <MapCanvas markers={[markerWithEntity("city")]} />,
+      );
+
+      fireEvent.click(
+        container.querySelector<HTMLElement>(".leaflet-marker-icon")!,
+      );
+
+      expect(screen.getByText(/Riverwood/)).toBeInTheDocument();
+    });
+  });
 });

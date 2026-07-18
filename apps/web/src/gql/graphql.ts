@@ -43,6 +43,7 @@ export type CreateEventInput = {
 export type CreateMarkerInput = {
   campaignId: string | number;
   description?: string | null | undefined;
+  entityId?: string | number | null | undefined;
   lat: number;
   lng: number;
   name: string;
@@ -66,6 +67,7 @@ export type CreateSessionInput = {
 export type CreateTerritoryInput = {
   campaignId: string | number;
   description?: string | null | undefined;
+  entityId?: string | number | null | undefined;
   geometry: string;
   name: string;
   type: string;
@@ -128,6 +130,7 @@ export type UpdateEventInput = {
 
 export type UpdateMarkerInput = {
   description?: string | null | undefined;
+  entityId?: string | number | null | undefined;
   id: string | number;
   lat?: number | null | undefined;
   lng?: number | null | undefined;
@@ -150,6 +153,7 @@ export type UpdateSessionInput = {
 
 export type UpdateTerritoryInput = {
   description?: string | null | undefined;
+  entityId?: string | number | null | undefined;
   geometry?: string | null | undefined;
   id: string | number;
   name?: string | null | undefined;
@@ -280,10 +284,12 @@ export type CreateMarkerMutationVariables = Exact<{
 export type CreateMarkerMutation = {
   createMarker: {
     id: string;
+    entityId: string | null;
     name: string;
     lat: number;
     lng: number;
     description: string | null;
+    entity: { id: string; name: string; type: string } | null;
   };
 };
 
@@ -326,10 +332,12 @@ export type CreateTerritoryMutationVariables = Exact<{
 export type CreateTerritoryMutation = {
   createTerritory: {
     id: string;
+    entityId: string | null;
     name: string;
     type: string;
     geometry: string;
     description: string | null;
+    entity: { id: string; name: string; type: string } | null;
   };
 };
 
@@ -465,10 +473,12 @@ export type MarkersQueryVariables = Exact<{
 export type MarkersQuery = {
   markers: Array<{
     id: string;
+    entityId: string | null;
     name: string;
     lat: number;
     lng: number;
     description: string | null;
+    entity: { id: string; name: string; type: string } | null;
   }>;
 };
 
@@ -566,10 +576,12 @@ export type TerritoriesQueryVariables = Exact<{
 export type TerritoriesQuery = {
   territories: Array<{
     id: string;
+    entityId: string | null;
     name: string;
     type: string;
     geometry: string;
     description: string | null;
+    entity: { id: string; name: string; type: string } | null;
   }>;
 };
 
@@ -634,10 +646,12 @@ export type UpdateMarkerMutationVariables = Exact<{
 export type UpdateMarkerMutation = {
   updateMarker: {
     id: string;
+    entityId: string | null;
     name: string;
     lat: number;
     lng: number;
     description: string | null;
+    entity: { id: string; name: string; type: string } | null;
   };
 };
 
@@ -680,10 +694,12 @@ export type UpdateTerritoryMutationVariables = Exact<{
 export type UpdateTerritoryMutation = {
   updateTerritory: {
     id: string;
+    entityId: string | null;
     name: string;
     type: string;
     geometry: string;
     description: string | null;
+    entity: { id: string; name: string; type: string } | null;
   };
 };
 
@@ -1375,6 +1391,19 @@ export const CreateMarkerDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "entityId" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "entity" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "type" } },
+                    ],
+                  },
+                },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "lat" } },
                 { kind: "Field", name: { kind: "Name", value: "lng" } },
@@ -1585,6 +1614,19 @@ export const CreateTerritoryDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "entityId" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "entity" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "type" } },
+                    ],
+                  },
+                },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "geometry" } },
@@ -2403,6 +2445,19 @@ export const MarkersDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "entityId" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "entity" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "type" } },
+                    ],
+                  },
+                },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "lat" } },
                 { kind: "Field", name: { kind: "Name", value: "lng" } },
@@ -2935,6 +2990,19 @@ export const TerritoriesDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "entityId" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "entity" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "type" } },
+                    ],
+                  },
+                },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "geometry" } },
@@ -3253,6 +3321,19 @@ export const UpdateMarkerDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "entityId" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "entity" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "type" } },
+                    ],
+                  },
+                },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "lat" } },
                 { kind: "Field", name: { kind: "Name", value: "lng" } },
@@ -3463,6 +3544,19 @@ export const UpdateTerritoryDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "entityId" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "entity" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "type" } },
+                    ],
+                  },
+                },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "geometry" } },

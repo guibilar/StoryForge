@@ -1,6 +1,12 @@
 query Territories($campaignId: ID!) {
   territories(campaignId: $campaignId) {
     id
+    entityId
+    entity {
+      id
+      name
+      type
+    }
     name
     type
     geometry

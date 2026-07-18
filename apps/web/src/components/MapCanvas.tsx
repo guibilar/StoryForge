@@ -39,12 +39,19 @@ L.Icon.Default.mergeOptions({
 const DEFAULT_CENTER: LatLngExpression = [20, 0];
 const DEFAULT_ZOOM = 3;
 
+export interface MapLinkedEntity {
+  id: string;
+  name: string;
+  type: string;
+}
+
 export interface MapMarkerPoint {
   id: string;
   name: string;
   lat: number;
   lng: number;
   description?: string | null;
+  entity?: MapLinkedEntity | null;
 }
 
 export interface MapTerritoryShape {
@@ -53,6 +60,7 @@ export interface MapTerritoryShape {
   type: string;
   geometry: Record<string, unknown>;
   description?: string | null;
+  entity?: MapLinkedEntity | null;
 }
 
 export interface MapImageOverlay {
@@ -100,6 +108,56 @@ export interface MapCanvasProps {
 // A polygon needs three corners; below that the finish gesture is ignored
 // rather than emitting a degenerate shape.
 const MIN_POLYGON_VERTICES = 3;
+
+// Colour comes from the linked entity's *type*, not the entity itself, so all
+// cities share one colour and the map stays readable at a glance — and so it
+// lines up with filtering by type later. Hand-picked rather than generated:
+// these stay distinguishable from each other and from Leaflet's default blue,
+// which is what unlinked features keep (KAN-116).
+const ENTITY_TYPE_COLORS = [
+  "#c2410c",
+  "#15803d",
+  "#7e22ce",
+  "#b91c1c",
+  "#0f766e",
+  "#a16207",
+  "#be185d",
+  "#1d4ed8",
+];
+
+const UNLINKED_COLOR = "#3388ff";
+
+// Stable across reloads and independent of load order: the same type always
+// lands on the same colour, which a running counter or index-into-the-list
+// wouldn't guarantee once entities are added or removed.
+function colorForEntityType(type: string | null | undefined): string {
+  if (!type) {
+    return UNLINKED_COLOR;
+  }
+
+  let hash = 0;
+  for (let index = 0; index < type.length; index += 1) {
+    hash = (hash * 31 + type.charCodeAt(index)) | 0;
+  }
+
+  return ENTITY_TYPE_COLORS[Math.abs(hash) % ENTITY_TYPE_COLORS.length];
+}
+
+// Leaflet's default marker is a fixed-colour PNG sprite, so tinting it means
+// drawing our own. A teardrop path keeps the familiar pin silhouette and
+// anchors at the point rather than the centre.
+function pinIcon(color: string): L.DivIcon {
+  return L.divIcon({
+    className: "",
+    html: `<svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 21.9 12.5 41 12.5 41S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="${color}" stroke="#ffffff" stroke-width="1.5"/>
+      <circle cx="12.5" cy="12.5" r="4.5" fill="#ffffff"/>
+    </svg>`,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [0, -36],
+  });
+}
 
 // A browser double-click fires click, click, dblclick — so the point the user
 // finished on has already been appended twice by the time the ring is built.
@@ -412,6 +470,7 @@ export function MapCanvas({
           <GeoJSON
             key={territory.id}
             data={territory.geometry as unknown as GeoJsonObject}
+            style={{ color: colorForEntityType(territory.entity?.type) }}
             eventHandlers={{
               // While a mode is armed, a click that lands on an existing
               // territory is the user placing a point on top of it — not a
@@ -425,10 +484,19 @@ export function MapCanvas({
           />
         ))}
         {markers.map((marker) => (
-          <Marker key={marker.id} position={[marker.lat, marker.lng]}>
+          <Marker
+            key={marker.id}
+            position={[marker.lat, marker.lng]}
+            icon={pinIcon(colorForEntityType(marker.entity?.type))}
+          >
             <Popup>
               <div className={styles.popup}>
                 <strong>{marker.name}</strong>
+                {marker.entity ? (
+                  <span className={styles.entityTag}>
+                    {marker.entity.name} · {marker.entity.type}
+                  </span>
+                ) : null}
                 {marker.description ? <p>{marker.description}</p> : null}
                 <div className={styles.popupActions}>
                   <Button

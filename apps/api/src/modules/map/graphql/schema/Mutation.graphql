@@ -1,5 +1,6 @@
 input CreateMarkerInput {
   campaignId: ID!
+  entityId: ID
   name: String!
   lat: Float!
   lng: Float!
@@ -8,6 +9,8 @@ input CreateMarkerInput {
 
 input UpdateMarkerInput {
   id: ID!
+  # Pass null to unlink; omit to leave the existing link untouched.
+  entityId: ID
   name: String
   lat: Float
   lng: Float
@@ -16,6 +19,7 @@ input UpdateMarkerInput {
 
 input CreateTerritoryInput {
   campaignId: ID!
+  entityId: ID
   name: String!
   type: String!
   geometry: String!
@@ -24,6 +28,8 @@ input CreateTerritoryInput {
 
 input UpdateTerritoryInput {
   id: ID!
+  # Pass null to unlink; omit to leave the existing link untouched.
+  entityId: ID
   name: String
   type: String
   geometry: String

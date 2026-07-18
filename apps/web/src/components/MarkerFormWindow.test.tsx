@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { useMutation } from "urql";
+import { useMutation, useQuery } from "urql";
 
 import { MarkerFormWindow } from "./MarkerFormWindow";
 import type { MarkerRow } from "./MarkerFormWindow";
@@ -10,7 +10,7 @@ import { CreateMarkerDocument, UpdateMarkerDocument } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useMutation: vi.fn() };
+  return { ...actual, useMutation: vi.fn(), useQuery: vi.fn() };
 });
 
 function setupMocks({
@@ -19,7 +19,14 @@ function setupMocks({
     .mockResolvedValue({ data: { createMarker: { id: "marker-2" } } }),
   updateMarker = vi.fn().mockResolvedValue({ data: { updateMarker: {} } }),
   createFetching = false,
+  entities = [] as { id: string; name: string; type: string }[],
 } = {}) {
+  // EntitySelectField loads the campaign's entities for the link picker.
+  vi.mocked(useQuery).mockReturnValue([
+    { data: { entities }, fetching: false, stale: false },
+    vi.fn(),
+  ] as never);
+
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === CreateMarkerDocument) {
       return [
@@ -114,6 +121,7 @@ describe("MarkerFormWindow", () => {
         lat: 1387.5,
         lng: 1902.25,
         description: null,
+        entityId: null,
       },
     });
   });
@@ -137,6 +145,7 @@ describe("MarkerFormWindow", () => {
         lat: 51.505,
         lng: -0.09,
         description: null,
+        entityId: null,
       },
     });
     expect(onSaved).toHaveBeenCalledTimes(1);
@@ -171,6 +180,7 @@ describe("MarkerFormWindow", () => {
         lat: 51.505,
         lng: -0.09,
         description: "Abandoned mill",
+        entityId: null,
       },
     });
   });
@@ -206,6 +216,7 @@ describe("MarkerFormWindow", () => {
         lat: 1200,
         lng: 900,
         description: null,
+        entityId: null,
       },
     });
   });
@@ -237,5 +248,64 @@ describe("MarkerFormWindow", () => {
     );
 
     expect(chromeApi.setLoading).toHaveBeenCalledWith(true);
+  });
+
+  it("links the marker to the chosen entity", async () => {
+    const { createMarker } = setupMocks({
+      entities: [
+        { id: "entity-1", name: "Riverwood", type: "location" },
+        { id: "entity-2", name: "Bandit Chief", type: "npc" },
+      ],
+    });
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Name"), "Old Mill");
+    await user.selectOptions(screen.getByLabelText("Entity"), "entity-2");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createMarker).toHaveBeenCalledWith({
+      input: expect.objectContaining({ entityId: "entity-2" }),
+    });
+  });
+
+  it("submits null rather than an empty string when left unlinked", async () => {
+    const { createMarker } = setupMocks({
+      entities: [{ id: "entity-1", name: "Riverwood", type: "location" }],
+    });
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Name"), "Old Mill");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    // The picker's "None" option has an empty-string value; the API needs a
+    // real null to mean unlinked.
+    expect(createMarker).toHaveBeenCalledWith({
+      input: expect.objectContaining({ entityId: null }),
+    });
+  });
+
+  it("preselects the existing link when editing and can clear it", async () => {
+    const { updateMarker } = setupMocks({
+      entities: [{ id: "entity-1", name: "Riverwood", type: "location" }],
+    });
+    const user = userEvent.setup();
+    renderEdit({
+      id: "marker-1",
+      name: "Old Mill",
+      lat: 1,
+      lng: 2,
+      entityId: "entity-1",
+    });
+
+    expect(screen.getByLabelText("Entity")).toHaveValue("entity-1");
+
+    await user.selectOptions(screen.getByLabelText("Entity"), "");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(updateMarker).toHaveBeenCalledWith({
+      input: expect.objectContaining({ entityId: null }),
+    });
   });
 });

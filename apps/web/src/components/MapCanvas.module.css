@@ -33,6 +33,11 @@
   min-width: 10rem;
 }
 
+.entityTag {
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+
 .popupActions {
   display: flex;
   gap: 0.5rem;

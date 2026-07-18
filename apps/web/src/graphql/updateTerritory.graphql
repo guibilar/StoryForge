@@ -1,6 +1,12 @@
 mutation UpdateTerritory($input: UpdateTerritoryInput!) {
   updateTerritory(input: $input) {
     id
+    entityId
+    entity {
+      id
+      name
+      type
+    }
     name
     type
     geometry

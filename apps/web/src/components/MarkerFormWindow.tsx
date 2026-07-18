@@ -14,10 +14,13 @@ import { CreateMarkerDocument, UpdateMarkerDocument } from "../gql/graphql";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
+import { EntitySelectField } from "./EntitySelectField";
 import styles from "./MarkerFormWindow.module.css";
 
 export interface MarkerRow {
   id: string;
+  entityId?: string | null;
+  entity?: { id: string; name: string; type: string } | null;
   name: string;
   lat: number;
   lng: number;
@@ -63,6 +66,9 @@ export function MarkerFormWindow({
     const lat = Number(data.get("lat"));
     const lng = Number(data.get("lng"));
     const description = String(data.get("description") ?? "").trim();
+    // The picker's "None" option submits an empty string; the API wants an
+    // explicit null to mean unlinked.
+    const entityId = String(data.get("entityId") ?? "") || null;
 
     // `required` alone doesn't stop a whitespace-only value (the browser
     // only checks the raw value is non-empty) — check the trimmed name
@@ -79,7 +85,14 @@ export function MarkerFormWindow({
 
     if (mode.mode === "create") {
       const result = await createMarker({
-        input: { campaignId, name, lat, lng, description: description || null },
+        input: {
+          campaignId,
+          name,
+          lat,
+          lng,
+          description: description || null,
+          entityId,
+        },
       });
       if (result.data?.createMarker) {
         onSaved();
@@ -93,6 +106,7 @@ export function MarkerFormWindow({
           lat,
           lng,
           description: description || null,
+          entityId,
         },
       });
       if (result.data?.updateMarker) {
@@ -141,6 +155,12 @@ export function MarkerFormWindow({
           />
         </FormField>
       </div>
+      <EntitySelectField
+        campaignId={campaignId}
+        id="marker-entity"
+        name="entityId"
+        defaultValue={initialMarker?.entityId}
+      />
       <FormField label="Description" htmlFor="marker-description">
         <Textarea
           id="marker-description"

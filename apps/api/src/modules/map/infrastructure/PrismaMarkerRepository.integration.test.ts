@@ -108,4 +108,57 @@ describe("PrismaMarkerRepository", () => {
     const found = await repository.findById(marker.Id);
     expect(found).toBeNull();
   });
+
+  describe("entity link", () => {
+    async function createEntity(campaignId: string): Promise<string> {
+      const entity = await prisma.entity.create({
+        data: {
+          id: randomUUID(),
+          campaignId,
+          type: "location",
+          name: `Riverwood ${randomUUID()}`,
+        },
+      });
+      return entity.id;
+    }
+
+    it("round-trips the entity link", async () => {
+      const campaignId = await createCampaign();
+      const entityId = await createEntity(campaignId);
+      const marker = Marker.create({
+        campaignId,
+        name: "Old Mill",
+        lat: 1,
+        lng: 2,
+        entityId,
+      });
+
+      await repository.create(marker);
+      const found = await repository.findById(marker.Id);
+
+      expect(found?.EntityId).toBe(entityId);
+    });
+
+    it("clears the link but keeps the marker when the entity is deleted", async () => {
+      const campaignId = await createCampaign();
+      const entityId = await createEntity(campaignId);
+      const marker = Marker.create({
+        campaignId,
+        name: "Old Mill",
+        lat: 1,
+        lng: 2,
+        entityId,
+      });
+      await repository.create(marker);
+
+      await prisma.entity.delete({ where: { id: entityId } });
+
+      // ON DELETE SET NULL, not CASCADE — the annotation outlives the entity
+      // it pointed at. This is the whole reason the FK differs from the
+      // campaign relation, and only a real database proves it.
+      const found = await repository.findById(marker.Id);
+      expect(found).not.toBeNull();
+      expect(found?.EntityId).toBeNull();
+    });
+  });
 });

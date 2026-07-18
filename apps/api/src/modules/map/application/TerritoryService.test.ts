@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  Entity,
+  EntityRepository,
   NotFoundError,
   Territory,
   TerritoryRepository,
+  ValidationError,
 } from "@storyforge/domain";
 import { TerritoryService } from "./TerritoryService";
 
@@ -13,6 +16,17 @@ function makeRepository(): TerritoryRepository {
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+  };
+}
+
+function makeEntityRepository(): EntityRepository {
+  return {
+    findById: vi.fn(),
+    findByCampaign: vi.fn(),
+    existsByName: vi.fn(),
+    findByName: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
   };
 }
 
@@ -36,11 +50,13 @@ const createDto = {
 
 describe("TerritoryService", () => {
   let repository: TerritoryRepository;
+  let entityRepository: EntityRepository;
   let service: TerritoryService;
 
   beforeEach(() => {
     repository = makeRepository();
-    service = new TerritoryService(repository);
+    entityRepository = makeEntityRepository();
+    service = new TerritoryService(repository, entityRepository);
   });
 
   describe("createTerritory", () => {
@@ -130,6 +146,53 @@ describe("TerritoryService", () => {
         territories,
       );
       expect(repository.findByCampaign).toHaveBeenCalledWith("campaign-1");
+    });
+  });
+
+  describe("entity link", () => {
+    function entityInCampaign(campaignId: string): Entity {
+      return Entity.create({
+        campaignId,
+        type: "location",
+        name: "Thornwood",
+      });
+    }
+
+    it("links a territory to an entity in the same campaign", async () => {
+      vi.mocked(entityRepository.findById).mockResolvedValue(
+        entityInCampaign("campaign-1"),
+      );
+
+      const territory = await service.createTerritory({
+        ...createDto,
+        entityId: "entity-1",
+      });
+
+      expect(territory.EntityId).toBe("entity-1");
+    });
+
+    it("rejects an entity from a different campaign", async () => {
+      vi.mocked(entityRepository.findById).mockResolvedValue(
+        entityInCampaign("campaign-2"),
+      );
+
+      await expect(
+        service.createTerritory({ ...createDto, entityId: "entity-1" }),
+      ).rejects.toThrow(ValidationError);
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it("unlinks on an explicit null without looking the entity up", async () => {
+      const existing = Territory.create({ ...createDto, entityId: "entity-1" });
+      vi.mocked(repository.findById).mockResolvedValue(existing);
+
+      const territory = await service.updateTerritory({
+        id: existing.Id.toString(),
+        entityId: null,
+      });
+
+      expect(territory.EntityId).toBeNull();
+      expect(entityRepository.findById).not.toHaveBeenCalled();
     });
   });
 });

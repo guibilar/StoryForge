@@ -1,6 +1,12 @@
 mutation UpdateMarker($input: UpdateMarkerInput!) {
   updateMarker(input: $input) {
     id
+    entityId
+    entity {
+      id
+      name
+      type
+    }
     name
     lat
     lng

@@ -4,6 +4,9 @@
 type Territory {
   id: ID!
   campaignId: ID!
+  # See Marker.entity — same optional link, same soft-delete caveat.
+  entityId: ID
+  entity: Entity
   name: String!
   type: String!
   geometry: String!

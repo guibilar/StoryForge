@@ -27,6 +27,7 @@ export type AggregateTerritory = {
 export type TerritoryMinAggregateOutputType = {
   id: string | null;
   campaignId: string | null;
+  entityId: string | null;
   name: string | null;
   type: string | null;
   description: string | null;
@@ -37,6 +38,7 @@ export type TerritoryMinAggregateOutputType = {
 export type TerritoryMaxAggregateOutputType = {
   id: string | null;
   campaignId: string | null;
+  entityId: string | null;
   name: string | null;
   type: string | null;
   description: string | null;
@@ -47,6 +49,7 @@ export type TerritoryMaxAggregateOutputType = {
 export type TerritoryCountAggregateOutputType = {
   id: number;
   campaignId: number;
+  entityId: number;
   name: number;
   type: number;
   geometry: number;
@@ -59,6 +62,7 @@ export type TerritoryCountAggregateOutputType = {
 export type TerritoryMinAggregateInputType = {
   id?: true;
   campaignId?: true;
+  entityId?: true;
   name?: true;
   type?: true;
   description?: true;
@@ -69,6 +73,7 @@ export type TerritoryMinAggregateInputType = {
 export type TerritoryMaxAggregateInputType = {
   id?: true;
   campaignId?: true;
+  entityId?: true;
   name?: true;
   type?: true;
   description?: true;
@@ -79,6 +84,7 @@ export type TerritoryMaxAggregateInputType = {
 export type TerritoryCountAggregateInputType = {
   id?: true;
   campaignId?: true;
+  entityId?: true;
   name?: true;
   type?: true;
   geometry?: true;
@@ -170,6 +176,7 @@ export type TerritoryGroupByArgs<
 export type TerritoryGroupByOutputType = {
   id: string;
   campaignId: string;
+  entityId: string | null;
   name: string;
   type: string;
   geometry: runtime.JsonValue;
@@ -200,6 +207,7 @@ export type TerritoryWhereInput = {
   NOT?: Prisma.TerritoryWhereInput | Prisma.TerritoryWhereInput[];
   id?: Prisma.StringFilter<"Territory"> | string;
   campaignId?: Prisma.StringFilter<"Territory"> | string;
+  entityId?: Prisma.StringNullableFilter<"Territory"> | string | null;
   name?: Prisma.StringFilter<"Territory"> | string;
   type?: Prisma.StringFilter<"Territory"> | string;
   geometry?: Prisma.JsonFilter<"Territory">;
@@ -210,11 +218,16 @@ export type TerritoryWhereInput = {
     Prisma.CampaignScalarRelationFilter,
     Prisma.CampaignWhereInput
   >;
+  entity?: Prisma.XOR<
+    Prisma.EntityNullableScalarRelationFilter,
+    Prisma.EntityWhereInput
+  > | null;
 };
 
 export type TerritoryOrderByWithRelationInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  entityId?: Prisma.SortOrderInput | Prisma.SortOrder;
   name?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
   geometry?: Prisma.SortOrder;
@@ -222,6 +235,7 @@ export type TerritoryOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   campaign?: Prisma.CampaignOrderByWithRelationInput;
+  entity?: Prisma.EntityOrderByWithRelationInput;
 };
 
 export type TerritoryWhereUniqueInput = Prisma.AtLeast<
@@ -231,6 +245,7 @@ export type TerritoryWhereUniqueInput = Prisma.AtLeast<
     OR?: Prisma.TerritoryWhereInput[];
     NOT?: Prisma.TerritoryWhereInput | Prisma.TerritoryWhereInput[];
     campaignId?: Prisma.StringFilter<"Territory"> | string;
+    entityId?: Prisma.StringNullableFilter<"Territory"> | string | null;
     name?: Prisma.StringFilter<"Territory"> | string;
     type?: Prisma.StringFilter<"Territory"> | string;
     geometry?: Prisma.JsonFilter<"Territory">;
@@ -241,6 +256,10 @@ export type TerritoryWhereUniqueInput = Prisma.AtLeast<
       Prisma.CampaignScalarRelationFilter,
       Prisma.CampaignWhereInput
     >;
+    entity?: Prisma.XOR<
+      Prisma.EntityNullableScalarRelationFilter,
+      Prisma.EntityWhereInput
+    > | null;
   },
   "id"
 >;
@@ -248,6 +267,7 @@ export type TerritoryWhereUniqueInput = Prisma.AtLeast<
 export type TerritoryOrderByWithAggregationInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  entityId?: Prisma.SortOrderInput | Prisma.SortOrder;
   name?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
   geometry?: Prisma.SortOrder;
@@ -269,6 +289,8 @@ export type TerritoryScalarWhereWithAggregatesInput = {
     | Prisma.TerritoryScalarWhereWithAggregatesInput[];
   id?: Prisma.StringWithAggregatesFilter<"Territory"> | string;
   campaignId?: Prisma.StringWithAggregatesFilter<"Territory"> | string;
+  entityId?:
+    Prisma.StringNullableWithAggregatesFilter<"Territory"> | string | null;
   name?: Prisma.StringWithAggregatesFilter<"Territory"> | string;
   type?: Prisma.StringWithAggregatesFilter<"Territory"> | string;
   geometry?: Prisma.JsonWithAggregatesFilter<"Territory">;
@@ -287,11 +309,13 @@ export type TerritoryCreateInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   campaign: Prisma.CampaignCreateNestedOneWithoutTerritoriesInput;
+  entity?: Prisma.EntityCreateNestedOneWithoutTerritoriesInput;
 };
 
 export type TerritoryUncheckedCreateInput = {
   id?: string;
   campaignId: string;
+  entityId?: string | null;
   name: string;
   type: string;
   geometry: Prisma.JsonNullValueInput | runtime.InputJsonValue;
@@ -309,11 +333,13 @@ export type TerritoryUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutTerritoriesNestedInput;
+  entity?: Prisma.EntityUpdateOneWithoutTerritoriesNestedInput;
 };
 
 export type TerritoryUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
   geometry?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
@@ -325,6 +351,7 @@ export type TerritoryUncheckedUpdateInput = {
 export type TerritoryCreateManyInput = {
   id?: string;
   campaignId: string;
+  entityId?: string | null;
   name: string;
   type: string;
   geometry: Prisma.JsonNullValueInput | runtime.InputJsonValue;
@@ -346,6 +373,7 @@ export type TerritoryUpdateManyMutationInput = {
 export type TerritoryUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
   geometry?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
@@ -367,6 +395,7 @@ export type TerritoryOrderByRelationAggregateInput = {
 export type TerritoryCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  entityId?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
   geometry?: Prisma.SortOrder;
@@ -378,6 +407,7 @@ export type TerritoryCountOrderByAggregateInput = {
 export type TerritoryMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  entityId?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
@@ -388,6 +418,7 @@ export type TerritoryMaxOrderByAggregateInput = {
 export type TerritoryMinOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  entityId?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
@@ -491,6 +522,102 @@ export type TerritoryUncheckedUpdateManyWithoutCampaignNestedInput = {
     Prisma.TerritoryScalarWhereInput | Prisma.TerritoryScalarWhereInput[];
 };
 
+export type TerritoryCreateNestedManyWithoutEntityInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.TerritoryCreateWithoutEntityInput,
+        Prisma.TerritoryUncheckedCreateWithoutEntityInput
+      >
+    | Prisma.TerritoryCreateWithoutEntityInput[]
+    | Prisma.TerritoryUncheckedCreateWithoutEntityInput[];
+  connectOrCreate?:
+    | Prisma.TerritoryCreateOrConnectWithoutEntityInput
+    | Prisma.TerritoryCreateOrConnectWithoutEntityInput[];
+  createMany?: Prisma.TerritoryCreateManyEntityInputEnvelope;
+  connect?:
+    Prisma.TerritoryWhereUniqueInput | Prisma.TerritoryWhereUniqueInput[];
+};
+
+export type TerritoryUncheckedCreateNestedManyWithoutEntityInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.TerritoryCreateWithoutEntityInput,
+        Prisma.TerritoryUncheckedCreateWithoutEntityInput
+      >
+    | Prisma.TerritoryCreateWithoutEntityInput[]
+    | Prisma.TerritoryUncheckedCreateWithoutEntityInput[];
+  connectOrCreate?:
+    | Prisma.TerritoryCreateOrConnectWithoutEntityInput
+    | Prisma.TerritoryCreateOrConnectWithoutEntityInput[];
+  createMany?: Prisma.TerritoryCreateManyEntityInputEnvelope;
+  connect?:
+    Prisma.TerritoryWhereUniqueInput | Prisma.TerritoryWhereUniqueInput[];
+};
+
+export type TerritoryUpdateManyWithoutEntityNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.TerritoryCreateWithoutEntityInput,
+        Prisma.TerritoryUncheckedCreateWithoutEntityInput
+      >
+    | Prisma.TerritoryCreateWithoutEntityInput[]
+    | Prisma.TerritoryUncheckedCreateWithoutEntityInput[];
+  connectOrCreate?:
+    | Prisma.TerritoryCreateOrConnectWithoutEntityInput
+    | Prisma.TerritoryCreateOrConnectWithoutEntityInput[];
+  upsert?:
+    | Prisma.TerritoryUpsertWithWhereUniqueWithoutEntityInput
+    | Prisma.TerritoryUpsertWithWhereUniqueWithoutEntityInput[];
+  createMany?: Prisma.TerritoryCreateManyEntityInputEnvelope;
+  set?: Prisma.TerritoryWhereUniqueInput | Prisma.TerritoryWhereUniqueInput[];
+  disconnect?:
+    Prisma.TerritoryWhereUniqueInput | Prisma.TerritoryWhereUniqueInput[];
+  delete?:
+    Prisma.TerritoryWhereUniqueInput | Prisma.TerritoryWhereUniqueInput[];
+  connect?:
+    Prisma.TerritoryWhereUniqueInput | Prisma.TerritoryWhereUniqueInput[];
+  update?:
+    | Prisma.TerritoryUpdateWithWhereUniqueWithoutEntityInput
+    | Prisma.TerritoryUpdateWithWhereUniqueWithoutEntityInput[];
+  updateMany?:
+    | Prisma.TerritoryUpdateManyWithWhereWithoutEntityInput
+    | Prisma.TerritoryUpdateManyWithWhereWithoutEntityInput[];
+  deleteMany?:
+    Prisma.TerritoryScalarWhereInput | Prisma.TerritoryScalarWhereInput[];
+};
+
+export type TerritoryUncheckedUpdateManyWithoutEntityNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.TerritoryCreateWithoutEntityInput,
+        Prisma.TerritoryUncheckedCreateWithoutEntityInput
+      >
+    | Prisma.TerritoryCreateWithoutEntityInput[]
+    | Prisma.TerritoryUncheckedCreateWithoutEntityInput[];
+  connectOrCreate?:
+    | Prisma.TerritoryCreateOrConnectWithoutEntityInput
+    | Prisma.TerritoryCreateOrConnectWithoutEntityInput[];
+  upsert?:
+    | Prisma.TerritoryUpsertWithWhereUniqueWithoutEntityInput
+    | Prisma.TerritoryUpsertWithWhereUniqueWithoutEntityInput[];
+  createMany?: Prisma.TerritoryCreateManyEntityInputEnvelope;
+  set?: Prisma.TerritoryWhereUniqueInput | Prisma.TerritoryWhereUniqueInput[];
+  disconnect?:
+    Prisma.TerritoryWhereUniqueInput | Prisma.TerritoryWhereUniqueInput[];
+  delete?:
+    Prisma.TerritoryWhereUniqueInput | Prisma.TerritoryWhereUniqueInput[];
+  connect?:
+    Prisma.TerritoryWhereUniqueInput | Prisma.TerritoryWhereUniqueInput[];
+  update?:
+    | Prisma.TerritoryUpdateWithWhereUniqueWithoutEntityInput
+    | Prisma.TerritoryUpdateWithWhereUniqueWithoutEntityInput[];
+  updateMany?:
+    | Prisma.TerritoryUpdateManyWithWhereWithoutEntityInput
+    | Prisma.TerritoryUpdateManyWithWhereWithoutEntityInput[];
+  deleteMany?:
+    Prisma.TerritoryScalarWhereInput | Prisma.TerritoryScalarWhereInput[];
+};
+
 export type TerritoryCreateWithoutCampaignInput = {
   id?: string;
   name: string;
@@ -499,10 +626,12 @@ export type TerritoryCreateWithoutCampaignInput = {
   description?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  entity?: Prisma.EntityCreateNestedOneWithoutTerritoriesInput;
 };
 
 export type TerritoryUncheckedCreateWithoutCampaignInput = {
   id?: string;
+  entityId?: string | null;
   name: string;
   type: string;
   geometry: Prisma.JsonNullValueInput | runtime.InputJsonValue;
@@ -560,6 +689,7 @@ export type TerritoryScalarWhereInput = {
   NOT?: Prisma.TerritoryScalarWhereInput | Prisma.TerritoryScalarWhereInput[];
   id?: Prisma.StringFilter<"Territory"> | string;
   campaignId?: Prisma.StringFilter<"Territory"> | string;
+  entityId?: Prisma.StringNullableFilter<"Territory"> | string | null;
   name?: Prisma.StringFilter<"Territory"> | string;
   type?: Prisma.StringFilter<"Territory"> | string;
   geometry?: Prisma.JsonFilter<"Territory">;
@@ -568,8 +698,74 @@ export type TerritoryScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Territory"> | Date | string;
 };
 
+export type TerritoryCreateWithoutEntityInput = {
+  id?: string;
+  name: string;
+  type: string;
+  geometry: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  campaign: Prisma.CampaignCreateNestedOneWithoutTerritoriesInput;
+};
+
+export type TerritoryUncheckedCreateWithoutEntityInput = {
+  id?: string;
+  campaignId: string;
+  name: string;
+  type: string;
+  geometry: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type TerritoryCreateOrConnectWithoutEntityInput = {
+  where: Prisma.TerritoryWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.TerritoryCreateWithoutEntityInput,
+    Prisma.TerritoryUncheckedCreateWithoutEntityInput
+  >;
+};
+
+export type TerritoryCreateManyEntityInputEnvelope = {
+  data:
+    | Prisma.TerritoryCreateManyEntityInput
+    | Prisma.TerritoryCreateManyEntityInput[];
+  skipDuplicates?: boolean;
+};
+
+export type TerritoryUpsertWithWhereUniqueWithoutEntityInput = {
+  where: Prisma.TerritoryWhereUniqueInput;
+  update: Prisma.XOR<
+    Prisma.TerritoryUpdateWithoutEntityInput,
+    Prisma.TerritoryUncheckedUpdateWithoutEntityInput
+  >;
+  create: Prisma.XOR<
+    Prisma.TerritoryCreateWithoutEntityInput,
+    Prisma.TerritoryUncheckedCreateWithoutEntityInput
+  >;
+};
+
+export type TerritoryUpdateWithWhereUniqueWithoutEntityInput = {
+  where: Prisma.TerritoryWhereUniqueInput;
+  data: Prisma.XOR<
+    Prisma.TerritoryUpdateWithoutEntityInput,
+    Prisma.TerritoryUncheckedUpdateWithoutEntityInput
+  >;
+};
+
+export type TerritoryUpdateManyWithWhereWithoutEntityInput = {
+  where: Prisma.TerritoryScalarWhereInput;
+  data: Prisma.XOR<
+    Prisma.TerritoryUpdateManyMutationInput,
+    Prisma.TerritoryUncheckedUpdateManyWithoutEntityInput
+  >;
+};
+
 export type TerritoryCreateManyCampaignInput = {
   id?: string;
+  entityId?: string | null;
   name: string;
   type: string;
   geometry: Prisma.JsonNullValueInput | runtime.InputJsonValue;
@@ -586,10 +782,12 @@ export type TerritoryUpdateWithoutCampaignInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  entity?: Prisma.EntityUpdateOneWithoutTerritoriesNestedInput;
 };
 
 export type TerritoryUncheckedUpdateWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
   geometry?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
@@ -600,6 +798,51 @@ export type TerritoryUncheckedUpdateWithoutCampaignInput = {
 
 export type TerritoryUncheckedUpdateManyWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  geometry?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type TerritoryCreateManyEntityInput = {
+  id?: string;
+  campaignId: string;
+  name: string;
+  type: string;
+  geometry: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type TerritoryUpdateWithoutEntityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  geometry?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  campaign?: Prisma.CampaignUpdateOneRequiredWithoutTerritoriesNestedInput;
+};
+
+export type TerritoryUncheckedUpdateWithoutEntityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  geometry?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type TerritoryUncheckedUpdateManyWithoutEntityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
   geometry?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
@@ -615,6 +858,7 @@ export type TerritorySelect<
   {
     id?: boolean;
     campaignId?: boolean;
+    entityId?: boolean;
     name?: boolean;
     type?: boolean;
     geometry?: boolean;
@@ -622,6 +866,7 @@ export type TerritorySelect<
     createdAt?: boolean;
     updatedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    entity?: boolean | Prisma.Territory$entityArgs<ExtArgs>;
   },
   ExtArgs["result"]["territory"]
 >;
@@ -633,6 +878,7 @@ export type TerritorySelectCreateManyAndReturn<
   {
     id?: boolean;
     campaignId?: boolean;
+    entityId?: boolean;
     name?: boolean;
     type?: boolean;
     geometry?: boolean;
@@ -640,6 +886,7 @@ export type TerritorySelectCreateManyAndReturn<
     createdAt?: boolean;
     updatedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    entity?: boolean | Prisma.Territory$entityArgs<ExtArgs>;
   },
   ExtArgs["result"]["territory"]
 >;
@@ -651,6 +898,7 @@ export type TerritorySelectUpdateManyAndReturn<
   {
     id?: boolean;
     campaignId?: boolean;
+    entityId?: boolean;
     name?: boolean;
     type?: boolean;
     geometry?: boolean;
@@ -658,6 +906,7 @@ export type TerritorySelectUpdateManyAndReturn<
     createdAt?: boolean;
     updatedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    entity?: boolean | Prisma.Territory$entityArgs<ExtArgs>;
   },
   ExtArgs["result"]["territory"]
 >;
@@ -665,6 +914,7 @@ export type TerritorySelectUpdateManyAndReturn<
 export type TerritorySelectScalar = {
   id?: boolean;
   campaignId?: boolean;
+  entityId?: boolean;
   name?: boolean;
   type?: boolean;
   geometry?: boolean;
@@ -679,6 +929,7 @@ export type TerritoryOmit<
 > = runtime.Types.Extensions.GetOmit<
   | "id"
   | "campaignId"
+  | "entityId"
   | "name"
   | "type"
   | "geometry"
@@ -692,18 +943,21 @@ export type TerritoryInclude<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  entity?: boolean | Prisma.Territory$entityArgs<ExtArgs>;
 };
 export type TerritoryIncludeCreateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  entity?: boolean | Prisma.Territory$entityArgs<ExtArgs>;
 };
 export type TerritoryIncludeUpdateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  entity?: boolean | Prisma.Territory$entityArgs<ExtArgs>;
 };
 
 export type $TerritoryPayload<
@@ -713,11 +967,13 @@ export type $TerritoryPayload<
   name: "Territory";
   objects: {
     campaign: Prisma.$CampaignPayload<ExtArgs>;
+    entity: Prisma.$EntityPayload<ExtArgs> | null;
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
       id: string;
       campaignId: string;
+      entityId: string | null;
       name: string;
       type: string;
       geometry: runtime.JsonValue;
@@ -1288,6 +1544,19 @@ export interface Prisma__TerritoryClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  entity<T extends Prisma.Territory$entityArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Territory$entityArgs<ExtArgs>>,
+  ): Prisma.Prisma__EntityClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$EntityPayload<ExtArgs>,
+      T,
+      "findUniqueOrThrow",
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1326,6 +1595,7 @@ export interface Prisma__TerritoryClient<
 export interface TerritoryFieldRefs {
   readonly id: Prisma.FieldRef<"Territory", "String">;
   readonly campaignId: Prisma.FieldRef<"Territory", "String">;
+  readonly entityId: Prisma.FieldRef<"Territory", "String">;
   readonly name: Prisma.FieldRef<"Territory", "String">;
   readonly type: Prisma.FieldRef<"Territory", "String">;
   readonly geometry: Prisma.FieldRef<"Territory", "Json">;
@@ -1798,6 +2068,28 @@ export type TerritoryDeleteManyArgs<
    * Limit how many Territories to delete.
    */
   limit?: number;
+};
+
+/**
+ * Territory.entity
+ */
+export type Territory$entityArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Entity
+   */
+  select?: Prisma.EntitySelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Entity
+   */
+  omit?: Prisma.EntityOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EntityInclude<ExtArgs> | null;
+  where?: Prisma.EntityWhereInput;
 };
 
 /**

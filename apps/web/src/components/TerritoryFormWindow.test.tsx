@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { useMutation } from "urql";
+import { useMutation, useQuery } from "urql";
 
 import { TerritoryFormWindow } from "./TerritoryFormWindow";
 import type { TerritoryRow } from "./TerritoryFormWindow";
@@ -14,7 +14,7 @@ import {
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useMutation: vi.fn() };
+  return { ...actual, useMutation: vi.fn(), useQuery: vi.fn() };
 });
 
 const geometry = JSON.stringify({
@@ -42,6 +42,12 @@ function setupMocks({
     .mockResolvedValue({ data: { deleteTerritory: true } }),
   createFetching = false,
 } = {}) {
+  // EntitySelectField loads the campaign's entities for the link picker.
+  vi.mocked(useQuery).mockReturnValue([
+    { data: { entities: [] }, fetching: false, stale: false },
+    vi.fn(),
+  ] as never);
+
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === CreateTerritoryDocument) {
       return [
@@ -168,6 +174,7 @@ describe("TerritoryFormWindow", () => {
         type: "region",
         geometry,
         description: null,
+        entityId: null,
       },
     });
     expect(onSaved).toHaveBeenCalledTimes(1);

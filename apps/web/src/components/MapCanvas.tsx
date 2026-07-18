@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import L from "leaflet";
 import type { GeoJsonObject } from "geojson";
@@ -11,11 +11,14 @@ import {
   Polyline,
   Popup,
   TileLayer,
+  Tooltip,
   useMap,
   useMapEvents,
 } from "react-leaflet";
 import { Button } from "@storyforge/ui";
 import "leaflet/dist/leaflet.css";
+
+import { fitTerritoryLabel, ringsIn } from "./mapLabels";
 
 import markerIconUrl from "leaflet/dist/images/marker-icon.png";
 import markerIcon2xUrl from "leaflet/dist/images/marker-icon-2x.png";
@@ -39,10 +42,14 @@ L.Icon.Default.mergeOptions({
 const DEFAULT_CENTER: LatLngExpression = [20, 0];
 const DEFAULT_ZOOM = 3;
 
+// Mirrors EntitySummary (EntityWindow.tsx) so a popup's entity link can open
+// the real entity window without a second fetch.
 export interface MapLinkedEntity {
   id: string;
   name: string;
   type: string;
+  description?: string | null;
+  visibility: string;
 }
 
 export interface MapMarkerPoint {
@@ -89,6 +96,13 @@ export interface MapCanvasProps {
   // Disables every marker popup's Edit/Delete buttons while a delete is in
   // flight, so a slow response can't be raced by a second click.
   markerActionPending?: boolean;
+  // Editing is opt-in (view mode is the default): in view mode clicking a
+  // feature explains it, in edit mode clicking it changes it. Keeps reading
+  // the map during play free of accidental edits.
+  editing?: boolean;
+  onEditingChange?: (editing: boolean) => void;
+  // Opens the world-data window for a feature's linked entity.
+  onOpenEntity?: (entity: MapLinkedEntity) => void;
   drawMode?: MapDrawMode;
   // Presence of this callback is what makes the draw toolbar appear — only
   // campaign writers get one, mirroring how onTerritoryClick already gates
@@ -156,6 +170,9 @@ function pinIcon(color: string): L.DivIcon {
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [0, -36],
+    // A DivIcon has no tooltip anchor of its own, so without this the name
+    // label would sit at the pin's tip instead of above its head.
+    tooltipAnchor: [0, -34],
   });
 }
 
@@ -211,6 +228,197 @@ function MapResizeWatcher() {
     observer.observe(container);
     return () => observer.disconnect();
   }, [map]);
+
+  return null;
+}
+
+// Must match `.territoryLabel span` in MapCanvas.module.css — the fit is only
+// correct if the string is measured in the font it is drawn in.
+const LABEL_FONT = "600 100px system-ui, sans-serif";
+// Measuring at 100px and dividing keeps the cache key independent of size:
+// text width scales linearly with font size.
+const MEASURE_SIZE = 100;
+
+const labelWidthCache = new Map<string, number>();
+
+// Resolved once, not per measurement: jsdom has no canvas and logs a warning
+// for every attempt, and a browser that refused once will refuse again.
+let measuringContext: CanvasRenderingContext2D | null | undefined;
+
+function labelMeasuringContext(): CanvasRenderingContext2D | null {
+  if (measuringContext === undefined) {
+    measuringContext = document.createElement("canvas").getContext("2d");
+    if (measuringContext) {
+      measuringContext.font = LABEL_FONT;
+    }
+  }
+  return measuringContext;
+}
+
+// Width of `text` at font-size 1, from the real font. A per-character estimate
+// was close enough to size text but not to *fill* a shape with it: the leftover
+// width is spent on letter-spacing, so the estimate's error ends up outside the
+// territory rather than absorbed. Cached because this runs for every territory
+// on every zoom, and the answer only depends on the string.
+function measureLabelWidth(text: string): number {
+  const cached = labelWidthCache.get(text);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const context = labelMeasuringContext();
+  // No canvas (jsdom, or a browser refusing the context): fall back to a
+  // per-character estimate for uppercase text in a semibold face. Labels come
+  // out slightly mis-sized rather than not at all.
+  const width = context
+    ? context.measureText(text).width / MEASURE_SIZE
+    : text.length * 0.68;
+
+  labelWidthCache.set(text, width);
+  return width;
+}
+
+// A territory's name written across the shape, sized and rotated to fit it.
+// Uses a permanent Tooltip rather than a DivIcon Marker so it can't be clicked
+// and never steals the territory's own click.
+function TerritoryLabel({
+  territory,
+  view,
+}: {
+  territory: MapTerritoryShape;
+  // Passed in rather than read here: one subscription for the map beats one
+  // per territory, which would fire N re-renders on every zoomend.
+  view: MapView;
+}) {
+  const map = useMap();
+
+  // The entity name when linked, since that's the world-data thing the shape
+  // stands for; the territory's own name otherwise, so nothing is anonymous.
+  // Uppercased here rather than only in CSS: the fit is measured against the
+  // glyphs that will actually be drawn, and capitals are appreciably wider.
+  const label = (territory.entity?.name ?? territory.name).toUpperCase();
+
+  const fit = useMemo(
+    () =>
+      fitTerritoryLabel(
+        ringsIn(territory.geometry).map((ring) =>
+          ring.map((position) =>
+            map.latLngToLayerPoint([position.lat, position.lng]),
+          ),
+        ),
+        (point) => {
+          const latLng = map.layerPointToLatLng([point.x, point.y]);
+          return { lat: latLng.lat, lng: latLng.lng };
+        },
+        { width: measureLabelWidth(label), length: label.length },
+        { width: view.width, height: view.height },
+      ),
+    // `view.zoom` is deliberately a dependency the body doesn't read: the
+    // pixel measurements come from the map's projection, which the linter
+    // can't see changing. Dropping it would freeze every label at its
+    // mount-time size.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [map, territory.geometry, label, view.zoom, view.width, view.height],
+  );
+
+  if (!fit) {
+    return null;
+  }
+
+  // The sizing lives on an inner span, not on the Tooltip itself:
+  // react-leaflet binds tooltip options once and never re-applies them, so a
+  // label styled through the tooltip would keep its mount-time size forever
+  // while the map zoomed. Children are ordinary React content and do
+  // re-render. The tooltip box itself is styled transparent, so this is
+  // visually equivalent.
+  return (
+    <Tooltip
+      permanent
+      direction="center"
+      position={[fit.center.lat, fit.center.lng]}
+      className={styles.territoryLabel}
+      interactive={false}
+    >
+      <span
+        data-testid="territory-label"
+        style={{
+          fontSize: `${fit.fontSize}px`,
+          letterSpacing: `${fit.letterSpacing}px`,
+          marginRight: `${-fit.letterSpacing}px`,
+          transform: `rotate(${fit.angleDeg}deg)`,
+          opacity: fit.opacity,
+        }}
+      >
+        {label}
+      </span>
+    </Tooltip>
+  );
+}
+
+// Shared popup body for a marker or territory in view mode. The entity link
+// is a button rather than an anchor: it opens a desktop window, not a URL.
+function FeatureDetails({
+  name,
+  subtitle,
+  description,
+  entity,
+  onOpenEntity,
+}: {
+  name: string;
+  subtitle?: string;
+  description?: string | null;
+  entity?: MapLinkedEntity | null;
+  onOpenEntity?: (entity: MapLinkedEntity) => void;
+}) {
+  return (
+    <div className={styles.details}>
+      <strong>{name}</strong>
+      {subtitle ? <span className={styles.entityTag}>{subtitle}</span> : null}
+      {description ? <p>{description}</p> : null}
+      {entity ? (
+        onOpenEntity ? (
+          <button
+            type="button"
+            className={styles.entityLink}
+            onClick={() => onOpenEntity(entity)}
+          >
+            {entity.name} · {entity.type}
+          </button>
+        ) : (
+          <span className={styles.entityTag}>
+            {entity.name} · {entity.type}
+          </span>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+// What a territory label's measurements depend on: the projection scale, and
+// how much screen there is to judge the shape against.
+export interface MapView {
+  zoom: number;
+  width: number;
+  height: number;
+}
+
+// One subscription for the whole map, feeding every territory label. Resize
+// counts as well as zoom — a label that hides once its territory outgrows the
+// window has to reconsider when the window changes size.
+function MapViewWatcher({ onChange }: { onChange: (view: MapView) => void }) {
+  const map = useMap();
+
+  const report = useCallback(() => {
+    const size = map.getSize();
+    onChange({ zoom: map.getZoom(), width: size.x, height: size.y });
+  }, [map, onChange]);
+
+  useEffect(report, [report]);
+
+  useMapEvents({
+    zoomend: report,
+    resize: report,
+  });
 
   return null;
 }
@@ -387,6 +595,9 @@ export function MapCanvas({
   territories = [],
   imageOverlay = null,
   markerActionPending = false,
+  editing = false,
+  onEditingChange,
+  onOpenEntity,
   drawMode = "none",
   onDrawModeChange,
   onPlaceMarker,
@@ -404,9 +615,20 @@ export function MapCanvas({
     ? { crs: L.CRS.Simple, bounds: boundsFor(imageOverlay) }
     : { center, zoom };
 
+  const [view, setView] = useState<MapView>({ zoom, width: 0, height: 0 });
+  // Both on by default — a map you can't read the names on is the worse
+  // starting point. The toggles are for when the labels get in the way of the
+  // shapes themselves.
+  const [showTerritoryNames, setShowTerritoryNames] = useState(true);
+  const [showMarkers, setShowMarkers] = useState(true);
+  const [showMarkerNames, setShowMarkerNames] = useState(true);
+
   const drawing = drawMode !== "none";
-  const canDrawMarker = Boolean(onDrawModeChange && onPlaceMarker);
-  const canDrawTerritory = Boolean(onDrawModeChange && onCompleteTerritory);
+  // Draw tools exist only while editing — the toggle is what reveals them.
+  const canDrawMarker = editing && Boolean(onDrawModeChange && onPlaceMarker);
+  const canDrawTerritory =
+    editing && Boolean(onDrawModeChange && onCompleteTerritory);
+  const canEdit = Boolean(onEditingChange);
 
   function toggleDrawMode(mode: MapDrawMode) {
     onDrawModeChange?.(drawMode === mode ? "none" : mode);
@@ -414,30 +636,78 @@ export function MapCanvas({
 
   return (
     <div className={styles.wrap}>
-      {canDrawMarker || canDrawTerritory ? (
-        <div className={styles.toolbar}>
-          {canDrawMarker ? (
-            <Button
-              type="button"
-              variant={drawMode === "marker" ? "primary" : "secondary"}
-              aria-pressed={drawMode === "marker"}
-              onClick={() => toggleDrawMode("marker")}
-            >
-              {drawMode === "marker" ? "Cancel" : "Add marker"}
-            </Button>
-          ) : null}
-          {canDrawTerritory ? (
-            <Button
-              type="button"
-              variant={drawMode === "territory" ? "primary" : "secondary"}
-              aria-pressed={drawMode === "territory"}
-              onClick={() => toggleDrawMode("territory")}
-            >
-              {drawMode === "territory" ? "Cancel" : "Draw territory"}
-            </Button>
-          ) : null}
+      {/* The label toggles are always available — reading the map is not a
+          permission — so the toolbar always renders. The edit toggle and the
+          draw tools are independently wired on top of it. */}
+      <div className={styles.toolbar}>
+        <div className={styles.labelToggles}>
+          {/* Icon-sized rather than full buttons: these are view preferences
+              sitting next to actions, and shouldn't compete with them. */}
+          <button
+            type="button"
+            className={styles.labelToggle}
+            aria-pressed={showTerritoryNames}
+            title="Toggle territory names"
+            aria-label="Toggle territory names"
+            onClick={() => setShowTerritoryNames((shown) => !shown)}
+          >
+            ▭
+          </button>
+          <button
+            type="button"
+            className={styles.labelToggle}
+            aria-pressed={showMarkers}
+            title="Toggle markers"
+            aria-label="Toggle markers"
+            onClick={() => setShowMarkers((shown) => !shown)}
+          >
+            ⚲
+          </button>
+          <button
+            type="button"
+            className={styles.labelToggle}
+            aria-pressed={showMarkerNames}
+            title="Toggle marker names"
+            aria-label="Toggle marker names"
+            // Names of hidden markers are not a thing to toggle — leaving it
+            // live would let the user flip a control with no visible effect.
+            disabled={!showMarkers}
+            onClick={() => setShowMarkerNames((shown) => !shown)}
+          >
+            ◉
+          </button>
         </div>
-      ) : null}
+        {canEdit ? (
+          <Button
+            type="button"
+            variant={editing ? "primary" : "secondary"}
+            aria-pressed={editing}
+            onClick={() => onEditingChange?.(!editing)}
+          >
+            {editing ? "Done editing" : "Edit map"}
+          </Button>
+        ) : null}
+        {canDrawMarker ? (
+          <Button
+            type="button"
+            variant={drawMode === "marker" ? "primary" : "secondary"}
+            aria-pressed={drawMode === "marker"}
+            onClick={() => toggleDrawMode("marker")}
+          >
+            {drawMode === "marker" ? "Cancel" : "Add marker"}
+          </Button>
+        ) : null}
+        {canDrawTerritory ? (
+          <Button
+            type="button"
+            variant={drawMode === "territory" ? "primary" : "secondary"}
+            aria-pressed={drawMode === "territory"}
+            onClick={() => toggleDrawMode("territory")}
+          >
+            {drawMode === "territory" ? "Cancel" : "Draw territory"}
+          </Button>
+        ) : null}
+      </div>
       <MapContainer
         // Leaflet's `crs` is fixed at map creation and can't be swapped on a
         // live instance — keying on the image overlay's presence/identity
@@ -449,6 +719,7 @@ export function MapCanvas({
         className={drawing ? `${styles.map} ${styles.drawing}` : styles.map}
       >
         <MapResizeWatcher />
+        <MapViewWatcher onChange={setView} />
         <MapDrawLayer
           drawMode={drawMode}
           onDrawModeChange={onDrawModeChange}
@@ -468,54 +739,85 @@ export function MapCanvas({
         )}
         {territories.map((territory) => (
           <GeoJSON
-            key={territory.id}
+            key={`${territory.id}:${editing}`}
             data={territory.geometry as unknown as GeoJsonObject}
             style={{ color: colorForEntityType(territory.entity?.type) }}
             eventHandlers={{
               // While a mode is armed, a click that lands on an existing
               // territory is the user placing a point on top of it — not a
-              // request to edit that territory.
+              // request to edit that territory. Outside edit mode the click
+              // opens the popup below instead of the edit form.
               click: () => {
-                if (!drawing) {
+                if (!drawing && editing) {
                   onTerritoryClick?.(territory);
                 }
               },
             }}
-          />
+          >
+            {!editing ? (
+              <Popup>
+                <FeatureDetails
+                  name={territory.name}
+                  subtitle={territory.type}
+                  description={territory.description}
+                  entity={territory.entity}
+                  onOpenEntity={onOpenEntity}
+                />
+              </Popup>
+            ) : null}
+            {showTerritoryNames ? (
+              <TerritoryLabel territory={territory} view={view} />
+            ) : null}
+          </GeoJSON>
         ))}
-        {markers.map((marker) => (
+        {(showMarkers ? markers : []).map((marker) => (
           <Marker
             key={marker.id}
             position={[marker.lat, marker.lng]}
             icon={pinIcon(colorForEntityType(marker.entity?.type))}
           >
+            {/* Fixed-size, unlike territory labels: a marker is a point, so
+                there is no shape to scale its name against. */}
+            {showMarkerNames ? (
+              <Tooltip
+                permanent
+                direction="top"
+                className={styles.markerLabel}
+                interactive={false}
+              >
+                <span data-testid="marker-label">{marker.name}</span>
+              </Tooltip>
+            ) : null}
             <Popup>
               <div className={styles.popup}>
-                <strong>{marker.name}</strong>
-                {marker.entity ? (
-                  <span className={styles.entityTag}>
-                    {marker.entity.name} · {marker.entity.type}
-                  </span>
+                <FeatureDetails
+                  name={marker.name}
+                  description={marker.description}
+                  entity={marker.entity}
+                  onOpenEntity={onOpenEntity}
+                />
+                {/* Destructive and mutating actions exist only while
+                    editing; reading the map never offers them. */}
+                {editing ? (
+                  <div className={styles.popupActions}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={markerActionPending}
+                      onClick={() => onEditMarker?.(marker)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={markerActionPending}
+                      onClick={() => onDeleteMarker?.(marker)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 ) : null}
-                {marker.description ? <p>{marker.description}</p> : null}
-                <div className={styles.popupActions}>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={markerActionPending}
-                    onClick={() => onEditMarker?.(marker)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={markerActionPending}
-                    onClick={() => onDeleteMarker?.(marker)}
-                  >
-                    Delete
-                  </Button>
-                </div>
               </div>
             </Popup>
           </Marker>

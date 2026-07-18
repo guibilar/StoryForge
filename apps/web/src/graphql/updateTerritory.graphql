@@ -6,6 +6,8 @@ mutation UpdateTerritory($input: UpdateTerritoryInput!) {
       id
       name
       type
+      description
+      visibility
     }
     name
     type

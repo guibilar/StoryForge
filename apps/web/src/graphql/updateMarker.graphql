@@ -6,6 +6,8 @@ mutation UpdateMarker($input: UpdateMarkerInput!) {
       id
       name
       type
+      description
+      visibility
     }
     name
     lat

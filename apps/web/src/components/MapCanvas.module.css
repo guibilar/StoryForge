@@ -38,6 +38,121 @@
   opacity: 0.75;
 }
 
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* A button, not an anchor — it opens a desktop window rather than navigating,
+   so it must not look like it has a URL behind it, while still reading as
+   something clickable. */
+.entityLink {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85em;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.entityLink:hover,
+.entityLink:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+.labelToggles {
+  display: flex;
+  gap: 4px;
+}
+
+.labelToggle {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  line-height: 1;
+  border: 1px solid rgb(0 0 0 / 0.2);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+  /* Off reads as muted rather than as a different control. */
+  opacity: 0.45;
+}
+
+.labelToggle[aria-pressed="true"] {
+  opacity: 1;
+}
+
+/* Disabled is a different state from off: the marker-names toggle keeps
+   whatever it was set to, it just can't be reached while markers are hidden. */
+.labelToggle:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* Leaflet tooltips default to a bordered white box; map labels want to read as
+   text written on the map itself. */
+.territoryLabel,
+.markerLabel {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  font-weight: 600;
+  color: #1f2937;
+  text-shadow:
+    0 0 3px #ffffff,
+    0 0 3px #ffffff;
+  white-space: nowrap;
+}
+
+.markerLabel {
+  font-size: 0.75rem;
+}
+
+/* The size, spacing and rotation are all set inline per territory (see
+   territoryLabelStyle) — they depend on the polygon's pixel extents at the
+   current zoom, which CSS can't know. `display: inline-block` is what makes
+   the inline rotation apply at all. */
+/* The font here must stay in step with LABEL_FONT in MapCanvas.tsx, which is
+   what the fit is measured against. The text arrives already uppercased so
+   that measurement sees the glyphs that get drawn. */
+.territoryLabel span {
+  display: inline-block;
+  font-family: system-ui, sans-serif;
+  font-weight: 600;
+  /* font-size, letter-spacing, rotation and opacity are all set inline per
+     territory — they depend on the polygon's pixel extents at the current
+     zoom, which CSS can't know. `inline-block` is what makes the rotation
+     apply at all. */
+}
+
+.territoryLabel::before,
+.markerLabel::before {
+  /* Kills the tooltip's little pointer arrow. */
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .territoryLabel,
+  .markerLabel {
+    color: #f3f4f6;
+    text-shadow:
+      0 0 3px #111827,
+      0 0 3px #111827;
+  }
+
+  .labelToggle {
+    background: #1f2937;
+    color: #f3f4f6;
+    border-color: rgb(255 255 255 / 0.25);
+  }
+}
+
 .popupActions {
   display: flex;
   gap: 0.5rem;

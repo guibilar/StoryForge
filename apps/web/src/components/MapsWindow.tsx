@@ -15,12 +15,14 @@ import {
   UploadMapImageDocument,
 } from "../gql/graphql";
 import { useAddEditWindow } from "../hooks/useAddEditWindow";
+import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { MapCanvas } from "./MapCanvas";
 import type {
   MapDrawMode,
+  MapLinkedEntity,
   MapMarkerPoint,
   MapPosition,
   MapTerritoryShape,
@@ -91,12 +93,17 @@ export function MapsWindow() {
     string | null
   >(null);
   const [drawMode, setDrawMode] = useState<MapDrawMode>("none");
+  // View mode by default: during play the map is read, not authored, and
+  // clicking a territory shouldn't drop you into its edit form.
+  const [editing, setEditing] = useState(false);
   // What was drawn doesn't make a placement unique — the same spot clicked
   // twice rounds to the same coordinates — so a counter guarantees each open
   // create form gets its own window instead of replacing the previous one.
   // Shared across markers and territories; it only has to vary.
   const placementCountRef = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const openEntityWindow = useOpenEntityWindow(campaignId ?? "");
 
   const { openAddEditWindow: openMarkerWindow } = useAddEditWindow({
     idPrefix: "marker-form",
@@ -157,6 +164,25 @@ export function MapsWindow() {
   const imageOverlay = mapImage
     ? { ...mapImage, url: resolveUploadUrl(mapImage.url) }
     : null;
+
+  function handleEditingChange(next: boolean) {
+    setEditing(next);
+    if (!next) {
+      // Leaving edit mode with a tool still armed would leave the map in a
+      // crosshair state with no visible way to cancel.
+      setDrawMode("none");
+    }
+  }
+
+  function handleOpenEntity(entity: MapLinkedEntity) {
+    openEntityWindow({
+      id: entity.id,
+      name: entity.name,
+      type: entity.type,
+      description: entity.description,
+      visibility: entity.visibility as never,
+    });
+  }
 
   function refetch() {
     reexecuteMarkers({ requestPolicy: "network-only" });
@@ -350,12 +376,17 @@ export function MapsWindow() {
           imageOverlay={imageOverlay}
           markerActionPending={deleteMarkerState.fetching}
           drawMode={drawMode}
+          editing={editing}
+          onEditingChange={isWriter ? handleEditingChange : undefined}
+          onOpenEntity={handleOpenEntity}
           onDrawModeChange={isWriter ? setDrawMode : undefined}
           onPlaceMarker={isWriter ? handlePlaceMarker : undefined}
           onCompleteTerritory={isWriter ? handleCompleteTerritory : undefined}
           onEditMarker={openEditMarkerWindow}
           onDeleteMarker={handleDeleteMarker}
-          onTerritoryClick={isWriter ? openEditTerritoryWindow : undefined}
+          onTerritoryClick={
+            isWriter && editing ? openEditTerritoryWindow : undefined
+          }
         />
       </div>
       {isWriter ? (
@@ -366,7 +397,7 @@ export function MapsWindow() {
               the canvas is the only sensible way in, so these stay hidden.
               Wrapped rather than passed directly: onClick would otherwise
               hand the MouseEvent to the position parameter. */}
-          {mapImage ? (
+          {mapImage && editing ? (
             <>
               <Button type="button" onClick={() => openCreateMarkerWindow()}>
                 + Add Marker

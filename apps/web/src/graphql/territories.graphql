@@ -1,0 +1,9 @@
+query Territories($campaignId: ID!) {
+  territories(campaignId: $campaignId) {
+    id
+    name
+    type
+    geometry
+    description
+  }
+}

@@ -40,6 +40,14 @@ export type CreateEventInput = {
   title: string;
 };
 
+export type CreateMarkerInput = {
+  campaignId: string | number;
+  description?: string | null | undefined;
+  lat: number;
+  lng: number;
+  name: string;
+};
+
 export type CreateNoteInput = {
   campaignId: string | number;
   content?: string | null | undefined;
@@ -53,6 +61,14 @@ export type CreateSessionInput = {
   campaignId: string | number;
   date: string;
   summary?: string | null | undefined;
+};
+
+export type CreateTerritoryInput = {
+  campaignId: string | number;
+  description?: string | null | undefined;
+  geometry: string;
+  name: string;
+  type: string;
 };
 
 export type EntityFilter = {
@@ -110,6 +126,14 @@ export type UpdateEventInput = {
   title?: string | null | undefined;
 };
 
+export type UpdateMarkerInput = {
+  description?: string | null | undefined;
+  id: string | number;
+  lat?: number | null | undefined;
+  lng?: number | null | undefined;
+  name?: string | null | undefined;
+};
+
 export type UpdateNoteInput = {
   content?: string | null | undefined;
   id: string | number;
@@ -122,6 +146,14 @@ export type UpdateSessionInput = {
   date?: string | null | undefined;
   id: string | number;
   summary?: string | null | undefined;
+};
+
+export type UpdateTerritoryInput = {
+  description?: string | null | undefined;
+  geometry?: string | null | undefined;
+  id: string | number;
+  name?: string | null | undefined;
+  type?: string | null | undefined;
 };
 
 export type AddCampaignMemberMutationVariables = Exact<{
@@ -241,6 +273,20 @@ export type CreateEventMutation = {
   };
 };
 
+export type CreateMarkerMutationVariables = Exact<{
+  input: CreateMarkerInput;
+}>;
+
+export type CreateMarkerMutation = {
+  createMarker: {
+    id: string;
+    name: string;
+    lat: number;
+    lng: number;
+    description: string | null;
+  };
+};
+
 export type CreateNoteMutationVariables = Exact<{
   input: CreateNoteInput;
 }>;
@@ -273,6 +319,20 @@ export type CreateSessionMutation = {
   };
 };
 
+export type CreateTerritoryMutationVariables = Exact<{
+  input: CreateTerritoryInput;
+}>;
+
+export type CreateTerritoryMutation = {
+  createTerritory: {
+    id: string;
+    name: string;
+    type: string;
+    geometry: string;
+    description: string | null;
+  };
+};
+
 export type DeleteEntityMutationVariables = Exact<{
   id: string | number;
 }>;
@@ -285,6 +345,12 @@ export type DeleteEventMutationVariables = Exact<{
 
 export type DeleteEventMutation = { deleteEvent: boolean };
 
+export type DeleteMarkerMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type DeleteMarkerMutation = { deleteMarker: boolean };
+
 export type DeleteNoteMutationVariables = Exact<{
   id: string | number;
 }>;
@@ -296,6 +362,12 @@ export type DeleteSessionMutationVariables = Exact<{
 }>;
 
 export type DeleteSessionMutation = { deleteSession: boolean };
+
+export type DeleteTerritoryMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type DeleteTerritoryMutation = { deleteTerritory: boolean };
 
 export type DetachParticipantMutationVariables = Exact<{
   eventId: string | number;
@@ -365,6 +437,20 @@ export type LoginMutation = { login: { user: { id: string; email: string } } };
 export type LogoutMutationVariables = Exact<{ [key: string]: never }>;
 
 export type LogoutMutation = { logout: boolean };
+
+export type MarkersQueryVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type MarkersQuery = {
+  markers: Array<{
+    id: string;
+    name: string;
+    lat: number;
+    lng: number;
+    description: string | null;
+  }>;
+};
 
 export type MeQueryVariables = Exact<{ [key: string]: never }>;
 
@@ -453,6 +539,20 @@ export type SessionsQuery = {
   }>;
 };
 
+export type TerritoriesQueryVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type TerritoriesQuery = {
+  territories: Array<{
+    id: string;
+    name: string;
+    type: string;
+    geometry: string;
+    description: string | null;
+  }>;
+};
+
 export type UpdateCampaignMutationVariables = Exact<{
   input: UpdateCampaignInput;
 }>;
@@ -507,6 +607,20 @@ export type UpdateEventMutation = {
   };
 };
 
+export type UpdateMarkerMutationVariables = Exact<{
+  input: UpdateMarkerInput;
+}>;
+
+export type UpdateMarkerMutation = {
+  updateMarker: {
+    id: string;
+    name: string;
+    lat: number;
+    lng: number;
+    description: string | null;
+  };
+};
+
 export type UpdateNoteMutationVariables = Exact<{
   input: UpdateNoteInput;
 }>;
@@ -536,6 +650,20 @@ export type UpdateSessionMutation = {
     date: string;
     summary: string | null;
     attendees: Array<{ userId: string; user: { id: string; email: string } }>;
+  };
+};
+
+export type UpdateTerritoryMutationVariables = Exact<{
+  input: UpdateTerritoryInput;
+}>;
+
+export type UpdateTerritoryMutation = {
+  updateTerritory: {
+    id: string;
+    name: string;
+    type: string;
+    geometry: string;
+    description: string | null;
   };
 };
 
@@ -1169,6 +1297,64 @@ export const CreateEventDocument = {
     },
   ],
 } as unknown as DocumentNode<CreateEventMutation, CreateEventMutationVariables>;
+export const CreateMarkerDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateMarker" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateMarkerInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createMarker" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "lat" } },
+                { kind: "Field", name: { kind: "Name", value: "lng" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreateMarkerMutation,
+  CreateMarkerMutationVariables
+>;
 export const CreateNoteDocument = {
   kind: "Document",
   definitions: [
@@ -1321,6 +1507,64 @@ export const CreateSessionDocument = {
   CreateSessionMutation,
   CreateSessionMutationVariables
 >;
+export const CreateTerritoryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateTerritory" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateTerritoryInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createTerritory" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "geometry" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreateTerritoryMutation,
+  CreateTerritoryMutationVariables
+>;
 export const DeleteEntityDocument = {
   kind: "Document",
   definitions: [
@@ -1402,6 +1646,48 @@ export const DeleteEventDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteEventMutation, DeleteEventMutationVariables>;
+export const DeleteMarkerDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteMarker" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteMarker" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteMarkerMutation,
+  DeleteMarkerMutationVariables
+>;
 export const DeleteNoteDocument = {
   kind: "Document",
   definitions: [
@@ -1482,6 +1768,48 @@ export const DeleteSessionDocument = {
 } as unknown as DocumentNode<
   DeleteSessionMutation,
   DeleteSessionMutationVariables
+>;
+export const DeleteTerritoryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteTerritory" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteTerritory" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteTerritoryMutation,
+  DeleteTerritoryMutationVariables
 >;
 export const DetachParticipantDocument = {
   kind: "Document",
@@ -1903,6 +2231,58 @@ export const LogoutDocument = {
     },
   ],
 } as unknown as DocumentNode<LogoutMutation, LogoutMutationVariables>;
+export const MarkersDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Markers" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "markers" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "lat" } },
+                { kind: "Field", name: { kind: "Name", value: "lng" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<MarkersQuery, MarkersQueryVariables>;
 export const MeDocument = {
   kind: "Document",
   definitions: [
@@ -2383,6 +2763,58 @@ export const SessionsDocument = {
     },
   ],
 } as unknown as DocumentNode<SessionsQuery, SessionsQueryVariables>;
+export const TerritoriesDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Territories" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "territories" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "geometry" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<TerritoriesQuery, TerritoriesQueryVariables>;
 export const UpdateCampaignDocument = {
   kind: "Document",
   definitions: [
@@ -2646,6 +3078,64 @@ export const UpdateEventDocument = {
     },
   ],
 } as unknown as DocumentNode<UpdateEventMutation, UpdateEventMutationVariables>;
+export const UpdateMarkerDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateMarker" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateMarkerInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateMarker" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "lat" } },
+                { kind: "Field", name: { kind: "Name", value: "lng" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateMarkerMutation,
+  UpdateMarkerMutationVariables
+>;
 export const UpdateNoteDocument = {
   kind: "Document",
   definitions: [
@@ -2797,4 +3287,62 @@ export const UpdateSessionDocument = {
 } as unknown as DocumentNode<
   UpdateSessionMutation,
   UpdateSessionMutationVariables
+>;
+export const UpdateTerritoryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateTerritory" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateTerritoryInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateTerritory" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "geometry" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateTerritoryMutation,
+  UpdateTerritoryMutationVariables
 >;

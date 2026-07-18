@@ -1,0 +1,13 @@
+# geometry is a JSON-encoded string, not a custom JSON scalar — this schema
+# has no custom scalars anywhere (see workspace/graphql/schema/WorkspaceState.graphql),
+# so this follows that existing convention rather than introducing the first one.
+type Territory {
+  id: ID!
+  campaignId: ID!
+  name: String!
+  type: String!
+  geometry: String!
+  description: String
+  createdAt: String!
+  updatedAt: String!
+}

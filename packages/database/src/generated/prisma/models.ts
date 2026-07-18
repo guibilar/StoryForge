@@ -23,4 +23,6 @@ export type * from "./models/NoteLink";
 export type * from "./models/Attachment";
 export type * from "./models/CampaignMember";
 export type * from "./models/WorkspaceState";
+export type * from "./models/Marker";
+export type * from "./models/Territory";
 export type * from "./commonInputTypes";

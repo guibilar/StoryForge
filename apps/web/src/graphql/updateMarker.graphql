@@ -1,0 +1,9 @@
+mutation UpdateMarker($input: UpdateMarkerInput!) {
+  updateMarker(input: $input) {
+    id
+    name
+    lat
+    lng
+    description
+  }
+}

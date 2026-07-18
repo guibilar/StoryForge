@@ -34,6 +34,10 @@ import { EventService } from "../modules/events/application/EventService";
 import { PrismaEventRepository } from "../modules/events/infrastructure/PrismaEventRepository";
 import { WorkspaceService } from "../modules/workspace/application/WorkspaceService";
 import { PrismaWorkspaceStateRepository } from "../modules/workspace/infrastructure/PrismaWorkspaceStateRepository";
+import { MarkerService } from "../modules/map/application/MarkerService";
+import { PrismaMarkerRepository } from "../modules/map/infrastructure/PrismaMarkerRepository";
+import { TerritoryService } from "../modules/map/application/TerritoryService";
+import { PrismaTerritoryRepository } from "../modules/map/infrastructure/PrismaTerritoryRepository";
 
 export interface GraphQLContext extends YogaInitialContext {
   req: IncomingMessage;
@@ -56,6 +60,8 @@ export interface GraphQLContext extends YogaInitialContext {
   sessionService: SessionService;
   eventService: EventService;
   workspaceService: WorkspaceService;
+  markerService: MarkerService;
+  territoryService: TerritoryService;
 }
 
 const noteLinkRepository = new PrismaNoteLinkRepository();
@@ -105,6 +111,8 @@ const eventService = new EventService(
 const workspaceService = new WorkspaceService(
   new PrismaWorkspaceStateRepository(),
 );
+const markerService = new MarkerService(new PrismaMarkerRepository());
+const territoryService = new TerritoryService(new PrismaTerritoryRepository());
 
 export function getCurrentUserId(request: Request): string | null {
   const authHeader = request.headers.get("authorization");
@@ -179,5 +187,7 @@ export async function createContext(
     sessionService,
     eventService,
     workspaceService,
+    markerService,
+    territoryService,
   };
 }

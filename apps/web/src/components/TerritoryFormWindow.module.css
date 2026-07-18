@@ -1,0 +1,10 @@
+.geometry {
+  font-family: monospace;
+  font-size: 0.85em;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

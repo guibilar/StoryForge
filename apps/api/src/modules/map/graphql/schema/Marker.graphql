@@ -1,0 +1,10 @@
+type Marker {
+  id: ID!
+  campaignId: ID!
+  name: String!
+  lat: Float!
+  lng: Float!
+  description: String
+  createdAt: String!
+  updatedAt: String!
+}

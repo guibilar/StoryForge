@@ -1,0 +1,9 @@
+query Markers($campaignId: ID!) {
+  markers(campaignId: $campaignId) {
+    id
+    name
+    lat
+    lng
+    description
+  }
+}

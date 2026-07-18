@@ -49,6 +49,8 @@ model Campaign {
   sessions        Session[]
   events          Event[]
   workspaceStates WorkspaceState[]
+  markers         Marker[]
+  territories     Territory[]
 }
 
 model Entity {
@@ -351,5 +353,46 @@ model WorkspaceState {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, campaignId])
+  @@index([campaignId])
+}
+
+// A single point on a campaign's map (KAN-51), rendered as a Leaflet marker
+// on top of KAN-50's base map canvas.
+model Marker {
+  id         String @id @default(uuid())
+  campaignId String
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  name        String
+  lat         Float
+  lng         Float
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([campaignId])
+}
+
+// A shaped area on a campaign's map (KAN-51) — territories, regions, and
+// districts are all this one model, distinguished only by the free-string
+// `type` column, matching the Entity.type pattern rather than separate
+// Region/District tables. `geometry` is a GeoJSON object (validated at the
+// domain layer, not here).
+model Territory {
+  id         String @id @default(uuid())
+  campaignId String
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  name        String
+  type        String
+  geometry    Json
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([campaignId])
 }

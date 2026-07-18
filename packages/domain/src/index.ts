@@ -1,5 +1,6 @@
 export * from "./entity";
 export * from "./event";
+export * from "./map";
 export * from "./session";
 export * from "./shared";
 export * from "./user";

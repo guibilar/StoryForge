@@ -57,4 +57,20 @@ describe("visibleWindowCatalog", () => {
       expect(ids).toContain("relationships");
     },
   );
+
+  it.each([
+    "OWNER",
+    "STORYTELLER",
+    "CO_STORYTELLER",
+    "PLAYER",
+    "OBSERVER",
+    undefined,
+  ] satisfies (CampaignRole | undefined)[])(
+    "always includes the Maps window for %s (view-only)",
+    (role) => {
+      const ids = visibleWindowCatalog(role).map((entry) => entry.id);
+
+      expect(ids).toContain("maps");
+    },
+  );
 });

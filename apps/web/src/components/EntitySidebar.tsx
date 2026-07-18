@@ -27,6 +27,7 @@ const WORLD_NAV: { id: string; label: string }[] = [
   { id: "notes", label: "Notes" },
   { id: "members", label: "Members" },
   { id: "relationships", label: "Relationship Graph" },
+  { id: "maps", label: "Maps" },
 ];
 
 function groupByType(entities: EntitySummary[]): [string, EntitySummary[]][] {

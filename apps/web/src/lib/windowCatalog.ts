@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import type { ReactNode } from "react";
 
+import { MapsWindow } from "../components/MapsWindow";
 import { MembersWindow } from "../components/MembersWindow";
 import { NotesWindow } from "../components/NotesWindow";
 import { RelationshipGraphWindow } from "../components/RelationshipGraphWindow";
@@ -18,8 +19,8 @@ export interface WindowCatalogEntry {
   visibleToRoles?: CampaignRole[];
 }
 
-// Data-driven so future windows (Relationships, Maps, ...) can plug in by
-// adding a catalog entry, without touching the desktop shell.
+// Data-driven so future windows can plug in by adding a catalog entry,
+// without touching the desktop shell.
 export const WINDOW_CATALOG: WindowCatalogEntry[] = [
   {
     id: "members",
@@ -53,6 +54,13 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
     render: () => createElement(RelationshipGraphWindow),
     // View-only for v1 (no create/edit UI), so every role can see it.
   },
+  {
+    id: "maps",
+    title: "Maps",
+    render: () => createElement(MapsWindow),
+    // Pan/zoom viewport only for now (KAN-50) — no campaign data yet, so
+    // every role can see it, same as Relationships.
+  },
 ];
 
 export function visibleWindowCatalog(
@@ -74,6 +82,14 @@ export const DEFAULT_LAYOUT: LayoutMap = {
     y: 60,
     width: 520,
     height: 420,
+    hidden: true,
+    z: 1,
+  },
+  maps: {
+    x: 180,
+    y: 100,
+    width: 560,
+    height: 440,
     hidden: true,
     z: 1,
   },

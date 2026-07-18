@@ -3,18 +3,32 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import L from "leaflet";
 
-import {
-  LABEL_FADE_START_ZOOM,
-  LABEL_HIDDEN_ZOOM,
-  MapCanvas,
-} from "./MapCanvas";
-
-// Derived from the component's own thresholds so tuning the fade distance
-// doesn't break these.
-const MID_FADE_ZOOM = Math.round(
-  (LABEL_FADE_START_ZOOM + LABEL_HIDDEN_ZOOM) / 2,
-);
+import { MapCanvas } from "./MapCanvas";
+import { fitTerritoryLabel, isInsideRings } from "./mapLabels";
+import type { LabelPoint } from "./mapLabels";
 import type { MapMarkerPoint, MapTerritoryShape } from "./MapCanvas";
+
+// Territory labels are sized from the shape's on-screen pixel extents, so the
+// fixture polygon has to be zoomed in far enough to clear the minimum legible
+// font size — at the default zoom a 1° square is a few pixels across.
+const LABEL_ZOOM = 8;
+
+// Stand-in for a measured string: jsdom has no canvas, so MapCanvas falls back
+// to a per-character estimate and these mirror it for "Thornwood".
+const TEXT = { width: 9 * 0.68, length: 9 };
+
+const square = (size: number): LabelPoint[] => [
+  { x: 0, y: 0 },
+  { x: size, y: 0 },
+  { x: size, y: size },
+  { x: 0, y: size },
+];
+
+// Fits a label into rings given in plain pixel space, which is what the fitting
+// works in — the lat/lng mapping is the identity here so the geometry under
+// test stays readable.
+const fitIn = (rings: LabelPoint[][], text = TEXT) =>
+  fitTerritoryLabel(rings, (point) => ({ lat: point.y, lng: point.x }), text);
 
 const marker: MapMarkerPoint = {
   id: "marker-1",
@@ -96,7 +110,11 @@ describe("MapCanvas", () => {
     expect(icon).toBeTruthy();
     fireEvent.click(icon!);
 
-    expect(screen.getByText("Old Mill")).toBeInTheDocument();
+    // Scoped to the popup: the marker's name is also on the map itself as its
+    // permanent label, so a bare text query matches twice.
+    expect(container.querySelector(".leaflet-popup")?.textContent).toContain(
+      "Old Mill",
+    );
     expect(
       screen.getByText("Abandoned mill on the river."),
     ).toBeInTheDocument();
@@ -729,7 +747,11 @@ describe("MapCanvas", () => {
         container.querySelector<HTMLElement>(".leaflet-marker-icon")!,
       );
 
-      expect(screen.getByText("Old Mill")).toBeInTheDocument();
+      // Scoped to the popup: the marker's name is also on the map itself as
+      // its permanent label, so a bare text query matches twice.
+      expect(container.querySelector(".leaflet-popup")?.textContent).toContain(
+        "Old Mill",
+      );
       expect(
         screen.queryByRole("button", { name: "Edit" }),
       ).not.toBeInTheDocument();
@@ -804,7 +826,7 @@ describe("MapCanvas", () => {
     it("labels a territory with its linked entity's name", () => {
       const { container } = render(
         <MapCanvas
-          zoom={LABEL_FADE_START_ZOOM}
+          zoom={LABEL_ZOOM}
           territories={[
             {
               ...territory,
@@ -819,71 +841,246 @@ describe("MapCanvas", () => {
         />,
       );
 
+      // Uppercased for the map, and measured that way too so the fit matches
+      // the glyphs that get drawn.
       expect(container.querySelector(".leaflet-tooltip")?.textContent).toBe(
-        "Riverwood",
+        "RIVERWOOD",
       );
     });
 
     it("falls back to the territory's own name when unlinked", () => {
       const { container } = render(
-        <MapCanvas zoom={LABEL_FADE_START_ZOOM} territories={[territory]} />,
+        <MapCanvas zoom={LABEL_ZOOM} territories={[territory]} />,
       );
 
       expect(container.querySelector(".leaflet-tooltip")?.textContent).toBe(
-        "Thornwood",
+        "THORNWOOD",
       );
     });
 
-    it("fades the label out as the map zooms in", () => {
-      const { container: wide } = render(
-        <MapCanvas zoom={LABEL_FADE_START_ZOOM} territories={[territory]} />,
-      );
-      const { container: mid } = render(
-        <MapCanvas zoom={MID_FADE_ZOOM} territories={[territory]} />,
-      );
-      const { container: close } = render(
-        <MapCanvas zoom={LABEL_HIDDEN_ZOOM} territories={[territory]} />,
-      );
+    it("sizes the label to the shape: wider gets bigger text", () => {
+      const small = fitIn([square(120)])!;
+      const large = fitIn([square(240)])!;
 
-      const opacityOf = (c: HTMLElement) =>
-        Number(
-          (
-            c.querySelector(
-              '[data-testid="territory-label"]',
-            ) as HTMLElement | null
-          )?.style.opacity ?? "0",
-        );
-
-      expect(opacityOf(wide)).toBe(1);
-      expect(opacityOf(mid)).toBeGreaterThan(0);
-      expect(opacityOf(mid)).toBeLessThan(1);
-      // Monotonic all the way in.
-      expect(opacityOf(close)).toBeLessThan(opacityOf(mid));
+      expect(large.fontSize).toBeGreaterThan(small.fontSize);
     });
 
-    it("fades the label live as the map is zoomed, not just on mount", () => {
+    it("spends leftover width on letter-spacing once the font size caps out", () => {
+      // A long, thin shape: the font size is limited by how narrow it is, so
+      // the text is stretched across the length instead of just growing.
+      const fit = fitIn([
+        [
+          { x: 0, y: 0 },
+          { x: 600, y: 0 },
+          { x: 600, y: 24 },
+          { x: 0, y: 24 },
+        ],
+      ])!;
+
+      expect(fit.fontSize).toBeLessThan(40);
+      expect(fit.letterSpacing).toBeGreaterThan(0);
+    });
+
+    it("fills the available width exactly, so the text can't overrun the shape", () => {
+      const width = 600;
+      const fit = fitIn([
+        [
+          { x: 0, y: 0 },
+          { x: width, y: 0 },
+          { x: width, y: 24 },
+          { x: 0, y: 24 },
+        ],
+      ])!;
+
+      // What the browser will actually lay out: the glyphs plus one gap
+      // between each pair of them.
+      const laidOut =
+        fit.fontSize * TEXT.width + fit.letterSpacing * (TEXT.length - 1);
+
+      expect(laidOut).toBeLessThanOrEqual(width);
+    });
+
+    it("writes along an arm rather than from the elbow it is deepest in", () => {
+      // An L. Its deepest interior point is the elbow, where the text is boxed
+      // in on two sides; either arm holds it several times bigger.
+      const elbow = [
+        { x: 0, y: 0 },
+        { x: 300, y: 0 },
+        { x: 300, y: 80 },
+        { x: 80, y: 80 },
+        { x: 80, y: 300 },
+        { x: 0, y: 300 },
+      ];
+
+      const fit = fitIn([elbow])!;
+
+      // Down an arm, not across the corner.
+      expect(Math.abs(fit.angleDeg)).toBe(90);
+      // The elbow itself only fits ~14px; an arm fits more than twice that.
+      expect(fit.fontSize).toBeGreaterThan(28);
+    });
+
+    it("keeps the text horizontal in a shape with no long axis", () => {
+      // A square has marginally more room along its diagonal, but tilting the
+      // name for that reads as a bug rather than as a fit.
+      expect(fitIn([square(300)])!.angleDeg).toBe(0);
+    });
+
+    it("rotates the label onto the territory's long axis", () => {
+      // A diagonal sliver running north-east: the name should follow it
+      // rather than sit horizontally across the shape.
+      const diagonal = {
+        ...territory,
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            [
+              [0, 0],
+              [0.1, 0],
+              [4, 4],
+              [3.9, 4],
+              [0, 0],
+            ],
+          ],
+        },
+      };
+
       const { container } = render(
-        <MapCanvas zoom={LABEL_FADE_START_ZOOM} territories={[territory]} />,
+        <MapCanvas zoom={LABEL_ZOOM} territories={[diagonal]} />,
       );
 
-      const label = () =>
-        container.querySelector<HTMLElement>('[data-testid="territory-label"]');
-      const zoomIn = container.querySelector<HTMLElement>(
-        ".leaflet-control-zoom-in",
-      )!;
-      expect(Number(label()?.style.opacity)).toBe(1);
+      const angle = Number.parseFloat(
+        container
+          .querySelector<HTMLElement>('[data-testid="territory-label"]')!
+          .style.transform.replace(/[^-\d.]/g, ""),
+      );
+      // Roughly -45°: screen y grows downwards, so a north-east shape tilts
+      // the text up to the right.
+      expect(angle).toBeLessThan(-20);
+      expect(angle).toBeGreaterThan(-70);
+    });
+
+    it("resizes the label live as the map is zoomed, not just on mount", () => {
+      const { container } = render(
+        <MapCanvas zoom={LABEL_ZOOM} territories={[territory]} />,
+      );
+
+      const fontSize = () =>
+        Number.parseFloat(
+          container.querySelector<HTMLElement>(
+            '[data-testid="territory-label"]',
+          )!.style.fontSize,
+        );
+      const before = fontSize();
 
       // Drive a real zoom through Leaflet's own control rather than
       // remounting at a different zoom — this is what would catch the label
       // never resubscribing to zoom changes.
-      for (let step = 0; step < MID_FADE_ZOOM - LABEL_FADE_START_ZOOM; step++) {
-        fireEvent.click(zoomIn);
-      }
+      fireEvent.click(
+        container.querySelector<HTMLElement>(".leaflet-control-zoom-in")!,
+      );
 
-      // The label has to react to the zoom, not keep its mount-time value.
-      const midOpacity = Number(label()?.style.opacity);
-      expect(midOpacity).toBeGreaterThan(0);
-      expect(midOpacity).toBeLessThan(1);
+      // Zooming in makes the shape bigger on screen, so its name grows too.
+      expect(fontSize()).toBeGreaterThan(before);
+    });
+
+    it("keeps the label inside a concave territory, not in its bay", () => {
+      // A C-shape opening east. Its centroid falls in the bay — outside the
+      // territory — so a centroid-anchored label would float on empty map.
+      const ring = [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+        { x: 100, y: 20 },
+        { x: 20, y: 20 },
+        { x: 20, y: 80 },
+        { x: 100, y: 80 },
+        { x: 100, y: 100 },
+        { x: 0, y: 100 },
+      ];
+
+      expect(isInsideRings({ x: 60, y: 50 }, [ring])).toBe(false);
+
+      const fit = fitIn([ring])!;
+
+      expect(
+        isInsideRings({ x: fit.center.lng, y: fit.center.lat }, [ring]),
+      ).toBe(true);
+    });
+
+    it("sizes to the room inside the shape, not to its bounding box", () => {
+      // Same C-shape: the box around it is 100 wide, but the arm the label
+      // ends up in is only 20 across.
+      const ring = [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+        { x: 100, y: 20 },
+        { x: 20, y: 20 },
+        { x: 20, y: 80 },
+        { x: 100, y: 80 },
+        { x: 100, y: 100 },
+        { x: 0, y: 100 },
+      ];
+
+      // A bounding-box measurement would size this like the solid square it
+      // sits in, rather than like the 20px-wide arm the label ends up in.
+      expect(fitIn([ring])!.fontSize).toBeLessThan(
+        fitIn([square(100)])!.fontSize,
+      );
+    });
+
+    it("fades the label in as it grows, reaching full opacity when readable", () => {
+      const faint = fitIn([square(70)])!;
+      const clearer = fitIn([square(110)])!;
+      const full = fitIn([square(400)])!;
+
+      expect(faint.opacity).toBeGreaterThan(0);
+      expect(faint.opacity).toBeLessThan(clearer.opacity);
+      expect(clearer.opacity).toBeLessThan(1);
+      expect(full.opacity).toBe(1);
+    });
+
+    it("fades the label back out once its territory outgrows the screen", () => {
+      // One shape, three window sizes: at some point you have zoomed so far
+      // into the territory that its name is no longer labelling anything you
+      // can see.
+      const shape = [square(1000)];
+      const fitOn = (width: number, height: number) =>
+        fitTerritoryLabel(
+          shape,
+          (point) => ({ lat: point.y, lng: point.x }),
+          TEXT,
+          { width, height },
+        );
+
+      // Comfortably larger than the shape: nothing to fade for.
+      expect(fitOn(2000, 2000)!.opacity).toBe(1);
+
+      // Zoomed in far enough that the shape runs well past the window.
+      const fading = fitOn(600, 600)!;
+      expect(fading.opacity).toBeGreaterThan(0);
+      expect(fading.opacity).toBeLessThan(1);
+
+      // Further still, and the label is gone rather than faint.
+      expect(fitOn(300, 300)).toBeNull();
+    });
+
+    it("keeps labels while the map has no measured size yet", () => {
+      // Before layout the viewport reads 0x0, which would make every shape
+      // infinitely oversized and blank the map's labels on first paint.
+      expect(
+        fitTerritoryLabel(
+          [square(200)],
+          (point) => ({ lat: point.y, lng: point.x }),
+          TEXT,
+          { width: 0, height: 0 },
+        ),
+      ).not.toBeNull();
+    });
+
+    it("drops the label entirely when the shape is too small to read it in", () => {
+      // Below the legibility floor there is no font size that works, so the
+      // label is omitted rather than rendered as an illegible smudge.
+      expect(fitIn([square(20)])).toBeNull();
     });
 
     it("labels a MultiPolygon by all its parts, not just the first", () => {
@@ -912,41 +1109,20 @@ describe("MapCanvas", () => {
         },
       };
       const { container } = render(
-        <MapCanvas zoom={LABEL_FADE_START_ZOOM} territories={[multi]} />,
+        <MapCanvas zoom={LABEL_ZOOM} territories={[multi]} />,
       );
 
       // Renders at all — the first-ring-only version produced a label box
       // around island one instead of the whole feature.
       expect(container.querySelector(".leaflet-tooltip")?.textContent).toBe(
-        "Thornwood",
+        "THORNWOOD",
       );
-    });
-
-    it("stops rendering the label once the hide threshold is actually reached", () => {
-      // Driven through the pure threshold rather than the map, because a tile
-      // map clamps to the tile layer's maxZoom (18 for OpenStreetMap). If
-      // LABEL_HIDDEN_ZOOM is set above that, labels fade to a low opacity but
-      // never disappear on a tile map — which is a tuning consequence, not a
-      // bug in the fade.
-      expect(LABEL_HIDDEN_ZOOM).toBeGreaterThan(LABEL_FADE_START_ZOOM);
-
-      const { container } = render(
-        <MapCanvas
-          zoom={LABEL_FADE_START_ZOOM}
-          territories={[
-            { ...territory, geometry: { type: "Polygon", coordinates: [] } },
-          ]}
-        />,
-      );
-      expect(
-        container.querySelector('[data-testid="territory-label"]'),
-      ).toBeNull();
     });
 
     it("renders no label for geometry with no usable coordinates", () => {
       const { container } = render(
         <MapCanvas
-          zoom={LABEL_FADE_START_ZOOM}
+          zoom={LABEL_ZOOM}
           territories={[
             {
               ...territory,
@@ -957,6 +1133,58 @@ describe("MapCanvas", () => {
       );
 
       expect(container.querySelector(".leaflet-tooltip")).toBeNull();
+      expect(
+        container.querySelector('[data-testid="territory-label"]'),
+      ).toBeNull();
+    });
+
+    it("hides territory names behind the toolbar toggle", async () => {
+      const user = userEvent.setup();
+      render(<MapCanvas zoom={LABEL_ZOOM} territories={[territory]} />);
+
+      expect(screen.getByTestId("territory-label")).toBeTruthy();
+
+      await user.click(
+        screen.getByRole("button", { name: "Toggle territory names" }),
+      );
+
+      expect(screen.queryByTestId("territory-label")).toBeNull();
+    });
+  });
+
+  describe("marker labels", () => {
+    it("shows a marker's name on the map", () => {
+      render(<MapCanvas markers={[marker]} />);
+
+      expect(screen.getByTestId("marker-label").textContent).toBe("Old Mill");
+    });
+
+    it("hides the markers themselves behind the toolbar toggle", async () => {
+      const user = userEvent.setup();
+      const { container } = render(<MapCanvas markers={[marker]} />);
+
+      expect(container.querySelector(".leaflet-marker-icon")).toBeTruthy();
+
+      await user.click(screen.getByRole("button", { name: "Toggle markers" }));
+
+      expect(container.querySelector(".leaflet-marker-icon")).toBeNull();
+      // The pin's name goes with it rather than being left floating.
+      expect(screen.queryByTestId("marker-label")).toBeNull();
+      // Nothing left to name, so that toggle is out of reach.
+      expect(
+        screen.getByRole("button", { name: "Toggle marker names" }),
+      ).toBeDisabled();
+    });
+
+    it("hides marker names behind the toolbar toggle", async () => {
+      const user = userEvent.setup();
+      render(<MapCanvas markers={[marker]} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Toggle marker names" }),
+      );
+
+      expect(screen.queryByTestId("marker-label")).toBeNull();
     });
   });
 });

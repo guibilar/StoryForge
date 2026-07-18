@@ -29,6 +29,7 @@ type Documents = {
   "mutation CreateTerritory($input: CreateTerritoryInput!) {\n  createTerritory(input: $input) {\n    id\n    name\n    type\n    geometry\n    description\n  }\n}": typeof types.CreateTerritoryDocument;
   "mutation DeleteEntity($id: ID!) {\n  deleteEntity(id: $id)\n}": typeof types.DeleteEntityDocument;
   "mutation DeleteEvent($id: ID!) {\n  deleteEvent(id: $id)\n}": typeof types.DeleteEventDocument;
+  "mutation DeleteMapImage($campaignId: ID!) {\n  deleteMapImage(campaignId: $campaignId)\n}": typeof types.DeleteMapImageDocument;
   "mutation DeleteMarker($id: ID!) {\n  deleteMarker(id: $id)\n}": typeof types.DeleteMarkerDocument;
   "mutation DeleteNote($id: ID!) {\n  deleteNote(id: $id)\n}": typeof types.DeleteNoteDocument;
   "mutation DeleteSession($id: ID!) {\n  deleteSession(id: $id)\n}": typeof types.DeleteSessionDocument;
@@ -39,6 +40,7 @@ type Documents = {
   "query Events($campaignId: ID!) {\n  events(campaignId: $campaignId) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.EventsDocument;
   "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.LoginDocument;
   "mutation Logout {\n  logout\n}": typeof types.LogoutDocument;
+  "query MapImage($campaignId: ID!) {\n  mapImage(campaignId: $campaignId) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}": typeof types.MapImageDocument;
   "query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    name\n    lat\n    lng\n    description\n  }\n}": typeof types.MarkersDocument;
   "query Me {\n  me {\n    id\n    email\n  }\n}": typeof types.MeDocument;
   "query MyWorkspaceState($campaignId: ID!) {\n  myWorkspaceState(campaignId: $campaignId) {\n    id\n    layout\n    recentEntityIds\n    updatedAt\n  }\n}": typeof types.MyWorkspaceStateDocument;
@@ -57,6 +59,7 @@ type Documents = {
   "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateNoteDocument;
   "mutation UpdateSession($input: UpdateSessionInput!) {\n  updateSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.UpdateSessionDocument;
   "mutation UpdateTerritory($input: UpdateTerritoryInput!) {\n  updateTerritory(input: $input) {\n    id\n    name\n    type\n    geometry\n    description\n  }\n}": typeof types.UpdateTerritoryDocument;
+  "mutation UploadMapImage($campaignId: ID!, $file: Upload!) {\n  uploadMapImage(campaignId: $campaignId, file: $file) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}": typeof types.UploadMapImageDocument;
 };
 const documents: Documents = {
   "mutation AddCampaignMember($input: AddCampaignMemberInput!) {\n  addCampaignMember(input: $input) {\n    userId\n    role\n    user {\n      id\n      email\n    }\n  }\n}":
@@ -89,6 +92,8 @@ const documents: Documents = {
     types.DeleteEntityDocument,
   "mutation DeleteEvent($id: ID!) {\n  deleteEvent(id: $id)\n}":
     types.DeleteEventDocument,
+  "mutation DeleteMapImage($campaignId: ID!) {\n  deleteMapImage(campaignId: $campaignId)\n}":
+    types.DeleteMapImageDocument,
   "mutation DeleteMarker($id: ID!) {\n  deleteMarker(id: $id)\n}":
     types.DeleteMarkerDocument,
   "mutation DeleteNote($id: ID!) {\n  deleteNote(id: $id)\n}":
@@ -108,6 +113,8 @@ const documents: Documents = {
   "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}":
     types.LoginDocument,
   "mutation Logout {\n  logout\n}": types.LogoutDocument,
+  "query MapImage($campaignId: ID!) {\n  mapImage(campaignId: $campaignId) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}":
+    types.MapImageDocument,
   "query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    name\n    lat\n    lng\n    description\n  }\n}":
     types.MarkersDocument,
   "query Me {\n  me {\n    id\n    email\n  }\n}": types.MeDocument,
@@ -143,6 +150,8 @@ const documents: Documents = {
     types.UpdateSessionDocument,
   "mutation UpdateTerritory($input: UpdateTerritoryInput!) {\n  updateTerritory(input: $input) {\n    id\n    name\n    type\n    geometry\n    description\n  }\n}":
     types.UpdateTerritoryDocument,
+  "mutation UploadMapImage($campaignId: ID!, $file: Upload!) {\n  uploadMapImage(campaignId: $campaignId, file: $file) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}":
+    types.UploadMapImageDocument,
 };
 
 /**
@@ -253,6 +262,12 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
+  source: "mutation DeleteMapImage($campaignId: ID!) {\n  deleteMapImage(campaignId: $campaignId)\n}",
+): (typeof documents)["mutation DeleteMapImage($campaignId: ID!) {\n  deleteMapImage(campaignId: $campaignId)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
   source: "mutation DeleteMarker($id: ID!) {\n  deleteMarker(id: $id)\n}",
 ): (typeof documents)["mutation DeleteMarker($id: ID!) {\n  deleteMarker(id: $id)\n}"];
 /**
@@ -309,6 +324,12 @@ export function graphql(
 export function graphql(
   source: "mutation Logout {\n  logout\n}",
 ): (typeof documents)["mutation Logout {\n  logout\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: "query MapImage($campaignId: ID!) {\n  mapImage(campaignId: $campaignId) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}",
+): (typeof documents)["query MapImage($campaignId: ID!) {\n  mapImage(campaignId: $campaignId) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -417,6 +438,12 @@ export function graphql(
 export function graphql(
   source: "mutation UpdateTerritory($input: UpdateTerritoryInput!) {\n  updateTerritory(input: $input) {\n    id\n    name\n    type\n    geometry\n    description\n  }\n}",
 ): (typeof documents)["mutation UpdateTerritory($input: UpdateTerritoryInput!) {\n  updateTerritory(input: $input) {\n    id\n    name\n    type\n    geometry\n    description\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: "mutation UploadMapImage($campaignId: ID!, $file: Upload!) {\n  uploadMapImage(campaignId: $campaignId, file: $file) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}",
+): (typeof documents)["mutation UploadMapImage($campaignId: ID!, $file: Upload!) {\n  uploadMapImage(campaignId: $campaignId, file: $file) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

@@ -110,4 +110,30 @@ describe("MapCanvas", () => {
     fireEvent.click(shape!);
     expect(onTerritoryClick).toHaveBeenCalledWith(territory);
   });
+
+  it("renders a custom map image instead of tiles when imageOverlay is set", () => {
+    const { container } = render(
+      <MapCanvas
+        imageOverlay={{
+          url: "/uploads/campaign-1/map.png",
+          width: 2000,
+          height: 1500,
+        }}
+      />,
+    );
+
+    expect(container.querySelector(".leaflet-tile")).toBeFalsy();
+    const overlayImage = container.querySelector<HTMLImageElement>(
+      ".leaflet-image-layer",
+    );
+    expect(overlayImage).toBeTruthy();
+    expect(overlayImage?.src).toContain("/uploads/campaign-1/map.png");
+  });
+
+  it("falls back to the tile layer when imageOverlay is absent", () => {
+    const { container } = render(<MapCanvas imageOverlay={null} />);
+
+    expect(container.querySelector(".leaflet-image-layer")).toBeFalsy();
+    expect(container.querySelector(".leaflet-tile")).toBeTruthy();
+  });
 });

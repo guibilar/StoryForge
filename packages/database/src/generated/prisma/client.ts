@@ -136,3 +136,8 @@ export type Marker = Prisma.MarkerModel;
  *
  */
 export type Territory = Prisma.TerritoryModel;
+/**
+ * Model MapImage
+ *
+ */
+export type MapImage = Prisma.MapImageModel;

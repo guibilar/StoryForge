@@ -6,6 +6,7 @@ import { Query } from "./resolvers/Query";
 import { Mutation } from "./resolvers/Mutation";
 import { Marker } from "./resolvers/Marker";
 import { Territory } from "./resolvers/Territory";
+import { MapImage } from "./resolvers/MapImage";
 
 const schemaDir = join(dirname(fileURLToPath(import.meta.url)), "schema");
 
@@ -16,8 +17,9 @@ function readTypeDefs(fileName: string): string {
 export const typeDefs = [
   readTypeDefs("Marker.graphql"),
   readTypeDefs("Territory.graphql"),
+  readTypeDefs("MapImage.graphql"),
   readTypeDefs("Query.graphql"),
   readTypeDefs("Mutation.graphql"),
 ];
 
-export const resolvers = { Query, Mutation, Marker, Territory };
+export const resolvers = { Query, Mutation, Marker, Territory, MapImage };

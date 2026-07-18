@@ -1,16 +1,21 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import type { ChangeEvent } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import { Button } from "@storyforge/ui";
+import { Button, FormError } from "@storyforge/ui";
 
 import {
   CampaignDocument,
+  DeleteMapImageDocument,
   DeleteMarkerDocument,
+  MapImageDocument,
   MarkersDocument,
   MeDocument,
   TerritoriesDocument,
+  UploadMapImageDocument,
 } from "../gql/graphql";
 import { useAddEditWindow } from "../hooks/useAddEditWindow";
+import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { MapCanvas } from "./MapCanvas";
@@ -53,8 +58,18 @@ export function MapsWindow() {
     variables: { campaignId: campaignId ?? "" },
     pause: !campaignId,
   });
+  const [{ data: mapImageData }, reexecuteMapImage] = useQuery({
+    query: MapImageDocument,
+    variables: { campaignId: campaignId ?? "" },
+    pause: !campaignId,
+  });
 
   const [, deleteMarker] = useMutation(DeleteMarkerDocument);
+  const [uploadMapImageState, uploadMapImage] = useMutation(
+    UploadMapImageDocument,
+  );
+  const [, deleteMapImage] = useMutation(DeleteMapImageDocument);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { openAddEditWindow: openMarkerWindow } = useAddEditWindow({
     idPrefix: "marker-form",
@@ -96,10 +111,40 @@ export function MapsWindow() {
       })),
     [territories],
   );
+  const mapImage = mapImageData?.mapImage ?? null;
+  const imageOverlay = mapImage
+    ? { ...mapImage, url: resolveUploadUrl(mapImage.url) }
+    : null;
 
   function refetch() {
     reexecuteMarkers({ requestPolicy: "network-only" });
     reexecuteTerritories({ requestPolicy: "network-only" });
+  }
+
+  function openFilePicker() {
+    fileInputRef.current?.click();
+  }
+
+  async function handleFileSelected(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !campaignId) {
+      return;
+    }
+    const result = await uploadMapImage({ campaignId, file });
+    if (result.data?.uploadMapImage) {
+      reexecuteMapImage({ requestPolicy: "network-only" });
+    }
+  }
+
+  async function handleRemoveMapImage() {
+    if (!campaignId) {
+      return;
+    }
+    const result = await deleteMapImage({ campaignId });
+    if (result.data?.deleteMapImage) {
+      reexecuteMapImage({ requestPolicy: "network-only" });
+    }
   }
 
   function openCreateMarkerWindow() {
@@ -197,12 +242,15 @@ export function MapsWindow() {
     return <p>{formatGraphQLError(error) ?? "Unable to load the map."}</p>;
   }
 
+  const uploadError = formatGraphQLError(uploadMapImageState.error);
+
   return (
     <div className={styles.wrap}>
       <div className={styles.canvas}>
         <MapCanvas
           markers={markers}
           territories={mapTerritories}
+          imageOverlay={imageOverlay}
           onEditMarker={openEditMarkerWindow}
           onDeleteMarker={handleDeleteMarker}
           onTerritoryClick={isWriter ? openEditTerritoryWindow : undefined}
@@ -220,6 +268,31 @@ export function MapsWindow() {
           >
             + Add Territory
           </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            className={styles.hiddenFileInput}
+            onChange={handleFileSelected}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={uploadMapImageState.fetching}
+            onClick={openFilePicker}
+          >
+            {mapImage ? "Replace Map Image" : "Upload Map Image"}
+          </Button>
+          {mapImage ? (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleRemoveMapImage}
+            >
+              Remove Map Image
+            </Button>
+          ) : null}
+          {uploadError ? <FormError>{uploadError}</FormError> : null}
         </div>
       ) : null}
     </div>

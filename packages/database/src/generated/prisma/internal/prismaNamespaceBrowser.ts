@@ -72,6 +72,7 @@ export const ModelName = {
   WorkspaceState: "WorkspaceState",
   Marker: "Marker",
   Territory: "Territory",
+  MapImage: "MapImage",
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -316,6 +317,22 @@ export const TerritoryScalarFieldEnum = {
 
 export type TerritoryScalarFieldEnum =
   (typeof TerritoryScalarFieldEnum)[keyof typeof TerritoryScalarFieldEnum];
+
+export const MapImageScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  url: "url",
+  fileName: "fileName",
+  mimeType: "mimeType",
+  sizeBytes: "sizeBytes",
+  width: "width",
+  height: "height",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type MapImageScalarFieldEnum =
+  (typeof MapImageScalarFieldEnum)[keyof typeof MapImageScalarFieldEnum];
 
 export const SortOrder = {
   asc: "asc",

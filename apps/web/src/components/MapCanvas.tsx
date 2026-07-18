@@ -1,7 +1,14 @@
-import type { LatLngExpression } from "leaflet";
+import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import L from "leaflet";
 import type { GeoJsonObject } from "geojson";
-import { GeoJSON, MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import {
+  GeoJSON,
+  ImageOverlay,
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+} from "react-leaflet";
 import { Button } from "@storyforge/ui";
 import "leaflet/dist/leaflet.css";
 
@@ -43,14 +50,28 @@ export interface MapTerritoryShape {
   description?: string | null;
 }
 
+export interface MapImageOverlay {
+  url: string;
+  width: number;
+  height: number;
+}
+
 export interface MapCanvasProps {
   center?: LatLngExpression;
   zoom?: number;
   markers?: MapMarkerPoint[];
   territories?: MapTerritoryShape[];
+  imageOverlay?: MapImageOverlay | null;
   onEditMarker?: (marker: MapMarkerPoint) => void;
   onDeleteMarker?: (marker: MapMarkerPoint) => void;
   onTerritoryClick?: (territory: MapTerritoryShape) => void;
+}
+
+function boundsFor(image: MapImageOverlay): LatLngBoundsExpression {
+  return [
+    [0, 0],
+    [image.height, image.width],
+  ];
 }
 
 // Base Leaflet canvas: pan/zoom + tile layer, plus markers/territories
@@ -62,22 +83,43 @@ export function MapCanvas({
   zoom = DEFAULT_ZOOM,
   markers = [],
   territories = [],
+  imageOverlay = null,
   onEditMarker,
   onDeleteMarker,
   onTerritoryClick,
 }: MapCanvasProps) {
+  // A custom map image (KAN-52) replaces the geographic tile layer: it
+  // switches to Leaflet's CRS.Simple (plain x/y pixel space, no geographic
+  // projection) and initializes the viewport from the image's own bounds
+  // instead of a center/zoom pair, so it's fully visible on first render
+  // rather than requiring the caller to guess a zoom level.
+  const viewportProps = imageOverlay
+    ? { crs: L.CRS.Simple, bounds: boundsFor(imageOverlay) }
+    : { center, zoom };
+
   return (
     <div className={styles.wrap}>
       <MapContainer
-        center={center}
-        zoom={zoom}
+        // Leaflet's `crs` is fixed at map creation and can't be swapped on a
+        // live instance — keying on the image overlay's presence/identity
+        // forces a full remount whenever a custom map image is added,
+        // replaced, or removed, instead of silently keeping the wrong CRS.
+        key={imageOverlay ? `image:${imageOverlay.url}` : "tiles"}
+        {...viewportProps}
         scrollWheelZoom
         className={styles.map}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {imageOverlay ? (
+          <ImageOverlay
+            url={imageOverlay.url}
+            bounds={boundsFor(imageOverlay)}
+          />
+        ) : (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        )}
         {territories.map((territory) => (
           <GeoJSON
             key={territory.id}

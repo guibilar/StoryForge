@@ -9,11 +9,13 @@ vi.mock("jsonwebtoken", () => ({
 
 const entityFindUnique = vi.fn();
 const noteFindUnique = vi.fn();
+const campaignFindUnique = vi.fn();
 const campaignMemberFindUnique = vi.fn();
 vi.mock("@storyforge/database", () => ({
   prisma: {
     entity: { findUnique: (...a: unknown[]) => entityFindUnique(...a) },
     note: { findUnique: (...a: unknown[]) => noteFindUnique(...a) },
+    campaign: { findUnique: (...a: unknown[]) => campaignFindUnique(...a) },
     campaignMember: {
       findUnique: (...a: unknown[]) => campaignMemberFindUnique(...a),
     },
@@ -138,6 +140,7 @@ describe("serveUpload", () => {
     jwtVerify.mockReset();
     entityFindUnique.mockReset();
     noteFindUnique.mockReset();
+    campaignFindUnique.mockReset();
     campaignMemberFindUnique.mockReset();
   });
 
@@ -173,10 +176,11 @@ describe("serveUpload", () => {
     expect(pipe).not.toHaveBeenCalled();
   });
 
-  it("returns 403 when the owner id doesn't resolve to any entity or note", async () => {
+  it("returns 403 when the owner id doesn't resolve to any entity, note, or campaign", async () => {
     jwtVerify.mockReturnValue({ sub: "user-1" });
     entityFindUnique.mockResolvedValue(null);
     noteFindUnique.mockResolvedValue(null);
+    campaignFindUnique.mockResolvedValue(null);
     const req = makeReq("/uploads/deleted-1/a.png", "token=abc");
     const res = makeRes();
 
@@ -212,6 +216,25 @@ describe("serveUpload", () => {
       userId: "user-1",
     });
     const req = makeReq("/uploads/note-1/a.png", "token=abc");
+    const res = makeRes();
+
+    await serveUpload(req, res, uploadsDir);
+
+    expect(res.writeHead).toHaveBeenCalledWith(200, {
+      "Content-Type": "image/png",
+    });
+  });
+
+  it("falls back to treating the owner id as a campaign id (map image)", async () => {
+    jwtVerify.mockReturnValue({ sub: "user-1" });
+    entityFindUnique.mockResolvedValue(null);
+    noteFindUnique.mockResolvedValue(null);
+    campaignFindUnique.mockResolvedValue({ id: "campaign-3" });
+    campaignMemberFindUnique.mockResolvedValue({
+      campaignId: "campaign-3",
+      userId: "user-1",
+    });
+    const req = makeReq("/uploads/campaign-3/a.png", "token=abc");
     const res = makeRes();
 
     await serveUpload(req, res, uploadsDir);

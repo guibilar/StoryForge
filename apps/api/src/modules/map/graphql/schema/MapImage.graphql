@@ -1,0 +1,12 @@
+type MapImage {
+  id: ID!
+  campaignId: ID!
+  url: String!
+  fileName: String!
+  mimeType: String!
+  sizeBytes: Int!
+  width: Int!
+  height: Int!
+  createdAt: String!
+  updatedAt: String!
+}

@@ -37,4 +37,6 @@ extend type Mutation {
   createTerritory(input: CreateTerritoryInput!): Territory!
   updateTerritory(input: UpdateTerritoryInput!): Territory!
   deleteTerritory(id: ID!): Boolean!
+  uploadMapImage(campaignId: ID!, file: Upload!): MapImage!
+  deleteMapImage(campaignId: ID!): Boolean!
 }

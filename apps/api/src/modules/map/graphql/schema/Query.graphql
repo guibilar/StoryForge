@@ -3,4 +3,5 @@ extend type Query {
   markers(campaignId: ID!): [Marker!]!
   territory(id: ID!): Territory
   territories(campaignId: ID!): [Territory!]!
+  mapImage(campaignId: ID!): MapImage
 }

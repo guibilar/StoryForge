@@ -1,6 +1,8 @@
+import { imageSize } from "image-size";
 import { ValidationError } from "@storyforge/domain";
 
 import type { GraphQLContext } from "../../../../graphql/context";
+import type { UploadableFile } from "../../../entities/infrastructure/LocalImageStore";
 import { toGraphQLError } from "../../../../graphql/errors";
 import { requireCampaignWriter } from "../../../campaignMembers/graphql/guards";
 
@@ -144,6 +146,67 @@ export const Mutation = {
       const territory = await context.territoryService.getTerritory(args.id);
       await requireCampaignWriter(context, territory.CampaignId);
       await context.territoryService.deleteTerritory(args.id);
+      return true;
+    } catch (error) {
+      toGraphQLError(error);
+    }
+  },
+
+  uploadMapImage: async (
+    _parent: unknown,
+    args: { campaignId: string; file: File },
+    context: GraphQLContext,
+  ) => {
+    try {
+      await requireCampaignWriter(context, args.campaignId);
+
+      // Read the upload stream exactly once, then hand callers a
+      // replayable in-memory view of it — LocalImageStore.save() also
+      // calls file.arrayBuffer() internally, and a graphql-yoga Upload's
+      // underlying stream can't be read twice.
+      const arrayBuffer = await args.file.arrayBuffer();
+      let dimensions: { width?: number; height?: number };
+      try {
+        dimensions = imageSize(new Uint8Array(arrayBuffer));
+      } catch {
+        throw new ValidationError("Unable to read the image's dimensions.");
+      }
+      if (!dimensions.width || !dimensions.height) {
+        throw new ValidationError("Unable to read the image's dimensions.");
+      }
+
+      const bufferedFile: UploadableFile = {
+        name: args.file.name,
+        type: args.file.type,
+        arrayBuffer: async () => arrayBuffer,
+      };
+      const url = await context.imageStorage.save(
+        args.campaignId,
+        bufferedFile,
+      );
+
+      return await context.mapImageService.uploadMapImage({
+        campaignId: args.campaignId,
+        url,
+        fileName: args.file.name,
+        mimeType: args.file.type,
+        sizeBytes: args.file.size,
+        width: dimensions.width,
+        height: dimensions.height,
+      });
+    } catch (error) {
+      toGraphQLError(error);
+    }
+  },
+
+  deleteMapImage: async (
+    _parent: unknown,
+    args: { campaignId: string },
+    context: GraphQLContext,
+  ) => {
+    try {
+      await requireCampaignWriter(context, args.campaignId);
+      await context.mapImageService.deleteMapImage(args.campaignId);
       return true;
     } catch (error) {
       toGraphQLError(error);

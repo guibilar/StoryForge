@@ -345,6 +345,12 @@ export type DeleteEventMutationVariables = Exact<{
 
 export type DeleteEventMutation = { deleteEvent: boolean };
 
+export type DeleteMapImageMutationVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type DeleteMapImageMutation = { deleteMapImage: boolean };
+
 export type DeleteMarkerMutationVariables = Exact<{
   id: string | number;
 }>;
@@ -437,6 +443,20 @@ export type LoginMutation = { login: { user: { id: string; email: string } } };
 export type LogoutMutationVariables = Exact<{ [key: string]: never }>;
 
 export type LogoutMutation = { logout: boolean };
+
+export type MapImageQueryVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type MapImageQuery = {
+  mapImage: {
+    id: string;
+    url: string;
+    fileName: string;
+    width: number;
+    height: number;
+  } | null;
+};
 
 export type MarkersQueryVariables = Exact<{
   campaignId: string | number;
@@ -664,6 +684,21 @@ export type UpdateTerritoryMutation = {
     type: string;
     geometry: string;
     description: string | null;
+  };
+};
+
+export type UploadMapImageMutationVariables = Exact<{
+  campaignId: string | number;
+  file: File;
+}>;
+
+export type UploadMapImageMutation = {
+  uploadMapImage: {
+    id: string;
+    url: string;
+    fileName: string;
+    width: number;
+    height: number;
   };
 };
 
@@ -1646,6 +1681,51 @@ export const DeleteEventDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteEventMutation, DeleteEventMutationVariables>;
+export const DeleteMapImageDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteMapImage" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteMapImage" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteMapImageMutation,
+  DeleteMapImageMutationVariables
+>;
 export const DeleteMarkerDocument = {
   kind: "Document",
   definitions: [
@@ -2231,6 +2311,58 @@ export const LogoutDocument = {
     },
   ],
 } as unknown as DocumentNode<LogoutMutation, LogoutMutationVariables>;
+export const MapImageDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "MapImage" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "mapImage" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "url" } },
+                { kind: "Field", name: { kind: "Name", value: "fileName" } },
+                { kind: "Field", name: { kind: "Name", value: "width" } },
+                { kind: "Field", name: { kind: "Name", value: "height" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<MapImageQuery, MapImageQueryVariables>;
 export const MarkersDocument = {
   kind: "Document",
   definitions: [
@@ -3345,4 +3477,78 @@ export const UpdateTerritoryDocument = {
 } as unknown as DocumentNode<
   UpdateTerritoryMutation,
   UpdateTerritoryMutationVariables
+>;
+export const UploadMapImageDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UploadMapImage" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "file" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Upload" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "uploadMapImage" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "file" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "file" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "url" } },
+                { kind: "Field", name: { kind: "Name", value: "fileName" } },
+                { kind: "Field", name: { kind: "Name", value: "width" } },
+                { kind: "Field", name: { kind: "Name", value: "height" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UploadMapImageMutation,
+  UploadMapImageMutationVariables
 >;

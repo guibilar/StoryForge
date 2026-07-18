@@ -56,4 +56,17 @@ export const Query = {
       toGraphQLError(error);
     }
   },
+
+  mapImage: async (
+    _parent: unknown,
+    args: { campaignId: string },
+    context: GraphQLContext,
+  ) => {
+    try {
+      await requireCampaignMember(context, args.campaignId);
+      return await context.mapImageService.getMapImage(args.campaignId);
+    } catch (error) {
+      toGraphQLError(error);
+    }
+  },
 };

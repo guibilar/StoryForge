@@ -87,7 +87,9 @@ function getRequestUserId(req: IncomingMessage): string | null {
 
 /**
  * Uploaded files live under a directory named for their owning Entity or
- * Note. Resolve whichever one matches to that record's campaignId so we can
+ * Note — or, for a campaign's map image (KAN-52), the Campaign's own id,
+ * since a map image isn't its own separately-created record the way an
+ * entity/note is. Resolve whichever one matches to a campaignId so we can
  * check the requester is actually a member of that campaign.
  */
 async function resolveCampaignId(ownerId: string): Promise<string | null> {
@@ -105,7 +107,16 @@ async function resolveCampaignId(ownerId: string): Promise<string | null> {
     select: { campaignId: true },
   });
 
-  return note?.campaignId ?? null;
+  if (note) {
+    return note.campaignId;
+  }
+
+  const campaign = await prisma.campaign.findUnique({
+    where: { id: ownerId },
+    select: { id: true },
+  });
+
+  return campaign?.id ?? null;
 }
 
 async function isCampaignMember(

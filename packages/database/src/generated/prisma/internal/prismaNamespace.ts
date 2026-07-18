@@ -429,6 +429,7 @@ export const ModelName = {
   WorkspaceState: "WorkspaceState",
   Marker: "Marker",
   Territory: "Territory",
+  MapImage: "MapImage",
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -468,7 +469,8 @@ export type TypeMap<
       | "campaignMember"
       | "workspaceState"
       | "marker"
-      | "territory";
+      | "territory"
+      | "mapImage";
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
@@ -1840,6 +1842,82 @@ export type TypeMap<
         };
       };
     };
+    MapImage: {
+      payload: Prisma.$MapImagePayload<ExtArgs>;
+      fields: Prisma.MapImageFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.MapImageFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.MapImageFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        findFirst: {
+          args: Prisma.MapImageFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.MapImageFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        findMany: {
+          args: Prisma.MapImageFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>[];
+        };
+        create: {
+          args: Prisma.MapImageCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        createMany: {
+          args: Prisma.MapImageCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.MapImageCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>[];
+        };
+        delete: {
+          args: Prisma.MapImageDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        update: {
+          args: Prisma.MapImageUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        deleteMany: {
+          args: Prisma.MapImageDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.MapImageUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.MapImageUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>[];
+        };
+        upsert: {
+          args: Prisma.MapImageUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        aggregate: {
+          args: Prisma.MapImageAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMapImage>;
+        };
+        groupBy: {
+          args: Prisma.MapImageGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.MapImageGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.MapImageCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.MapImageCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
   };
 } & {
   other: {
@@ -2105,6 +2183,22 @@ export const TerritoryScalarFieldEnum = {
 
 export type TerritoryScalarFieldEnum =
   (typeof TerritoryScalarFieldEnum)[keyof typeof TerritoryScalarFieldEnum];
+
+export const MapImageScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  url: "url",
+  fileName: "fileName",
+  mimeType: "mimeType",
+  sizeBytes: "sizeBytes",
+  width: "width",
+  height: "height",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type MapImageScalarFieldEnum =
+  (typeof MapImageScalarFieldEnum)[keyof typeof MapImageScalarFieldEnum];
 
 export const SortOrder = {
   asc: "asc",
@@ -2409,6 +2503,7 @@ export type GlobalOmitConfig = {
   workspaceState?: Prisma.WorkspaceStateOmit;
   marker?: Prisma.MarkerOmit;
   territory?: Prisma.TerritoryOmit;
+  mapImage?: Prisma.MapImageOmit;
 };
 
 /* Types for Logging */

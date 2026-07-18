@@ -10,6 +10,7 @@ import { Query } from "./Query";
 import type { GraphQLContext } from "../../../../graphql/context";
 import type { MarkerService } from "../../application/MarkerService";
 import type { TerritoryService } from "../../application/TerritoryService";
+import type { MapImageService } from "../../application/MapImageService";
 import type { CampaignMemberService } from "../../../campaignMembers/application/CampaignMemberService";
 
 function makeMarkerService(): MarkerService {
@@ -32,6 +33,14 @@ function makeTerritoryService(): TerritoryService {
   } as unknown as TerritoryService;
 }
 
+function makeMapImageService(): MapImageService {
+  return {
+    uploadMapImage: vi.fn(),
+    getMapImage: vi.fn(),
+    deleteMapImage: vi.fn(),
+  } as unknown as MapImageService;
+}
+
 function makeCampaignMemberService(): CampaignMemberService {
   return { getMembership: vi.fn() } as unknown as CampaignMemberService;
 }
@@ -41,10 +50,12 @@ function makeContext(
   territoryService: TerritoryService,
   campaignMemberService: CampaignMemberService,
   currentUser: User | null,
+  mapImageService: MapImageService = makeMapImageService(),
 ): GraphQLContext {
   return {
     markerService,
     territoryService,
+    mapImageService,
     campaignMemberService,
     currentUser,
   } as GraphQLContext;
@@ -312,5 +323,54 @@ describe("map Query.territories", () => {
 
     expect(territoryService.listTerritories).toHaveBeenCalledWith("campaign-1");
     expect(result).toBe(territories);
+  });
+});
+
+describe("map Query.mapImage", () => {
+  it("rejects with FORBIDDEN when not a campaign member", async () => {
+    const markerService = makeMarkerService();
+    const territoryService = makeTerritoryService();
+    const campaignMemberService = makeCampaignMemberService();
+    const mapImageService = makeMapImageService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(null);
+    const context = makeContext(
+      markerService,
+      territoryService,
+      campaignMemberService,
+      authenticatedUser,
+      mapImageService,
+    );
+
+    await expect(
+      Query.mapImage(undefined, { campaignId: "campaign-1" }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(mapImageService.getMapImage).not.toHaveBeenCalled();
+  });
+
+  it("delegates to the service and can return null", async () => {
+    const markerService = makeMarkerService();
+    const territoryService = makeTerritoryService();
+    const campaignMemberService = makeCampaignMemberService();
+    const mapImageService = makeMapImageService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      membership,
+    );
+    vi.mocked(mapImageService.getMapImage).mockResolvedValue(null);
+    const context = makeContext(
+      markerService,
+      territoryService,
+      campaignMemberService,
+      authenticatedUser,
+      mapImageService,
+    );
+
+    const result = await Query.mapImage(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    expect(mapImageService.getMapImage).toHaveBeenCalledWith("campaign-1");
+    expect(result).toBeNull();
   });
 });

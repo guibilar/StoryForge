@@ -1,0 +1,9 @@
+mutation UploadMapImage($campaignId: ID!, $file: Upload!) {
+  uploadMapImage(campaignId: $campaignId, file: $file) {
+    id
+    url
+    fileName
+    width
+    height
+  }
+}

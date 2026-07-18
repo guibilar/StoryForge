@@ -1,9 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { CampaignMember, Marker, Territory, User } from "@storyforge/domain";
-import { Mutation } from "./Mutation";
+
+const imageSizeMock = vi.fn();
+vi.mock("image-size", () => ({
+  imageSize: (...a: unknown[]) => imageSizeMock(...a),
+}));
+
+const { Mutation } = await import("./Mutation");
 import type { GraphQLContext } from "../../../../graphql/context";
 import type { MarkerService } from "../../application/MarkerService";
 import type { TerritoryService } from "../../application/TerritoryService";
+import type { MapImageService } from "../../application/MapImageService";
 import type { CampaignMemberService } from "../../../campaignMembers/application/CampaignMemberService";
 
 function makeMarkerService(): MarkerService {
@@ -26,8 +33,20 @@ function makeTerritoryService(): TerritoryService {
   } as unknown as TerritoryService;
 }
 
+function makeMapImageService(): MapImageService {
+  return {
+    uploadMapImage: vi.fn(),
+    getMapImage: vi.fn(),
+    deleteMapImage: vi.fn(),
+  } as unknown as MapImageService;
+}
+
 function makeCampaignMemberService(): CampaignMemberService {
   return { getMembership: vi.fn() } as unknown as CampaignMemberService;
+}
+
+function makeImageStorage() {
+  return { save: vi.fn(), delete: vi.fn() };
 }
 
 function makeContext(
@@ -35,13 +54,31 @@ function makeContext(
   territoryService: TerritoryService,
   campaignMemberService: CampaignMemberService,
   currentUser: User | null,
+  mapImageService: MapImageService = makeMapImageService(),
+  imageStorage: ReturnType<typeof makeImageStorage> = makeImageStorage(),
 ): GraphQLContext {
   return {
     markerService,
     territoryService,
+    mapImageService,
+    imageStorage,
     campaignMemberService,
     currentUser,
   } as GraphQLContext;
+}
+
+function makeFile({
+  name = "map.png",
+  type = "image/png",
+  size = 1000,
+  arrayBuffer = new ArrayBuffer(4),
+} = {}): File {
+  return {
+    name,
+    type,
+    size,
+    arrayBuffer: async () => arrayBuffer,
+  } as unknown as File;
 }
 
 const loggedOutUser = null;
@@ -429,6 +466,161 @@ describe("map Mutation.deleteTerritory", () => {
     expect(territoryService.deleteTerritory).toHaveBeenCalledWith(
       "territory-1",
     );
+    expect(result).toBe(true);
+  });
+});
+
+describe("map Mutation.uploadMapImage", () => {
+  it("rejects with FORBIDDEN when the member's role cannot write", async () => {
+    const markerService = makeMarkerService();
+    const territoryService = makeTerritoryService();
+    const campaignMemberService = makeCampaignMemberService();
+    const mapImageService = makeMapImageService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
+    const context = makeContext(
+      markerService,
+      territoryService,
+      campaignMemberService,
+      authenticatedUser,
+      mapImageService,
+    );
+
+    await expect(
+      Mutation.uploadMapImage(
+        undefined,
+        { campaignId: "campaign-1", file: makeFile() },
+        context,
+      ),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(mapImageService.uploadMapImage).not.toHaveBeenCalled();
+  });
+
+  it("rejects with BAD_USER_INPUT when the image's dimensions can't be read", async () => {
+    const markerService = makeMarkerService();
+    const territoryService = makeTerritoryService();
+    const campaignMemberService = makeCampaignMemberService();
+    const mapImageService = makeMapImageService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      writerMembership,
+    );
+    imageSizeMock.mockImplementation(() => {
+      throw new Error("unsupported format");
+    });
+    const context = makeContext(
+      markerService,
+      territoryService,
+      campaignMemberService,
+      authenticatedUser,
+      mapImageService,
+    );
+
+    await expect(
+      Mutation.uploadMapImage(
+        undefined,
+        { campaignId: "campaign-1", file: makeFile() },
+        context,
+      ),
+    ).rejects.toMatchObject({ extensions: { code: "BAD_USER_INPUT" } });
+    expect(mapImageService.uploadMapImage).not.toHaveBeenCalled();
+  });
+
+  it("saves the file, reads its dimensions, and delegates to mapImageService", async () => {
+    const markerService = makeMarkerService();
+    const territoryService = makeTerritoryService();
+    const campaignMemberService = makeCampaignMemberService();
+    const mapImageService = makeMapImageService();
+    const imageStorage = makeImageStorage();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      writerMembership,
+    );
+    imageSizeMock.mockReturnValue({ width: 2000, height: 1500 });
+    imageStorage.save.mockResolvedValue("/uploads/campaign-1/abc.png");
+    const mapImage = { id: "map-image-1" };
+    vi.mocked(mapImageService.uploadMapImage).mockResolvedValue(
+      mapImage as never,
+    );
+    const context = makeContext(
+      markerService,
+      territoryService,
+      campaignMemberService,
+      authenticatedUser,
+      mapImageService,
+      imageStorage,
+    );
+    const file = makeFile({ name: "fantasy-map.png", size: 4321 });
+
+    const result = await Mutation.uploadMapImage(
+      undefined,
+      { campaignId: "campaign-1", file },
+      context,
+    );
+
+    expect(imageStorage.save).toHaveBeenCalledWith(
+      "campaign-1",
+      expect.objectContaining({ name: "fantasy-map.png", type: "image/png" }),
+    );
+    expect(mapImageService.uploadMapImage).toHaveBeenCalledWith({
+      campaignId: "campaign-1",
+      url: "/uploads/campaign-1/abc.png",
+      fileName: "fantasy-map.png",
+      mimeType: "image/png",
+      sizeBytes: 4321,
+      width: 2000,
+      height: 1500,
+    });
+    expect(result).toBe(mapImage);
+  });
+});
+
+describe("map Mutation.deleteMapImage", () => {
+  it("rejects with FORBIDDEN when the member's role cannot write", async () => {
+    const markerService = makeMarkerService();
+    const territoryService = makeTerritoryService();
+    const campaignMemberService = makeCampaignMemberService();
+    const mapImageService = makeMapImageService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
+    const context = makeContext(
+      markerService,
+      territoryService,
+      campaignMemberService,
+      authenticatedUser,
+      mapImageService,
+    );
+
+    await expect(
+      Mutation.deleteMapImage(undefined, { campaignId: "campaign-1" }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(mapImageService.deleteMapImage).not.toHaveBeenCalled();
+  });
+
+  it("delegates to mapImageService and returns true for a campaign writer", async () => {
+    const markerService = makeMarkerService();
+    const territoryService = makeTerritoryService();
+    const campaignMemberService = makeCampaignMemberService();
+    const mapImageService = makeMapImageService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      writerMembership,
+    );
+    vi.mocked(mapImageService.deleteMapImage).mockResolvedValue(undefined);
+    const context = makeContext(
+      markerService,
+      territoryService,
+      campaignMemberService,
+      authenticatedUser,
+      mapImageService,
+    );
+
+    const result = await Mutation.deleteMapImage(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    expect(mapImageService.deleteMapImage).toHaveBeenCalledWith("campaign-1");
     expect(result).toBe(true);
   });
 });

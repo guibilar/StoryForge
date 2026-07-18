@@ -38,6 +38,8 @@ import { MarkerService } from "../modules/map/application/MarkerService";
 import { PrismaMarkerRepository } from "../modules/map/infrastructure/PrismaMarkerRepository";
 import { TerritoryService } from "../modules/map/application/TerritoryService";
 import { PrismaTerritoryRepository } from "../modules/map/infrastructure/PrismaTerritoryRepository";
+import { MapImageService } from "../modules/map/application/MapImageService";
+import { PrismaMapImageRepository } from "../modules/map/infrastructure/PrismaMapImageRepository";
 
 export interface GraphQLContext extends YogaInitialContext {
   req: IncomingMessage;
@@ -62,6 +64,7 @@ export interface GraphQLContext extends YogaInitialContext {
   workspaceService: WorkspaceService;
   markerService: MarkerService;
   territoryService: TerritoryService;
+  mapImageService: MapImageService;
 }
 
 const noteLinkRepository = new PrismaNoteLinkRepository();
@@ -113,6 +116,10 @@ const workspaceService = new WorkspaceService(
 );
 const markerService = new MarkerService(new PrismaMarkerRepository());
 const territoryService = new TerritoryService(new PrismaTerritoryRepository());
+const mapImageService = new MapImageService(
+  new PrismaMapImageRepository(),
+  imageStorage,
+);
 
 export function getCurrentUserId(request: Request): string | null {
   const authHeader = request.headers.get("authorization");
@@ -189,5 +196,6 @@ export async function createContext(
     workspaceService,
     markerService,
     territoryService,
+    mapImageService,
   };
 }

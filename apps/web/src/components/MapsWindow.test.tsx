@@ -9,10 +9,13 @@ import { useDesktopWindows } from "../lib/DesktopWindowsContext";
 import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   CampaignDocument,
+  DeleteMapImageDocument,
   DeleteMarkerDocument,
+  MapImageDocument,
   MarkersDocument,
   MeDocument,
   TerritoriesDocument,
+  UploadMapImageDocument,
 } from "../gql/graphql";
 import type { MapCanvasProps } from "./MapCanvas";
 
@@ -22,6 +25,9 @@ import type { MapCanvasProps } from "./MapCanvas";
 vi.mock("./MapCanvas", () => ({
   MapCanvas: (props: MapCanvasProps) => (
     <div data-testid="map-canvas">
+      {props.imageOverlay ? (
+        <span data-testid="image-overlay-url">{props.imageOverlay.url}</span>
+      ) : null}
       {(props.markers ?? []).map((marker) => (
         <div key={marker.id}>
           <span>{marker.name}</span>
@@ -97,9 +103,23 @@ function setupMocks({
   members = ownerMembers,
   markerList = markers,
   territoryList = territories,
+  mapImage = null as {
+    id: string;
+    url: string;
+    fileName: string;
+    width: number;
+    height: number;
+  } | null,
   deleteMarker = vi.fn().mockResolvedValue({ data: { deleteMarker: true } }),
+  uploadMapImage = vi
+    .fn()
+    .mockResolvedValue({ data: { uploadMapImage: { id: "map-image-1" } } }),
+  deleteMapImage = vi
+    .fn()
+    .mockResolvedValue({ data: { deleteMapImage: true } }),
   reexecuteMarkers = vi.fn(),
   reexecuteTerritories = vi.fn(),
+  reexecuteMapImage = vi.fn(),
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === MeDocument) {
@@ -142,6 +162,13 @@ function setupMocks({
       ];
     }
 
+    if (args.query === MapImageDocument) {
+      return [
+        { data: { mapImage }, fetching: false, stale: false },
+        reexecuteMapImage,
+      ];
+    }
+
     throw new Error("Unexpected query in test");
   }) as never);
 
@@ -153,10 +180,31 @@ function setupMocks({
       ];
     }
 
+    if (document === UploadMapImageDocument) {
+      return [
+        { fetching: false, error: undefined, stale: false },
+        uploadMapImage,
+      ];
+    }
+
+    if (document === DeleteMapImageDocument) {
+      return [
+        { fetching: false, error: undefined, stale: false },
+        deleteMapImage,
+      ];
+    }
+
     throw new Error("Unexpected mutation in test");
   }) as never);
 
-  return { deleteMarker, reexecuteMarkers, reexecuteTerritories };
+  return {
+    deleteMarker,
+    uploadMapImage,
+    deleteMapImage,
+    reexecuteMarkers,
+    reexecuteTerritories,
+    reexecuteMapImage,
+  };
 }
 
 function setupDesktopWindows() {
@@ -328,6 +376,99 @@ describe("MapsWindow", () => {
       requestPolicy: "network-only",
     });
     expect(reexecuteTerritories).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+  });
+
+  it("shows Upload Map Image (no Remove) when the campaign has no map image", () => {
+    setupMocks();
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.getByRole("button", { name: "Upload Map Image" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Remove Map Image" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("image-overlay-url")).not.toBeInTheDocument();
+  });
+
+  it("shows Replace/Remove and passes the image overlay to MapCanvas when set", () => {
+    setupMocks({
+      mapImage: {
+        id: "map-image-1",
+        url: "/uploads/camp-1/map.png",
+        fileName: "map.png",
+        width: 2000,
+        height: 1500,
+      },
+    });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.getByRole("button", { name: "Replace Map Image" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Remove Map Image" }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("image-overlay-url")).toHaveTextContent(
+      "/uploads/camp-1/map.png",
+    );
+  });
+
+  it("hides upload controls for a Player (read-only)", () => {
+    setupMocks({ members: playerMembers });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.queryByRole("button", { name: "Upload Map Image" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("uploads the selected file and refetches the map image", async () => {
+    const { uploadMapImage, reexecuteMapImage } = setupMocks();
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    const file = new File(["fake-bytes"], "fantasy-map.png", {
+      type: "image/png",
+    });
+    const input = document.querySelector('input[type="file"]');
+    expect(input).toBeTruthy();
+
+    await user.upload(input as HTMLInputElement, file);
+
+    expect(uploadMapImage).toHaveBeenCalledWith({
+      campaignId: "camp-1",
+      file,
+    });
+    expect(reexecuteMapImage).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+  });
+
+  it("removes the map image and refetches when Remove Map Image is clicked", async () => {
+    const { deleteMapImage, reexecuteMapImage } = setupMocks({
+      mapImage: {
+        id: "map-image-1",
+        url: "/uploads/camp-1/map.png",
+        fileName: "map.png",
+        width: 2000,
+        height: 1500,
+      },
+    });
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "Remove Map Image" }));
+
+    expect(deleteMapImage).toHaveBeenCalledWith({ campaignId: "camp-1" });
+    expect(reexecuteMapImage).toHaveBeenCalledWith({
       requestPolicy: "network-only",
     });
   });

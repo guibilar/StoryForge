@@ -10,6 +10,14 @@ export interface WindowProps {
   onTitleBarPointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
   onResizeHandlePointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
   onPointerDownCapture?: (event: PointerEvent<HTMLDivElement>) => void;
+  // Shows a refresh button in the title bar (before the close button) when
+  // set; omit to leave the title bar as close-only.
+  onRefresh?: () => void;
+  // Covers the window in a blocking overlay — the overlay sits above the
+  // title bar, body, and resize handle in paint order, so it intercepts
+  // pointer events for all of them without each needing its own disabled
+  // state.
+  isLoading?: boolean;
   className?: string;
   children: ReactNode;
 }
@@ -21,6 +29,8 @@ export function Window({
   onTitleBarPointerDown,
   onResizeHandlePointerDown,
   onPointerDownCapture,
+  onRefresh,
+  isLoading = false,
   className,
   children,
 }: WindowProps) {
@@ -32,6 +42,17 @@ export function Window({
     >
       <div className={styles.titleBar} onPointerDown={onTitleBarPointerDown}>
         <span className={styles.title}>{title}</span>
+        {onRefresh ? (
+          <button
+            type="button"
+            className={styles.refresh}
+            aria-label={`Refresh ${title}`}
+            onClick={onRefresh}
+            disabled={isLoading}
+          >
+            ⟳
+          </button>
+        ) : null}
         <button
           type="button"
           className={styles.close}
@@ -47,6 +68,12 @@ export function Window({
         aria-label={`Resize ${title}`}
         onPointerDown={onResizeHandlePointerDown}
       />
+      {isLoading ? (
+        <div className={styles.loadingOverlay} role="status" aria-live="polite">
+          <span className={styles.spinner} aria-hidden="true" />
+          <span className={styles.srOnly}>Loading {title}…</span>
+        </div>
+      ) : null}
     </div>
   );
 }

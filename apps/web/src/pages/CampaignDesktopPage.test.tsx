@@ -183,6 +183,8 @@ describe("CampaignDesktopPage", () => {
     renderPage();
 
     expect(screen.queryByTestId("desktop-board")).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "NPCs" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Members" }),
+    ).toBeInTheDocument();
   });
 });

@@ -55,7 +55,7 @@ describe("useDesktopWindowsController", () => {
   it("exposes the static catalog windows from useDesktopLayout unchanged", () => {
     const { result } = renderHook(() => useDesktopWindowsController("camp-1"));
 
-    expect(result.current.layout.npcs).toBeDefined();
+    expect(result.current.layout.sessions).toBeDefined();
     expect(typeof result.current.toggle).toBe("function");
     expect(typeof result.current.reset).toBe("function");
   });
@@ -80,12 +80,12 @@ describe("useDesktopWindowsController", () => {
 
     act(() =>
       result.current.hydrateFromServer(
-        { npcs: { x: 1, y: 2, width: 3, height: 4, hidden: false, z: 5 } },
+        { sessions: { x: 1, y: 2, width: 3, height: 4, hidden: false, z: 5 } },
         ["server-entity"],
       ),
     );
 
-    expect(result.current.layout.npcs).toMatchObject({ x: 1, y: 2 });
+    expect(result.current.layout.sessions).toMatchObject({ x: 1, y: 2 });
     expect(result.current.recentIds).toEqual(["server-entity"]);
   });
 });

@@ -30,12 +30,12 @@ function Harness({ campaignId }: { campaignId: string }) {
   );
 }
 
-// windowCatalog.ts always renders NpcsWindow, so replacing it with a harness
-// that consumes useDesktopWindows() is the least invasive way to exercise
-// DesktopBoard's dynamic-window wiring end-to-end without adding a
-// test-only prop to DesktopBoard's public API.
-vi.mock("./NpcsWindow", () => ({
-  NpcsWindow: () => {
+// windowCatalog.ts always renders SessionsWindow regardless of role, so
+// replacing it with a harness that consumes useDesktopWindows() is the
+// least invasive way to exercise DesktopBoard's dynamic-window wiring
+// end-to-end without adding a test-only prop to DesktopBoard's public API.
+vi.mock("./SessionsWindow", () => ({
+  SessionsWindow: () => {
     const { openWindow, closeWindow } = useDesktopWindows();
     return (
       <div>

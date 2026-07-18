@@ -11,7 +11,7 @@ tracks what's actually built, not just planned.
       GraphQL client (`urql`), `ProtectedRoute`
 - [x] `packages/ui` (KAN-75, KAN-80) — shared component package: `Button`,
       `Input`, `Form`/`FormField`/`Label`/`FormError`, `Link`, `Modal`,
-      `Window`, `Dock`; CSS Modules on a theme-ready token system
+      `Window`; CSS Modules on a theme-ready token system
       (`[data-theme]` palettes). Thin scope — exactly what each landed
       ticket needed, not a full design system yet (no tables). No build
       step (source consumed directly by Vite). Consumers: `LoginPage`,
@@ -154,14 +154,12 @@ tracks what's actually built, not just planned.
       GraphQL query; `EntityFilter { type, nameContains, tagIds }`, AND-combined
       (`type` exact match, `nameContains` case-insensitive, `tagIds` any-match
       via `EntityTag` join), all fields optional
-- [x] Frontend: NPCs window (KAN-39) — `NpcsWindow` plugged into the Campaign
-      Desktop's `npcs` catalog slot; lists `entities(campaignId, filter:
-{type: "NPC"})` with visibility/tag chips, a `Modal`-based create/edit
-      form (name, description, visibility), and per-row delete with an
-      inline confirm step. Owner/Storyteller get full CRUD; Players get the
-      same list read-only (no mutation UI rendered), matching the new
-      backend `requireCampaignWriter`/visibility-filtering enforcement above
-      — not just a frontend-only illusion of the restriction.
+- [x] Frontend: dedicated NPCs window (KAN-39, `NpcsWindow`/`npcs` catalog
+      slot) removed — NPCs are entities like any other, reached through
+      `EntitySidebar`'s Entities list. The generic entity path currently
+      covers create + view only; edit/delete (previously NPC-specific,
+      Owner/Storyteller full CRUD, Players read-only) has no generic
+      replacement yet.
 
 ## Relationships
 
@@ -368,12 +366,12 @@ tracks what's actually built, not just planned.
 
 - [x] Frontend unit/component tests — `apps/web` (Vitest + Testing Library,
       `router.test.tsx`, page tests, `DesktopBoard`/`MobileDesktop` tests)
-      and `packages/ui` (per-component tests, incl. `Window`/`Dock`)
+      and `packages/ui` (per-component tests, incl. `Window`)
 - [ ] Frontend end-to-end tests (real browser against a real backend) — see KAN-87
 - [ ] `packages/core` — purpose undefined, decide before adding files
 - [ ] `packages/shared` — empty, needed once a 2nd backend module or frontend utilities appear
 - [x] `packages/ui` — thin scope built (KAN-75, KAN-80): Button, Input,
-      Form, Link, Modal, Window, Dock. Tables and general layout
+      Form, Link, Modal, Window. Tables and general layout
       primitives still not started — pick up alongside the ticket that
       needs them
 - [ ] Repository implementations currently live in `apps/api/src/modules/entities/infrastructure` instead of `packages/database` — documented deviation from target architecture in AGENTS.md

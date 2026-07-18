@@ -108,7 +108,7 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
   );
 
   // Removes a dynamically-opened window entirely, unlike `toggle` which only
-  // hides a static catalog window (so the Dock can still reopen it).
+  // hides a static catalog window (so the sidebar nav can still reopen it).
   const closeWindow = useCallback(
     (id: string) => {
       setLayout((current) => {

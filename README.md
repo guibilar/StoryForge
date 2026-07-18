@@ -39,7 +39,7 @@ packages/
   domain/      Campaign, Entity, User, CampaignMember, Tag, Relationship, Note,
                NoteLink, Attachment, Session, Event aggregates + shared errors
   ui/          Shared React components (Button, Input, Form, Link, Modal,
-               Window, Dock) consumed by apps/web — thin scope, see
+               Window) consumed by apps/web — thin scope, see
                AGENTS.md "packages/ui"
 
 docs/

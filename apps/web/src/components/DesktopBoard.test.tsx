@@ -14,19 +14,29 @@ import {
 } from "../gql/graphql";
 import type { CampaignRole } from "../gql/graphql";
 import { useDesktopWindowsController } from "../hooks/useDesktopWindowsController";
-import { DesktopWindowsContext } from "../lib/DesktopWindowsContext";
+import {
+  DesktopWindowsContext,
+  type DesktopWindowsApi,
+} from "../lib/DesktopWindowsContext";
 
 // DesktopBoard now reads window state from context (KAN-96 lifted ownership
 // up to CampaignDesktopPage so a sibling sidebar can share it) rather than
 // owning it itself — this harness stands in for that owner in isolation.
+// Opening/closing a hidden catalog window is normally done by a sibling
+// (EntitySidebar's World nav), not DesktopBoard itself, so tests that need
+// to open one drive the shared controller directly via onReady instead of
+// clicking a UI element DesktopBoard doesn't render.
 function Harness({
   campaignId,
   role,
+  onReady,
 }: {
   campaignId: string;
   role?: CampaignRole;
+  onReady?: (windows: DesktopWindowsApi) => void;
 }) {
   const desktopWindows = useDesktopWindowsController(campaignId);
+  onReady?.(desktopWindows);
   return (
     <DesktopWindowsContext.Provider value={desktopWindows}>
       <DesktopBoard role={role} />
@@ -122,7 +132,6 @@ describe("DesktopBoard", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("NPCs", { selector: "span" })).toBeInTheDocument();
     expect(
       screen.getByText("Members", { selector: "span" }),
     ).toBeInTheDocument();
@@ -137,22 +146,25 @@ describe("DesktopBoard", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("opens a hidden window from the dock and closes it again", async () => {
+  it("opens a hidden window via toggle and closes it again", async () => {
     const user = userEvent.setup();
-    render(<Harness campaignId="camp-1" />);
+    let windows!: DesktopWindowsApi;
+    render(<Harness campaignId="camp-1" onReady={(w) => (windows = w)} />);
 
-    await user.click(screen.getByRole("button", { name: "Timeline" }));
+    act(() => windows.toggle("timeline"));
     expect(screen.getByText("No events yet.")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Close Timeline" }));
     expect(screen.queryByText("No events yet.")).not.toBeInTheDocument();
   });
 
-  it("persists the arrangement so a remount restores it", async () => {
-    const user = userEvent.setup();
-    const { unmount } = render(<Harness campaignId="camp-1" />);
+  it("persists the arrangement so a remount restores it", () => {
+    let windows!: DesktopWindowsApi;
+    const { unmount } = render(
+      <Harness campaignId="camp-1" onReady={(w) => (windows = w)} />,
+    );
 
-    await user.click(screen.getByRole("button", { name: "Timeline" }));
+    act(() => windows.toggle("timeline"));
     unmount();
 
     render(<Harness campaignId="camp-1" />);
@@ -161,9 +173,10 @@ describe("DesktopBoard", () => {
 
   it("reset layout restores the defaults", async () => {
     const user = userEvent.setup();
-    render(<Harness campaignId="camp-1" />);
+    let windows!: DesktopWindowsApi;
+    render(<Harness campaignId="camp-1" onReady={(w) => (windows = w)} />);
 
-    await user.click(screen.getByRole("button", { name: "Timeline" }));
+    act(() => windows.toggle("timeline"));
     await user.click(screen.getByRole("button", { name: "Reset layout" }));
 
     expect(screen.queryByText("No events yet.")).not.toBeInTheDocument();
@@ -175,12 +188,12 @@ describe("DesktopBoard", () => {
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
 
-    const npcsTitle = screen.getByText("NPCs", { selector: "span" });
-    const windowEl = npcsTitle.closest("div[style]") as HTMLElement;
+    const sessionsTitle = screen.getByText("Sessions", { selector: "span" });
+    const windowEl = sessionsTitle.closest("div[style]") as HTMLElement;
     mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
 
     act(() => {
-      npcsTitle.dispatchEvent(
+      sessionsTitle.dispatchEvent(
         new PointerEvent("pointerdown", {
           bubbles: true,
           clientX: 50,
@@ -189,7 +202,9 @@ describe("DesktopBoard", () => {
       );
     });
 
-    expect(windowEl.style.left).toBe("28px");
+    // Unmoved: reflects the real rendered layout (sessions' default x),
+    // not the synthetic getBoundingClientRect() mocked above.
+    expect(windowEl.style.left).toBe("754px");
 
     act(() => {
       window.dispatchEvent(
@@ -206,7 +221,7 @@ describe("DesktopBoard", () => {
     const stored = JSON.parse(
       localStorage.getItem("storyforge:desktop:camp-1")!,
     );
-    expect(stored.npcs.x).toBe(128);
+    expect(stored.sessions.x).toBe(128);
   });
 
   it("resizes a window by its handle and persists the new size", () => {
@@ -215,11 +230,11 @@ describe("DesktopBoard", () => {
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
 
-    const npcsTitle = screen.getByText("NPCs", { selector: "span" });
-    const windowEl = npcsTitle.closest("div[style]") as HTMLElement;
+    const sessionsTitle = screen.getByText("Sessions", { selector: "span" });
+    const windowEl = sessionsTitle.closest("div[style]") as HTMLElement;
     mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
 
-    const handle = screen.getByLabelText("Resize NPCs");
+    const handle = screen.getByLabelText("Resize Sessions");
 
     act(() => {
       handle.dispatchEvent(
@@ -231,7 +246,9 @@ describe("DesktopBoard", () => {
       );
     });
 
-    expect(windowEl.style.width).toBe("310px");
+    // Unmoved: reflects the real rendered layout (sessions' default width),
+    // not the synthetic getBoundingClientRect() mocked above.
+    expect(windowEl.style.width).toBe("398px");
 
     act(() => {
       window.dispatchEvent(
@@ -249,8 +266,8 @@ describe("DesktopBoard", () => {
     const stored = JSON.parse(
       localStorage.getItem("storyforge:desktop:camp-1")!,
     );
-    expect(stored.npcs.width).toBe(410);
-    expect(stored.npcs.height).toBe(380);
+    expect(stored.sessions.width).toBe(410);
+    expect(stored.sessions.height).toBe(380);
   });
 
   it("clamps resize to the minimum size and the board bounds", () => {
@@ -259,11 +276,11 @@ describe("DesktopBoard", () => {
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
 
-    const npcsTitle = screen.getByText("NPCs", { selector: "span" });
-    const windowEl = npcsTitle.closest("div[style]") as HTMLElement;
+    const sessionsTitle = screen.getByText("Sessions", { selector: "span" });
+    const windowEl = sessionsTitle.closest("div[style]") as HTMLElement;
     mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
 
-    const handle = screen.getByLabelText("Resize NPCs");
+    const handle = screen.getByLabelText("Resize Sessions");
 
     act(() => {
       handle.dispatchEvent(
@@ -305,13 +322,13 @@ describe("DesktopBoard", () => {
 
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
-    const npcsTitle = screen.getByText("NPCs", { selector: "span" });
-    const windowEl = npcsTitle.closest("div[style]") as HTMLElement;
+    const sessionsTitle = screen.getByText("Sessions", { selector: "span" });
+    const windowEl = sessionsTitle.closest("div[style]") as HTMLElement;
     mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
 
-    // Move NPCs, then save that arrangement as a preset.
+    // Move Sessions, then save that arrangement as a preset.
     act(() => {
-      npcsTitle.dispatchEvent(
+      sessionsTitle.dispatchEvent(
         new PointerEvent("pointerdown", {
           bubbles: true,
           clientX: 50,
@@ -334,7 +351,7 @@ describe("DesktopBoard", () => {
 
     // Reset scatters it back to the shipped default position...
     await user.click(screen.getByRole("button", { name: "Reset layout" }));
-    expect(windowEl.style.left).toBe("28px");
+    expect(windowEl.style.left).toBe("754px");
 
     // ...and loading the saved preset brings it back.
     await user.selectOptions(

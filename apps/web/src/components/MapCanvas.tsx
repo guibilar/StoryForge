@@ -1,12 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import L from "leaflet";
 import type { GeoJsonObject } from "geojson";
 import {
+  CircleMarker,
   GeoJSON,
   ImageOverlay,
   MapContainer,
   Marker,
+  Polyline,
   Popup,
   TileLayer,
   useMapEvents,
@@ -83,13 +85,55 @@ export interface MapCanvasProps {
   // campaign writers get one, mirroring how onTerritoryClick already gates
   // territory editing.
   onDrawModeChange?: (mode: MapDrawMode) => void;
-  // Lights up the "Add marker" toggle. A mode whose handler isn't wired gets
-  // no button at all, so the toolbar never shows a control that does nothing
-  // — that's how territory drawing stays invisible until KAN-115 lands.
+  // Each of these lights up its own toolbar toggle. A mode whose handler
+  // isn't wired gets no button, so the toolbar never shows a control that
+  // does nothing.
   onPlaceMarker?: (position: MapPosition) => void;
+  // Receives a closed GeoJSON Polygon once the user finishes drawing.
+  onCompleteTerritory?: (geometry: Record<string, unknown>) => void;
   onEditMarker?: (marker: MapMarkerPoint) => void;
   onDeleteMarker?: (marker: MapMarkerPoint) => void;
   onTerritoryClick?: (territory: MapTerritoryShape) => void;
+}
+
+// A polygon needs three corners; below that the finish gesture is ignored
+// rather than emitting a degenerate shape.
+const MIN_POLYGON_VERTICES = 3;
+
+// A browser double-click fires click, click, dblclick — so the point the user
+// finished on has already been appended twice by the time the ring is built.
+// Dropping consecutive duplicates keeps that out of the geometry, and means
+// the vertex count that matters is the deduplicated one.
+function distinctVertices(vertices: MapPosition[]): MapPosition[] {
+  return vertices.filter((vertex, index) => {
+    const previous = vertices[index - 1];
+    return (
+      !previous || previous.lat !== vertex.lat || previous.lng !== vertex.lng
+    );
+  });
+}
+
+// GeoJSON positions are [longitude, latitude] — the reverse of Leaflet's
+// LatLng — and a linear ring must repeat its first position as its last.
+// Both are silent failures if got wrong: the shape saves fine and then
+// renders somewhere unexpected, or not at all.
+function polygonFrom(vertices: MapPosition[]): Record<string, unknown> {
+  const ring = vertices.map((vertex) => [vertex.lng, vertex.lat]);
+  ring.push([vertices[0].lng, vertices[0].lat]);
+
+  return { type: "Polygon", coordinates: [ring] };
+}
+
+function isTypingTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  return (
+    target.isContentEditable ||
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.tagName === "SELECT"
+  );
 }
 
 // react-leaflet only exposes map-level events to children of MapContainer,
@@ -104,15 +148,51 @@ function MapDrawLayer({
   drawMode,
   onDrawModeChange,
   onPlaceMarker,
+  onCompleteTerritory,
 }: {
   drawMode: MapDrawMode;
   onDrawModeChange?: (mode: MapDrawMode) => void;
   onPlaceMarker?: (position: MapPosition) => void;
+  onCompleteTerritory?: (geometry: Record<string, unknown>) => void;
 }) {
+  // The ref is the source of truth and the state only drives rendering:
+  // Leaflet fires both `click`s of a double-click before `dblclick`, so
+  // reading vertices from a render-time closure would miss the last points.
+  const verticesRef = useRef<MapPosition[]>([]);
+  const [vertices, setVertices] = useState<MapPosition[]>([]);
+
+  function setRing(ring: MapPosition[]) {
+    verticesRef.current = ring;
+    setVertices(ring);
+  }
+
+  function finishTerritory() {
+    const ring = distinctVertices(verticesRef.current);
+    if (ring.length < MIN_POLYGON_VERTICES) {
+      return;
+    }
+    setRing([]);
+    onCompleteTerritory?.(polygonFrom(ring));
+  }
+
   const map = useMapEvents({
     click(event) {
+      const position = { lat: event.latlng.lat, lng: event.latlng.lng };
+
       if (drawMode === "marker") {
-        onPlaceMarker?.({ lat: event.latlng.lat, lng: event.latlng.lng });
+        onPlaceMarker?.(position);
+        return;
+      }
+
+      if (drawMode === "territory") {
+        setRing([...verticesRef.current, position]);
+      }
+    },
+    dblclick() {
+      if (drawMode === "territory") {
+        // Both clicks of the double-click have already appended their
+        // vertices, so the ring is whatever has accumulated.
+        finishTerritory();
       }
     },
   });
@@ -135,16 +215,79 @@ function MapDrawLayer({
     }
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        setRing([]);
         onDrawModeChange?.("none");
+        return;
+      }
+      // Undo the last vertex. Backspace would otherwise navigate back in
+      // some browsers, so this has to claim the event — but only when the
+      // user isn't typing: a create form from an earlier placement can still
+      // be open and focused while the map stays armed, and eating its
+      // Backspace would make that field impossible to edit.
+      if (
+        event.key === "Backspace" &&
+        verticesRef.current.length > 0 &&
+        !isTypingTarget(event.target)
+      ) {
+        event.preventDefault();
+        setRing(verticesRef.current.slice(0, -1));
       }
     }
-    // Bound to the document rather than the map container so Escape works
-    // without the map having focus — the user's attention is on the cursor.
+    // Bound to the document rather than the map container so the shortcuts
+    // work without the map having focus — the user's attention is on the
+    // cursor, and Leaflet's container isn't focusable by default.
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [drawMode, onDrawModeChange]);
 
-  return null;
+  // Leaving territory mode by any other route (toolbar toggle, a mode switch)
+  // must not strand a half-drawn ring for the next time it's armed.
+  useEffect(() => {
+    if (drawMode !== "territory" && verticesRef.current.length > 0) {
+      setRing([]);
+    }
+  }, [drawMode]);
+
+  if (drawMode !== "territory" || vertices.length === 0) {
+    return null;
+  }
+
+  const first = vertices[0];
+
+  return (
+    <>
+      {/* Closes the shape visually while drawing so the user sees the polygon
+          they'll get, without committing the ring until they finish. */}
+      <Polyline
+        positions={
+          vertices.length >= MIN_POLYGON_VERTICES
+            ? [...vertices, first]
+            : vertices
+        }
+        dashArray="6 6"
+      />
+      {vertices.map((vertex, index) => (
+        <CircleMarker
+          key={`${vertex.lat},${vertex.lng},${index}`}
+          center={vertex}
+          radius={index === 0 ? 7 : 5}
+          eventHandlers={
+            // Clicking the first vertex closes the ring. Propagation has to
+            // stop here or the map's own click handler appends a duplicate
+            // of that first point before the ring is built.
+            index === 0
+              ? {
+                  click: (event) => {
+                    L.DomEvent.stopPropagation(event);
+                    finishTerritory();
+                  },
+                }
+              : undefined
+          }
+        />
+      ))}
+    </>
+  );
 }
 
 function boundsFor(image: MapImageOverlay): LatLngBoundsExpression {
@@ -168,6 +311,7 @@ export function MapCanvas({
   drawMode = "none",
   onDrawModeChange,
   onPlaceMarker,
+  onCompleteTerritory,
   onEditMarker,
   onDeleteMarker,
   onTerritoryClick,
@@ -183,6 +327,7 @@ export function MapCanvas({
 
   const drawing = drawMode !== "none";
   const canDrawMarker = Boolean(onDrawModeChange && onPlaceMarker);
+  const canDrawTerritory = Boolean(onDrawModeChange && onCompleteTerritory);
 
   function toggleDrawMode(mode: MapDrawMode) {
     onDrawModeChange?.(drawMode === mode ? "none" : mode);
@@ -190,16 +335,28 @@ export function MapCanvas({
 
   return (
     <div className={styles.wrap}>
-      {canDrawMarker ? (
+      {canDrawMarker || canDrawTerritory ? (
         <div className={styles.toolbar}>
-          <Button
-            type="button"
-            variant={drawMode === "marker" ? "primary" : "secondary"}
-            aria-pressed={drawMode === "marker"}
-            onClick={() => toggleDrawMode("marker")}
-          >
-            {drawMode === "marker" ? "Cancel" : "Add marker"}
-          </Button>
+          {canDrawMarker ? (
+            <Button
+              type="button"
+              variant={drawMode === "marker" ? "primary" : "secondary"}
+              aria-pressed={drawMode === "marker"}
+              onClick={() => toggleDrawMode("marker")}
+            >
+              {drawMode === "marker" ? "Cancel" : "Add marker"}
+            </Button>
+          ) : null}
+          {canDrawTerritory ? (
+            <Button
+              type="button"
+              variant={drawMode === "territory" ? "primary" : "secondary"}
+              aria-pressed={drawMode === "territory"}
+              onClick={() => toggleDrawMode("territory")}
+            >
+              {drawMode === "territory" ? "Cancel" : "Draw territory"}
+            </Button>
+          ) : null}
         </div>
       ) : null}
       <MapContainer
@@ -216,6 +373,7 @@ export function MapCanvas({
           drawMode={drawMode}
           onDrawModeChange={onDrawModeChange}
           onPlaceMarker={onPlaceMarker}
+          onCompleteTerritory={onCompleteTerritory}
         />
         {imageOverlay ? (
           <ImageOverlay

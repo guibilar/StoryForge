@@ -68,6 +68,25 @@ vi.mock("./MapCanvas", () => ({
           Place marker
         </button>
       ) : null}
+      {props.onCompleteTerritory ? (
+        <button
+          onClick={() =>
+            props.onCompleteTerritory?.({
+              type: "Polygon",
+              coordinates: [
+                [
+                  [0, 0],
+                  [1, 0],
+                  [1, 1],
+                  [0, 0],
+                ],
+              ],
+            })
+          }
+        >
+          Complete territory
+        </button>
+      ) : null}
     </div>
   ),
 }));
@@ -405,6 +424,52 @@ describe("MapsWindow", () => {
       mode: "create",
       initial: { lat: 51.505123, lng: -0.090123 },
     });
+  });
+
+  it("seeds the create territory form with the drawn geometry as a JSON string", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(
+      screen.getByRole("button", { name: "Complete territory" }),
+    );
+
+    expect(screen.getByTestId("draw-mode")).toHaveTextContent("none");
+    const request = openWindow.mock.calls[0][0] as {
+      id: string;
+      render: () => { props: { mode: { initial?: { geometry: string } } } };
+    };
+    expect(request.id).toBe("territory-form:new:1");
+
+    // The form field and the wire both carry geometry as a string, not an
+    // object — round-tripping it must give back what was drawn.
+    const geometry = request.render().props.mode.initial?.geometry;
+    expect(JSON.parse(geometry!)).toEqual({
+      type: "Polygon",
+      coordinates: [
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+        ],
+      ],
+    });
+  });
+
+  it("opens an unseeded create territory window from the + Add Territory button", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "+ Add Territory" }));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "territory-form:new" }),
+    );
   });
 
   it("opens an unseeded create marker window from the + Add Marker button", async () => {

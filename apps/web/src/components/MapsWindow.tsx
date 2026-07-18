@@ -91,9 +91,10 @@ export function MapsWindow() {
     string | null
   >(null);
   const [drawMode, setDrawMode] = useState<MapDrawMode>("none");
-  // Coordinates alone don't make a placement unique — clicking the same spot
-  // twice rounds to the same pair — so a counter guarantees each open create
-  // form gets its own window instead of replacing the previous one.
+  // What was drawn doesn't make a placement unique — the same spot clicked
+  // twice rounds to the same coordinates — so a counter guarantees each open
+  // create form gets its own window instead of replacing the previous one.
+  // Shared across markers and territories; it only has to vary.
   const placementCountRef = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -263,22 +264,36 @@ export function MapsWindow() {
     }
   }
 
-  function openCreateTerritoryWindow() {
+  function openCreateTerritoryWindow(geometry?: Record<string, unknown>) {
     if (!campaignId) {
       return;
     }
+    // Geometry crosses the wire — and lives in the form field — as a JSON
+    // string, not an object; MapsWindow does the inverse parse when reading
+    // territories back for the canvas.
+    const initial = geometry
+      ? { geometry: JSON.stringify(geometry, null, 2) }
+      : undefined;
+    const key = initial ? `${++placementCountRef.current}` : undefined;
+
     openTerritoryWindow<TerritoryRow>(
-      { mode: "create" },
+      { mode: "create", initial, key },
       "New Territory",
       (close) => (
         <TerritoryFormWindow
           campaignId={campaignId}
-          mode={{ mode: "create" }}
+          mode={{ mode: "create", initial }}
           onSaved={refetch}
           onClose={close}
         />
       ),
     );
+  }
+
+  // Finishing a shape is a one-shot gesture, same as placing a marker.
+  function handleCompleteTerritory(geometry: Record<string, unknown>) {
+    setDrawMode("none");
+    openCreateTerritoryWindow(geometry);
   }
 
   function openEditTerritoryWindow(territory: MapTerritoryShape) {
@@ -332,6 +347,7 @@ export function MapsWindow() {
           drawMode={drawMode}
           onDrawModeChange={isWriter ? setDrawMode : undefined}
           onPlaceMarker={isWriter ? handlePlaceMarker : undefined}
+          onCompleteTerritory={isWriter ? handleCompleteTerritory : undefined}
           onEditMarker={openEditMarkerWindow}
           onDeleteMarker={handleDeleteMarker}
           onTerritoryClick={isWriter ? openEditTerritoryWindow : undefined}
@@ -347,7 +363,7 @@ export function MapsWindow() {
           <Button
             type="button"
             variant="secondary"
-            onClick={openCreateTerritoryWindow}
+            onClick={() => openCreateTerritoryWindow()}
           >
             + Add Territory
           </Button>

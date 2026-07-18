@@ -97,6 +97,38 @@ function renderEdit(
 }
 
 describe("TerritoryFormWindow", () => {
+  it("prefills the geometry from create-mode seed values", () => {
+    setupMocks();
+    const drawn = JSON.stringify(
+      {
+        type: "Polygon",
+        coordinates: [
+          [
+            [2, 1],
+            [4, 1],
+            [4, 3],
+            [2, 1],
+          ],
+        ],
+      },
+      null,
+      2,
+    );
+    render(
+      <TerritoryFormWindow
+        campaignId="camp-1"
+        mode={{ mode: "create", initial: { geometry: drawn } }}
+        onSaved={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    // The drawn ring replaces the placeholder unit square, and stays
+    // editable as the manual escape hatch.
+    expect(screen.getByLabelText("Geometry (GeoJSON)")).toHaveValue(drawn);
+    expect(screen.getByLabelText("Name")).toHaveValue("");
+  });
+
   it("creates a territory and calls onSaved/onClose", async () => {
     const { createTerritory } = setupMocks();
     const user = userEvent.setup();

@@ -54,8 +54,9 @@ const DEFAULT_GEOMETRY = JSON.stringify(
 
 // The Add/Edit form content for a single map territory — opened via
 // useAddEditWindow, same pattern as SessionFormWindow/EventFormWindow.
-// Geometry is a raw GeoJSON textarea for now; a drawing tool on the map
-// canvas itself is future scope, not implied by this ticket.
+// The geometry textarea is normally filled in by drawing the shape on the
+// map (KAN-115); it stays editable as the escape hatch for pasting or
+// tweaking a ring by hand.
 export function TerritoryFormWindow({
   campaignId,
   mode,
@@ -73,7 +74,11 @@ export function TerritoryFormWindow({
     createState.fetching || updateState.fetching || deleteState.fetching,
   );
 
-  const initialTerritory = mode.mode === "edit" ? mode.item : null;
+  // In create mode these are seed values from whatever opened the form — a
+  // polygon drawn on the map supplies the geometry — rather than a saved row,
+  // so every field is optional.
+  const initialTerritory: Partial<TerritoryRow> | null =
+    mode.mode === "edit" ? mode.item : (mode.initial ?? null);
 
   async function handleDelete() {
     if (mode.mode !== "edit") {

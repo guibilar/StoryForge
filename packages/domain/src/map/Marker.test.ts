@@ -65,21 +65,28 @@ describe("Marker", () => {
     ).toThrow("Marker name cannot exceed 255 characters.");
   });
 
-  it.each([-91, 91, NaN, Infinity])(
-    "rejects an out-of-range latitude %j",
+  it.each([NaN, Infinity, -Infinity])(
+    "rejects a non-finite latitude %j",
     (lat) => {
       expect(() => Marker.create({ ...validProps, lat })).toThrow(
-        "Marker latitude must be between -90 and 90.",
+        "Marker latitude must be a finite number.",
       );
     },
   );
 
-  it.each([-181, 181, NaN, Infinity])(
-    "rejects an out-of-range longitude %j",
+  it.each([NaN, Infinity, -Infinity])(
+    "rejects a non-finite longitude %j",
     (lng) => {
       expect(() => Marker.create({ ...validProps, lng })).toThrow(
-        "Marker longitude must be between -180 and 180.",
+        "Marker longitude must be a finite number.",
       );
+    },
+  );
+
+  it.each([-91, 91, -181, 181, 12000, -8500.5])(
+    "accepts coordinates well outside real-world geographic ranges (pixel space under a custom map image)",
+    (lat) => {
+      expect(Marker.create({ ...validProps, lat }).Lat).toBe(lat);
     },
   );
 
@@ -102,11 +109,11 @@ describe("Marker", () => {
     expect(marker.Description).toBe("Rebuilt.");
   });
 
-  it("rejects moving to an out-of-range position", () => {
+  it("rejects moving to a non-finite position", () => {
     const marker = Marker.create(validProps);
 
-    expect(() => marker.moveTo(91, 0)).toThrow(
-      "Marker latitude must be between -90 and 90.",
+    expect(() => marker.moveTo(NaN, 0)).toThrow(
+      "Marker latitude must be a finite number.",
     );
   });
 });

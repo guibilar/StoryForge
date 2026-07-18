@@ -62,6 +62,9 @@ export interface MapCanvasProps {
   markers?: MapMarkerPoint[];
   territories?: MapTerritoryShape[];
   imageOverlay?: MapImageOverlay | null;
+  // Disables every marker popup's Edit/Delete buttons while a delete is in
+  // flight, so a slow response can't be raced by a second click.
+  markerActionPending?: boolean;
   onEditMarker?: (marker: MapMarkerPoint) => void;
   onDeleteMarker?: (marker: MapMarkerPoint) => void;
   onTerritoryClick?: (territory: MapTerritoryShape) => void;
@@ -84,6 +87,7 @@ export function MapCanvas({
   markers = [],
   territories = [],
   imageOverlay = null,
+  markerActionPending = false,
   onEditMarker,
   onDeleteMarker,
   onTerritoryClick,
@@ -139,6 +143,7 @@ export function MapCanvas({
                   <Button
                     type="button"
                     variant="secondary"
+                    disabled={markerActionPending}
                     onClick={() => onEditMarker?.(marker)}
                   >
                     Edit
@@ -146,6 +151,7 @@ export function MapCanvas({
                   <Button
                     type="button"
                     variant="secondary"
+                    disabled={markerActionPending}
                     onClick={() => onDeleteMarker?.(marker)}
                   >
                     Delete

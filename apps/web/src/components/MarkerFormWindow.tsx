@@ -1,4 +1,5 @@
 import type { FormEvent } from "react";
+import { useState } from "react";
 import { useMutation } from "urql";
 import {
   Button,
@@ -40,6 +41,7 @@ export function MarkerFormWindow({
 }: MarkerFormWindowProps) {
   const [createState, createMarker] = useMutation(CreateMarkerDocument);
   const [updateState, updateMarker] = useMutation(UpdateMarkerDocument);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Forms have nothing to "refresh" — only the blocking loading state
   // applies while a save is in flight.
@@ -49,6 +51,7 @@ export function MarkerFormWindow({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setValidationError(null);
 
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -57,7 +60,16 @@ export function MarkerFormWindow({
     const lng = Number(data.get("lng"));
     const description = String(data.get("description") ?? "").trim();
 
-    if (!name || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+    // `required` alone doesn't stop a whitespace-only value (the browser
+    // only checks the raw value is non-empty) — check the trimmed name
+    // explicitly and surface it, instead of silently doing nothing.
+    if (!name) {
+      setValidationError("Name is required.");
+      return;
+    }
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      setValidationError("Latitude and longitude must be valid numbers.");
       return;
     }
 
@@ -86,9 +98,11 @@ export function MarkerFormWindow({
     }
   }
 
-  const formError = formatGraphQLError(
-    mode.mode === "create" ? createState.error : updateState.error,
-  );
+  const formError =
+    validationError ??
+    formatGraphQLError(
+      mode.mode === "create" ? createState.error : updateState.error,
+    );
 
   return (
     <Form onSubmit={handleSubmit}>
@@ -108,8 +122,6 @@ export function MarkerFormWindow({
             name="lat"
             type="number"
             step="any"
-            min={-90}
-            max={90}
             defaultValue={initialMarker?.lat ?? 0}
             required
           />
@@ -120,8 +132,6 @@ export function MarkerFormWindow({
             name="lng"
             type="number"
             step="any"
-            min={-180}
-            max={180}
             defaultValue={initialMarker?.lng ?? 0}
             required
           />

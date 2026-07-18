@@ -58,8 +58,10 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
     id: "maps",
     title: "Maps",
     render: () => createElement(MapsWindow),
-    // Pan/zoom viewport only for now (KAN-50) — no campaign data yet, so
-    // every role can see it, same as Relationships.
+    // Markers/territories/the custom map image (KAN-51/52) have no
+    // visibility rules of their own yet, so every role can see the window,
+    // same as Relationships — write access is still gated per-action inside
+    // MapsWindow (isWriter).
   },
 ];
 

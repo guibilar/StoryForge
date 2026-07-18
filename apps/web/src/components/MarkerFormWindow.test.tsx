@@ -122,6 +122,41 @@ describe("MarkerFormWindow", () => {
     });
   });
 
+  it("shows a validation error instead of silently no-opping when Name is whitespace-only", async () => {
+    const { createMarker } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Name"), "   ");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(screen.getByText("Name is required.")).toBeInTheDocument();
+    expect(createMarker).not.toHaveBeenCalled();
+  });
+
+  it("accepts coordinates well outside real-world geographic ranges (pixel space under a custom map image)", async () => {
+    const { createMarker } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Name"), "Throne Room");
+    await user.clear(screen.getByLabelText("Latitude"));
+    await user.type(screen.getByLabelText("Latitude"), "1200");
+    await user.clear(screen.getByLabelText("Longitude"));
+    await user.type(screen.getByLabelText("Longitude"), "900");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createMarker).toHaveBeenCalledWith({
+      input: {
+        campaignId: "camp-1",
+        name: "Throne Room",
+        lat: 1200,
+        lng: 900,
+        description: null,
+      },
+    });
+  });
+
   it("calls onClose without saving when Cancel is clicked", async () => {
     const { createMarker } = setupMocks();
     const user = userEvent.setup();

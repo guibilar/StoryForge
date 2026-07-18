@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { MapCanvas } from "./MapCanvas";
@@ -147,5 +148,146 @@ describe("MapCanvas", () => {
 
     expect(container.querySelector(".leaflet-image-layer")).toBeFalsy();
     expect(container.querySelector(".leaflet-tile")).toBeTruthy();
+  });
+
+  describe("draw modes", () => {
+    it("shows no draw toolbar without the callbacks that drive it", () => {
+      render(<MapCanvas />);
+
+      expect(
+        screen.queryByRole("button", { name: "Add marker" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("arms and disarms marker mode from the toolbar", async () => {
+      const user = userEvent.setup();
+      const onDrawModeChange = vi.fn();
+      const { rerender } = render(
+        <MapCanvas
+          onDrawModeChange={onDrawModeChange}
+          onPlaceMarker={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Add marker" }));
+      expect(onDrawModeChange).toHaveBeenCalledWith("marker");
+
+      rerender(
+        <MapCanvas
+          drawMode="marker"
+          onDrawModeChange={onDrawModeChange}
+          onPlaceMarker={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+      expect(onDrawModeChange).toHaveBeenLastCalledWith("none");
+    });
+
+    it("reports the clicked coordinates only while marker mode is armed", () => {
+      const onPlaceMarker = vi.fn();
+      const { container, rerender } = render(
+        <MapCanvas onDrawModeChange={vi.fn()} onPlaceMarker={onPlaceMarker} />,
+      );
+
+      const map = container.querySelector<HTMLElement>(".leaflet-container");
+      fireEvent.click(map!, { clientX: 100, clientY: 80 });
+      expect(onPlaceMarker).not.toHaveBeenCalled();
+
+      rerender(
+        <MapCanvas
+          drawMode="marker"
+          onDrawModeChange={vi.fn()}
+          onPlaceMarker={onPlaceMarker}
+        />,
+      );
+      fireEvent.click(map!, { clientX: 100, clientY: 80 });
+
+      expect(onPlaceMarker).toHaveBeenCalledTimes(1);
+      const position = onPlaceMarker.mock.calls[0][0];
+      expect(Number.isFinite(position.lat)).toBe(true);
+      expect(Number.isFinite(position.lng)).toBe(true);
+    });
+
+    it("reports pixel-space coordinates under a custom map image", () => {
+      const onPlaceMarker = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="marker"
+          imageOverlay={{
+            url: "/uploads/campaign-1/map.png",
+            width: 2000,
+            height: 1500,
+          }}
+          onDrawModeChange={vi.fn()}
+          onPlaceMarker={onPlaceMarker}
+        />,
+      );
+
+      const map = container.querySelector<HTMLElement>(".leaflet-container");
+      fireEvent.click(map!, { clientX: 100, clientY: 80 });
+
+      // CRS.Simple means these are offsets into the image, not degrees — the
+      // assertion that matters is that they're passed through unclamped.
+      expect(onPlaceMarker).toHaveBeenCalledTimes(1);
+      const position = onPlaceMarker.mock.calls[0][0];
+      expect(Number.isFinite(position.lat)).toBe(true);
+      expect(Number.isFinite(position.lng)).toBe(true);
+    });
+
+    it("suppresses territory edit clicks while a mode is armed", () => {
+      const onTerritoryClick = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="marker"
+          territories={[territory]}
+          onDrawModeChange={vi.fn()}
+          onPlaceMarker={vi.fn()}
+          onTerritoryClick={onTerritoryClick}
+        />,
+      );
+
+      const shape = container.querySelector<SVGElement>(".leaflet-interactive");
+      fireEvent.click(shape!);
+
+      expect(onTerritoryClick).not.toHaveBeenCalled();
+    });
+
+    it("disarms on Escape", () => {
+      const onDrawModeChange = vi.fn();
+      render(
+        <MapCanvas
+          drawMode="marker"
+          onDrawModeChange={onDrawModeChange}
+          onPlaceMarker={vi.fn()}
+        />,
+      );
+
+      fireEvent.keyDown(document, { key: "Escape" });
+
+      expect(onDrawModeChange).toHaveBeenCalledWith("none");
+    });
+
+    it("does not zoom on double-click while armed", () => {
+      const { container } = render(
+        <MapCanvas
+          drawMode="marker"
+          onDrawModeChange={vi.fn()}
+          onPlaceMarker={vi.fn()}
+        />,
+      );
+
+      const map = container.querySelector<HTMLElement>(".leaflet-container");
+      const initialTile =
+        container.querySelector<HTMLImageElement>(".leaflet-tile")?.src;
+
+      // Double-click is KAN-115's "close the ring" gesture; if it still
+      // zoomed, the tile URLs would change to the next zoom level.
+      fireEvent.dblClick(map!, { clientX: 100, clientY: 80 });
+
+      expect(
+        container.querySelector<HTMLImageElement>(".leaflet-tile")?.src,
+      ).toEqual(initialTile);
+    });
   });
 });

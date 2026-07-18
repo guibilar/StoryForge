@@ -19,7 +19,11 @@ import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { MapCanvas } from "./MapCanvas";
-import type { MapMarkerPoint, MapTerritoryShape } from "./MapCanvas";
+import type {
+  MapDrawMode,
+  MapMarkerPoint,
+  MapTerritoryShape,
+} from "./MapCanvas";
 import { MarkerFormWindow } from "./MarkerFormWindow";
 import type { MarkerRow } from "./MarkerFormWindow";
 import { TerritoryFormWindow } from "./TerritoryFormWindow";
@@ -79,6 +83,7 @@ export function MapsWindow() {
   const [uploadValidationError, setUploadValidationError] = useState<
     string | null
   >(null);
+  const [drawMode, setDrawMode] = useState<MapDrawMode>("none");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { openAddEditWindow: openMarkerWindow } = useAddEditWindow({
@@ -190,6 +195,13 @@ export function MapsWindow() {
     ));
   }
 
+  // Placing a point is a one-shot gesture: disarm first so a stray second
+  // click doesn't open a second form behind the one just opened.
+  function handlePlaceMarker() {
+    setDrawMode("none");
+    openCreateMarkerWindow();
+  }
+
   function openEditMarkerWindow(marker: MapMarkerPoint) {
     if (!campaignId) {
       return;
@@ -285,6 +297,9 @@ export function MapsWindow() {
           territories={mapTerritories}
           imageOverlay={imageOverlay}
           markerActionPending={deleteMarkerState.fetching}
+          drawMode={drawMode}
+          onDrawModeChange={isWriter ? setDrawMode : undefined}
+          onPlaceMarker={isWriter ? handlePlaceMarker : undefined}
           onEditMarker={openEditMarkerWindow}
           onDeleteMarker={handleDeleteMarker}
           onTerritoryClick={isWriter ? openEditTerritoryWindow : undefined}

@@ -53,6 +53,17 @@ vi.mock("./MapCanvas", () => ({
           Territory {territory.name}
         </button>
       ))}
+      <span data-testid="draw-mode">{props.drawMode}</span>
+      {props.onDrawModeChange ? (
+        <button onClick={() => props.onDrawModeChange?.("marker")}>
+          Arm marker mode
+        </button>
+      ) : null}
+      {props.onPlaceMarker ? (
+        <button onClick={() => props.onPlaceMarker?.({ lat: 12, lng: 34 })}>
+          Place marker
+        </button>
+      ) : null}
     </div>
   ),
 }));
@@ -303,6 +314,48 @@ describe("MapsWindow", () => {
 
     await user.click(screen.getByRole("button", { name: "+ Add Marker" }));
 
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "marker-form:new", title: "New Marker" }),
+    );
+  });
+
+  it("gives the canvas draw-mode control for a writer", () => {
+    setupMocks();
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.getByRole("button", { name: "Arm marker mode" }),
+    ).toBeInTheDocument();
+  });
+
+  it("withholds draw-mode control from a Player (read-only)", () => {
+    setupMocks({ members: playerMembers });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.queryByRole("button", { name: "Arm marker mode" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Place marker" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("tracks the armed draw mode and disarms it once a marker is placed", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    expect(screen.getByTestId("draw-mode")).toHaveTextContent("none");
+
+    await user.click(screen.getByRole("button", { name: "Arm marker mode" }));
+    expect(screen.getByTestId("draw-mode")).toHaveTextContent("marker");
+
+    await user.click(screen.getByRole("button", { name: "Place marker" }));
+
+    expect(screen.getByTestId("draw-mode")).toHaveTextContent("none");
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "marker-form:new", title: "New Marker" }),
     );

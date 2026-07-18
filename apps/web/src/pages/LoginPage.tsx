@@ -12,6 +12,7 @@ import {
 
 import { LoginDocument } from "../gql/graphql";
 import { formatGraphQLError } from "../lib/graphqlError";
+import styles from "./AuthPage.module.css";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -34,38 +35,47 @@ export function LoginPage() {
   }
 
   return (
-    <main>
-      <h1>Log in</h1>
-      <Form onSubmit={handleSubmit}>
-        <FormError>{formatGraphQLError(error)}</FormError>
-        <FormField label="Email" htmlFor="email">
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-          />
-        </FormField>
-        <FormField label="Password" htmlFor="password">
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
-        </FormField>
-        <Button type="submit" disabled={fetching}>
-          Log in
-        </Button>
-      </Form>
-      <p>
-        Need an account?{" "}
-        <Link as={RouterLink} to="/register">
-          Register
-        </Link>
-      </p>
+    <main className={styles.auth}>
+      <div className={styles.card}>
+        <div className={styles.brand}>
+          <img className={styles.mark} src="/favicon.svg" alt="" />
+          <span className={styles.wordmark}>
+            Story<b>Forge</b>
+          </span>
+        </div>
+        <h1 className={styles.title}>Welcome back</h1>
+        <p className={styles.subtitle}>Sign in to open your campaigns.</p>
+        <Form onSubmit={handleSubmit}>
+          <FormError>{formatGraphQLError(error)}</FormError>
+          <FormField label="Email" htmlFor="email">
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+            />
+          </FormField>
+          <FormField label="Password" htmlFor="password">
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+            />
+          </FormField>
+          <Button type="submit" disabled={fetching} style={{ width: "100%" }}>
+            {fetching ? "Signing in…" : "Sign in"}
+          </Button>
+        </Form>
+        <p className={styles.switch}>
+          Need an account?{" "}
+          <Link as={RouterLink} to="/register">
+            Create one
+          </Link>
+        </p>
+      </div>
     </main>
   );
 }

@@ -61,7 +61,7 @@ export function CampaignDesktopPage() {
   )?.role;
 
   return (
-    <main>
+    <main className={styles.deskMain}>
       <header className={styles.header}>
         <Link as={RouterLink} to="/dashboard">
           ← Dashboard
@@ -77,7 +77,9 @@ export function CampaignDesktopPage() {
           <MobileDesktop role={role} />
         ) : (
           <div className={styles.deskLayout}>
-            <EntitySidebar campaignId={campaign.id} role={role} />
+            <div className={styles.sidebarPanel}>
+              <EntitySidebar campaignId={campaign.id} role={role} />
+            </div>
             <DesktopBoard role={role} />
           </div>
         )}

@@ -20,6 +20,8 @@ describe("router", () => {
     const router = createMemoryRouter(routes, { initialEntries: ["/login"] });
     render(<RouterProvider router={router} />);
 
-    expect(screen.getByRole("heading", { name: "Log in" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Welcome back" }),
+    ).toBeInTheDocument();
   });
 });

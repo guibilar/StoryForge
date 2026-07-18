@@ -2,21 +2,34 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text-h);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
   z-index: var(--z-window-base);
+  transition:
+    box-shadow var(--dur-2) var(--ease),
+    border-color var(--dur-2) var(--ease);
+}
+
+/* The window holding keyboard focus visibly lifts — pairs with the
+   manager's z-index bump so the active window reads as active. */
+.window:focus-within {
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-focused);
 }
 
 .titleBar {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) 10px;
-  background: var(--code-bg);
+  padding: 9px 10px 9px 14px;
+  background: linear-gradient(
+    var(--surface-2),
+    color-mix(in srgb, var(--surface-2) 82%, var(--bg))
+  );
   border-bottom: 1px solid var(--border);
   cursor: grab;
   user-select: none;
@@ -32,53 +45,53 @@
   font-weight: 600;
   font-size: 12.5px;
   letter-spacing: 0.01em;
-}
-
-.close {
-  appearance: none;
-  border: none;
-  background: none;
-  color: var(--text);
-  cursor: pointer;
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: inherit;
-  line-height: 1;
-  padding: 0;
-  flex: none;
-}
-
-.close:hover {
-  background: var(--accent-bg);
   color: var(--text-h);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+.close,
 .refresh {
   appearance: none;
   border: none;
   background: none;
   color: var(--text);
   cursor: pointer;
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   font: inherit;
-  font-size: 13px;
   line-height: 1;
   padding: 0;
   flex: none;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
 }
 
+.refresh {
+  font-size: 13px;
+}
+
+.close:hover,
 .refresh:hover:not(:disabled) {
   background: var(--accent-bg);
   color: var(--text-h);
+}
+
+.close:hover {
+  background: rgba(229, 72, 77, 0.14);
+  color: var(--danger);
+}
+
+.close:focus-visible,
+.refresh:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .refresh:disabled {
@@ -86,8 +99,13 @@
   cursor: default;
 }
 
+.refresh:active:not(:disabled) {
+  transform: rotate(90deg);
+  transition: transform var(--dur-2) var(--ease);
+}
+
 .body {
-  padding: var(--space-3) 14px;
+  padding: var(--space-4);
   overflow: auto;
   flex: 1;
 }
@@ -96,10 +114,16 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   cursor: nwse-resize;
   touch-action: none;
+  color: var(--border-strong);
+  transition: color var(--dur-1) var(--ease);
+}
+
+.resizeHandle:hover {
+  color: var(--accent);
 }
 
 .resizeHandle::after {
@@ -109,8 +133,9 @@
   bottom: 3px;
   width: 7px;
   height: 7px;
-  border-right: 2px solid var(--border);
-  border-bottom: 2px solid var(--border);
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  border-bottom-right-radius: 2px;
 }
 
 /* Painted last in DOM order, so it stacks above the title bar, body, and
@@ -123,20 +148,21 @@
   align-items: center;
   justify-content: center;
   cursor: wait;
+  backdrop-filter: blur(2px);
 }
 
 .loadingOverlay::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--bg);
-  opacity: 0.75;
+  background: var(--surface);
+  opacity: 0.6;
 }
 
 .spinner {
-  width: 22px;
-  height: 22px;
-  border: 2px solid var(--border);
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid var(--border-strong);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: window-spin 0.7s linear infinite;

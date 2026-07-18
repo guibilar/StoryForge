@@ -1,6 +1,6 @@
 :root {
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  font: 16px/1.55 var(--sans);
+  letter-spacing: 0.01em;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -9,15 +9,13 @@
   -moz-osx-font-smoothing: grayscale;
 
   @media (max-width: 1024px) {
-    font-size: 16px;
+    font-size: 15px;
   }
 }
 
 #root {
   max-width: 100%;
   margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -28,46 +26,64 @@ body {
   margin: 0;
 }
 
+main {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 48px) clamp(16px, 4vw, 40px) 56px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
 h1,
-h2 {
+h2,
+h3 {
   font-family: var(--heading);
   font-weight: 500;
   color: var(--text-h);
+  font-optical-sizing: auto;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  font-size: clamp(2.4rem, 1.6rem + 2.6vw, 3.4rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5em;
 }
 h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.35em;
+}
+h3 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.25;
+  margin: 0 0 0.3em;
 }
 p {
   margin: 0;
 }
 
+::selection {
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+
 code,
 .counter {
   font-family: var(--mono);
+  font-size: 0.82em;
   display: inline-flex;
-  border-radius: 4px;
+  border-radius: 5px;
   color: var(--text-h);
 }
 
 code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
+  line-height: 1.35;
+  padding: 3px 6px;
   background: var(--code-bg);
 }

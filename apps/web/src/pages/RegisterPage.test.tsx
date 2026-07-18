@@ -44,7 +44,7 @@ describe("RegisterPage", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "Register" }),
+      screen.getByRole("heading", { name: "Create your account" }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Password")).toBeInTheDocument();
@@ -63,7 +63,7 @@ describe("RegisterPage", () => {
 
     await user.type(screen.getByLabelText("Email"), "new@b.com");
     await user.type(screen.getByLabelText("Password"), "secret123");
-    await user.click(screen.getByRole("button", { name: "Register" }));
+    await user.click(screen.getByRole("button", { name: "Create account" }));
 
     expect(register).toHaveBeenCalledWith({
       input: { email: "new@b.com", password: "secret123" },

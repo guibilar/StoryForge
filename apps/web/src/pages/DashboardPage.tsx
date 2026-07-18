@@ -44,15 +44,29 @@ export function DashboardPage() {
   return (
     <main>
       <header className={styles.header}>
-        <h1>Dashboard</h1>
-        <Button variant="secondary" onClick={handleLogout}>
-          Log out
-        </Button>
+        <div>
+          <h1>Campaigns</h1>
+          <p className={styles.lede}>Your worlds, sessions, and story.</p>
+        </div>
+        <div className={styles.headerActions}>
+          <Button onClick={() => setCreateOpen(true)}>New campaign</Button>
+          <Button variant="secondary" onClick={handleLogout}>
+            Log out
+          </Button>
+        </div>
       </header>
 
-      <Button onClick={() => setCreateOpen(true)}>New campaign</Button>
+      {fetching ? <p className={styles.status}>Loading campaigns…</p> : null}
 
-      {fetching ? <p>Loading campaigns…</p> : null}
+      {!fetching && campaigns.length === 0 ? (
+        <div className={styles.emptyState}>
+          <p className={styles.emptyTitle}>No campaigns yet</p>
+          <p className={styles.emptyBody}>
+            Create your first campaign to start building.
+          </p>
+          <Button onClick={() => setCreateOpen(true)}>New campaign</Button>
+        </div>
+      ) : null}
 
       <ul className={styles.list}>
         {campaigns.map((campaign) => {

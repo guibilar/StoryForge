@@ -3,22 +3,29 @@
   font-size: 15px;
   width: 100%;
   padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
   color: var(--text-h);
   box-sizing: border-box;
   resize: vertical;
+  transition:
+    border-color var(--dur-1) var(--ease),
+    box-shadow var(--dur-1) var(--ease);
 }
 
 .textarea::placeholder {
   color: var(--text);
 }
 
-.textarea:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+.textarea:hover:not(:disabled):not(:focus) {
   border-color: var(--accent-border);
+}
+
+.textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
 }
 
 .textarea:disabled {

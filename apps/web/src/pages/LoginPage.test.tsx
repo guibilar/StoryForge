@@ -43,7 +43,9 @@ describe("LoginPage", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("heading", { name: "Log in" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Welcome back" }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Password")).toBeInTheDocument();
   });
@@ -61,7 +63,7 @@ describe("LoginPage", () => {
 
     await user.type(screen.getByLabelText("Email"), "a@b.com");
     await user.type(screen.getByLabelText("Password"), "secret123");
-    await user.click(screen.getByRole("button", { name: "Log in" }));
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(login).toHaveBeenCalledWith({
       input: { email: "a@b.com", password: "secret123" },

@@ -6,7 +6,9 @@
   justify-content: center;
   align-items: flex-start;
   padding-top: 12vh;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(10, 8, 16, 0.5);
+  backdrop-filter: blur(3px);
+  animation: palette-backdrop-in var(--dur-2) var(--ease);
 }
 
 .panel {
@@ -14,12 +16,13 @@
   flex-direction: column;
   width: min(560px, calc(100vw - var(--space-6)));
   max-height: min(420px, calc(100vh - 12vh - var(--space-6)));
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text-h);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
+  animation: palette-in var(--dur-3) var(--ease);
 }
 
 .input {
@@ -32,6 +35,10 @@
   padding: var(--space-4) var(--space-5);
   box-sizing: border-box;
   width: 100%;
+}
+
+.input::placeholder {
+  color: var(--text);
 }
 
 .input:focus {
@@ -51,7 +58,7 @@
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   color: var(--text);
   padding: var(--space-2) var(--space-3);
 }
@@ -64,6 +71,7 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   color: var(--text-h);
+  transition: background-color var(--dur-1) var(--ease);
 }
 
 .item.active {
@@ -104,4 +112,17 @@
   text-align: center;
   color: var(--text);
   font-size: 14px;
+}
+
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+@keyframes palette-backdrop-in {
+  from {
+    opacity: 0;
+  }
 }

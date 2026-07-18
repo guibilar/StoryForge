@@ -1,20 +1,40 @@
 :root {
   /* light palette values — default when nothing else applies */
   --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
+  --text-h: #14121a;
+  --bg: #faf9fb;
+  --surface: #ffffff;
+  --surface-2: #f4f2f8;
+  --border: #e7e5ec;
+  --border-strong: #d8d5e0;
   --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
+  --accent: #8b3bff;
+  --accent-strong: #7a2bef;
+  --accent-contrast: #ffffff;
+  --accent-bg: rgba(139, 59, 255, 0.09);
+  --accent-border: rgba(139, 59, 255, 0.45);
+  --accent-grad: linear-gradient(140deg, #9d54ff 0%, #7a2bef 100%);
   --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --danger: #e5484d;
+  --focus-ring: 0 0 0 3px rgba(139, 59, 255, 0.22);
 
-  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
-  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --shadow-sm: 0 1px 2px rgba(20, 18, 26, 0.06), 0 1px 1px rgba(20, 18, 26, 0.04);
+  --shadow-md:
+    0 4px 14px -3px rgba(20, 18, 26, 0.12), 0 2px 6px -2px rgba(20, 18, 26, 0.08);
+  --shadow-lg:
+    0 18px 40px -12px rgba(20, 18, 26, 0.2),
+    0 8px 16px -8px rgba(20, 18, 26, 0.12);
+  --shadow-focused:
+    0 24px 50px -12px rgba(122, 43, 239, 0.28),
+    0 8px 20px -8px rgba(20, 18, 26, 0.18);
+  /* legacy alias — components authored before the scale existed */
+  --shadow: var(--shadow-md);
+
+  --sans:
+    "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --heading:
+    "Fraunces", "Iowan Old Style", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
 
   /* spacing scale */
   --space-1: 4px;
@@ -28,6 +48,13 @@
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 18px;
+
+  /* motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-1: 0.12s;
+  --dur-2: 0.2s;
+  --dur-3: 0.32s;
 
   /* z-index scale — layering floors, not per-instance stacking.
      Window managers bump individual windows above --z-window-base on
@@ -41,20 +68,34 @@
   color-scheme: light dark;
 }
 
-/* System fallback: only when the document has NOT opted into a named theme */
+/* Shared dark palette — applied both to the system-preference fallback
+   and the explicitly selected [data-theme="dark"], so the two never drift. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
+    --text: #a09bad;
+    --text-h: #f4f2f8;
+    --bg: #14131a;
+    --surface: #1c1b24;
+    --surface-2: #24222f;
+    --border: #2c2a38;
+    --border-strong: #3b3949;
+    --code-bg: #201f2a;
+    --accent: #b57bff;
+    --accent-strong: #a259ff;
+    --accent-contrast: #14121a;
+    --accent-bg: rgba(181, 123, 255, 0.14);
+    --accent-border: rgba(181, 123, 255, 0.45);
+    --accent-grad: linear-gradient(140deg, #c79bff 0%, #a259ff 100%);
     --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+    --focus-ring: 0 0 0 3px rgba(181, 123, 255, 0.26);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 1px rgba(0, 0, 0, 0.2);
+    --shadow-md:
+      0 4px 16px -3px rgba(0, 0, 0, 0.5), 0 2px 6px -2px rgba(0, 0, 0, 0.35);
+    --shadow-lg:
+      0 20px 44px -12px rgba(0, 0, 0, 0.6), 0 8px 18px -8px rgba(0, 0, 0, 0.45);
+    --shadow-focused:
+      0 26px 56px -12px rgba(0, 0, 0, 0.72),
+      0 0 0 1px rgba(181, 123, 255, 0.25);
   }
 }
 
@@ -62,31 +103,69 @@
    "light" is a real selectable option once a theme switcher exists) */
 [data-theme="light"] {
   --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
+  --text-h: #14121a;
+  --bg: #faf9fb;
+  --surface: #ffffff;
+  --surface-2: #f4f2f8;
+  --border: #e7e5ec;
+  --border-strong: #d8d5e0;
   --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
+  --accent: #8b3bff;
+  --accent-strong: #7a2bef;
+  --accent-contrast: #ffffff;
+  --accent-bg: rgba(139, 59, 255, 0.09);
+  --accent-border: rgba(139, 59, 255, 0.45);
+  --accent-grad: linear-gradient(140deg, #9d54ff 0%, #7a2bef 100%);
   --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --focus-ring: 0 0 0 3px rgba(139, 59, 255, 0.22);
+  --shadow-sm: 0 1px 2px rgba(20, 18, 26, 0.06), 0 1px 1px rgba(20, 18, 26, 0.04);
+  --shadow-md:
+    0 4px 14px -3px rgba(20, 18, 26, 0.12), 0 2px 6px -2px rgba(20, 18, 26, 0.08);
+  --shadow-lg:
+    0 18px 40px -12px rgba(20, 18, 26, 0.2),
+    0 8px 16px -8px rgba(20, 18, 26, 0.12);
+  --shadow-focused:
+    0 24px 50px -12px rgba(122, 43, 239, 0.28),
+    0 8px 20px -8px rgba(20, 18, 26, 0.18);
   color-scheme: light;
 }
 
 /* Named theme: explicit dark */
 [data-theme="dark"] {
-  --text: #9ca3af;
-  --text-h: #f3f4f6;
-  --bg: #16171d;
-  --border: #2e303a;
-  --code-bg: #1f2028;
-  --accent: #c084fc;
-  --accent-bg: rgba(192, 132, 252, 0.15);
-  --accent-border: rgba(192, 132, 252, 0.5);
+  --text: #a09bad;
+  --text-h: #f4f2f8;
+  --bg: #14131a;
+  --surface: #1c1b24;
+  --surface-2: #24222f;
+  --border: #2c2a38;
+  --border-strong: #3b3949;
+  --code-bg: #201f2a;
+  --accent: #b57bff;
+  --accent-strong: #a259ff;
+  --accent-contrast: #14121a;
+  --accent-bg: rgba(181, 123, 255, 0.14);
+  --accent-border: rgba(181, 123, 255, 0.45);
+  --accent-grad: linear-gradient(140deg, #c79bff 0%, #a259ff 100%);
   --social-bg: rgba(47, 48, 58, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  --focus-ring: 0 0 0 3px rgba(181, 123, 255, 0.26);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 1px rgba(0, 0, 0, 0.2);
+  --shadow-md:
+    0 4px 16px -3px rgba(0, 0, 0, 0.5), 0 2px 6px -2px rgba(0, 0, 0, 0.35);
+  --shadow-lg:
+    0 20px 44px -12px rgba(0, 0, 0, 0.6), 0 8px 18px -8px rgba(0, 0, 0, 0.45);
+  --shadow-focused:
+    0 26px 56px -12px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(181, 123, 255, 0.25);
   color-scheme: dark;
+}
+
+/* Global quality-of-life: honor reduced-motion everywhere at once. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

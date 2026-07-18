@@ -140,6 +140,32 @@ describe("TerritoryFormWindow", () => {
     expect(createTerritory).not.toHaveBeenCalled();
   });
 
+  it("shows a validation error instead of silently no-opping when Name is whitespace-only", async () => {
+    const { createTerritory } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Name"), "   ");
+    await user.type(screen.getByLabelText("Type"), "region");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(screen.getByText("Name is required.")).toBeInTheDocument();
+    expect(createTerritory).not.toHaveBeenCalled();
+  });
+
+  it("shows a validation error instead of silently no-opping when Type is whitespace-only", async () => {
+    const { createTerritory } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Name"), "Thornwood");
+    await user.type(screen.getByLabelText("Type"), "   ");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(screen.getByText("Type is required.")).toBeInTheDocument();
+    expect(createTerritory).not.toHaveBeenCalled();
+  });
+
   it("seeds the edit form with the territory's fields and deletes it", async () => {
     const territory: TerritoryRow = {
       id: "territory-1",

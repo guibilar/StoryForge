@@ -65,7 +65,7 @@ export function TerritoryFormWindow({
   const [createState, createTerritory] = useMutation(CreateTerritoryDocument);
   const [updateState, updateTerritory] = useMutation(UpdateTerritoryDocument);
   const [deleteState, deleteTerritory] = useMutation(DeleteTerritoryDocument);
-  const [geometryError, setGeometryError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Forms have nothing to "refresh" — only the blocking loading state
   // applies while a save is in flight.
@@ -88,7 +88,7 @@ export function TerritoryFormWindow({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setGeometryError(null);
+    setValidationError(null);
 
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -97,14 +97,28 @@ export function TerritoryFormWindow({
     const geometry = String(data.get("geometry") ?? "").trim();
     const description = String(data.get("description") ?? "").trim();
 
-    if (!name || !type || !geometry) {
+    // `required` alone doesn't stop a whitespace-only value (the browser
+    // only checks the raw value is non-empty) — check each trimmed field
+    // explicitly and surface it, instead of silently doing nothing.
+    if (!name) {
+      setValidationError("Name is required.");
+      return;
+    }
+
+    if (!type) {
+      setValidationError("Type is required.");
+      return;
+    }
+
+    if (!geometry) {
+      setValidationError("Geometry is required.");
       return;
     }
 
     try {
       JSON.parse(geometry);
     } catch {
-      setGeometryError("Geometry must be valid JSON.");
+      setValidationError("Geometry must be valid JSON.");
       return;
     }
 
@@ -140,7 +154,7 @@ export function TerritoryFormWindow({
   }
 
   const formError =
-    geometryError ??
+    validationError ??
     formatGraphQLError(
       mode.mode === "create"
         ? createState.error

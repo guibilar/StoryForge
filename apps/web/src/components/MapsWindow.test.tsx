@@ -31,10 +31,16 @@ vi.mock("./MapCanvas", () => ({
       {(props.markers ?? []).map((marker) => (
         <div key={marker.id}>
           <span>{marker.name}</span>
-          <button onClick={() => props.onEditMarker?.(marker)}>
+          <button
+            disabled={props.markerActionPending}
+            onClick={() => props.onEditMarker?.(marker)}
+          >
             Edit marker {marker.name}
           </button>
-          <button onClick={() => props.onDeleteMarker?.(marker)}>
+          <button
+            disabled={props.markerActionPending}
+            onClick={() => props.onDeleteMarker?.(marker)}
+          >
             Delete marker {marker.name}
           </button>
         </div>
@@ -120,6 +126,10 @@ function setupMocks({
   reexecuteMarkers = vi.fn(),
   reexecuteTerritories = vi.fn(),
   reexecuteMapImage = vi.fn(),
+  deleteMarkerFetching = false,
+  deleteMarkerError = undefined as { graphQLErrors: unknown[] } | undefined,
+  deleteMapImageFetching = false,
+  deleteMapImageError = undefined as { graphQLErrors: unknown[] } | undefined,
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === MeDocument) {
@@ -175,7 +185,11 @@ function setupMocks({
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === DeleteMarkerDocument) {
       return [
-        { fetching: false, error: undefined, stale: false },
+        {
+          fetching: deleteMarkerFetching,
+          error: deleteMarkerError,
+          stale: false,
+        },
         deleteMarker,
       ];
     }
@@ -189,7 +203,11 @@ function setupMocks({
 
     if (document === DeleteMapImageDocument) {
       return [
-        { fetching: false, error: undefined, stale: false },
+        {
+          fetching: deleteMapImageFetching,
+          error: deleteMapImageError,
+          stale: false,
+        },
         deleteMapImage,
       ];
     }
@@ -471,5 +489,125 @@ describe("MapsWindow", () => {
     expect(reexecuteMapImage).toHaveBeenCalledWith({
       requestPolicy: "network-only",
     });
+  });
+
+  it("rejects an oversized file client-side without calling uploadMapImage", async () => {
+    const { uploadMapImage } = setupMocks();
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    const oversizedFile = new File(
+      [new Uint8Array(6 * 1024 * 1024)],
+      "huge-map.png",
+      { type: "image/png" },
+    );
+    const input = document.querySelector('input[type="file"]');
+
+    await user.upload(input as HTMLInputElement, oversizedFile);
+
+    expect(
+      screen.getByText("File size exceeds the maximum limit of 5MB."),
+    ).toBeInTheDocument();
+    expect(uploadMapImage).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an error when deleting a marker fails, instead of failing silently", async () => {
+    const { deleteMarker, reexecuteMarkers } = setupMocks({
+      deleteMarker: vi.fn().mockResolvedValue({ data: undefined }),
+      deleteMarkerError: {
+        graphQLErrors: [{ message: "You are not allowed to do that." }],
+      } as never,
+    });
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(
+      screen.getByRole("button", { name: "Delete marker Old Mill" }),
+    );
+
+    expect(deleteMarker).toHaveBeenCalledWith({ id: "marker-1" });
+    expect(
+      screen.getByText("You are not allowed to do that."),
+    ).toBeInTheDocument();
+    expect(reexecuteMarkers).not.toHaveBeenCalled();
+  });
+
+  it("disables marker actions on the canvas while a delete is in flight", () => {
+    setupMocks({ deleteMarkerFetching: true });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.getByRole("button", { name: "Delete marker Old Mill" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Edit marker Old Mill" }),
+    ).toBeDisabled();
+  });
+
+  it("surfaces an error when removing the map image fails, instead of failing silently", async () => {
+    const { deleteMapImage, reexecuteMapImage } = setupMocks({
+      mapImage: {
+        id: "map-image-1",
+        url: "/uploads/camp-1/map.png",
+        fileName: "map.png",
+        width: 2000,
+        height: 1500,
+      },
+      deleteMapImage: vi.fn().mockResolvedValue({ data: undefined }),
+      deleteMapImageError: {
+        graphQLErrors: [{ message: "Map image not found." }],
+      } as never,
+    });
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "Remove Map Image" }));
+
+    expect(deleteMapImage).toHaveBeenCalledWith({ campaignId: "camp-1" });
+    expect(screen.getByText("Map image not found.")).toBeInTheDocument();
+    expect(reexecuteMapImage).not.toHaveBeenCalled();
+  });
+
+  it("disables Remove Map Image while a removal is in flight", () => {
+    setupMocks({
+      mapImage: {
+        id: "map-image-1",
+        url: "/uploads/camp-1/map.png",
+        fileName: "map.png",
+        width: 2000,
+        height: 1500,
+      },
+      deleteMapImageFetching: true,
+    });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.getByRole("button", { name: "Remove Map Image" }),
+    ).toBeDisabled();
+  });
+
+  it("skips a territory with malformed geometry JSON instead of crashing", () => {
+    setupMocks({
+      territoryList: [
+        ...territories,
+        {
+          id: "territory-bad",
+          name: "Corrupted",
+          type: "region",
+          geometry: "{not-json",
+          description: null,
+        },
+      ],
+    });
+    setupDesktopWindows();
+
+    expect(() => renderWindow()).not.toThrow();
+    expect(screen.getByText("Territory Thornwood")).toBeInTheDocument();
+    expect(screen.queryByText("Territory Corrupted")).not.toBeInTheDocument();
   });
 });

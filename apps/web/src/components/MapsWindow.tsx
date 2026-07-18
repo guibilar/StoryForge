@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
@@ -25,6 +25,11 @@ import type { MarkerRow } from "./MarkerFormWindow";
 import { TerritoryFormWindow } from "./TerritoryFormWindow";
 import type { TerritoryRow } from "./TerritoryFormWindow";
 import styles from "./MapsWindow.module.css";
+
+// Mirrors LocalImageStore's MAX_BYTES (apps/api/src/modules/entities/infrastructure/LocalImageStore.ts)
+// — checking client-side first avoids uploading a large file in full only
+// to have the server reject it afterwards.
+const MAX_MAP_IMAGE_BYTES = 5 * 1024 * 1024;
 
 // Fetches and renders a campaign's markers/territories on top of KAN-50's
 // MapCanvas, plus (for campaign writers) the create/edit forms for each —
@@ -64,11 +69,16 @@ export function MapsWindow() {
     pause: !campaignId,
   });
 
-  const [, deleteMarker] = useMutation(DeleteMarkerDocument);
+  const [deleteMarkerState, deleteMarker] = useMutation(DeleteMarkerDocument);
   const [uploadMapImageState, uploadMapImage] = useMutation(
     UploadMapImageDocument,
   );
-  const [, deleteMapImage] = useMutation(DeleteMapImageDocument);
+  const [deleteMapImageState, deleteMapImage] = useMutation(
+    DeleteMapImageDocument,
+  );
+  const [uploadValidationError, setUploadValidationError] = useState<
+    string | null
+  >(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { openAddEditWindow: openMarkerWindow } = useAddEditWindow({
@@ -100,17 +110,31 @@ export function MapsWindow() {
     () => territoriesData?.territories ?? [],
     [territoriesData],
   );
-  const mapTerritories: MapTerritoryShape[] = useMemo(
-    () =>
-      territories.map((territory) => ({
+  const mapTerritories: MapTerritoryShape[] = useMemo(() => {
+    const shapes: MapTerritoryShape[] = [];
+    for (const territory of territories) {
+      let geometry: Record<string, unknown>;
+      try {
+        geometry = JSON.parse(territory.geometry) as Record<string, unknown>;
+      } catch {
+        // Geometry is validated as JSON server-side at write time, so this
+        // shouldn't happen — but rendering must not crash the whole window
+        // (there's no error boundary in apps/web) over one bad row.
+        console.error(
+          `Territory ${territory.id} has geometry that isn't valid JSON; skipping it on the map.`,
+        );
+        continue;
+      }
+      shapes.push({
         id: territory.id,
         name: territory.name,
         type: territory.type,
         description: territory.description,
-        geometry: JSON.parse(territory.geometry) as Record<string, unknown>,
-      })),
-    [territories],
-  );
+        geometry,
+      });
+    }
+    return shapes;
+  }, [territories]);
   const mapImage = mapImageData?.mapImage ?? null;
   const imageOverlay = mapImage
     ? { ...mapImage, url: resolveUploadUrl(mapImage.url) }
@@ -129,6 +153,11 @@ export function MapsWindow() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || !campaignId) {
+      return;
+    }
+    setUploadValidationError(null);
+    if (file.size > MAX_MAP_IMAGE_BYTES) {
+      setUploadValidationError("File size exceeds the maximum limit of 5MB.");
       return;
     }
     const result = await uploadMapImage({ campaignId, file });
@@ -242,7 +271,11 @@ export function MapsWindow() {
     return <p>{formatGraphQLError(error) ?? "Unable to load the map."}</p>;
   }
 
-  const uploadError = formatGraphQLError(uploadMapImageState.error);
+  const actionError =
+    uploadValidationError ??
+    formatGraphQLError(uploadMapImageState.error) ??
+    formatGraphQLError(deleteMarkerState.error) ??
+    formatGraphQLError(deleteMapImageState.error);
 
   return (
     <div className={styles.wrap}>
@@ -251,6 +284,7 @@ export function MapsWindow() {
           markers={markers}
           territories={mapTerritories}
           imageOverlay={imageOverlay}
+          markerActionPending={deleteMarkerState.fetching}
           onEditMarker={openEditMarkerWindow}
           onDeleteMarker={handleDeleteMarker}
           onTerritoryClick={isWriter ? openEditTerritoryWindow : undefined}
@@ -287,12 +321,13 @@ export function MapsWindow() {
             <Button
               type="button"
               variant="secondary"
+              disabled={deleteMapImageState.fetching}
               onClick={handleRemoveMapImage}
             >
               Remove Map Image
             </Button>
           ) : null}
-          {uploadError ? <FormError>{uploadError}</FormError> : null}
+          {actionError ? <FormError>{actionError}</FormError> : null}
         </div>
       ) : null}
     </div>

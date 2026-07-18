@@ -24,6 +24,14 @@ export interface RehydrateMarkerProps {
 // Entity — a marker can label a place ("Old Mill", "Ambush site") without
 // there being a corresponding world-data Entity for it. Linking a marker to
 // an Entity is a decision for a future ticket, not implied by this one.
+//
+// lat/lng are coordinates in whatever CRS the campaign's map is currently
+// using, not necessarily real-world geographic degrees: under the default
+// tile layer (KAN-50) they are geographic lat/lng, but under a campaign's
+// custom map image (KAN-52, Leaflet CRS.Simple) they are pixel coordinates,
+// which routinely exceed ±90/±180 for any reasonably-sized image. Only
+// finiteness is validated here — a real range would make markers unusable
+// on custom map images.
 export class Marker {
   private constructor(
     private readonly idValue: MarkerId,
@@ -133,14 +141,12 @@ export class Marker {
   }
 
   private validatePosition(lat: number, lng: number): void {
-    if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
-      throw new ValidationError("Marker latitude must be between -90 and 90.");
+    if (!Number.isFinite(lat)) {
+      throw new ValidationError("Marker latitude must be a finite number.");
     }
 
-    if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
-      throw new ValidationError(
-        "Marker longitude must be between -180 and 180.",
-      );
+    if (!Number.isFinite(lng)) {
+      throw new ValidationError("Marker longitude must be a finite number.");
     }
   }
 

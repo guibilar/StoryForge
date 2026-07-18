@@ -95,6 +95,18 @@ describe("MapCanvas", () => {
     expect(onDeleteMarker).toHaveBeenCalledWith(marker);
   });
 
+  it("disables the marker's Edit/Delete buttons while markerActionPending is true", () => {
+    const { container } = render(
+      <MapCanvas markers={[marker]} markerActionPending />,
+    );
+
+    const icon = container.querySelector<HTMLElement>(".leaflet-marker-icon");
+    fireEvent.click(icon!);
+
+    expect(screen.getByRole("button", { name: "Edit" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+  });
+
   it("renders a Leaflet layer for each territory and reports clicks", () => {
     const onTerritoryClick = vi.fn();
     const { container } = render(

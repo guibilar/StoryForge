@@ -65,6 +65,59 @@ function renderEdit(marker: MarkerRow, onSaved = vi.fn(), onClose = vi.fn()) {
 }
 
 describe("MarkerFormWindow", () => {
+  it("defaults the coordinates to 0 when create mode has no seed values", () => {
+    setupMocks();
+    renderCreate();
+
+    expect(screen.getByLabelText("Latitude")).toHaveValue(0);
+    expect(screen.getByLabelText("Longitude")).toHaveValue(0);
+  });
+
+  it("prefills the coordinates from create-mode seed values", () => {
+    setupMocks();
+    render(
+      <MarkerFormWindow
+        campaignId="camp-1"
+        mode={{ mode: "create", initial: { lat: 51.505, lng: -0.09 } }}
+        onSaved={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByLabelText("Latitude")).toHaveValue(51.505);
+    expect(screen.getByLabelText("Longitude")).toHaveValue(-0.09);
+    // Only the coordinates are seeded — the user still names the marker.
+    expect(screen.getByLabelText("Name")).toHaveValue("");
+  });
+
+  it("accepts seeded pixel coordinates from a custom map image", async () => {
+    const { createMarker } = setupMocks();
+    const user = userEvent.setup();
+    render(
+      <MarkerFormWindow
+        campaignId="camp-1"
+        mode={{ mode: "create", initial: { lat: 1387.5, lng: 1902.25 } }}
+        onSaved={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByLabelText("Name"), "Watchtower");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    // Far outside geographic ranges — these must survive to the mutation
+    // rather than being clamped or rejected.
+    expect(createMarker).toHaveBeenCalledWith({
+      input: {
+        campaignId: "camp-1",
+        name: "Watchtower",
+        lat: 1387.5,
+        lng: 1902.25,
+        description: null,
+      },
+    });
+  });
+
   it("creates a marker and calls onSaved/onClose", async () => {
     const { createMarker } = setupMocks();
     const user = userEvent.setup();

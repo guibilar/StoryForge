@@ -60,7 +60,11 @@ vi.mock("./MapCanvas", () => ({
         </button>
       ) : null}
       {props.onPlaceMarker ? (
-        <button onClick={() => props.onPlaceMarker?.({ lat: 12, lng: 34 })}>
+        <button
+          onClick={() =>
+            props.onPlaceMarker?.({ lat: 51.5051234567, lng: -0.0901234567 })
+          }
+        >
           Place marker
         </button>
       ) : null}
@@ -357,8 +361,72 @@ describe("MapsWindow", () => {
 
     expect(screen.getByTestId("draw-mode")).toHaveTextContent("none");
     expect(openWindow).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "marker-form:new", title: "New Marker" }),
+      expect.objectContaining({
+        id: "marker-form:new:1@51.505123,-0.090123",
+        title: "New Marker",
+      }),
     );
+  });
+
+  it("gives each placement its own window even when the same spot is clicked twice", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    const place = screen.getByRole("button", { name: "Place marker" });
+    await user.click(place);
+    await user.click(place);
+
+    // Identical coordinates both times — without the counter these would
+    // collide and the second form would replace the first, discarding
+    // whatever had been typed into it.
+    const ids = openWindow.mock.calls.map(
+      (call) => (call[0] as { id: string }).id,
+    );
+    expect(ids).toEqual([
+      "marker-form:new:1@51.505123,-0.090123",
+      "marker-form:new:2@51.505123,-0.090123",
+    ]);
+  });
+
+  it("seeds the create marker form with the clicked coordinates", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "Place marker" }));
+
+    const request = openWindow.mock.calls[0][0] as {
+      render: () => { props: { mode: { initial?: unknown } } };
+    };
+    expect(request.render().props.mode).toEqual({
+      mode: "create",
+      initial: { lat: 51.505123, lng: -0.090123 },
+    });
+  });
+
+  it("opens an unseeded create marker window from the + Add Marker button", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByRole("button", { name: "+ Add Marker" }));
+
+    // The click handler must not leak its MouseEvent into the position
+    // parameter — the id stays unsuffixed and nothing is prefilled.
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "marker-form:new" }),
+    );
+    const request = openWindow.mock.calls[0][0] as {
+      render: () => { props: { mode: { initial?: unknown } } };
+    };
+    expect(request.render().props.mode).toEqual({
+      mode: "create",
+      initial: undefined,
+    });
   });
 
   it("opens a create territory window when + Add Territory is clicked", async () => {

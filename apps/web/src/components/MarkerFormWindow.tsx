@@ -47,7 +47,11 @@ export function MarkerFormWindow({
   // applies while a save is in flight.
   useWindowChromeSync(createState.fetching || updateState.fetching);
 
-  const initialMarker = mode.mode === "edit" ? mode.item : null;
+  // In create mode these are the seed values from whatever opened the form
+  // (map click coordinates, KAN-114) rather than a saved row, so every field
+  // is optional and the plain "+ Add Marker" button still gets the defaults.
+  const initialMarker: Partial<MarkerRow> | null =
+    mode.mode === "edit" ? mode.item : (mode.initial ?? null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

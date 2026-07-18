@@ -2,13 +2,28 @@ import type { ReactNode } from "react";
 
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
 
-export type AddEditMode<T> = { mode: "create" } | { mode: "edit"; item: T };
+export type AddEditMode<T> =
+  | {
+      mode: "create";
+      // Seed values for a form opened from a gesture that already knows some
+      // of the answer — e.g. clicking the map to place a marker supplies its
+      // coordinates (KAN-114). The form still owns which fields it reads.
+      initial?: Partial<T>;
+      // Distinguishes one create window from another. Without it every
+      // create collapses onto `${idPrefix}:new`, so a second create would
+      // silently reuse the first window and discard whatever was typed
+      // there. Callers that can open several creates in a row must pass
+      // something that varies between them.
+      key?: string;
+    }
+  | { mode: "edit"; item: T };
 
 export interface UseAddEditWindowOptions {
-  // Window ids become `${idPrefix}:new` or `${idPrefix}:${item.id}`, so
-  // create and each concurrently-edited item get independent, positioned
-  // windows — instead of one dialog reused for every mode — and fall under
-  // the existing layout/preset system like any other window (KAN-101).
+  // Window ids become `${idPrefix}:new`, `${idPrefix}:new:${key}`, or
+  // `${idPrefix}:${item.id}`, so create and each concurrently-edited item
+  // get independent, positioned windows — instead of one dialog reused for
+  // every mode — and fall under the existing layout/preset system like any
+  // other window (KAN-101).
   idPrefix: string;
   width: number;
   height: number;
@@ -31,7 +46,12 @@ export function useAddEditWindow({
     title: string,
     render: (close: () => void) => ReactNode,
   ) {
-    const key = mode.mode === "edit" ? mode.item.id : "new";
+    const key =
+      mode.mode === "edit"
+        ? mode.item.id
+        : mode.key
+          ? `new:${mode.key}`
+          : "new";
     const id = `${idPrefix}:${key}`;
     const offset = (Object.keys(dynamicWindows).length % 6) * 24;
 

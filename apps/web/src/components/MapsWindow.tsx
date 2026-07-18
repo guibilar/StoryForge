@@ -22,6 +22,7 @@ import { MapCanvas } from "./MapCanvas";
 import type {
   MapDrawMode,
   MapMarkerPoint,
+  MapPosition,
   MapTerritoryShape,
 } from "./MapCanvas";
 import { MarkerFormWindow } from "./MarkerFormWindow";
@@ -34,6 +35,12 @@ import styles from "./MapsWindow.module.css";
 // — checking client-side first avoids uploading a large file in full only
 // to have the server reject it afterwards.
 const MAX_MAP_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const COORDINATE_DECIMALS = 6;
+
+function roundCoordinate(value: number): number {
+  return Number(value.toFixed(COORDINATE_DECIMALS));
+}
 
 // Fetches and renders a campaign's markers/territories on top of KAN-50's
 // MapCanvas, plus (for campaign writers) the create/edit forms for each —
@@ -84,6 +91,10 @@ export function MapsWindow() {
     string | null
   >(null);
   const [drawMode, setDrawMode] = useState<MapDrawMode>("none");
+  // Coordinates alone don't make a placement unique — clicking the same spot
+  // twice rounds to the same pair — so a counter guarantees each open create
+  // form gets its own window instead of replacing the previous one.
+  const placementCountRef = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { openAddEditWindow: openMarkerWindow } = useAddEditWindow({
@@ -181,25 +192,46 @@ export function MapsWindow() {
     }
   }
 
-  function openCreateMarkerWindow() {
+  function openCreateMarkerWindow(position?: MapPosition) {
     if (!campaignId) {
       return;
     }
-    openMarkerWindow<MarkerRow>({ mode: "create" }, "New Marker", (close) => (
-      <MarkerFormWindow
-        campaignId={campaignId}
-        mode={{ mode: "create" }}
-        onSaved={refetch}
-        onClose={close}
-      />
-    ));
+    // Leaflet reports full float precision; six decimals is ~0.1m of
+    // geographic accuracy and still sub-pixel on a custom map image, so it
+    // reads as a coordinate rather than a wall of digits in the form.
+    const initial = position
+      ? {
+          lat: roundCoordinate(position.lat),
+          lng: roundCoordinate(position.lng),
+        }
+      : undefined;
+    // Two placements in a row must not land on the same window id, or the
+    // second silently replaces the first along with anything typed into it.
+    // The coordinates are in the id for readability; the counter is what
+    // actually makes it unique when the same spot is clicked twice.
+    const key = initial
+      ? `${++placementCountRef.current}@${initial.lat},${initial.lng}`
+      : undefined;
+
+    openMarkerWindow<MarkerRow>(
+      { mode: "create", initial, key },
+      "New Marker",
+      (close) => (
+        <MarkerFormWindow
+          campaignId={campaignId}
+          mode={{ mode: "create", initial }}
+          onSaved={refetch}
+          onClose={close}
+        />
+      ),
+    );
   }
 
   // Placing a point is a one-shot gesture: disarm first so a stray second
   // click doesn't open a second form behind the one just opened.
-  function handlePlaceMarker() {
+  function handlePlaceMarker(position: MapPosition) {
     setDrawMode("none");
-    openCreateMarkerWindow();
+    openCreateMarkerWindow(position);
   }
 
   function openEditMarkerWindow(marker: MapMarkerPoint) {
@@ -307,7 +339,9 @@ export function MapsWindow() {
       </div>
       {isWriter ? (
         <div className={styles.actions}>
-          <Button type="button" onClick={openCreateMarkerWindow}>
+          {/* Wrapped rather than passed directly: onClick would otherwise
+              hand the MouseEvent to the position parameter. */}
+          <Button type="button" onClick={() => openCreateMarkerWindow()}>
             + Add Marker
           </Button>
           <Button

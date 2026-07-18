@@ -1,0 +1,7 @@
+extend type Query {
+  marker(id: ID!): Marker
+  markers(campaignId: ID!): [Marker!]!
+  territory(id: ID!): Territory
+  territories(campaignId: ID!): [Territory!]!
+  mapImage(campaignId: ID!): MapImage
+}

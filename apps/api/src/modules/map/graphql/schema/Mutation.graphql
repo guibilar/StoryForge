@@ -1,0 +1,42 @@
+input CreateMarkerInput {
+  campaignId: ID!
+  name: String!
+  lat: Float!
+  lng: Float!
+  description: String
+}
+
+input UpdateMarkerInput {
+  id: ID!
+  name: String
+  lat: Float
+  lng: Float
+  description: String
+}
+
+input CreateTerritoryInput {
+  campaignId: ID!
+  name: String!
+  type: String!
+  geometry: String!
+  description: String
+}
+
+input UpdateTerritoryInput {
+  id: ID!
+  name: String
+  type: String
+  geometry: String
+  description: String
+}
+
+extend type Mutation {
+  createMarker(input: CreateMarkerInput!): Marker!
+  updateMarker(input: UpdateMarkerInput!): Marker!
+  deleteMarker(id: ID!): Boolean!
+  createTerritory(input: CreateTerritoryInput!): Territory!
+  updateTerritory(input: UpdateTerritoryInput!): Territory!
+  deleteTerritory(id: ID!): Boolean!
+  uploadMapImage(campaignId: ID!, file: Upload!): MapImage!
+  deleteMapImage(campaignId: ID!): Boolean!
+}

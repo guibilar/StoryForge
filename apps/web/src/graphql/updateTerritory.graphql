@@ -1,0 +1,9 @@
+mutation UpdateTerritory($input: UpdateTerritoryInput!) {
+  updateTerritory(input: $input) {
+    id
+    name
+    type
+    geometry
+    description
+  }
+}

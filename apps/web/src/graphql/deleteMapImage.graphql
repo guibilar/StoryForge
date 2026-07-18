@@ -1,0 +1,3 @@
+mutation DeleteMapImage($campaignId: ID!) {
+  deleteMapImage(campaignId: $campaignId)
+}

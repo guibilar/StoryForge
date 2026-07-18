@@ -427,6 +427,9 @@ export const ModelName = {
   Attachment: "Attachment",
   CampaignMember: "CampaignMember",
   WorkspaceState: "WorkspaceState",
+  Marker: "Marker",
+  Territory: "Territory",
+  MapImage: "MapImage",
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -464,7 +467,10 @@ export type TypeMap<
       | "noteLink"
       | "attachment"
       | "campaignMember"
-      | "workspaceState";
+      | "workspaceState"
+      | "marker"
+      | "territory"
+      | "mapImage";
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
@@ -1684,6 +1690,234 @@ export type TypeMap<
         };
       };
     };
+    Marker: {
+      payload: Prisma.$MarkerPayload<ExtArgs>;
+      fields: Prisma.MarkerFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.MarkerFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.MarkerFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload>;
+        };
+        findFirst: {
+          args: Prisma.MarkerFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.MarkerFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload>;
+        };
+        findMany: {
+          args: Prisma.MarkerFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload>[];
+        };
+        create: {
+          args: Prisma.MarkerCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload>;
+        };
+        createMany: {
+          args: Prisma.MarkerCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.MarkerCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload>[];
+        };
+        delete: {
+          args: Prisma.MarkerDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload>;
+        };
+        update: {
+          args: Prisma.MarkerUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload>;
+        };
+        deleteMany: {
+          args: Prisma.MarkerDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.MarkerUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.MarkerUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload>[];
+        };
+        upsert: {
+          args: Prisma.MarkerUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarkerPayload>;
+        };
+        aggregate: {
+          args: Prisma.MarkerAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMarker>;
+        };
+        groupBy: {
+          args: Prisma.MarkerGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.MarkerGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.MarkerCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.MarkerCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    Territory: {
+      payload: Prisma.$TerritoryPayload<ExtArgs>;
+      fields: Prisma.TerritoryFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.TerritoryFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.TerritoryFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload>;
+        };
+        findFirst: {
+          args: Prisma.TerritoryFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.TerritoryFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload>;
+        };
+        findMany: {
+          args: Prisma.TerritoryFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload>[];
+        };
+        create: {
+          args: Prisma.TerritoryCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload>;
+        };
+        createMany: {
+          args: Prisma.TerritoryCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.TerritoryCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload>[];
+        };
+        delete: {
+          args: Prisma.TerritoryDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload>;
+        };
+        update: {
+          args: Prisma.TerritoryUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload>;
+        };
+        deleteMany: {
+          args: Prisma.TerritoryDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.TerritoryUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.TerritoryUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload>[];
+        };
+        upsert: {
+          args: Prisma.TerritoryUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerritoryPayload>;
+        };
+        aggregate: {
+          args: Prisma.TerritoryAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTerritory>;
+        };
+        groupBy: {
+          args: Prisma.TerritoryGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.TerritoryGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.TerritoryCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.TerritoryCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    MapImage: {
+      payload: Prisma.$MapImagePayload<ExtArgs>;
+      fields: Prisma.MapImageFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.MapImageFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.MapImageFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        findFirst: {
+          args: Prisma.MapImageFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.MapImageFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        findMany: {
+          args: Prisma.MapImageFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>[];
+        };
+        create: {
+          args: Prisma.MapImageCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        createMany: {
+          args: Prisma.MapImageCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.MapImageCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>[];
+        };
+        delete: {
+          args: Prisma.MapImageDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        update: {
+          args: Prisma.MapImageUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        deleteMany: {
+          args: Prisma.MapImageDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.MapImageUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.MapImageUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>[];
+        };
+        upsert: {
+          args: Prisma.MapImageUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapImagePayload>;
+        };
+        aggregate: {
+          args: Prisma.MapImageAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMapImage>;
+        };
+        groupBy: {
+          args: Prisma.MapImageGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.MapImageGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.MapImageCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.MapImageCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
   };
 } & {
   other: {
@@ -1921,6 +2155,50 @@ export const WorkspaceStateScalarFieldEnum = {
 
 export type WorkspaceStateScalarFieldEnum =
   (typeof WorkspaceStateScalarFieldEnum)[keyof typeof WorkspaceStateScalarFieldEnum];
+
+export const MarkerScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  name: "name",
+  lat: "lat",
+  lng: "lng",
+  description: "description",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type MarkerScalarFieldEnum =
+  (typeof MarkerScalarFieldEnum)[keyof typeof MarkerScalarFieldEnum];
+
+export const TerritoryScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  name: "name",
+  type: "type",
+  geometry: "geometry",
+  description: "description",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type TerritoryScalarFieldEnum =
+  (typeof TerritoryScalarFieldEnum)[keyof typeof TerritoryScalarFieldEnum];
+
+export const MapImageScalarFieldEnum = {
+  id: "id",
+  campaignId: "campaignId",
+  url: "url",
+  fileName: "fileName",
+  mimeType: "mimeType",
+  sizeBytes: "sizeBytes",
+  width: "width",
+  height: "height",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type MapImageScalarFieldEnum =
+  (typeof MapImageScalarFieldEnum)[keyof typeof MapImageScalarFieldEnum];
 
 export const SortOrder = {
   asc: "asc",
@@ -2223,6 +2501,9 @@ export type GlobalOmitConfig = {
   attachment?: Prisma.AttachmentOmit;
   campaignMember?: Prisma.CampaignMemberOmit;
   workspaceState?: Prisma.WorkspaceStateOmit;
+  marker?: Prisma.MarkerOmit;
+  territory?: Prisma.TerritoryOmit;
+  mapImage?: Prisma.MapImageOmit;
 };
 
 /* Types for Logging */

@@ -52,6 +52,10 @@ import {
   typeDefs as workspaceTypeDefs,
   resolvers as workspaceResolvers,
 } from "../modules/workspace/graphql";
+import {
+  typeDefs as mapTypeDefs,
+  resolvers as mapResolvers,
+} from "../modules/map/graphql";
 
 const rootTypeDefs = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), "schema", "Root.graphql"),
@@ -73,6 +77,7 @@ export const schema = createSchema({
     ...sessionTypeDefs,
     ...eventTypeDefs,
     ...workspaceTypeDefs,
+    ...mapTypeDefs,
   ],
   resolvers: [
     entityResolvers,
@@ -87,5 +92,6 @@ export const schema = createSchema({
     sessionResolvers,
     eventResolvers,
     workspaceResolvers,
+    mapResolvers,
   ],
 });

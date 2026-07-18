@@ -202,6 +202,12 @@ export type CampaignWhereInput = {
   sessions?: Prisma.SessionListRelationFilter;
   events?: Prisma.EventListRelationFilter;
   workspaceStates?: Prisma.WorkspaceStateListRelationFilter;
+  markers?: Prisma.MarkerListRelationFilter;
+  territories?: Prisma.TerritoryListRelationFilter;
+  mapImage?: Prisma.XOR<
+    Prisma.MapImageNullableScalarRelationFilter,
+    Prisma.MapImageWhereInput
+  > | null;
 };
 
 export type CampaignOrderByWithRelationInput = {
@@ -219,6 +225,9 @@ export type CampaignOrderByWithRelationInput = {
   sessions?: Prisma.SessionOrderByRelationAggregateInput;
   events?: Prisma.EventOrderByRelationAggregateInput;
   workspaceStates?: Prisma.WorkspaceStateOrderByRelationAggregateInput;
+  markers?: Prisma.MarkerOrderByRelationAggregateInput;
+  territories?: Prisma.TerritoryOrderByRelationAggregateInput;
+  mapImage?: Prisma.MapImageOrderByWithRelationInput;
 };
 
 export type CampaignWhereUniqueInput = Prisma.AtLeast<
@@ -241,6 +250,12 @@ export type CampaignWhereUniqueInput = Prisma.AtLeast<
     sessions?: Prisma.SessionListRelationFilter;
     events?: Prisma.EventListRelationFilter;
     workspaceStates?: Prisma.WorkspaceStateListRelationFilter;
+    markers?: Prisma.MarkerListRelationFilter;
+    territories?: Prisma.TerritoryListRelationFilter;
+    mapImage?: Prisma.XOR<
+      Prisma.MapImageNullableScalarRelationFilter,
+      Prisma.MapImageWhereInput
+    > | null;
   },
   "id" | "name"
 >;
@@ -293,6 +308,9 @@ export type CampaignCreateInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateInput = {
@@ -310,6 +328,9 @@ export type CampaignUncheckedCreateInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignUpdateInput = {
@@ -328,6 +349,9 @@ export type CampaignUpdateInput = {
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateInput = {
@@ -346,6 +370,9 @@ export type CampaignUncheckedUpdateInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateManyInput = {
@@ -633,6 +660,84 @@ export type CampaignUpdateOneRequiredWithoutWorkspaceStatesNestedInput = {
   >;
 };
 
+export type CampaignCreateNestedOneWithoutMarkersInput = {
+  create?: Prisma.XOR<
+    Prisma.CampaignCreateWithoutMarkersInput,
+    Prisma.CampaignUncheckedCreateWithoutMarkersInput
+  >;
+  connectOrCreate?: Prisma.CampaignCreateOrConnectWithoutMarkersInput;
+  connect?: Prisma.CampaignWhereUniqueInput;
+};
+
+export type CampaignUpdateOneRequiredWithoutMarkersNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.CampaignCreateWithoutMarkersInput,
+    Prisma.CampaignUncheckedCreateWithoutMarkersInput
+  >;
+  connectOrCreate?: Prisma.CampaignCreateOrConnectWithoutMarkersInput;
+  upsert?: Prisma.CampaignUpsertWithoutMarkersInput;
+  connect?: Prisma.CampaignWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.CampaignUpdateToOneWithWhereWithoutMarkersInput,
+      Prisma.CampaignUpdateWithoutMarkersInput
+    >,
+    Prisma.CampaignUncheckedUpdateWithoutMarkersInput
+  >;
+};
+
+export type CampaignCreateNestedOneWithoutTerritoriesInput = {
+  create?: Prisma.XOR<
+    Prisma.CampaignCreateWithoutTerritoriesInput,
+    Prisma.CampaignUncheckedCreateWithoutTerritoriesInput
+  >;
+  connectOrCreate?: Prisma.CampaignCreateOrConnectWithoutTerritoriesInput;
+  connect?: Prisma.CampaignWhereUniqueInput;
+};
+
+export type CampaignUpdateOneRequiredWithoutTerritoriesNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.CampaignCreateWithoutTerritoriesInput,
+    Prisma.CampaignUncheckedCreateWithoutTerritoriesInput
+  >;
+  connectOrCreate?: Prisma.CampaignCreateOrConnectWithoutTerritoriesInput;
+  upsert?: Prisma.CampaignUpsertWithoutTerritoriesInput;
+  connect?: Prisma.CampaignWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.CampaignUpdateToOneWithWhereWithoutTerritoriesInput,
+      Prisma.CampaignUpdateWithoutTerritoriesInput
+    >,
+    Prisma.CampaignUncheckedUpdateWithoutTerritoriesInput
+  >;
+};
+
+export type CampaignCreateNestedOneWithoutMapImageInput = {
+  create?: Prisma.XOR<
+    Prisma.CampaignCreateWithoutMapImageInput,
+    Prisma.CampaignUncheckedCreateWithoutMapImageInput
+  >;
+  connectOrCreate?: Prisma.CampaignCreateOrConnectWithoutMapImageInput;
+  connect?: Prisma.CampaignWhereUniqueInput;
+};
+
+export type CampaignUpdateOneRequiredWithoutMapImageNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.CampaignCreateWithoutMapImageInput,
+    Prisma.CampaignUncheckedCreateWithoutMapImageInput
+  >;
+  connectOrCreate?: Prisma.CampaignCreateOrConnectWithoutMapImageInput;
+  upsert?: Prisma.CampaignUpsertWithoutMapImageInput;
+  connect?: Prisma.CampaignWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.CampaignUpdateToOneWithWhereWithoutMapImageInput,
+      Prisma.CampaignUpdateWithoutMapImageInput
+    >,
+    Prisma.CampaignUncheckedUpdateWithoutMapImageInput
+  >;
+};
+
 export type CampaignCreateWithoutEntitiesInput = {
   id?: string;
   name: string;
@@ -647,6 +752,9 @@ export type CampaignCreateWithoutEntitiesInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutEntitiesInput = {
@@ -663,6 +771,9 @@ export type CampaignUncheckedCreateWithoutEntitiesInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutEntitiesInput = {
@@ -708,6 +819,9 @@ export type CampaignUpdateWithoutEntitiesInput = {
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutEntitiesInput = {
@@ -725,6 +839,9 @@ export type CampaignUncheckedUpdateWithoutEntitiesInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutSessionsInput = {
@@ -741,6 +858,9 @@ export type CampaignCreateWithoutSessionsInput = {
   notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutSessionsInput = {
@@ -757,6 +877,9 @@ export type CampaignUncheckedCreateWithoutSessionsInput = {
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutSessionsInput = {
@@ -802,6 +925,9 @@ export type CampaignUpdateWithoutSessionsInput = {
   notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutSessionsInput = {
@@ -819,6 +945,9 @@ export type CampaignUncheckedUpdateWithoutSessionsInput = {
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutEventsInput = {
@@ -835,6 +964,9 @@ export type CampaignCreateWithoutEventsInput = {
   notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutEventsInput = {
@@ -851,6 +983,9 @@ export type CampaignUncheckedCreateWithoutEventsInput = {
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutEventsInput = {
@@ -896,6 +1031,9 @@ export type CampaignUpdateWithoutEventsInput = {
   notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutEventsInput = {
@@ -913,6 +1051,9 @@ export type CampaignUncheckedUpdateWithoutEventsInput = {
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutTagsInput = {
@@ -929,6 +1070,9 @@ export type CampaignCreateWithoutTagsInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutTagsInput = {
@@ -945,6 +1089,9 @@ export type CampaignUncheckedCreateWithoutTagsInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutTagsInput = {
@@ -990,6 +1137,9 @@ export type CampaignUpdateWithoutTagsInput = {
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutTagsInput = {
@@ -1007,6 +1157,9 @@ export type CampaignUncheckedUpdateWithoutTagsInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutRelationshipsInput = {
@@ -1023,6 +1176,9 @@ export type CampaignCreateWithoutRelationshipsInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutRelationshipsInput = {
@@ -1039,6 +1195,9 @@ export type CampaignUncheckedCreateWithoutRelationshipsInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutRelationshipsInput = {
@@ -1084,6 +1243,9 @@ export type CampaignUpdateWithoutRelationshipsInput = {
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutRelationshipsInput = {
@@ -1101,6 +1263,9 @@ export type CampaignUncheckedUpdateWithoutRelationshipsInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutNotesInput = {
@@ -1117,6 +1282,9 @@ export type CampaignCreateWithoutNotesInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutNotesInput = {
@@ -1133,6 +1301,9 @@ export type CampaignUncheckedCreateWithoutNotesInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutNotesInput = {
@@ -1178,6 +1349,9 @@ export type CampaignUpdateWithoutNotesInput = {
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutNotesInput = {
@@ -1195,6 +1369,9 @@ export type CampaignUncheckedUpdateWithoutNotesInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutMembersInput = {
@@ -1211,6 +1388,9 @@ export type CampaignCreateWithoutMembersInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutMembersInput = {
@@ -1227,6 +1407,9 @@ export type CampaignUncheckedCreateWithoutMembersInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutMembersInput = {
@@ -1272,6 +1455,9 @@ export type CampaignUpdateWithoutMembersInput = {
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutMembersInput = {
@@ -1289,6 +1475,9 @@ export type CampaignUncheckedUpdateWithoutMembersInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignCreateWithoutWorkspaceStatesInput = {
@@ -1305,6 +1494,9 @@ export type CampaignCreateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignUncheckedCreateWithoutWorkspaceStatesInput = {
@@ -1321,6 +1513,9 @@ export type CampaignUncheckedCreateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
   events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
 };
 
 export type CampaignCreateOrConnectWithoutWorkspaceStatesInput = {
@@ -1366,6 +1561,9 @@ export type CampaignUpdateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
 };
 
 export type CampaignUncheckedUpdateWithoutWorkspaceStatesInput = {
@@ -1383,6 +1581,327 @@ export type CampaignUncheckedUpdateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
   events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
+};
+
+export type CampaignCreateWithoutMarkersInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  archivedAt?: Date | string | null;
+  entities?: Prisma.EntityCreateNestedManyWithoutCampaignInput;
+  members?: Prisma.CampaignMemberCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagCreateNestedManyWithoutCampaignInput;
+  relationships?: Prisma.RelationshipCreateNestedManyWithoutCampaignInput;
+  notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
+  sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
+  workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
+};
+
+export type CampaignUncheckedCreateWithoutMarkersInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  archivedAt?: Date | string | null;
+  entities?: Prisma.EntityUncheckedCreateNestedManyWithoutCampaignInput;
+  members?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagUncheckedCreateNestedManyWithoutCampaignInput;
+  relationships?: Prisma.RelationshipUncheckedCreateNestedManyWithoutCampaignInput;
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
+  workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
+};
+
+export type CampaignCreateOrConnectWithoutMarkersInput = {
+  where: Prisma.CampaignWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.CampaignCreateWithoutMarkersInput,
+    Prisma.CampaignUncheckedCreateWithoutMarkersInput
+  >;
+};
+
+export type CampaignUpsertWithoutMarkersInput = {
+  update: Prisma.XOR<
+    Prisma.CampaignUpdateWithoutMarkersInput,
+    Prisma.CampaignUncheckedUpdateWithoutMarkersInput
+  >;
+  create: Prisma.XOR<
+    Prisma.CampaignCreateWithoutMarkersInput,
+    Prisma.CampaignUncheckedCreateWithoutMarkersInput
+  >;
+  where?: Prisma.CampaignWhereInput;
+};
+
+export type CampaignUpdateToOneWithWhereWithoutMarkersInput = {
+  where?: Prisma.CampaignWhereInput;
+  data: Prisma.XOR<
+    Prisma.CampaignUpdateWithoutMarkersInput,
+    Prisma.CampaignUncheckedUpdateWithoutMarkersInput
+  >;
+};
+
+export type CampaignUpdateWithoutMarkersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  archivedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  entities?: Prisma.EntityUpdateManyWithoutCampaignNestedInput;
+  members?: Prisma.CampaignMemberUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUpdateManyWithoutCampaignNestedInput;
+  relationships?: Prisma.RelationshipUpdateManyWithoutCampaignNestedInput;
+  notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
+  sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
+  workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
+};
+
+export type CampaignUncheckedUpdateWithoutMarkersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  archivedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  entities?: Prisma.EntityUncheckedUpdateManyWithoutCampaignNestedInput;
+  members?: Prisma.CampaignMemberUncheckedUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUncheckedUpdateManyWithoutCampaignNestedInput;
+  relationships?: Prisma.RelationshipUncheckedUpdateManyWithoutCampaignNestedInput;
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
+  workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
+};
+
+export type CampaignCreateWithoutTerritoriesInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  archivedAt?: Date | string | null;
+  entities?: Prisma.EntityCreateNestedManyWithoutCampaignInput;
+  members?: Prisma.CampaignMemberCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagCreateNestedManyWithoutCampaignInput;
+  relationships?: Prisma.RelationshipCreateNestedManyWithoutCampaignInput;
+  notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
+  sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
+  workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageCreateNestedOneWithoutCampaignInput;
+};
+
+export type CampaignUncheckedCreateWithoutTerritoriesInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  archivedAt?: Date | string | null;
+  entities?: Prisma.EntityUncheckedCreateNestedManyWithoutCampaignInput;
+  members?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagUncheckedCreateNestedManyWithoutCampaignInput;
+  relationships?: Prisma.RelationshipUncheckedCreateNestedManyWithoutCampaignInput;
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
+  workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  mapImage?: Prisma.MapImageUncheckedCreateNestedOneWithoutCampaignInput;
+};
+
+export type CampaignCreateOrConnectWithoutTerritoriesInput = {
+  where: Prisma.CampaignWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.CampaignCreateWithoutTerritoriesInput,
+    Prisma.CampaignUncheckedCreateWithoutTerritoriesInput
+  >;
+};
+
+export type CampaignUpsertWithoutTerritoriesInput = {
+  update: Prisma.XOR<
+    Prisma.CampaignUpdateWithoutTerritoriesInput,
+    Prisma.CampaignUncheckedUpdateWithoutTerritoriesInput
+  >;
+  create: Prisma.XOR<
+    Prisma.CampaignCreateWithoutTerritoriesInput,
+    Prisma.CampaignUncheckedCreateWithoutTerritoriesInput
+  >;
+  where?: Prisma.CampaignWhereInput;
+};
+
+export type CampaignUpdateToOneWithWhereWithoutTerritoriesInput = {
+  where?: Prisma.CampaignWhereInput;
+  data: Prisma.XOR<
+    Prisma.CampaignUpdateWithoutTerritoriesInput,
+    Prisma.CampaignUncheckedUpdateWithoutTerritoriesInput
+  >;
+};
+
+export type CampaignUpdateWithoutTerritoriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  archivedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  entities?: Prisma.EntityUpdateManyWithoutCampaignNestedInput;
+  members?: Prisma.CampaignMemberUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUpdateManyWithoutCampaignNestedInput;
+  relationships?: Prisma.RelationshipUpdateManyWithoutCampaignNestedInput;
+  notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
+  sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
+  workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUpdateOneWithoutCampaignNestedInput;
+};
+
+export type CampaignUncheckedUpdateWithoutTerritoriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  archivedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  entities?: Prisma.EntityUncheckedUpdateManyWithoutCampaignNestedInput;
+  members?: Prisma.CampaignMemberUncheckedUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUncheckedUpdateManyWithoutCampaignNestedInput;
+  relationships?: Prisma.RelationshipUncheckedUpdateManyWithoutCampaignNestedInput;
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
+  workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  mapImage?: Prisma.MapImageUncheckedUpdateOneWithoutCampaignNestedInput;
+};
+
+export type CampaignCreateWithoutMapImageInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  archivedAt?: Date | string | null;
+  entities?: Prisma.EntityCreateNestedManyWithoutCampaignInput;
+  members?: Prisma.CampaignMemberCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagCreateNestedManyWithoutCampaignInput;
+  relationships?: Prisma.RelationshipCreateNestedManyWithoutCampaignInput;
+  notes?: Prisma.NoteCreateNestedManyWithoutCampaignInput;
+  sessions?: Prisma.SessionCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventCreateNestedManyWithoutCampaignInput;
+  workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutCampaignInput;
+};
+
+export type CampaignUncheckedCreateWithoutMapImageInput = {
+  id?: string;
+  name: string;
+  description?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  archivedAt?: Date | string | null;
+  entities?: Prisma.EntityUncheckedCreateNestedManyWithoutCampaignInput;
+  members?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutCampaignInput;
+  tags?: Prisma.TagUncheckedCreateNestedManyWithoutCampaignInput;
+  relationships?: Prisma.RelationshipUncheckedCreateNestedManyWithoutCampaignInput;
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCampaignInput;
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutCampaignInput;
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutCampaignInput;
+  workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutCampaignInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutCampaignInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutCampaignInput;
+};
+
+export type CampaignCreateOrConnectWithoutMapImageInput = {
+  where: Prisma.CampaignWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.CampaignCreateWithoutMapImageInput,
+    Prisma.CampaignUncheckedCreateWithoutMapImageInput
+  >;
+};
+
+export type CampaignUpsertWithoutMapImageInput = {
+  update: Prisma.XOR<
+    Prisma.CampaignUpdateWithoutMapImageInput,
+    Prisma.CampaignUncheckedUpdateWithoutMapImageInput
+  >;
+  create: Prisma.XOR<
+    Prisma.CampaignCreateWithoutMapImageInput,
+    Prisma.CampaignUncheckedCreateWithoutMapImageInput
+  >;
+  where?: Prisma.CampaignWhereInput;
+};
+
+export type CampaignUpdateToOneWithWhereWithoutMapImageInput = {
+  where?: Prisma.CampaignWhereInput;
+  data: Prisma.XOR<
+    Prisma.CampaignUpdateWithoutMapImageInput,
+    Prisma.CampaignUncheckedUpdateWithoutMapImageInput
+  >;
+};
+
+export type CampaignUpdateWithoutMapImageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  archivedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  entities?: Prisma.EntityUpdateManyWithoutCampaignNestedInput;
+  members?: Prisma.CampaignMemberUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUpdateManyWithoutCampaignNestedInput;
+  relationships?: Prisma.RelationshipUpdateManyWithoutCampaignNestedInput;
+  notes?: Prisma.NoteUpdateManyWithoutCampaignNestedInput;
+  sessions?: Prisma.SessionUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUpdateManyWithoutCampaignNestedInput;
+  workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutCampaignNestedInput;
+};
+
+export type CampaignUncheckedUpdateWithoutMapImageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  archivedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  entities?: Prisma.EntityUncheckedUpdateManyWithoutCampaignNestedInput;
+  members?: Prisma.CampaignMemberUncheckedUpdateManyWithoutCampaignNestedInput;
+  tags?: Prisma.TagUncheckedUpdateManyWithoutCampaignNestedInput;
+  relationships?: Prisma.RelationshipUncheckedUpdateManyWithoutCampaignNestedInput;
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutCampaignNestedInput;
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutCampaignNestedInput;
+  events?: Prisma.EventUncheckedUpdateManyWithoutCampaignNestedInput;
+  workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutCampaignNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutCampaignNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutCampaignNestedInput;
 };
 
 /**
@@ -1398,6 +1917,8 @@ export type CampaignCountOutputType = {
   sessions: number;
   events: number;
   workspaceStates: number;
+  markers: number;
+  territories: number;
 };
 
 export type CampaignCountOutputTypeSelect<
@@ -1412,6 +1933,8 @@ export type CampaignCountOutputTypeSelect<
   sessions?: boolean | CampaignCountOutputTypeCountSessionsArgs;
   events?: boolean | CampaignCountOutputTypeCountEventsArgs;
   workspaceStates?: boolean | CampaignCountOutputTypeCountWorkspaceStatesArgs;
+  markers?: boolean | CampaignCountOutputTypeCountMarkersArgs;
+  territories?: boolean | CampaignCountOutputTypeCountTerritoriesArgs;
 };
 
 /**
@@ -1507,6 +2030,26 @@ export type CampaignCountOutputTypeCountWorkspaceStatesArgs<
   where?: Prisma.WorkspaceStateWhereInput;
 };
 
+/**
+ * CampaignCountOutputType without action
+ */
+export type CampaignCountOutputTypeCountMarkersArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.MarkerWhereInput;
+};
+
+/**
+ * CampaignCountOutputType without action
+ */
+export type CampaignCountOutputTypeCountTerritoriesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.TerritoryWhereInput;
+};
+
 export type CampaignSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -1526,6 +2069,9 @@ export type CampaignSelect<
     sessions?: boolean | Prisma.Campaign$sessionsArgs<ExtArgs>;
     events?: boolean | Prisma.Campaign$eventsArgs<ExtArgs>;
     workspaceStates?: boolean | Prisma.Campaign$workspaceStatesArgs<ExtArgs>;
+    markers?: boolean | Prisma.Campaign$markersArgs<ExtArgs>;
+    territories?: boolean | Prisma.Campaign$territoriesArgs<ExtArgs>;
+    mapImage?: boolean | Prisma.Campaign$mapImageArgs<ExtArgs>;
     _count?: boolean | Prisma.CampaignCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["campaign"]
@@ -1589,6 +2135,9 @@ export type CampaignInclude<
   sessions?: boolean | Prisma.Campaign$sessionsArgs<ExtArgs>;
   events?: boolean | Prisma.Campaign$eventsArgs<ExtArgs>;
   workspaceStates?: boolean | Prisma.Campaign$workspaceStatesArgs<ExtArgs>;
+  markers?: boolean | Prisma.Campaign$markersArgs<ExtArgs>;
+  territories?: boolean | Prisma.Campaign$territoriesArgs<ExtArgs>;
+  mapImage?: boolean | Prisma.Campaign$mapImageArgs<ExtArgs>;
   _count?: boolean | Prisma.CampaignCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type CampaignIncludeCreateManyAndReturn<
@@ -1614,6 +2163,9 @@ export type $CampaignPayload<
     sessions: Prisma.$SessionPayload<ExtArgs>[];
     events: Prisma.$EventPayload<ExtArgs>[];
     workspaceStates: Prisma.$WorkspaceStatePayload<ExtArgs>[];
+    markers: Prisma.$MarkerPayload<ExtArgs>[];
+    territories: Prisma.$TerritoryPayload<ExtArgs>[];
+    mapImage: Prisma.$MapImagePayload<ExtArgs> | null;
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -2260,6 +2812,41 @@ export interface Prisma__CampaignClient<
         GlobalOmitOptions
       >
     | Null
+  >;
+  markers<T extends Prisma.Campaign$markersArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Campaign$markersArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$MarkerPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  territories<T extends Prisma.Campaign$territoriesArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Campaign$territoriesArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$TerritoryPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  mapImage<T extends Prisma.Campaign$mapImageArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Campaign$mapImageArgs<ExtArgs>>,
+  ): Prisma.Prisma__MapImageClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$MapImagePayload<ExtArgs>,
+      T,
+      "findUniqueOrThrow",
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
   >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2993,6 +3580,87 @@ export type Campaign$workspaceStatesArgs<
   distinct?:
     | Prisma.WorkspaceStateScalarFieldEnum
     | Prisma.WorkspaceStateScalarFieldEnum[];
+};
+
+/**
+ * Campaign.markers
+ */
+export type Campaign$markersArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Marker
+   */
+  select?: Prisma.MarkerSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Marker
+   */
+  omit?: Prisma.MarkerOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MarkerInclude<ExtArgs> | null;
+  where?: Prisma.MarkerWhereInput;
+  orderBy?:
+    | Prisma.MarkerOrderByWithRelationInput
+    | Prisma.MarkerOrderByWithRelationInput[];
+  cursor?: Prisma.MarkerWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.MarkerScalarFieldEnum | Prisma.MarkerScalarFieldEnum[];
+};
+
+/**
+ * Campaign.territories
+ */
+export type Campaign$territoriesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Territory
+   */
+  select?: Prisma.TerritorySelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Territory
+   */
+  omit?: Prisma.TerritoryOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TerritoryInclude<ExtArgs> | null;
+  where?: Prisma.TerritoryWhereInput;
+  orderBy?:
+    | Prisma.TerritoryOrderByWithRelationInput
+    | Prisma.TerritoryOrderByWithRelationInput[];
+  cursor?: Prisma.TerritoryWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    Prisma.TerritoryScalarFieldEnum | Prisma.TerritoryScalarFieldEnum[];
+};
+
+/**
+ * Campaign.mapImage
+ */
+export type Campaign$mapImageArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the MapImage
+   */
+  select?: Prisma.MapImageSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the MapImage
+   */
+  omit?: Prisma.MapImageOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MapImageInclude<ExtArgs> | null;
+  where?: Prisma.MapImageWhereInput;
 };
 
 /**

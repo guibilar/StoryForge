@@ -1,0 +1,9 @@
+mutation CreateMarker($input: CreateMarkerInput!) {
+  createMarker(input: $input) {
+    id
+    name
+    lat
+    lng
+    description
+  }
+}

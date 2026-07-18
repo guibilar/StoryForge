@@ -1,0 +1,3 @@
+mutation DeleteTerritory($id: ID!) {
+  deleteTerritory(id: $id)
+}

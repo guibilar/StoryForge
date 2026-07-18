@@ -126,3 +126,18 @@ export type CampaignMember = Prisma.CampaignMemberModel;
  *
  */
 export type WorkspaceState = Prisma.WorkspaceStateModel;
+/**
+ * Model Marker
+ *
+ */
+export type Marker = Prisma.MarkerModel;
+/**
+ * Model Territory
+ *
+ */
+export type Territory = Prisma.TerritoryModel;
+/**
+ * Model MapImage
+ *
+ */
+export type MapImage = Prisma.MapImageModel;

@@ -1,0 +1,9 @@
+query MapImage($campaignId: ID!) {
+  mapImage(campaignId: $campaignId) {
+    id
+    url
+    fileName
+    width
+    height
+  }
+}

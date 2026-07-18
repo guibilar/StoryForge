@@ -1,0 +1,21 @@
+.wrap {
+  height: 100%;
+  width: 100%;
+}
+
+.map {
+  height: 100%;
+  width: 100%;
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 10rem;
+}
+
+.popupActions {
+  display: flex;
+  gap: 0.5rem;
+}

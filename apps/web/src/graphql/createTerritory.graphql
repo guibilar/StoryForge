@@ -1,0 +1,9 @@
+mutation CreateTerritory($input: CreateTerritoryInput!) {
+  createTerritory(input: $input) {
+    id
+    name
+    type
+    geometry
+    description
+  }
+}

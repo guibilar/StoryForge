@@ -11,6 +11,7 @@ import {
 } from "../gql/graphql";
 import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { NoteFormWindow } from "./NoteFormWindow";
 import type { NoteRow } from "./NoteFormWindow";
 import styles from "./NotesWindow.module.css";
@@ -126,6 +127,8 @@ export function NotesWindow() {
       refetch();
     }
   }
+
+  useWindowChromeSync(fetching, refetch);
 
   if (fetching) {
     return <p>Loading notes…</p>;

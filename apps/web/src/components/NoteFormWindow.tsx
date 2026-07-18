@@ -21,6 +21,7 @@ import {
 import type { NoteVisibility } from "../gql/graphql";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./NoteFormWindow.module.css";
 
 export interface NoteRow {
@@ -66,6 +67,10 @@ export function NoteFormWindow({
   });
   const [createState, createNote] = useMutation(CreateNoteDocument);
   const [updateState, updateNote] = useMutation(UpdateNoteDocument);
+
+  // Forms have nothing to "refresh" — only the blocking loading state
+  // applies while a save is in flight.
+  useWindowChromeSync(createState.fetching || updateState.fetching);
 
   const initialNote = mode.mode === "edit" ? mode.item : null;
   const [content, setContent] = useState(initialNote?.content ?? "");

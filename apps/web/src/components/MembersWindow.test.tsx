@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { useMutation, useQuery } from "urql";
 
 import { MembersWindow } from "./MembersWindow";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   AddCampaignMemberDocument,
   CampaignDocument,
@@ -93,11 +94,15 @@ function setupMocks({
 }
 
 function renderWindow() {
+  const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
   render(
-    <MemoryRouter>
-      <MembersWindow />
-    </MemoryRouter>,
+    <WindowChromeContext.Provider value={chromeApi}>
+      <MemoryRouter>
+        <MembersWindow />
+      </MemoryRouter>
+    </WindowChromeContext.Provider>,
   );
+  return chromeApi;
 }
 
 describe("MembersWindow", () => {
@@ -207,6 +212,20 @@ describe("MembersWindow", () => {
         role: "STORYTELLER",
       },
     });
+    expect(reexecuteCampaign).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+  });
+
+  it("reports its loading state and a network-only refresh to the window chrome", () => {
+    const { reexecuteCampaign } = setupMocks();
+    const chromeApi = renderWindow();
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(false);
+    const registered = chromeApi.setOnRefresh.mock.calls.at(-1)?.[0]() as
+      (() => void) | undefined;
+    registered?.();
+
     expect(reexecuteCampaign).toHaveBeenCalledWith({
       requestPolicy: "network-only",
     });

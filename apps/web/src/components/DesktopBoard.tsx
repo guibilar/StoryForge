@@ -1,10 +1,11 @@
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { Button, Window } from "@storyforge/ui";
+import { Button } from "@storyforge/ui";
 
 import { visibleWindowCatalog } from "../lib/windowCatalog";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
 import type { CampaignRole } from "../gql/graphql";
+import { WindowChromeHost } from "./WindowChromeHost";
 import styles from "./DesktopBoard.module.css";
 
 export interface DesktopBoardProps {
@@ -66,7 +67,7 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
     }
 
     return (
-      <Window
+      <WindowChromeHost
         key={id}
         title={title}
         className={animating ? styles.animating : undefined}
@@ -95,7 +96,7 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
         }}
       >
         {content}
-      </Window>
+      </WindowChromeHost>
     );
   }
 

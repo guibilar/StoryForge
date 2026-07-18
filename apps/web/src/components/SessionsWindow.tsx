@@ -11,6 +11,7 @@ import {
 } from "../gql/graphql";
 import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { SessionFormWindow } from "./SessionFormWindow";
 import type { SessionRow } from "./SessionFormWindow";
 import styles from "./SessionsWindow.module.css";
@@ -112,6 +113,8 @@ export function SessionsWindow() {
       refetch();
     }
   }
+
+  useWindowChromeSync(fetching, refetch);
 
   if (fetching) {
     return <p>Loading sessions…</p>;

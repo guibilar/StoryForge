@@ -13,6 +13,7 @@ import {
 import { CreateEntityDocument } from "../gql/graphql";
 import type { EntityVisibility } from "../gql/graphql";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./EntityFormWindow.module.css";
 
 const VISIBILITIES: EntityVisibility[] = ["PUBLIC", "STORYTELLER", "PRIVATE"];
@@ -33,6 +34,10 @@ export function EntityFormWindow({
   onClose,
 }: EntityFormWindowProps) {
   const [createEntityState, createEntity] = useMutation(CreateEntityDocument);
+
+  // Forms have nothing to "refresh" — only the blocking loading state
+  // applies while a save is in flight.
+  useWindowChromeSync(createEntityState.fetching);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

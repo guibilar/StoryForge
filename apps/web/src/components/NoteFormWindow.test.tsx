@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "urql";
 
 import { NoteFormWindow } from "./NoteFormWindow";
 import type { NoteRow } from "./NoteFormWindow";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   CampaignDocument,
   CreateNoteDocument,
@@ -49,6 +50,7 @@ function setupMocks({
   members = ownerMembers,
   createNote = vi.fn().mockResolvedValue({ data: { createNote: {} } }),
   updateNote = vi.fn().mockResolvedValue({ data: { updateNote: {} } }),
+  createFetching = false,
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === MeDocument) {
@@ -78,7 +80,10 @@ function setupMocks({
 
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === CreateNoteDocument) {
-      return [{ fetching: false, error: undefined, stale: false }, createNote];
+      return [
+        { fetching: createFetching, error: undefined, stale: false },
+        createNote,
+      ];
     }
     if (document === UpdateNoteDocument) {
       return [{ fetching: false, error: undefined, stale: false }, updateNote];
@@ -272,5 +277,28 @@ describe("NoteFormWindow", () => {
     expect(createNote).not.toHaveBeenCalled();
     expect(onSaved).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports loading to the window chrome while a save is in flight", () => {
+    setupMocks({ createFetching: true });
+    const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
+    render(
+      <WindowChromeContext.Provider value={chromeApi}>
+        <NoteFormWindow
+          campaignId="camp-1"
+          mode={{ mode: "create" }}
+          onSaved={vi.fn()}
+          onClose={vi.fn()}
+        />
+      </WindowChromeContext.Provider>,
+    );
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(true);
+    // Forms don't register a refresh callback — the updater resolves to
+    // undefined since NoteFormWindow calls useWindowChromeSync(isLoading)
+    // with no second argument.
+    const registered = chromeApi.setOnRefresh.mock.calls.at(-1)?.[0]() as
+      (() => void) | undefined;
+    expect(registered).toBeUndefined();
   });
 });

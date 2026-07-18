@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "urql";
 
 import { SessionsWindow } from "./SessionsWindow";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   CampaignDocument,
   DeleteSessionDocument,
@@ -151,11 +152,15 @@ function setupDesktopWindows() {
 }
 
 function renderWindow() {
+  const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
   render(
-    <MemoryRouter>
-      <SessionsWindow />
-    </MemoryRouter>,
+    <WindowChromeContext.Provider value={chromeApi}>
+      <MemoryRouter>
+        <SessionsWindow />
+      </MemoryRouter>
+    </WindowChromeContext.Provider>,
   );
+  return chromeApi;
 }
 
 describe("SessionsWindow", () => {
@@ -244,6 +249,21 @@ describe("SessionsWindow", () => {
     await user.click(screen.getByRole("button", { name: "Confirm" }));
 
     expect(deleteSession).toHaveBeenCalledWith({ id: "sess-2" });
+    expect(reexecuteSessions).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+  });
+
+  it("reports its loading state and a network-only refresh to the window chrome", () => {
+    const { reexecuteSessions } = setupMocks();
+    setupDesktopWindows();
+    const chromeApi = renderWindow();
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(false);
+    const registered = chromeApi.setOnRefresh.mock.calls.at(-1)?.[0]() as
+      (() => void) | undefined;
+    registered?.();
+
     expect(reexecuteSessions).toHaveBeenCalledWith({
       requestPolicy: "network-only",
     });

@@ -14,6 +14,7 @@ import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { EventFormWindow } from "./EventFormWindow";
 import type { EventRow } from "./EventFormWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./TimelineWindow.module.css";
 
 export function TimelineWindow() {
@@ -125,6 +126,8 @@ export function TimelineWindow() {
       refetch();
     }
   }
+
+  useWindowChromeSync(fetching, refetch);
 
   if (fetching) {
     return <p>Loading timeline…</p>;

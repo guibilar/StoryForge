@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { useMutation } from "urql";
 
 import { EntityFormWindow } from "./EntityFormWindow";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import { CreateEntityDocument } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
@@ -13,13 +14,11 @@ vi.mock("urql", async (importOriginal) => {
 
 function setupMocks({
   createEntity = vi.fn().mockResolvedValue({ data: { createEntity: {} } }),
+  fetching = false,
 } = {}) {
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === CreateEntityDocument) {
-      return [
-        { fetching: false, error: undefined, stale: false },
-        createEntity,
-      ];
+      return [{ fetching, error: undefined, stale: false }, createEntity];
     }
 
     throw new Error("Unexpected mutation in test");
@@ -88,5 +87,21 @@ describe("EntityFormWindow", () => {
     expect(createEntity).not.toHaveBeenCalled();
     expect(onCreated).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports loading to the window chrome while a save is in flight", () => {
+    setupMocks({ fetching: true });
+    const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
+    render(
+      <WindowChromeContext.Provider value={chromeApi}>
+        <EntityFormWindow
+          campaignId="camp-1"
+          onCreated={vi.fn()}
+          onClose={vi.fn()}
+        />
+      </WindowChromeContext.Provider>,
+    );
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(true);
   });
 });

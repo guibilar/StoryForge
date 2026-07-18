@@ -15,6 +15,7 @@ import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { buildCategoryColorMap } from "../lib/categoryColor";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./RelationshipGraphWindow.module.css";
 
 const RADIUS = 220;
@@ -33,6 +34,7 @@ export function RelationshipGraphWindow() {
 
   const [
     { data: entitiesData, fetching: entitiesFetching, error: entitiesError },
+    reexecuteEntities,
   ] = useQuery({
     query: EntitiesDocument,
     variables: { campaignId: campaignId ?? "" },
@@ -44,11 +46,17 @@ export function RelationshipGraphWindow() {
       fetching: relationshipsFetching,
       error: relationshipsError,
     },
+    reexecuteRelationships,
   ] = useQuery({
     query: RelationshipsDocument,
     variables: { campaignId: campaignId ?? "" },
     pause: !campaignId,
   });
+
+  function refetch() {
+    reexecuteEntities({ requestPolicy: "network-only" });
+    reexecuteRelationships({ requestPolicy: "network-only" });
+  }
 
   const entities = useMemo(() => entitiesData?.entities ?? [], [entitiesData]);
   const relationships = useMemo(
@@ -102,6 +110,8 @@ export function RelationshipGraphWindow() {
       }),
     [relationships, relationshipColors],
   );
+
+  useWindowChromeSync(entitiesFetching || relationshipsFetching, refetch);
 
   if (entitiesFetching || relationshipsFetching) {
     return <p>Loading relationship graph…</p>;

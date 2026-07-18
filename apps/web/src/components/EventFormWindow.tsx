@@ -22,6 +22,7 @@ import {
 } from "../gql/graphql";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./EventFormWindow.module.css";
 
 export interface Participant {
@@ -65,6 +66,10 @@ export function EventFormWindow({
   });
   const [createState, createEvent] = useMutation(CreateEventDocument);
   const [updateState, updateEvent] = useMutation(UpdateEventDocument);
+
+  // Forms have nothing to "refresh" — only the blocking loading state
+  // applies while a save is in flight.
+  useWindowChromeSync(createState.fetching || updateState.fetching);
   const [, attachParticipant] = useMutation(AttachParticipantDocument);
   const [, detachParticipant] = useMutation(DetachParticipantDocument);
 

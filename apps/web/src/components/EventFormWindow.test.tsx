@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "urql";
 
 import { EventFormWindow } from "./EventFormWindow";
 import type { EventRow } from "./EventFormWindow";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   AttachParticipantDocument,
   CreateEventDocument,
@@ -49,6 +50,7 @@ function setupMocks({
   detachParticipant = vi
     .fn()
     .mockResolvedValue({ data: { detachParticipant: {} } }),
+  createFetching = false,
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === EntitiesDocument) {
@@ -63,7 +65,10 @@ function setupMocks({
 
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === CreateEventDocument) {
-      return [{ fetching: false, error: undefined, stale: false }, createEvent];
+      return [
+        { fetching: createFetching, error: undefined, stale: false },
+        createEvent,
+      ];
     }
     if (document === UpdateEventDocument) {
       return [{ fetching: false, error: undefined, stale: false }, updateEvent];
@@ -189,5 +194,22 @@ describe("EventFormWindow", () => {
     expect(createEvent).not.toHaveBeenCalled();
     expect(onSaved).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports loading to the window chrome while a save is in flight", () => {
+    setupMocks({ createFetching: true });
+    const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
+    render(
+      <WindowChromeContext.Provider value={chromeApi}>
+        <EventFormWindow
+          campaignId="camp-1"
+          mode={{ mode: "create" }}
+          onSaved={vi.fn()}
+          onClose={vi.fn()}
+        />
+      </WindowChromeContext.Provider>,
+    );
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(true);
   });
 });

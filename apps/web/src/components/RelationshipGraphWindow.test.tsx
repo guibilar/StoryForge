@@ -5,6 +5,7 @@ import { useQuery } from "urql";
 
 import { RelationshipGraphWindow } from "./RelationshipGraphWindow";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
@@ -121,12 +122,14 @@ const relationships = [
 function setupMocks({
   entitiesResult = entities,
   relationshipsResult = relationships,
+  reexecuteEntities = vi.fn(),
+  reexecuteRelationships = vi.fn(),
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === EntitiesDocument) {
       return [
         { data: { entities: entitiesResult }, fetching: false, stale: false },
-        vi.fn(),
+        reexecuteEntities,
       ];
     }
     if (args.query === RelationshipsDocument) {
@@ -136,11 +139,13 @@ function setupMocks({
           fetching: false,
           stale: false,
         },
-        vi.fn(),
+        reexecuteRelationships,
       ];
     }
     throw new Error("Unexpected query in test");
   }) as never);
+
+  return { reexecuteEntities, reexecuteRelationships };
 }
 
 function setupDesktopWindows() {
@@ -165,11 +170,15 @@ function setupDesktopWindows() {
 }
 
 function renderWindow() {
+  const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
   render(
-    <MemoryRouter>
-      <RelationshipGraphWindow />
-    </MemoryRouter>,
+    <WindowChromeContext.Provider value={chromeApi}>
+      <MemoryRouter>
+        <RelationshipGraphWindow />
+      </MemoryRouter>
+    </WindowChromeContext.Provider>,
   );
+  return chromeApi;
 }
 
 describe("RelationshipGraphWindow", () => {
@@ -267,5 +276,23 @@ describe("RelationshipGraphWindow", () => {
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "entity:ent-1", title: "Goblin" }),
     );
+  });
+
+  it("reports its loading state and a network-only refresh to the window chrome", () => {
+    const { reexecuteEntities, reexecuteRelationships } = setupMocks();
+    setupDesktopWindows();
+    const chromeApi = renderWindow();
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(false);
+    const registered = chromeApi.setOnRefresh.mock.calls.at(-1)?.[0]() as
+      (() => void) | undefined;
+    registered?.();
+
+    expect(reexecuteEntities).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+    expect(reexecuteRelationships).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
   });
 });

@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "urql";
 
 import { TimelineWindow } from "./TimelineWindow";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   CampaignDocument,
   DeleteEventDocument,
@@ -169,11 +170,15 @@ function setupDesktopWindows() {
 }
 
 function renderWindow() {
+  const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
   render(
-    <MemoryRouter>
-      <TimelineWindow />
-    </MemoryRouter>,
+    <WindowChromeContext.Provider value={chromeApi}>
+      <MemoryRouter>
+        <TimelineWindow />
+      </MemoryRouter>
+    </WindowChromeContext.Provider>,
   );
+  return chromeApi;
 }
 
 describe("TimelineWindow", () => {
@@ -302,6 +307,21 @@ describe("TimelineWindow", () => {
     await user.click(screen.getByRole("button", { name: "Confirm" }));
 
     expect(deleteEvent).toHaveBeenCalledWith({ id: "event-1" });
+    expect(reexecuteEvents).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
+  });
+
+  it("reports its loading state and a network-only refresh to the window chrome", () => {
+    const { reexecuteEvents } = setupMocks();
+    setupDesktopWindows();
+    const chromeApi = renderWindow();
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(false);
+    const registered = chromeApi.setOnRefresh.mock.calls.at(-1)?.[0]() as
+      (() => void) | undefined;
+    registered?.();
+
     expect(reexecuteEvents).toHaveBeenCalledWith({
       requestPolicy: "network-only",
     });

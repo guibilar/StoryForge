@@ -20,6 +20,7 @@ import {
 } from "../gql/graphql";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./SessionFormWindow.module.css";
 
 export interface Attendee {
@@ -61,6 +62,10 @@ export function SessionFormWindow({
   });
   const [createState, createSession] = useMutation(CreateSessionDocument);
   const [updateState, updateSession] = useMutation(UpdateSessionDocument);
+
+  // Forms have nothing to "refresh" — only the blocking loading state
+  // applies while a save is in flight.
+  useWindowChromeSync(createState.fetching || updateState.fetching);
   const [, attachSessionAttendee] = useMutation(AttachSessionAttendeeDocument);
   const [, detachSessionAttendee] = useMutation(DetachSessionAttendeeDocument);
 

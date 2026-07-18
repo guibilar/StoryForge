@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "urql";
 
 import { NotesWindow } from "./NotesWindow";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   CampaignDocument,
   DeleteNoteDocument,
@@ -170,11 +171,15 @@ function setupDesktopWindows() {
 }
 
 function renderWindow() {
+  const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
   render(
-    <MemoryRouter>
-      <NotesWindow />
-    </MemoryRouter>,
+    <WindowChromeContext.Provider value={chromeApi}>
+      <MemoryRouter>
+        <NotesWindow />
+      </MemoryRouter>
+    </WindowChromeContext.Provider>,
   );
+  return chromeApi;
 }
 
 describe("NotesWindow", () => {
@@ -337,5 +342,20 @@ describe("NotesWindow", () => {
     const gmRow = screen.getByText("Party log").closest("button");
     expect(ownRow).toBeEnabled();
     expect(gmRow).toBeDisabled();
+  });
+
+  it("reports its loading state and a network-only refresh to the window chrome", () => {
+    const { reexecuteNotes } = setupMocks();
+    setupDesktopWindows();
+    const chromeApi = renderWindow();
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(false);
+    const registered = chromeApi.setOnRefresh.mock.calls.at(-1)?.[0]() as
+      (() => void) | undefined;
+    registered?.();
+
+    expect(reexecuteNotes).toHaveBeenCalledWith({
+      requestPolicy: "network-only",
+    });
   });
 });

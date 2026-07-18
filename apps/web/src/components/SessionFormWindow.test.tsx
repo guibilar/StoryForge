@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "urql";
 
 import { SessionFormWindow } from "./SessionFormWindow";
 import type { SessionRow } from "./SessionFormWindow";
+import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   AttachSessionAttendeeDocument,
   CampaignDocument,
@@ -45,6 +46,7 @@ function setupMocks({
   detachSessionAttendee = vi
     .fn()
     .mockResolvedValue({ data: { detachSessionAttendee: {} } }),
+  createFetching = false,
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === CampaignDocument) {
@@ -64,7 +66,7 @@ function setupMocks({
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === CreateSessionDocument) {
       return [
-        { fetching: false, error: undefined, stale: false },
+        { fetching: createFetching, error: undefined, stale: false },
         createSession,
       ];
     }
@@ -200,5 +202,22 @@ describe("SessionFormWindow", () => {
     expect(createSession).not.toHaveBeenCalled();
     expect(onSaved).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports loading to the window chrome while a save is in flight", () => {
+    setupMocks({ createFetching: true });
+    const chromeApi = { setLoading: vi.fn(), setOnRefresh: vi.fn() };
+    render(
+      <WindowChromeContext.Provider value={chromeApi}>
+        <SessionFormWindow
+          campaignId="camp-1"
+          mode={{ mode: "create" }}
+          onSaved={vi.fn()}
+          onClose={vi.fn()}
+        />
+      </WindowChromeContext.Provider>,
+    );
+
+    expect(chromeApi.setLoading).toHaveBeenCalledWith(true);
   });
 });

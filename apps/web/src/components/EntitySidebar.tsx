@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "urql";
 import { Button } from "@storyforge/ui";
 
@@ -41,6 +42,22 @@ function groupByType(entities: EntitySummary[]): [string, EntitySummary[]][] {
 
 export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
   const { layout, toggle } = useDesktopWindows();
+  const [collapsedTypes, setCollapsedTypes] = useState<Set<string>>(
+    () => new Set(),
+  );
+
+  function toggleTypeCollapsed(type: string) {
+    setCollapsedTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  }
+
   const openEntityWindow = useOpenEntityWindow(campaignId);
   const { openAddEditWindow: openEntityFormWindow } = useAddEditWindow({
     idPrefix: "entity-form",
@@ -127,26 +144,44 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
       {!fetching && !error && entities.length === 0 ? (
         <p className={styles.empty}>No entities yet.</p>
       ) : null}
-      {groups.map(([type, rows]) => (
-        <div key={type} className={styles.typeGroup}>
-          <div className={styles.typeLabel}>
-            {type} · {rows.length}
+      {groups.map(([type, rows]) => {
+        const isCollapsed = collapsedTypes.has(type);
+        return (
+          <div key={type} className={styles.typeGroup}>
+            <button
+              type="button"
+              className={styles.typeLabel}
+              aria-expanded={!isCollapsed}
+              onClick={() => toggleTypeCollapsed(type)}
+            >
+              <span
+                className={
+                  isCollapsed
+                    ? styles.typeChevron
+                    : `${styles.typeChevron} ${styles.typeChevronOpen}`
+                }
+                aria-hidden="true"
+              />
+              {type} · {rows.length}
+            </button>
+            {isCollapsed ? null : (
+              <ul className={styles.entityList}>
+                {rows.map((entity) => (
+                  <li key={entity.id}>
+                    <button
+                      type="button"
+                      className={styles.entityRow}
+                      onClick={() => openEntityWindow(entity)}
+                    >
+                      {entity.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-          <ul className={styles.entityList}>
-            {rows.map((entity) => (
-              <li key={entity.id}>
-                <button
-                  type="button"
-                  className={styles.entityRow}
-                  onClick={() => openEntityWindow(entity)}
-                >
-                  {entity.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+        );
+      })}
 
       {isWriter ? (
         <div className={styles.quickActions}>

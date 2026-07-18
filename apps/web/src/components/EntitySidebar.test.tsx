@@ -110,6 +110,29 @@ describe("EntitySidebar", () => {
     expect(screen.getByText("Downtown")).toBeInTheDocument();
   });
 
+  it("collapses and expands an entity type group when its header is clicked", async () => {
+    const user = userEvent.setup();
+    setupQueries();
+    setupDesktopWindows();
+    renderSidebar("OWNER");
+
+    expect(screen.getByText("Carlos Mendoza")).toBeInTheDocument();
+
+    const groupHeader = screen.getByRole("button", { name: "Character · 2" });
+    expect(groupHeader).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(groupHeader);
+
+    expect(groupHeader).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Carlos Mendoza")).not.toBeInTheDocument();
+    expect(screen.getByText("Downtown")).toBeInTheDocument();
+
+    await user.click(groupHeader);
+
+    expect(groupHeader).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("Carlos Mendoza")).toBeInTheDocument();
+  });
+
   it("shows an empty state when the campaign has no entities", () => {
     setupQueries({ entities: [] });
     setupDesktopWindows();

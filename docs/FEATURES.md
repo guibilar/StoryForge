@@ -10,12 +10,14 @@ tracks what's actually built, not just planned.
 - [x] React + Vite frontend scaffold, routing (`react-router-dom`),
       GraphQL client (`urql`), `ProtectedRoute`
 - [x] `packages/ui` (KAN-75, KAN-80) — shared component package: `Button`,
-      `Input`, `Form`/`FormField`/`Label`/`FormError`, `Link`, `Modal`,
-      `Window`; CSS Modules on a theme-ready token system
-      (`[data-theme]` palettes). Thin scope — exactly what each landed
-      ticket needed, not a full design system yet (no tables). No build
-      step (source consumed directly by Vite). Consumers: `LoginPage`,
-      `RegisterPage`, `DashboardPage`, `DesktopBoard`.
+      `Checkbox`, `CommandPalette`, `Form`/`FormField`/`FormActions`/`Label`/
+      `FormError`, `Icon` (wraps `lucide-react`), `Input`, `Link`, `Modal`,
+      `Select`, `Tabs`, `Textarea`, `Window` (incl. a loading overlay,
+      refresh button, and Tab-cycling focus trap); CSS Modules on a
+      theme-ready token system (`[data-theme]` palettes). Thin scope —
+      exactly what each landed ticket needed, not a full design system yet
+      (no tables). No build step (source consumed directly by Vite).
+      Consumers: every page and campaign-desktop component in `apps/web`.
 - [x] Fastify / graphql-yoga backend boots
 - [x] GraphQL setup (schema merge, context, error mapping; date args
       validated via `parseRequiredDate`/`parseOptionalDate` — `null`/garbage
@@ -37,13 +39,14 @@ tracks what's actually built, not just planned.
       so Prisma repository integration tests run for real, not mocked)
 - [x] Husky hooks — pre-commit runs `pnpm test:unit` then `pnpm lint-staged`
       (KAN-24; no Postgres needed to commit)
-- [x] Test suite — 704 tests via Vitest: 168 `packages/domain` (entities,
+- [x] Test suite — 1381 tests via Vitest: 302 `packages/domain` (entities,
       value objects, permission matrix, tags, relationships, notes, note
-      links, sessions, events) + 437 `apps/api` (application services w/
-      mocked repos, Prisma mappers, GraphQL resolvers, and Prisma repository
-      integration tests against a real Postgres) + 73 `apps/web` + 26
-      `packages/ui` (component/page-level). See AGENTS.md "Testing" section
-      for layout and gotchas.
+      links, sessions, events, markers/territories/map image, workspace
+      state) + 573 `apps/api` (application services w/ mocked repos, Prisma
+      mappers, GraphQL resolvers, and Prisma repository integration tests
+      against a real Postgres) + 426 `apps/web` + 80 `packages/ui`
+      (component/page-level). See AGENTS.md "Testing" section for layout
+      and gotchas.
 
 ## Authentication & Campaigns
 
@@ -98,20 +101,72 @@ tracks what's actually built, not just planned.
       `/campaigns/:id`), all built on `packages/ui`
 - [x] Frontend: Campaign Desktop shell (KAN-80) — draggable/resizable
       (KAN-88)/closable/reopenable windows on a per-campaign board
-      (`DesktopBoard`), dock to reopen closed windows, layout
-      (position/size/open-state) persisted to `localStorage` per campaign,
-      single-panel tab-switcher fallback below the mobile breakpoint
-      (`MobileDesktop`). Window content is data-driven (`WINDOW_CATALOG`,
-      incl. per-role visibility via `visibleToRoles`) so each real window
-      (KAN-39/81/84/49/85) can plug in without touching the shell — `npcs`
-      and `members` are real windows now, the rest are still
-      `ComingSoonPanel` placeholders.
+      (`DesktopBoard`), layout (position/size/open-state) persisted to
+      `localStorage` per campaign, single-panel tab-switcher fallback below
+      the mobile breakpoint (`MobileDesktop`). Window content is data-driven
+      (`WINDOW_CATALOG`, incl. per-role visibility via `visibleToRoles`) so
+      each window can plug in without touching the shell — all six catalog
+      entries (Members, Sessions, Timeline, Notes, Relationship Graph, Maps)
+      are real, role-aware content; no placeholder windows remain. The
+      earlier dock (row of toggle buttons to reopen closed windows) was
+      removed — `EntitySidebar`'s World nav does that job for every window.
+      `Window` itself (KAN-106/110/111) additionally supports a blocking
+      loading overlay + refresh button in its title bar and a Tab-cycling
+      focus trap with Esc-to-close and focus restore on close.
+- [x] Dynamic per-id windows (KAN-95) — `useDesktopWindows().openWindow`/
+      `closeWindow` support windows outside the static `WINDOW_CATALOG`,
+      keyed by id (e.g. `entity:<id>` for an entity detail window,
+      `marker-form:<id>` for a marker edit form) — the mechanism every
+      entity/note/session/event/marker/territory/relationship create-or-edit
+      window and detail window uses.
+- [x] Entity sidebar navigation (KAN-96) — `EntitySidebar` lists a
+      campaign's entities grouped and collapsible by `type`, plus the World
+      nav (Timeline/Sessions/Notes/Members/Relationship Graph/Maps) as
+      toggle links sharing state with `DesktopBoard` via
+      `DesktopWindowsContext`.
+- [x] Entity detail window (KAN-96/97) — `EntityWindow`, opened from the
+      sidebar, the relationship graph, the command palette, or a
+      Storyteller's force-open broadcast, all via the shared
+      `useOpenEntityWindow` hook. Three tabs: Overview (name/type/
+      description/visibility, portrait upload, and — for
+      `LOCATION`/`ORGANIZATION` entities — the map-color override, see
+      World Building below), Relationships (this entity's `Relationship`
+      rows; clicking a counterpart opens its window, KAN-98), and Notes
+      (still a "coming soon" stub — no per-entity notes view exists yet).
+- [x] Global command palette (KAN-99/100) — `AppCommandPalette`
+      (⌘K/Ctrl+K), client-side fuzzy-scored (`src/lib/commandScore.ts`)
+      search across entities/notes/sessions plus quick-create actions, no
+      dedicated search backend. Recently-opened entities
+      (`useRecentEntities`, `localStorage`-backed, capped at 10) surface as
+      their own section.
+- [x] Named layout presets (KAN-101) — save/apply a named snapshot of the
+      desktop board's current window layout, stored alongside the layout
+      itself.
+- [x] Server-persisted per-user workspace state (KAN-103/104) — a
+      campaign's desktop layout + recently-opened-entities list, debounce-
+      synced to the server per `(campaignId, userId)` on top of the existing
+      `localStorage` persistence (which still works standalone if the
+      server round-trip fails or hasn't landed).
+- [x] Shared add/edit form-window pattern (KAN-107/108/109) — every
+      create/edit flow (entities, notes, sessions, events, markers,
+      territories, relationships) opens as a desktop `Window` via
+      `useAddEditWindow` rather than a `Modal`; the earlier quick-create
+      modals and the Sessions/Timeline `Modal`-based forms were migrated
+      onto this shared pattern.
 - [x] Frontend: Members window (KAN-81) — `MembersWindow` in the Campaign
       Desktop's `members` catalog slot (hidden from Players/Observers via
       `visibleToRoles`): lists members with role; Owner additionally gets
       add-by-email (role select), per-row role change, and remove. Mutation
       failures (e.g. trying to demote/remove the owner) surface in a
       `FormError` banner instead of being silently swallowed.
+- [x] Frontend: Sessions and Timeline windows (KAN-47/48/49/84/109) —
+      `SessionsWindow`/`TimelineWindow`, full create/edit/delete for
+      `Session`/`Event` (writer-gated), with Timeline additionally offering
+      chronological ordering, free-text search, and a participant filter.
+- [x] Frontend: Notes window (KAN-43/63/85/89/90) — `NotesWindow`, full
+      create/edit/delete for `Note`, visible to every role (the API's
+      visibility filter, not window-level hiding, decides what each role
+      can read); Players can author and manage their own notes.
 - [x] Manage-campaign modal (KAN-82) — "Manage" button on owner-owned
       dashboard cards opens `ManageCampaignModal` (name field, description
       textarea, wired to `updateCampaign`); Archive is a destructive text
@@ -199,10 +254,13 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       via `EntityTag` join), all fields optional
 - [x] Frontend: dedicated NPCs window (KAN-39, `NpcsWindow`/`npcs` catalog
       slot) removed — NPCs are entities like any other, reached through
-      `EntitySidebar`'s Entities list. The generic entity path currently
-      covers create + view only; edit/delete (previously NPC-specific,
-      Owner/Storyteller full CRUD, Players read-only) has no generic
-      replacement yet.
+      `EntitySidebar`'s Entities list. The generic entity path covers
+      create + view, plus two narrow post-creation edits (portrait upload,
+      KAN-124/125; map-color override, see below) via dedicated
+      single-purpose mutations. There is still no general edit form for an
+      entity's name/type/description/category — `EntityFormWindow` is
+      create-only, and delete has no generic replacement for the old
+      NPC-specific flow yet.
 
 ## Relationships
 
@@ -243,7 +301,7 @@ CHARACTER` (enforced in both directions: `changeCategory` and
 - [x] Relationship create/edit/delete UI (KAN-123) — `RelationshipFormWindow`
       (`useAddEditWindow`, same shape as `MarkerFormWindow`/
       `TerritoryFormWindow`), opened from `RelationshipGraphWindow`'s
-      "+ Add Relationship" button (writers only — Owner/Storyteller/
+      "Add Relationship" button (writers only — Owner/Storyteller/
       Co-Storyteller, checked client-side the same way `MapsWindow` derives
       `isWriter`) or by clicking an edge to edit/delete it. Source/target
       entity pickers (`EntitySelectField`, extended with `required` and
@@ -271,8 +329,10 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       (entities/tags/relationships/sessions/events, which writer-gate their
       mutations per KAN-62), note writes deliberately stay member-level —
       notes are the collaborative surface where Players journal
-      (`createNote` takes `authorId` from the resolved membership); revisit
-      when shared-vs-private notes land.
+      (`createNote` takes `authorId` from the resolved membership); this
+      held even after shared/private/targeted note visibility landed
+      (KAN-63/89/90, see Collaboration) — visibility gates _reads_, not who
+      may write a note.
       `createNote`/`notes` check membership on the input `campaignId`;
       `note`/`updateNote`/`deleteNote` first load the note to get its
       `campaignId`, then check membership on that. `createNote` takes
@@ -310,9 +370,12 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       `Note.backlinks`, `Entity.backlinks`, all resolved via
       `apps/api/src/modules/noteLinks/` (Prisma repo/mapper + resolvers
       extending the `Note`/`Entity` types, mirroring how `attachments` extends
-      `Note` from outside the `notes` module). Client-side rendering into
-      clickable links is deferred — `apps/web` is still the unmodified Vite
-      scaffold, no Note UI exists yet to extend.
+      `Note` from outside the `notes` module). `NoteFormWindow` edits/renders
+      note content as markdown (`@uiw/react-md-editor`), but `[[Label]]`
+      wiki-link syntax inside that markdown is not specially parsed into
+      clickable links client-side yet — `Note.linkedEntities`/`linkedNotes`/
+      `backlinks`/`Entity.backlinks` are resolved server-side and queryable,
+      just not consumed by the frontend yet.
 - [x] Nested notes (KAN-46) — self-referential `Note.parentNoteId`
       (`schema.prisma`, `onDelete: Cascade`); domain `Note.ParentNoteId` +
       `moveTo(parentId)` (rejects a note becoming its own direct parent — the
@@ -367,13 +430,22 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       `Event.participants` are field resolvers (mirroring `Note.parent`'s
       lazy service-call pattern), not Prisma includes. Hard delete, same
       rationale as Session.
-- [ ] Timeline UI (ordering, filters, search)
+- [x] Timeline UI (ordering, filters, search) — `TimelineWindow` sorts
+      events chronologically by `occurredAt`, plus free-text search and a
+      participant filter, both client-side over the already-fetched list.
 
 ## Maps
 
-- [ ] Leaflet integration
-- [ ] Markers, territories, regions, districts
-- [ ] Custom overlays / images as maps
+- [x] Leaflet integration (KAN-50) — `MapCanvas` (`react-leaflet`), pan/zoom,
+      a dark/light tile layer following the app's theme.
+- [x] Markers, territories, regions, districts (KAN-51) — `Marker`/
+      `Territory` domain aggregates + Prisma models, GraphQL CRUD, a
+      draw-mode toolbar (KAN-113/114/115) to place a marker or draw a
+      territory polygon directly on the map, each linked to a world-data
+      `Entity` (see the entity-link restriction bullets below).
+- [x] Custom overlays / images as maps (KAN-52) — per-campaign map image
+      upload, rendered via Leaflet's `CRS.Simple` (plain pixel space)
+      instead of the geographic tile layer when set.
 - [x] Marker entity links restricted to LOCATION-category entities
       (KAN-121) — `MarkerService.requireEntityInCampaign` rejects a
       non-`LOCATION` `entityId` with `ValidationError`; `EntitySelectField`
@@ -390,6 +462,12 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       pins and territory outlines by the linked entity's own `color` when
       set, falling back to its existing hash-of-`type` colour when not (see
       the entity map colour override bullet under World Building).
+- [x] Storyteller live-viewport force-sync (KAN-129/130/131) — a
+      Storyteller's `MapsWindow` can push its current center/zoom to one
+      player, several, or everyone via a real-time subscription
+      (`forceSyncViewport`); the target's map snaps to it once as a
+      one-shot jump, not a continuous lock. See Collaboration below for the
+      shared real-time transport this is built on.
 
 ## Plugin Runtime
 
@@ -412,18 +490,33 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       KAN-61 widened `CampaignRole` to the 5-role set end to end (domain
       union type, Prisma enum + migration, GraphQL enum, frontend role
       selects).
-- [x] Permissions (KAN-62) — domain permission matrix
+- [x] Permissions (KAN-62/128) — domain permission matrix
       (`packages/domain/src/permission`): role → action map
-      (`VIEW_ENTITY`, `EDIT_ENTITY`, `MANAGE_MEMBERS`,
-      `MANAGE_CAMPAIGN_SETTINGS`) consumed by the API guards
-      (`requireCampaignRole`/`requireCampaignWriter`); Player/Observer are
-      read-only for world data (entities, tags, relationships, sessions,
-      events) and see only `PUBLIC`-visibility entities. Known gaps:
-      visibility filtering exists for entities only (not notes/sessions/
-      timeline); `Campaign.members` is readable by any member (the web app
+      (`VIEW_ENTITY`, `EDIT_ENTITY`, `CREATE_NOTE`, `MANAGE_MEMBERS`,
+      `MANAGE_CAMPAIGN_SETTINGS`, `BROADCAST_TO_PLAYERS`) consumed by the
+      API guards (`requireCampaignRole`/`requireCampaignWriter`);
+      Player/Observer are read-only for world data (entities, tags,
+      relationships, sessions, events) and see only `PUBLIC`-visibility
+      entities. Known gaps: visibility filtering exists for entities only
+      (not sessions/timeline — notes have their own visibility system, see
+      below); `Campaign.members` is readable by any member (the web app
       needs it to resolve the viewer's own role — wants a dedicated "my
       membership" query first).
-- [ ] Shared vs private notes, player handouts
+- [x] Shared vs private notes, player handouts (KAN-63/89/90) — `Note`
+      carries `SHARED` (everyone), `PRIVATE` (author only), or `TARGETED`
+      (an explicit recipient list) visibility, enforced server-side on
+      every read; Players can author and manage their own notes.
+- [x] Real-time transport: GraphQL subscriptions over SSE (KAN-127) — an
+      in-process pub/sub (`apps/api/src/graphql/pubsub.ts`) exposed via
+      `graphql-yoga`'s native SSE support, no WebSocket server. Two
+      Storyteller-only push features are built on it, both gated by
+      `BROADCAST_TO_PLAYERS` and targeting "all players" or an explicit
+      member list: force-syncing a player's map viewport to the
+      Storyteller's (KAN-129/130/131, see Maps above), and force-opening a
+      specific entity's window on a targeted player's screen
+      (KAN-132/133) — the latter is a deliberate, documented bypass of the
+      normal `PUBLIC`-visibility read filter, since the Storyteller is
+      explicitly choosing to show that entity.
 
 ## Automation
 
@@ -441,14 +534,16 @@ CHARACTER` (enforced in both directions: `changeCategory` and
 
 ## Cross-cutting gaps (not tied to a single area)
 
-- [x] Frontend unit/component tests — `apps/web` (Vitest + Testing Library,
-      `router.test.tsx`, page tests, `DesktopBoard`/`MobileDesktop` tests)
-      and `packages/ui` (per-component tests, incl. `Window`)
+- [x] Frontend unit/component tests — `apps/web` (426 tests: Vitest +
+      Testing Library, `router.test.tsx`, page tests, every real window/
+      form component) and `packages/ui` (80 tests: per-component, incl.
+      `Window`)
 - [ ] Frontend end-to-end tests (real browser against a real backend) — see KAN-87
 - [ ] `packages/core` — purpose undefined, decide before adding files
 - [ ] `packages/shared` — empty, needed once a 2nd backend module or frontend utilities appear
-- [x] `packages/ui` — thin scope built (KAN-75, KAN-80): Button, Input,
-      Form, Link, Modal, Window. Tables and general layout
-      primitives still not started — pick up alongside the ticket that
-      needs them
+- [x] `packages/ui` — thin scope built (KAN-75, KAN-80, and every ticket
+      since that needed a new primitive): Button, Checkbox, CommandPalette,
+      Form/FormActions, Icon, Input, Link, Modal, Select, Tabs, Textarea,
+      Window. Tables and general layout primitives still not started — pick
+      up alongside the ticket that needs them
 - [ ] Repository implementations currently live in `apps/api/src/modules/entities/infrastructure` instead of `packages/database` — documented deviation from target architecture in AGENTS.md

@@ -114,6 +114,13 @@
   transform: rotate(0deg);
 }
 
+.entityItem {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
 .entityRow {
   appearance: none;
   border: none;
@@ -128,6 +135,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
   transition:
     background-color var(--dur-1) var(--ease),
     color var(--dur-1) var(--ease);

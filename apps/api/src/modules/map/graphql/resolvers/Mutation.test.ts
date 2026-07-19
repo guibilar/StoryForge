@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { CampaignMember, Marker, Territory, User } from "@storyforge/domain";
+import { createPubSub } from "graphql-yoga";
+import {
+  CampaignMember,
+  Marker,
+  Territory,
+  User,
+  UserId,
+} from "@storyforge/domain";
 
 const imageSizeMock = vi.fn();
 vi.mock("image-size", () => ({
@@ -8,6 +15,7 @@ vi.mock("image-size", () => ({
 
 const { Mutation } = await import("./Mutation");
 import type { GraphQLContext } from "../../../../graphql/context";
+import type { PubSubChannels } from "../../../../graphql/pubsub";
 import type { MarkerService } from "../../application/MarkerService";
 import type { TerritoryService } from "../../application/TerritoryService";
 import type { MapImageService } from "../../application/MapImageService";
@@ -42,7 +50,10 @@ function makeMapImageService(): MapImageService {
 }
 
 function makeCampaignMemberService(): CampaignMemberService {
-  return { getMembership: vi.fn() } as unknown as CampaignMemberService;
+  return {
+    getMembership: vi.fn(),
+    listMembers: vi.fn(),
+  } as unknown as CampaignMemberService;
 }
 
 function makeImageStorage() {
@@ -622,5 +633,132 @@ describe("map Mutation.deleteMapImage", () => {
 
     expect(mapImageService.deleteMapImage).toHaveBeenCalledWith("campaign-1");
     expect(result).toBe(true);
+  });
+});
+
+describe("map Mutation.forceSyncViewport", () => {
+  const player1Id = "player-1";
+  const player2Id = "player-2";
+
+  const roster = [
+    writerMembership,
+    CampaignMember.create({
+      campaignId: "campaign-1",
+      userId: UserId.fromString(player1Id),
+      role: "PLAYER",
+    }),
+    CampaignMember.create({
+      campaignId: "campaign-1",
+      userId: UserId.fromString(player2Id),
+      role: "PLAYER",
+    }),
+  ];
+
+  function makeForceSyncContext(
+    campaignMemberService: CampaignMemberService,
+    currentUser: User | null,
+    pubSub = createPubSub<PubSubChannels>(),
+  ): GraphQLContext {
+    return {
+      campaignMemberService,
+      currentUser,
+      pubSub,
+    } as GraphQLContext;
+  }
+
+  const validInput = {
+    campaignId: "campaign-1",
+    center: { lat: 12, lng: 34 },
+    zoom: 9,
+    target: { allPlayers: false, userIds: [player1Id] },
+  };
+
+  it("rejects with UNAUTHENTICATED when logged out", async () => {
+    const campaignMemberService = makeCampaignMemberService();
+    const context = makeForceSyncContext(campaignMemberService, loggedOutUser);
+
+    await expect(
+      Mutation.forceSyncViewport(undefined, { input: validInput }, context),
+    ).rejects.toMatchObject({ extensions: { code: "UNAUTHENTICATED" } });
+    expect(campaignMemberService.listMembers).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when the caller cannot broadcast (e.g. a Player)", async () => {
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
+    const context = makeForceSyncContext(
+      campaignMemberService,
+      authenticatedUser,
+    );
+
+    await expect(
+      Mutation.forceSyncViewport(undefined, { input: validInput }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(campaignMemberService.listMembers).not.toHaveBeenCalled();
+  });
+
+  it("publishes to the campaign-scoped channel with the resolved target for a single player", async () => {
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      writerMembership,
+    );
+    vi.mocked(campaignMemberService.listMembers).mockResolvedValue(roster);
+    const pubSub = createPubSub<PubSubChannels>();
+    const publishSpy = vi.spyOn(pubSub, "publish");
+    const context = makeForceSyncContext(
+      campaignMemberService,
+      authenticatedUser,
+      pubSub,
+    );
+
+    const result = await Mutation.forceSyncViewport(
+      undefined,
+      { input: validInput },
+      context,
+    );
+
+    expect(result).toBe(true);
+    expect(publishSpy).toHaveBeenCalledWith("forceSyncViewport", "campaign-1", {
+      campaignId: "campaign-1",
+      center: { lat: 12, lng: 34 },
+      zoom: 9,
+      broadcasterId: authenticatedUser.Id.toString(),
+      targetUserIds: [player1Id],
+    });
+  });
+
+  it("resolves 'all players' to the full PLAYER/OBSERVER roster", async () => {
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      writerMembership,
+    );
+    vi.mocked(campaignMemberService.listMembers).mockResolvedValue(roster);
+    const pubSub = createPubSub<PubSubChannels>();
+    const publishSpy = vi.spyOn(pubSub, "publish");
+    const context = makeForceSyncContext(
+      campaignMemberService,
+      authenticatedUser,
+      pubSub,
+    );
+    const input = {
+      ...validInput,
+      target: { allPlayers: true, userIds: [] },
+    };
+
+    await Mutation.forceSyncViewport(undefined, { input }, context);
+
+    expect(publishSpy).toHaveBeenCalledWith(
+      "forceSyncViewport",
+      "campaign-1",
+      expect.objectContaining({
+        targetUserIds: expect.arrayContaining([player1Id, player2Id]),
+      }),
+    );
+    const published = publishSpy.mock.calls[0][2] as {
+      targetUserIds: string[];
+    };
+    expect(published.targetUserIds).toHaveLength(2);
   });
 });

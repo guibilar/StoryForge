@@ -1,0 +1,10 @@
+"""
+Trivial proof-of-concept payload for the real-time transport foundation
+(KAN-127). Not to be confused with `Event` (packages/domain's in-game
+timeline/journal entry) — this is transport-level plumbing, not a domain
+concept.
+"""
+type CampaignBroadcastPayload {
+  message: String!
+  emittedAt: String!
+}

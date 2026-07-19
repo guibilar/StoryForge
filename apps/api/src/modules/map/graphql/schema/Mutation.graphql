@@ -45,4 +45,11 @@ extend type Mutation {
   deleteTerritory(id: ID!): Boolean!
   uploadMapImage(campaignId: ID!, file: Upload!): MapImage!
   deleteMapImage(campaignId: ID!): Boolean!
+  """
+  Storyteller-only (KAN-128's BROADCAST_TO_PLAYERS). Pushes the caller's
+  current map center/zoom to the targeted player(s) via the
+  `forceSyncViewport` subscription (KAN-129). Persists nothing — this is a
+  transient live-view nudge, not a saved map state.
+  """
+  forceSyncViewport(input: ForceSyncViewportInput!): Boolean!
 }

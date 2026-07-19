@@ -1,0 +1,3 @@
+mutation ForceSyncViewport($input: ForceSyncViewportInput!) {
+  forceSyncViewport(input: $input)
+}

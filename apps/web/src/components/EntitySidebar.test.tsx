@@ -1,16 +1,20 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useQuery } from "urql";
+import { useMutation, useQuery } from "urql";
 
 import { EntitySidebar } from "./EntitySidebar";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
 import type { OpenWindowRequest } from "../lib/DesktopWindowsContext";
-import { EntitiesDocument } from "../gql/graphql";
+import {
+  CampaignDocument,
+  EntitiesDocument,
+  ForceOpenEntityWindowDocument,
+} from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useQuery: vi.fn() };
+  return { ...actual, useQuery: vi.fn(), useMutation: vi.fn() };
 });
 
 vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
@@ -18,6 +22,34 @@ vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
     await importOriginal<typeof import("../lib/DesktopWindowsContext")>();
   return { ...actual, useDesktopWindows: vi.fn() };
 });
+
+// ForceOpenEntityAction (KAN-133) needs its mutation mocked regardless of
+// whether a given test exercises it — EntitySidebar renders one instance
+// per entity row for a writer role. One mock instance is shared across
+// every row rather than a fresh vi.fn() per useMutation() call, so a test
+// can assert on exactly which entity row's mutation call fired.
+function setupForceOpenMutation({
+  forceOpenEntityWindow = vi
+    .fn()
+    .mockResolvedValue({ data: { forceOpenEntityWindow: true } }),
+} = {}) {
+  vi.mocked(useMutation).mockImplementation(((document: unknown) => {
+    if (document === ForceOpenEntityWindowDocument) {
+      return [
+        { fetching: false, error: undefined, stale: false },
+        forceOpenEntityWindow,
+      ];
+    }
+    throw new Error("Unexpected mutation in test");
+  }) as never);
+  return { forceOpenEntityWindow };
+}
+
+// Installed once so every pre-existing test (which doesn't care about this
+// mutation) still gets a working useMutation() for it; tests under the
+// "KAN-133" describe block below call this again themselves to get a
+// fresh, individually-assertable mock.
+setupForceOpenMutation();
 
 const ENTITIES = [
   {
@@ -43,10 +75,37 @@ const ENTITIES = [
   },
 ];
 
-function setupQueries({ entities = ENTITIES, reexecute = vi.fn() } = {}) {
+const CAMPAIGN_MEMBERS = [
+  {
+    userId: "user-1",
+    role: "OWNER",
+    user: { id: "user-1", email: "owner@example.com" },
+  },
+  {
+    userId: "user-2",
+    role: "PLAYER",
+    user: { id: "user-2", email: "player@example.com" },
+  },
+];
+
+function setupQueries({
+  entities = ENTITIES,
+  members = CAMPAIGN_MEMBERS,
+  reexecute = vi.fn(),
+} = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === EntitiesDocument) {
       return [{ data: { entities }, fetching: false, stale: false }, reexecute];
+    }
+    if (args.query === CampaignDocument) {
+      return [
+        {
+          data: { campaign: { id: "camp-1", name: "Campaign", members } },
+          fetching: false,
+          stale: false,
+        },
+        vi.fn(),
+      ];
     }
     throw new Error("Unexpected query in test");
   }) as never);
@@ -89,7 +148,9 @@ function setupDesktopWindows({ notesHidden = true } = {}) {
   return { toggle, openWindow };
 }
 
-function renderSidebar(role?: "OWNER" | "STORYTELLER" | "PLAYER") {
+function renderSidebar(
+  role?: "OWNER" | "STORYTELLER" | "CO_STORYTELLER" | "PLAYER" | "OBSERVER",
+) {
   render(<EntitySidebar campaignId="camp-1" role={role} />);
 }
 
@@ -230,5 +291,131 @@ describe("EntitySidebar", () => {
     element.props.onSaved();
 
     expect(toggle).not.toHaveBeenCalled();
+  });
+
+  describe("KAN-133 force-open entity window", () => {
+    it("hides the 'Open for player(s)…' action per row for a Player", () => {
+      setupQueries();
+      setupDesktopWindows();
+      renderSidebar("PLAYER");
+
+      expect(
+        screen.queryByRole("button", { name: "Open for player(s)…" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("hides the 'Open for player(s)…' action per row for an Observer", () => {
+      setupQueries();
+      setupDesktopWindows();
+      renderSidebar("OBSERVER");
+
+      expect(
+        screen.queryByRole("button", { name: "Open for player(s)…" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows one 'Open for player(s)…' action per entity row for a Storyteller-tier writer", () => {
+      setupQueries();
+      setupDesktopWindows();
+      renderSidebar("OWNER");
+
+      expect(
+        screen.getAllByRole("button", { name: "Open for player(s)…" }),
+      ).toHaveLength(ENTITIES.length);
+    });
+
+    it("shows the action for a Co-Storyteller too", () => {
+      setupQueries();
+      setupDesktopWindows();
+      renderSidebar("CO_STORYTELLER");
+
+      expect(
+        screen.getAllByRole("button", { name: "Open for player(s)…" }),
+      ).toHaveLength(ENTITIES.length);
+    });
+
+    it("sends forceOpenEntityWindow for the specific entity row that was triggered, defaulting to all players", async () => {
+      const { forceOpenEntityWindow } = setupForceOpenMutation();
+      setupQueries();
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      renderSidebar("OWNER");
+
+      const carlosRow = screen
+        .getByRole("button", { name: "Carlos Mendoza" })
+        .closest("li")!;
+      await user.click(
+        within(carlosRow).getByRole("button", {
+          name: "Open for player(s)…",
+        }),
+      );
+      await user.click(within(carlosRow).getByRole("button", { name: "Send" }));
+
+      expect(forceOpenEntityWindow).toHaveBeenCalledWith({
+        input: {
+          campaignId: "camp-1",
+          entityId: "e-1",
+          target: { allPlayers: true, userIds: [] },
+        },
+      });
+    });
+
+    it("sends forceOpenEntityWindow targeted at a single selected player", async () => {
+      const { forceOpenEntityWindow } = setupForceOpenMutation();
+      setupQueries();
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      renderSidebar("OWNER");
+
+      const carlosRow = screen
+        .getByRole("button", { name: "Carlos Mendoza" })
+        .closest("li")!;
+      await user.click(
+        within(carlosRow).getByRole("button", {
+          name: "Open for player(s)…",
+        }),
+      );
+      await user.selectOptions(
+        within(carlosRow).getByRole("combobox", {
+          name: "Open for player(s) target",
+        }),
+        "player@example.com",
+      );
+      await user.click(within(carlosRow).getByRole("button", { name: "Send" }));
+
+      expect(forceOpenEntityWindow).toHaveBeenCalledWith({
+        input: {
+          campaignId: "camp-1",
+          entityId: "e-1",
+          target: { allPlayers: false, userIds: ["user-2"] },
+        },
+      });
+    });
+
+    it("does not trigger a different entity row's mutation call", async () => {
+      const { forceOpenEntityWindow } = setupForceOpenMutation();
+      setupQueries();
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      renderSidebar("OWNER");
+
+      const downtownRow = screen
+        .getByRole("button", { name: "Downtown" })
+        .closest("li")!;
+      await user.click(
+        within(downtownRow).getByRole("button", {
+          name: "Open for player(s)…",
+        }),
+      );
+      await user.click(
+        within(downtownRow).getByRole("button", { name: "Send" }),
+      );
+
+      expect(forceOpenEntityWindow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({ entityId: "e-3" }),
+        }),
+      );
+    });
   });
 });

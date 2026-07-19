@@ -47,3 +47,10 @@ export async function requireCampaignWriter(
 ): Promise<CampaignMember> {
   return requireCampaignRole(context, campaignId, "EDIT_ENTITY");
 }
+
+export async function requireCampaignBroadcaster(
+  context: GraphQLContext,
+  campaignId: string,
+): Promise<CampaignMember> {
+  return requireCampaignRole(context, campaignId, "BROADCAST_TO_PLAYERS");
+}

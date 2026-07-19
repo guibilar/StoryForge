@@ -40,6 +40,7 @@ import { TerritoryService } from "../modules/map/application/TerritoryService";
 import { PrismaTerritoryRepository } from "../modules/map/infrastructure/PrismaTerritoryRepository";
 import { MapImageService } from "../modules/map/application/MapImageService";
 import { PrismaMapImageRepository } from "../modules/map/infrastructure/PrismaMapImageRepository";
+import { pubSub, PubSub } from "./pubsub";
 
 export interface GraphQLContext extends YogaInitialContext {
   req: IncomingMessage;
@@ -65,6 +66,7 @@ export interface GraphQLContext extends YogaInitialContext {
   markerService: MarkerService;
   territoryService: TerritoryService;
   mapImageService: MapImageService;
+  pubSub: PubSub;
 }
 
 const noteLinkRepository = new PrismaNoteLinkRepository();
@@ -204,5 +206,6 @@ export async function createContext(
     markerService,
     territoryService,
     mapImageService,
+    pubSub,
   };
 }

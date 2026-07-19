@@ -1,0 +1,9 @@
+extend type Subscription {
+  """
+  Real-time proof-of-concept channel scoped to a single campaign. Emits a
+  heartbeat payload periodically for as long as a client stays subscribed.
+  This exists to prove the real-time transport end-to-end (KAN-127) before
+  any feature-specific event is built on top of it.
+  """
+  campaignBroadcast(campaignId: ID!): CampaignBroadcastPayload!
+}

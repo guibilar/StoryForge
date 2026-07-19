@@ -16,12 +16,19 @@ export type { CheckboxProps } from "./components/Checkbox/Checkbox";
 export { Link } from "./components/Link/Link";
 export type { LinkProps } from "./components/Link/Link";
 
-export { Form, Label, FormField, FormError } from "./components/Form";
+export {
+  Form,
+  Label,
+  FormField,
+  FormError,
+  FormActions,
+} from "./components/Form";
 export type {
   FormProps,
   LabelProps,
   FormFieldProps,
   FormErrorProps,
+  FormActionsProps,
 } from "./components/Form";
 
 export { Modal } from "./components/Modal/Modal";

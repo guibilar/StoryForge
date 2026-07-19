@@ -5,6 +5,7 @@ import {
   Button,
   Checkbox,
   Form,
+  FormActions,
   FormError,
   FormField,
   Input,
@@ -212,7 +213,7 @@ export function EventFormWindow({
           ))}
         </div>
       </FormField>
-      <div className={styles.actions}>
+      <FormActions>
         <Button type="button" variant="secondary" onClick={onClose}>
           Cancel
         </Button>
@@ -222,7 +223,7 @@ export function EventFormWindow({
         >
           Save
         </Button>
-      </div>
+      </FormActions>
     </Form>
   );
 }

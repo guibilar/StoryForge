@@ -6,6 +6,7 @@ import {
   Button,
   Checkbox,
   Form,
+  FormActions,
   FormError,
   FormField,
   Input,
@@ -229,7 +230,7 @@ export function NoteFormWindow({
           ) : null}
         </FormField>
       ) : null}
-      <div className={styles.actions}>
+      <FormActions>
         <Button type="button" variant="secondary" onClick={onClose}>
           Cancel
         </Button>
@@ -241,7 +242,7 @@ export function NoteFormWindow({
         >
           Save
         </Button>
-      </div>
+      </FormActions>
     </Form>
   );
 }

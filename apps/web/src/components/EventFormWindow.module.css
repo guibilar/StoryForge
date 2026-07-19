@@ -7,9 +7,3 @@
   flex-wrap: wrap;
   gap: 8px;
 }
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}

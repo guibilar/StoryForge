@@ -144,9 +144,24 @@ tracks what's actually built, not just planned.
       pre-existing free-string `type`, falling back to `OTHER`).
 - [x] Player Character / NPC split (KAN-119) — `isPlayerCharacter: boolean`
       on `Entity` (default `false`), settable only when `category ===
-    CHARACTER` (enforced in both directions: `changeCategory` and
+  CHARACTER` (enforced in both directions: `changeCategory` and
       `changeIsPlayerCharacter` cross-validate). `EntityFormWindow` shows
       the toggle only when `CHARACTER` is selected.
+- [x] Player Character owner link (KAN-120) — `Entity.ownerUserId` (nullable,
+      `onDelete: SetNull`), settable only on an `isPlayerCharacter` entity;
+      `Entity.linkOwner`/`changeIsPlayerCharacter` cross-validate the same
+      way `category`/`isPlayerCharacter` do (turning `isPlayerCharacter`
+      off auto-clears the owner rather than blocking the change).
+      References a `User`, not a synthetic `CampaignMember` id — a
+      `CampaignMember` is identified by `(campaignId, userId)` everywhere
+      in this codebase (see `CampaignMemberMapper`'s `id` synthesis).
+      `EntityService` validates the owner is an actual member of the
+      entity's campaign via `CampaignMemberRepository.findByCampaignAndUser`.
+      GraphQL: `Entity.ownerUserId`/`Entity.ownerMember` (resolved via
+      `campaignMemberService.getMembership`), `ownerUserId` on
+      `CreateEntityInput`/`UpdateEntityInput`. Data model only — does not
+      grant the linked player write access to their own PC (a future
+      permission ticket).
 - [x] Portrait / image upload — `uploadEntityImage` mutation (GraphQL multipart
       request spec), `LocalImageStore` (validates JPEG/PNG/GIF/WEBP, 5MB limit,
       writes to `UPLOADS_DIR/<entityId>/<uuid>.<ext>`), guarded via

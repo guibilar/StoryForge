@@ -23,6 +23,8 @@ type Entity {
   image: String
   visibility: EntityVisibility!
   isPlayerCharacter: Boolean!
+  ownerUserId: ID
+  ownerMember: CampaignMember
   createdAt: String!
   updatedAt: String!
   deletedAt: String

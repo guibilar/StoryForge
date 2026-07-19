@@ -13,6 +13,13 @@ export interface CreateEntityProps {
   image?: string | null;
   visibility: EntityVisibility;
   isPlayerCharacter?: boolean;
+  // References a User (a campaign's members are identified by
+  // (campaignId, userId), not a synthetic CampaignMember id — see
+  // CampaignMemberMapper/the CampaignMember GraphQL resolver, which
+  // synthesizes `id` as `${campaignId}:${userId}` for the same reason).
+  // Resolving this to the owning CampaignMember is a cross-aggregate
+  // question answered by EntityService, mirroring Marker.EntityId.
+  ownerUserId?: string | null;
 }
 
 export interface RehydrateEntityProps {
@@ -26,6 +33,7 @@ export interface RehydrateEntityProps {
   image: string | null;
   visibility: EntityVisibility;
   isPlayerCharacter: boolean;
+  ownerUserId: string | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -43,6 +51,7 @@ export class Entity {
     private imageValue: string | null,
     private visibilityValue: EntityVisibility,
     private isPlayerCharacterValue: boolean,
+    private ownerUserIdValue: string | null,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
     private deletedAtValue: Date | null,
@@ -52,6 +61,7 @@ export class Entity {
     this.validateType(typeValue);
     this.validateCategory(categoryValue);
     this.validateIsPlayerCharacter(isPlayerCharacterValue, categoryValue);
+    this.validateOwnerUserId(ownerUserIdValue, isPlayerCharacterValue);
   }
 
   static create(props: CreateEntityProps): Entity {
@@ -66,6 +76,7 @@ export class Entity {
       props.image ?? null,
       props.visibility,
       props.isPlayerCharacter ?? false,
+      props.ownerUserId ?? null,
       new Date(),
       new Date(),
       null,
@@ -84,6 +95,7 @@ export class Entity {
       props.image,
       props.visibility,
       props.isPlayerCharacter,
+      props.ownerUserId,
       props.createdAt,
       props.updatedAt,
       props.deletedAt,
@@ -128,6 +140,10 @@ export class Entity {
 
   get IsPlayerCharacter(): boolean {
     return this.isPlayerCharacterValue;
+  }
+
+  get OwnerUserId(): string | null {
+    return this.ownerUserIdValue;
   }
 
   get CreatedAt(): Date {
@@ -175,6 +191,24 @@ export class Entity {
     this.validateIsPlayerCharacter(isPlayerCharacter, this.categoryValue);
 
     this.isPlayerCharacterValue = isPlayerCharacter;
+    // A non-PC can't have an owning member — clear it instead of leaving a
+    // dangling link that validateOwnerUserId would then reject on the next
+    // mutation. Losing PC status is a deliberate demotion, not an error.
+    if (!isPlayerCharacter) {
+      this.ownerUserIdValue = null;
+    }
+    this.updatedAtValue = new Date();
+  }
+
+  // Cross-aggregate validation (does this user exist and belong to this
+  // entity's campaign) is a question for EntityService, mirroring
+  // Marker.linkEntity/MarkerService.requireEntityInCampaign — this only
+  // enforces the same-aggregate invariant that only a Player Character can
+  // have an owner.
+  linkOwner(ownerUserId: string | null): void {
+    this.validateOwnerUserId(ownerUserId, this.isPlayerCharacterValue);
+
+    this.ownerUserIdValue = ownerUserId;
     this.updatedAtValue = new Date();
   }
 
@@ -255,6 +289,17 @@ export class Entity {
     if (isPlayerCharacter && category !== EntityCategory.CHARACTER) {
       throw new ValidationError(
         "Only a CHARACTER-category entity can be marked as a Player Character.",
+      );
+    }
+  }
+
+  private validateOwnerUserId(
+    ownerUserId: string | null,
+    isPlayerCharacter: boolean,
+  ): void {
+    if (ownerUserId !== null && !isPlayerCharacter) {
+      throw new ValidationError(
+        "Only a Player Character can have an owning campaign member.",
       );
     }
   }

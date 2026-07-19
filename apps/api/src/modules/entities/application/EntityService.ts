@@ -1,4 +1,5 @@
 import {
+  CampaignMemberRepository,
   Entity,
   EntityCategory,
   EntityFilter,
@@ -7,6 +8,7 @@ import {
   EntityVisibility,
   NoteLinkRepository,
   NotFoundError,
+  UserId,
   ValidationError,
 } from "@storyforge/domain";
 
@@ -20,6 +22,7 @@ export interface CreateEntityDto {
   image?: string | null;
   visibility: EntityVisibility;
   isPlayerCharacter?: boolean;
+  ownerUserId?: string | null;
 }
 
 export interface UpdateEntityDto {
@@ -31,12 +34,14 @@ export interface UpdateEntityDto {
   image?: string | null;
   visibility?: EntityVisibility;
   isPlayerCharacter?: boolean;
+  ownerUserId?: string | null;
 }
 
 export class EntityService {
   constructor(
     private readonly repository: EntityRepository,
     private readonly noteLinkRepository: NoteLinkRepository,
+    private readonly campaignMemberRepository: CampaignMemberRepository,
   ) {}
 
   async createEntity(dto: CreateEntityDto): Promise<Entity> {
@@ -46,6 +51,10 @@ export class EntityService {
       throw new ValidationError(
         "An entity with this name already exists in this campaign.",
       );
+    }
+
+    if (dto.ownerUserId) {
+      await this.requireMemberInCampaign(dto.ownerUserId, dto.campaignId);
     }
 
     const entity = Entity.create(dto);
@@ -103,6 +112,16 @@ export class EntityService {
     } else {
       applyIsPlayerCharacter();
       applyCategory();
+    }
+
+    // Applied last, once category/isPlayerCharacter have settled: linking a
+    // non-null owner requires isPlayerCharacter to already be true, which
+    // only holds once the ordering above has run.
+    if (dto.ownerUserId !== undefined) {
+      if (dto.ownerUserId) {
+        await this.requireMemberInCampaign(dto.ownerUserId, entity.CampaignId);
+      }
+      entity.linkOwner(dto.ownerUserId);
     }
 
     if (dto.description !== undefined) {
@@ -177,5 +196,26 @@ export class EntityService {
     filter?: EntityFilter | null,
   ): Promise<Entity[]> {
     return this.repository.findByCampaign(campaignId, filter);
+  }
+
+  // A CampaignMember has no synthetic id — it's identified by
+  // (campaignId, userId) everywhere in this codebase (see
+  // CampaignMemberRepository) — so "does this owner belong to this
+  // entity's campaign" is answered by the same lookup used elsewhere,
+  // not a separate id-based fetch.
+  private async requireMemberInCampaign(
+    userId: string,
+    campaignId: string,
+  ): Promise<void> {
+    const member = await this.campaignMemberRepository.findByCampaignAndUser(
+      campaignId,
+      UserId.fromString(userId),
+    );
+
+    if (!member) {
+      throw new NotFoundError(
+        "Owner must be a member of this entity's campaign.",
+      );
+    }
   }
 }

@@ -57,6 +57,7 @@ describe("Entity", () => {
       icon: null,
       visibility: EntityVisibility.STORYTELLER,
       isPlayerCharacter: false,
+      ownerUserId: null,
       createdAt,
       updatedAt,
       deletedAt: null,
@@ -190,6 +191,55 @@ describe("Entity", () => {
     expect(() => entity.changeCategory(EntityCategory.LOCATION)).toThrow(
       "Only a CHARACTER-category entity can be marked as a Player Character.",
     );
+  });
+
+  it("defaults ownerUserId to null", () => {
+    const entity = Entity.create(validProps);
+
+    expect(entity.OwnerUserId).toBeNull();
+  });
+
+  it("links and unlinks an owner on a Player Character", () => {
+    const entity = Entity.create({ ...validProps, isPlayerCharacter: true });
+
+    entity.linkOwner("user-1");
+    expect(entity.OwnerUserId).toBe("user-1");
+
+    entity.linkOwner(null);
+    expect(entity.OwnerUserId).toBeNull();
+  });
+
+  it("rejects linking an owner to a non-Player-Character entity", () => {
+    const entity = Entity.create(validProps);
+
+    expect(() => entity.linkOwner("user-1")).toThrow(
+      "Only a Player Character can have an owning campaign member.",
+    );
+  });
+
+  it("clears the owner when isPlayerCharacter is turned off", () => {
+    const entity = Entity.create({ ...validProps, isPlayerCharacter: true });
+    entity.linkOwner("user-1");
+
+    entity.changeIsPlayerCharacter(false);
+
+    expect(entity.OwnerUserId).toBeNull();
+  });
+
+  it("creates a Player Character with an owner set", () => {
+    const entity = Entity.create({
+      ...validProps,
+      isPlayerCharacter: true,
+      ownerUserId: "user-1",
+    });
+
+    expect(entity.OwnerUserId).toBe("user-1");
+  });
+
+  it("rejects creating a non-Player-Character entity with an owner set", () => {
+    expect(() =>
+      Entity.create({ ...validProps, ownerUserId: "user-1" }),
+    ).toThrow("Only a Player Character can have an owning campaign member.");
   });
 
   it("soft-deletes and restores", () => {

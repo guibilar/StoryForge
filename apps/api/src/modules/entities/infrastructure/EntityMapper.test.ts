@@ -16,6 +16,7 @@ describe("EntityMapper", () => {
       image: "goblin.jpg",
       visibility: "PRIVATE",
       isPlayerCharacter: true,
+      ownerUserId: "33333333-3333-3333-3333-333333333333",
       createdAt: new Date("2024-01-01T00:00:00Z"),
       updatedAt: new Date("2024-02-01T00:00:00Z"),
       deletedAt: null,
@@ -33,6 +34,7 @@ describe("EntityMapper", () => {
     expect(entity.Image).toBe(record.image);
     expect(entity.Visibility).toBe(EntityVisibility.PRIVATE);
     expect(entity.IsPlayerCharacter).toBe(true);
+    expect(entity.OwnerUserId).toBe(record.ownerUserId);
     expect(entity.CreatedAt).toEqual(record.createdAt);
     expect(entity.UpdatedAt).toEqual(record.updatedAt);
     expect(entity.DeletedAt).toBeNull();
@@ -63,6 +65,7 @@ describe("EntityMapper", () => {
       image: entity.Image,
       visibility: entity.Visibility,
       isPlayerCharacter: entity.IsPlayerCharacter,
+      ownerUserId: entity.OwnerUserId,
       createdAt: entity.CreatedAt,
       updatedAt: entity.UpdatedAt,
       deletedAt: entity.DeletedAt,

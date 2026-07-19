@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  CampaignMember,
+  CampaignMemberRepository,
   Entity,
   EntityCategory,
   EntityRepository,
   EntityVisibility,
   NoteLinkRepository,
   NotFoundError,
+  UserId,
   ValidationError,
 } from "@storyforge/domain";
 import { EntityService } from "./EntityService";
@@ -31,6 +34,17 @@ function makeNoteLinkRepository(): NoteLinkRepository {
   };
 }
 
+function makeCampaignMemberRepository(): CampaignMemberRepository {
+  return {
+    listByCampaign: vi.fn(),
+    findByCampaignAndUser: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    transferOwnership: vi.fn(),
+  };
+}
+
 const createDto = {
   campaignId: "campaign-1",
   type: "npc",
@@ -42,12 +56,18 @@ const createDto = {
 describe("EntityService", () => {
   let repository: EntityRepository;
   let noteLinkRepository: NoteLinkRepository;
+  let campaignMemberRepository: CampaignMemberRepository;
   let service: EntityService;
 
   beforeEach(() => {
     repository = makeRepository();
     noteLinkRepository = makeNoteLinkRepository();
-    service = new EntityService(repository, noteLinkRepository);
+    campaignMemberRepository = makeCampaignMemberRepository();
+    service = new EntityService(
+      repository,
+      noteLinkRepository,
+      campaignMemberRepository,
+    );
   });
 
   describe("createEntity", () => {
@@ -66,6 +86,42 @@ describe("EntityService", () => {
       await expect(service.createEntity(createDto)).rejects.toThrow(
         ValidationError,
       );
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it("creates a Player Character with an owner already a member of the campaign", async () => {
+      vi.mocked(repository.existsByName).mockResolvedValue(false);
+      const member = CampaignMember.create({
+        campaignId: "campaign-1",
+        userId: UserId.create(),
+        role: "PLAYER",
+      });
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(member);
+
+      const entity = await service.createEntity({
+        ...createDto,
+        isPlayerCharacter: true,
+        ownerUserId: member.UserId.toString(),
+      });
+
+      expect(entity.OwnerUserId).toBe(member.UserId.toString());
+    });
+
+    it("rejects an owner who isn't a member of the entity's campaign", async () => {
+      vi.mocked(repository.existsByName).mockResolvedValue(false);
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(null);
+
+      await expect(
+        service.createEntity({
+          ...createDto,
+          isPlayerCharacter: true,
+          ownerUserId: UserId.create().toString(),
+        }),
+      ).rejects.toThrow(NotFoundError);
       expect(repository.create).not.toHaveBeenCalled();
     });
   });
@@ -175,6 +231,76 @@ describe("EntityService", () => {
           category: EntityCategory.LOCATION,
         }),
       ).rejects.toThrow(ValidationError);
+    });
+
+    it("links an owner already a member of the entity's campaign", async () => {
+      const entity = Entity.create({ ...createDto, isPlayerCharacter: true });
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+      const member = CampaignMember.create({
+        campaignId: entity.CampaignId,
+        userId: UserId.create(),
+        role: "PLAYER",
+      });
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(member);
+
+      const updated = await service.updateEntity({
+        id: entity.Id.toString(),
+        ownerUserId: member.UserId.toString(),
+      });
+
+      expect(updated.OwnerUserId).toBe(member.UserId.toString());
+      expect(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).toHaveBeenCalledWith(entity.CampaignId, member.UserId);
+    });
+
+    it("clears the owner when ownerUserId is set to null", async () => {
+      const entity = Entity.create({ ...createDto, isPlayerCharacter: true });
+      entity.linkOwner("user-1");
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      const updated = await service.updateEntity({
+        id: entity.Id.toString(),
+        ownerUserId: null,
+      });
+
+      expect(updated.OwnerUserId).toBeNull();
+      expect(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).not.toHaveBeenCalled();
+    });
+
+    it("rejects an owner who isn't a member of the entity's campaign", async () => {
+      const entity = Entity.create({ ...createDto, isPlayerCharacter: true });
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+      vi.mocked(
+        campaignMemberRepository.findByCampaignAndUser,
+      ).mockResolvedValue(null);
+
+      await expect(
+        service.updateEntity({
+          id: entity.Id.toString(),
+          ownerUserId: UserId.create().toString(),
+        }),
+      ).rejects.toThrow(NotFoundError);
+      expect(repository.update).not.toHaveBeenCalled();
+    });
+
+    it("un-flags Player Character and clears its owner in the same call", async () => {
+      const entity = Entity.create({ ...createDto, isPlayerCharacter: true });
+      entity.linkOwner("user-1");
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      const updated = await service.updateEntity({
+        id: entity.Id.toString(),
+        isPlayerCharacter: false,
+        ownerUserId: null,
+      });
+
+      expect(updated.IsPlayerCharacter).toBe(false);
+      expect(updated.OwnerUserId).toBeNull();
     });
   });
 

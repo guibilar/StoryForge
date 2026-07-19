@@ -1295,7 +1295,19 @@ full per-feature checklist):
   call, since `false` is always valid regardless of category — otherwise
   a legal combined transition, e.g. category `CHARACTER`→`LOCATION` +
   `isPlayerCharacter` `true`→`false`, could be rejected by validation
-  order alone). Has `name`, `description`, `icon`, `image`, `visibility`
+  order alone). Since KAN-120, a Player Character can also carry
+  `ownerUserId: string | null` — the owning campaign member, referenced by
+  User id rather than a synthetic `CampaignMember` id (that aggregate has
+  none; it's identified by `(campaignId, userId)` everywhere, see
+  `CampaignMemberMapper`'s synthesized GraphQL `id`). `Entity.linkOwner`
+  enforces the same-aggregate half of the invariant (only a PC can have an
+  owner; `changeIsPlayerCharacter(false)` auto-clears it rather than
+  blocking); `EntityService` resolves the cross-aggregate half (owner must
+  be a real member of the entity's campaign) via
+  `CampaignMemberRepository.findByCampaignAndUser`, applied last in
+  `updateEntity` after category/isPlayerCharacter have settled. Data model
+  only — does not itself change who can write to the entity. Has `name`,
+  `description`, `icon`, `image`, `visibility`
   (`PUBLIC`/`STORYTELLER`/`PRIVATE`), soft delete (`deletedAt`), and a
   `(campaignId, name)` uniqueness constraint. Fully wired
   domain → service → Prisma repository → GraphQL: `createEntity`/

@@ -1,8 +1,10 @@
 import { Entity } from "./Entity";
+import { EntityCategory } from "./EntityCategory";
 import { EntityId } from "./EntityId";
 
 export interface EntityFilter {
   type?: string;
+  category?: EntityCategory;
   nameContains?: string;
   tagIds?: string[];
 }

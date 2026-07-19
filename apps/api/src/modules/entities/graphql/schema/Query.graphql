@@ -1,5 +1,6 @@
 input EntityFilter {
   type: String
+  category: EntityCategory
   nameContains: String
   tagIds: [ID!]
 }

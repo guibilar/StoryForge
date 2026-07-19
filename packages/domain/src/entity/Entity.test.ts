@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { Entity } from "./Entity";
+import { EntityCategory } from "./EntityCategory";
 import { EntityId } from "./EntityId";
 import { EntityVisibility } from "./EntityVisibility";
 
 const validProps = {
   campaignId: "campaign-1",
   type: "npc",
+  category: EntityCategory.CHARACTER,
   name: "Goblin",
   description: "A sneaky goblin",
   icon: "goblin.png",
@@ -18,6 +20,7 @@ describe("Entity", () => {
 
     expect(entity.CampaignId).toBe(validProps.campaignId);
     expect(entity.Type).toBe(validProps.type);
+    expect(entity.Category).toBe(EntityCategory.CHARACTER);
     expect(entity.Name).toBe(validProps.name);
     expect(entity.Description).toBe(validProps.description);
     expect(entity.Icon).toBe(validProps.icon);
@@ -30,6 +33,7 @@ describe("Entity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PRIVATE,
     });
@@ -47,6 +51,7 @@ describe("Entity", () => {
       id,
       campaignId: validProps.campaignId,
       type: validProps.type,
+      category: validProps.category,
       name: validProps.name,
       description: null,
       icon: null,
@@ -91,6 +96,12 @@ describe("Entity", () => {
     ).toThrow("Entity type is too long.");
   });
 
+  it("rejects an invalid category", () => {
+    expect(() =>
+      Entity.create({ ...validProps, category: "PLANET" as EntityCategory }),
+    ).toThrow("Entity category is invalid.");
+  });
+
   it("trims the name on rename", () => {
     const entity = Entity.create(validProps);
 
@@ -109,6 +120,22 @@ describe("Entity", () => {
     expect(entity.Description).toBe("New description");
     expect(entity.Icon).toBe("new-icon.png");
     expect(entity.Visibility).toBe(EntityVisibility.PRIVATE);
+  });
+
+  it("changes category", () => {
+    const entity = Entity.create(validProps);
+
+    entity.changeCategory(EntityCategory.LOCATION);
+
+    expect(entity.Category).toBe(EntityCategory.LOCATION);
+  });
+
+  it("rejects changing to an invalid category", () => {
+    const entity = Entity.create(validProps);
+
+    expect(() => entity.changeCategory("PLANET" as EntityCategory)).toThrow(
+      "Entity category is invalid.",
+    );
   });
 
   it("soft-deletes and restores", () => {

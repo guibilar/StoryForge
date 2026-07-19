@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   Entity,
+  EntityCategory,
   EntityRepository,
   EntityVisibility,
   NoteLinkRepository,
@@ -33,6 +34,7 @@ function makeNoteLinkRepository(): NoteLinkRepository {
 const createDto = {
   campaignId: "campaign-1",
   type: "npc",
+  category: EntityCategory.CHARACTER,
   name: "Goblin",
   visibility: EntityVisibility.PUBLIC,
 };

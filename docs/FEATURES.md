@@ -135,7 +135,13 @@ tracks what's actually built, not just planned.
       entity).
 - [x] Entity soft delete
 - [x] Duplicate-name validation per campaign
-- [x] Generic `type` field (Character/Location/Organization via type string, no type-specific schema)
+- [x] Generic `type` field (free subtype label, no type-specific schema)
+- [x] `EntityCategory` closed core enum (KAN-118) — `CHARACTER`/`LOCATION`/
+      `ORGANIZATION`/`ITEM`/`OTHER`, required alongside `type`; enforced via
+      `Entity.validateCategory`, filterable via `EntityFilter.category`.
+      Existing rows backfilled by migration
+      `20260719024607_add_entity_category` (best-effort match against the
+      pre-existing free-string `type`, falling back to `OTHER`).
 - [x] Portrait / image upload — `uploadEntityImage` mutation (GraphQL multipart
       request spec), `LocalImageStore` (validates JPEG/PNG/GIF/WEBP, 5MB limit,
       writes to `UPLOADS_DIR/<entityId>/<uuid>.<ext>`), guarded via

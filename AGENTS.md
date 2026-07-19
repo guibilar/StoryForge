@@ -1276,9 +1276,16 @@ full per-feature checklist):
   `include: { members: true }` query (KAN-79), so `archiveCampaign`'s
   no-owner check now resolves correctly.
 - **Entity** — a single generic, polymorphic domain object with a
-  `type: string` field (e.g. `"character"`, `"location"`, `"item"`,
-  `"note"`) rather than separate Character/Location/Item/Note models.
-  Has `name`, `description`, `icon`, `image`, `visibility`
+  `type: string` field (e.g. `"Vampire"`, `"Dungeon"`, `"Guild"`) rather
+  than separate Character/Location/Item/Note models. Since KAN-118
+  (entity type constraints, KAN-117), `Entity` also carries a required
+  `category: EntityCategory` — a small, closed, core-owned enum
+  (`CHARACTER`/`LOCATION`/`ORGANIZATION`/`ITEM`/`OTHER`) that other
+  features constrain against (e.g. Marker/Territory entity links, KAN-121/
+  122). `category` is the enforced classification; `type` stays the free
+  subtype/flavor label KAN-35 established — plugins keep contributing new
+  `type` values with no core change, only `category` is closed. Has
+  `name`, `description`, `icon`, `image`, `visibility`
   (`PUBLIC`/`STORYTELLER`/`PRIVATE`), soft delete (`deletedAt`), and a
   `(campaignId, name)` uniqueness constraint. Fully wired
   domain → service → Prisma repository → GraphQL: `createEntity`/

@@ -1,10 +1,12 @@
 import { ValidationError } from "../shared";
+import { EntityCategory, isEntityCategory } from "./EntityCategory";
 import { EntityId } from "./EntityId";
 import { EntityVisibility } from "./EntityVisibility";
 
 export interface CreateEntityProps {
   campaignId: string;
   type: string;
+  category: EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -16,6 +18,7 @@ export interface RehydrateEntityProps {
   id: EntityId;
   campaignId: string;
   type: string;
+  category: EntityCategory;
   name: string;
   description: string | null;
   icon: string | null;
@@ -31,6 +34,7 @@ export class Entity {
     private readonly idValue: EntityId,
     private readonly campaignIdValue: string,
     private readonly typeValue: string,
+    private categoryValue: EntityCategory,
     private nameValue: string,
     private descriptionValue: string | null,
     private iconValue: string | null,
@@ -43,6 +47,7 @@ export class Entity {
     this.validateName(nameValue);
     this.validateDescription(descriptionValue);
     this.validateType(typeValue);
+    this.validateCategory(categoryValue);
   }
 
   static create(props: CreateEntityProps): Entity {
@@ -50,6 +55,7 @@ export class Entity {
       EntityId.create(),
       props.campaignId,
       props.type,
+      props.category,
       props.name,
       props.description ?? null,
       props.icon ?? null,
@@ -66,6 +72,7 @@ export class Entity {
       props.id,
       props.campaignId,
       props.type,
+      props.category,
       props.name,
       props.description,
       props.icon,
@@ -87,6 +94,10 @@ export class Entity {
 
   get Type(): string {
     return this.typeValue;
+  }
+
+  get Category(): EntityCategory {
+    return this.categoryValue;
   }
 
   get Name(): string {
@@ -139,6 +150,13 @@ export class Entity {
 
   changeVisibility(visibility: EntityVisibility): void {
     this.visibilityValue = visibility;
+    this.updatedAtValue = new Date();
+  }
+
+  changeCategory(category: EntityCategory): void {
+    this.validateCategory(category);
+
+    this.categoryValue = category;
     this.updatedAtValue = new Date();
   }
 
@@ -203,6 +221,12 @@ export class Entity {
 
     if (trimmed.length > 100) {
       throw new ValidationError("Entity type is too long.");
+    }
+  }
+
+  private validateCategory(category: EntityCategory): void {
+    if (!isEntityCategory(category)) {
+      throw new ValidationError("Entity category is invalid.");
     }
   }
 }

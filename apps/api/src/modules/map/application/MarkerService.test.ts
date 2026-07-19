@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   Entity,
+  EntityCategory,
   EntityRepository,
   Marker,
   MarkerRepository,
@@ -151,6 +152,7 @@ describe("MarkerService", () => {
       return Entity.create({
         campaignId,
         type: "location",
+        category: EntityCategory.LOCATION,
         name: "Old Mill",
       });
     }

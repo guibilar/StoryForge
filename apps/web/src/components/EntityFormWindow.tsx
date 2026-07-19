@@ -12,11 +12,18 @@ import {
 } from "@storyforge/ui";
 
 import { CreateEntityDocument } from "../gql/graphql";
-import type { EntityVisibility } from "../gql/graphql";
+import type { EntityCategory, EntityVisibility } from "../gql/graphql";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 
 const VISIBILITIES: EntityVisibility[] = ["PUBLIC", "STORYTELLER", "PRIVATE"];
+const CATEGORIES: EntityCategory[] = [
+  "CHARACTER",
+  "LOCATION",
+  "ORGANIZATION",
+  "ITEM",
+  "OTHER",
+];
 
 export interface EntityFormWindowProps {
   campaignId: string;
@@ -44,6 +51,9 @@ export function EntityFormWindow({
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") ?? "").trim();
     const type = String(form.get("type") ?? "").trim();
+    const category = String(
+      form.get("category") ?? CATEGORIES[0],
+    ) as EntityCategory;
     const description = String(form.get("description") ?? "").trim();
     const visibility = String(
       form.get("visibility") ?? "PUBLIC",
@@ -57,6 +67,7 @@ export function EntityFormWindow({
       input: {
         campaignId,
         type,
+        category,
         name,
         description: description || null,
         visibility,
@@ -74,11 +85,24 @@ export function EntityFormWindow({
       <FormField label="Name" htmlFor="create-entity-name">
         <Input id="create-entity-name" name="name" required />
       </FormField>
+      <FormField label="Category" htmlFor="create-entity-category">
+        <Select
+          id="create-entity-category"
+          name="category"
+          defaultValue={CATEGORIES[0]}
+        >
+          {CATEGORIES.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </Select>
+      </FormField>
       <FormField label="Type" htmlFor="create-entity-type">
         <Input
           id="create-entity-type"
           name="type"
-          placeholder="e.g. Character, Location, Item"
+          placeholder="e.g. Bandit Chief, Dungeon, Guild"
           required
         />
       </FormField>

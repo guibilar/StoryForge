@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   Entity,
+  EntityCategory,
   EntityRepository,
   EntityVisibility,
   Note,
@@ -43,6 +44,7 @@ describe("NoteLinkResolver", () => {
     const entity = Entity.create({
       campaignId,
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Gruk the Orc",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -115,6 +117,7 @@ describe("NoteLinkResolver", () => {
     const entity = Entity.create({
       campaignId: "other-campaign",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Gruk the Orc",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -138,6 +141,7 @@ describe("NoteLinkResolver", () => {
     const entity = Entity.create({
       campaignId,
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Gruk the Orc",
       visibility: EntityVisibility.PUBLIC,
     });

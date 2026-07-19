@@ -145,6 +145,20 @@ export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>;
 };
 
+export type EnumEntityCategoryFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.EntityCategory
+    | Prisma.EnumEntityCategoryFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.EntityCategory[]
+    | Prisma.ListEnumEntityCategoryFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.EntityCategory[]
+    | Prisma.ListEnumEntityCategoryFieldRefInput<$PrismaModel>;
+  not?:
+    Prisma.NestedEnumEntityCategoryFilter<$PrismaModel> | $Enums.EntityCategory;
+};
+
 export type EnumVisibilityFilter<$PrismaModel = never> = {
   equals?: $Enums.Visibility | Prisma.EnumVisibilityFieldRefInput<$PrismaModel>;
   in?:
@@ -152,6 +166,24 @@ export type EnumVisibilityFilter<$PrismaModel = never> = {
   notIn?:
     $Enums.Visibility[] | Prisma.ListEnumVisibilityFieldRefInput<$PrismaModel>;
   not?: Prisma.NestedEnumVisibilityFilter<$PrismaModel> | $Enums.Visibility;
+};
+
+export type EnumEntityCategoryWithAggregatesFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.EntityCategory
+    | Prisma.EnumEntityCategoryFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.EntityCategory[]
+    | Prisma.ListEnumEntityCategoryFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.EntityCategory[]
+    | Prisma.ListEnumEntityCategoryFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumEntityCategoryWithAggregatesFilter<$PrismaModel>
+    | $Enums.EntityCategory;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumEntityCategoryFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumEntityCategoryFilter<$PrismaModel>;
 };
 
 export type EnumVisibilityWithAggregatesFilter<$PrismaModel = never> = {
@@ -509,6 +541,20 @@ export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>;
 };
 
+export type NestedEnumEntityCategoryFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.EntityCategory
+    | Prisma.EnumEntityCategoryFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.EntityCategory[]
+    | Prisma.ListEnumEntityCategoryFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.EntityCategory[]
+    | Prisma.ListEnumEntityCategoryFieldRefInput<$PrismaModel>;
+  not?:
+    Prisma.NestedEnumEntityCategoryFilter<$PrismaModel> | $Enums.EntityCategory;
+};
+
 export type NestedEnumVisibilityFilter<$PrismaModel = never> = {
   equals?: $Enums.Visibility | Prisma.EnumVisibilityFieldRefInput<$PrismaModel>;
   in?:
@@ -517,6 +563,25 @@ export type NestedEnumVisibilityFilter<$PrismaModel = never> = {
     $Enums.Visibility[] | Prisma.ListEnumVisibilityFieldRefInput<$PrismaModel>;
   not?: Prisma.NestedEnumVisibilityFilter<$PrismaModel> | $Enums.Visibility;
 };
+
+export type NestedEnumEntityCategoryWithAggregatesFilter<$PrismaModel = never> =
+  {
+    equals?:
+      | $Enums.EntityCategory
+      | Prisma.EnumEntityCategoryFieldRefInput<$PrismaModel>;
+    in?:
+      | $Enums.EntityCategory[]
+      | Prisma.ListEnumEntityCategoryFieldRefInput<$PrismaModel>;
+    notIn?:
+      | $Enums.EntityCategory[]
+      | Prisma.ListEnumEntityCategoryFieldRefInput<$PrismaModel>;
+    not?:
+      | Prisma.NestedEnumEntityCategoryWithAggregatesFilter<$PrismaModel>
+      | $Enums.EntityCategory;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumEntityCategoryFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumEntityCategoryFilter<$PrismaModel>;
+  };
 
 export type NestedEnumVisibilityWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.Visibility | Prisma.EnumVisibilityFieldRefInput<$PrismaModel>;

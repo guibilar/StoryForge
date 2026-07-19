@@ -1,5 +1,6 @@
 import {
   Entity,
+  EntityCategory,
   EntityFilter,
   EntityId,
   EntityRepository,
@@ -12,6 +13,7 @@ import {
 export interface CreateEntityDto {
   campaignId: string;
   type: string;
+  category: EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -22,6 +24,7 @@ export interface CreateEntityDto {
 export interface UpdateEntityDto {
   id: string;
   name?: string;
+  category?: EntityCategory;
   description?: string | null;
   icon?: string | null;
   image?: string | null;
@@ -69,6 +72,10 @@ export class EntityService {
 
     if (dto.name !== undefined) {
       entity.rename(dto.name);
+    }
+
+    if (dto.category !== undefined) {
+      entity.changeCategory(dto.category);
     }
 
     if (dto.description !== undefined) {

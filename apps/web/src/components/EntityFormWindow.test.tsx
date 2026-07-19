@@ -45,13 +45,14 @@ describe("EntityFormWindow", () => {
     const { onCreated, onClose } = renderWindow();
 
     await user.type(screen.getByLabelText("Name"), "Lucien Dubois");
-    await user.type(screen.getByLabelText("Type"), "Character");
+    await user.type(screen.getByLabelText("Type"), "Vampire");
     await user.click(screen.getByRole("button", { name: "Create" }));
 
     expect(createEntity).toHaveBeenCalledWith({
       input: {
         campaignId: "camp-1",
-        type: "Character",
+        type: "Vampire",
+        category: "CHARACTER",
         name: "Lucien Dubois",
         description: null,
         visibility: "PUBLIC",

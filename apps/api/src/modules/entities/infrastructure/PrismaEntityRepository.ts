@@ -38,6 +38,10 @@ export class PrismaEntityRepository implements EntityRepository {
       where.type = filter.type;
     }
 
+    if (filter?.category) {
+      where.category = filter.category;
+    }
+
     if (filter?.nameContains) {
       where.name = { contains: filter.nameContains, mode: "insensitive" };
     }

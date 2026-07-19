@@ -26,6 +26,14 @@ enum Visibility {
   PRIVATE
 }
 
+enum EntityCategory {
+  CHARACTER
+  LOCATION
+  ORGANIZATION
+  ITEM
+  OTHER
+}
+
 enum NoteVisibility {
   SHARED
   PRIVATE
@@ -61,6 +69,7 @@ model Entity {
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   type        String
+  category    EntityCategory
   name        String
   description String?
   icon        String?

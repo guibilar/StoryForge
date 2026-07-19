@@ -1,4 +1,9 @@
-import { Entity, EntityId, EntityVisibility } from "@storyforge/domain";
+import {
+  Entity,
+  EntityCategory,
+  EntityId,
+  EntityVisibility,
+} from "@storyforge/domain";
 import type { Entity as PrismaEntity } from "@storyforge/database";
 
 export class EntityMapper {
@@ -7,6 +12,7 @@ export class EntityMapper {
       id: EntityId.fromString(record.id),
       campaignId: record.campaignId,
       type: record.type,
+      category: record.category as EntityCategory,
       name: record.name,
       description: record.description,
       icon: record.icon,
@@ -23,6 +29,7 @@ export class EntityMapper {
       id: entity.Id.toString(),
       campaignId: entity.CampaignId,
       type: entity.Type,
+      category: entity.Category,
       name: entity.Name,
       description: entity.Description,
       icon: entity.Icon,

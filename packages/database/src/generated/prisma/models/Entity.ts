@@ -28,6 +28,7 @@ export type EntityMinAggregateOutputType = {
   id: string | null;
   campaignId: string | null;
   type: string | null;
+  category: $Enums.EntityCategory | null;
   name: string | null;
   description: string | null;
   icon: string | null;
@@ -42,6 +43,7 @@ export type EntityMaxAggregateOutputType = {
   id: string | null;
   campaignId: string | null;
   type: string | null;
+  category: $Enums.EntityCategory | null;
   name: string | null;
   description: string | null;
   icon: string | null;
@@ -56,6 +58,7 @@ export type EntityCountAggregateOutputType = {
   id: number;
   campaignId: number;
   type: number;
+  category: number;
   name: number;
   description: number;
   icon: number;
@@ -71,6 +74,7 @@ export type EntityMinAggregateInputType = {
   id?: true;
   campaignId?: true;
   type?: true;
+  category?: true;
   name?: true;
   description?: true;
   icon?: true;
@@ -85,6 +89,7 @@ export type EntityMaxAggregateInputType = {
   id?: true;
   campaignId?: true;
   type?: true;
+  category?: true;
   name?: true;
   description?: true;
   icon?: true;
@@ -99,6 +104,7 @@ export type EntityCountAggregateInputType = {
   id?: true;
   campaignId?: true;
   type?: true;
+  category?: true;
   name?: true;
   description?: true;
   icon?: true;
@@ -193,6 +199,7 @@ export type EntityGroupByOutputType = {
   id: string;
   campaignId: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description: string | null;
   icon: string | null;
@@ -226,6 +233,7 @@ export type EntityWhereInput = {
   id?: Prisma.StringFilter<"Entity"> | string;
   campaignId?: Prisma.StringFilter<"Entity"> | string;
   type?: Prisma.StringFilter<"Entity"> | string;
+  category?: Prisma.EnumEntityCategoryFilter<"Entity"> | $Enums.EntityCategory;
   name?: Prisma.StringFilter<"Entity"> | string;
   description?: Prisma.StringNullableFilter<"Entity"> | string | null;
   icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
@@ -251,6 +259,7 @@ export type EntityOrderByWithRelationInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
+  category?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrderInput | Prisma.SortOrder;
   icon?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -277,6 +286,8 @@ export type EntityWhereUniqueInput = Prisma.AtLeast<
     NOT?: Prisma.EntityWhereInput | Prisma.EntityWhereInput[];
     campaignId?: Prisma.StringFilter<"Entity"> | string;
     type?: Prisma.StringFilter<"Entity"> | string;
+    category?:
+      Prisma.EnumEntityCategoryFilter<"Entity"> | $Enums.EntityCategory;
     name?: Prisma.StringFilter<"Entity"> | string;
     description?: Prisma.StringNullableFilter<"Entity"> | string | null;
     icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
@@ -304,6 +315,7 @@ export type EntityOrderByWithAggregationInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
+  category?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrderInput | Prisma.SortOrder;
   icon?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -328,6 +340,9 @@ export type EntityScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Entity"> | string;
   campaignId?: Prisma.StringWithAggregatesFilter<"Entity"> | string;
   type?: Prisma.StringWithAggregatesFilter<"Entity"> | string;
+  category?:
+    | Prisma.EnumEntityCategoryWithAggregatesFilter<"Entity">
+    | $Enums.EntityCategory;
   name?: Prisma.StringWithAggregatesFilter<"Entity"> | string;
   description?:
     Prisma.StringNullableWithAggregatesFilter<"Entity"> | string | null;
@@ -347,6 +362,7 @@ export type EntityScalarWhereWithAggregatesInput = {
 export type EntityCreateInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -369,6 +385,7 @@ export type EntityUncheckedCreateInput = {
   id?: string;
   campaignId: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -389,6 +406,8 @@ export type EntityUncheckedCreateInput = {
 export type EntityUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -413,6 +432,8 @@ export type EntityUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -436,6 +457,7 @@ export type EntityCreateManyInput = {
   id?: string;
   campaignId: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -449,6 +471,8 @@ export type EntityCreateManyInput = {
 export type EntityUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -465,6 +489,8 @@ export type EntityUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -491,6 +517,7 @@ export type EntityCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
+  category?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
@@ -505,6 +532,7 @@ export type EntityMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
+  category?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
@@ -519,6 +547,7 @@ export type EntityMinOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
+  category?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
@@ -623,6 +652,10 @@ export type EntityUncheckedUpdateManyWithoutCampaignNestedInput = {
     | Prisma.EntityUpdateManyWithWhereWithoutCampaignInput
     | Prisma.EntityUpdateManyWithWhereWithoutCampaignInput[];
   deleteMany?: Prisma.EntityScalarWhereInput | Prisma.EntityScalarWhereInput[];
+};
+
+export type EnumEntityCategoryFieldUpdateOperationsInput = {
+  set?: $Enums.EntityCategory;
 };
 
 export type EnumVisibilityFieldUpdateOperationsInput = {
@@ -820,6 +853,7 @@ export type EntityUpdateOneWithoutTerritoriesNestedInput = {
 export type EntityCreateWithoutCampaignInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -840,6 +874,7 @@ export type EntityCreateWithoutCampaignInput = {
 export type EntityUncheckedCreateWithoutCampaignInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -907,6 +942,7 @@ export type EntityScalarWhereInput = {
   id?: Prisma.StringFilter<"Entity"> | string;
   campaignId?: Prisma.StringFilter<"Entity"> | string;
   type?: Prisma.StringFilter<"Entity"> | string;
+  category?: Prisma.EnumEntityCategoryFilter<"Entity"> | $Enums.EntityCategory;
   name?: Prisma.StringFilter<"Entity"> | string;
   description?: Prisma.StringNullableFilter<"Entity"> | string | null;
   icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
@@ -920,6 +956,7 @@ export type EntityScalarWhereInput = {
 export type EntityCreateWithoutEventParticipationsInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -941,6 +978,7 @@ export type EntityUncheckedCreateWithoutEventParticipationsInput = {
   id?: string;
   campaignId: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -988,6 +1026,8 @@ export type EntityUpdateToOneWithWhereWithoutEventParticipationsInput = {
 export type EntityUpdateWithoutEventParticipationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1011,6 +1051,8 @@ export type EntityUncheckedUpdateWithoutEventParticipationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1032,6 +1074,7 @@ export type EntityUncheckedUpdateWithoutEventParticipationsInput = {
 export type EntityCreateWithoutTagsInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1053,6 +1096,7 @@ export type EntityUncheckedCreateWithoutTagsInput = {
   id?: string;
   campaignId: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1100,6 +1144,8 @@ export type EntityUpdateToOneWithWhereWithoutTagsInput = {
 export type EntityUpdateWithoutTagsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1123,6 +1169,8 @@ export type EntityUncheckedUpdateWithoutTagsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1144,6 +1192,7 @@ export type EntityUncheckedUpdateWithoutTagsInput = {
 export type EntityCreateWithoutRelationshipsAsSourceInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1165,6 +1214,7 @@ export type EntityUncheckedCreateWithoutRelationshipsAsSourceInput = {
   id?: string;
   campaignId: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1192,6 +1242,7 @@ export type EntityCreateOrConnectWithoutRelationshipsAsSourceInput = {
 export type EntityCreateWithoutRelationshipsAsTargetInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1213,6 +1264,7 @@ export type EntityUncheckedCreateWithoutRelationshipsAsTargetInput = {
   id?: string;
   campaignId: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1260,6 +1312,8 @@ export type EntityUpdateToOneWithWhereWithoutRelationshipsAsSourceInput = {
 export type EntityUpdateWithoutRelationshipsAsSourceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1283,6 +1337,8 @@ export type EntityUncheckedUpdateWithoutRelationshipsAsSourceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1324,6 +1380,8 @@ export type EntityUpdateToOneWithWhereWithoutRelationshipsAsTargetInput = {
 export type EntityUpdateWithoutRelationshipsAsTargetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1347,6 +1405,8 @@ export type EntityUncheckedUpdateWithoutRelationshipsAsTargetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1368,6 +1428,7 @@ export type EntityUncheckedUpdateWithoutRelationshipsAsTargetInput = {
 export type EntityCreateWithoutBacklinksInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1389,6 +1450,7 @@ export type EntityUncheckedCreateWithoutBacklinksInput = {
   id?: string;
   campaignId: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1436,6 +1498,8 @@ export type EntityUpdateToOneWithWhereWithoutBacklinksInput = {
 export type EntityUpdateWithoutBacklinksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1459,6 +1523,8 @@ export type EntityUncheckedUpdateWithoutBacklinksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1480,6 +1546,7 @@ export type EntityUncheckedUpdateWithoutBacklinksInput = {
 export type EntityCreateWithoutMarkersInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1501,6 +1568,7 @@ export type EntityUncheckedCreateWithoutMarkersInput = {
   id?: string;
   campaignId: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1548,6 +1616,8 @@ export type EntityUpdateToOneWithWhereWithoutMarkersInput = {
 export type EntityUpdateWithoutMarkersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1571,6 +1641,8 @@ export type EntityUncheckedUpdateWithoutMarkersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1592,6 +1664,7 @@ export type EntityUncheckedUpdateWithoutMarkersInput = {
 export type EntityCreateWithoutTerritoriesInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1613,6 +1686,7 @@ export type EntityUncheckedCreateWithoutTerritoriesInput = {
   id?: string;
   campaignId: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1660,6 +1734,8 @@ export type EntityUpdateToOneWithWhereWithoutTerritoriesInput = {
 export type EntityUpdateWithoutTerritoriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1683,6 +1759,8 @@ export type EntityUncheckedUpdateWithoutTerritoriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1704,6 +1782,7 @@ export type EntityUncheckedUpdateWithoutTerritoriesInput = {
 export type EntityCreateManyCampaignInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1717,6 +1796,8 @@ export type EntityCreateManyCampaignInput = {
 export type EntityUpdateWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1739,6 +1820,8 @@ export type EntityUpdateWithoutCampaignInput = {
 export type EntityUncheckedUpdateWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1761,6 +1844,8 @@ export type EntityUncheckedUpdateWithoutCampaignInput = {
 export type EntityUncheckedUpdateManyWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1894,6 +1979,7 @@ export type EntitySelect<
     id?: boolean;
     campaignId?: boolean;
     type?: boolean;
+    category?: boolean;
     name?: boolean;
     description?: boolean;
     icon?: boolean;
@@ -1926,6 +2012,7 @@ export type EntitySelectCreateManyAndReturn<
     id?: boolean;
     campaignId?: boolean;
     type?: boolean;
+    category?: boolean;
     name?: boolean;
     description?: boolean;
     icon?: boolean;
@@ -1947,6 +2034,7 @@ export type EntitySelectUpdateManyAndReturn<
     id?: boolean;
     campaignId?: boolean;
     type?: boolean;
+    category?: boolean;
     name?: boolean;
     description?: boolean;
     icon?: boolean;
@@ -1964,6 +2052,7 @@ export type EntitySelectScalar = {
   id?: boolean;
   campaignId?: boolean;
   type?: boolean;
+  category?: boolean;
   name?: boolean;
   description?: boolean;
   icon?: boolean;
@@ -1981,6 +2070,7 @@ export type EntityOmit<
   | "id"
   | "campaignId"
   | "type"
+  | "category"
   | "name"
   | "description"
   | "icon"
@@ -2041,6 +2131,7 @@ export type $EntityPayload<
       id: string;
       campaignId: string;
       type: string;
+      category: $Enums.EntityCategory;
       name: string;
       description: string | null;
       icon: string | null;
@@ -2735,6 +2826,7 @@ export interface EntityFieldRefs {
   readonly id: Prisma.FieldRef<"Entity", "String">;
   readonly campaignId: Prisma.FieldRef<"Entity", "String">;
   readonly type: Prisma.FieldRef<"Entity", "String">;
+  readonly category: Prisma.FieldRef<"Entity", "EntityCategory">;
   readonly name: Prisma.FieldRef<"Entity", "String">;
   readonly description: Prisma.FieldRef<"Entity", "String">;
   readonly icon: Prisma.FieldRef<"Entity", "String">;

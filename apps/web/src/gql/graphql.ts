@@ -24,6 +24,7 @@ export type CreateCampaignDto = {
 
 export type CreateEntityInput = {
   campaignId: string | number;
+  category: EntityCategory;
   description?: string | null | undefined;
   icon?: string | null | undefined;
   image?: string | null | undefined;
@@ -73,7 +74,11 @@ export type CreateTerritoryInput = {
   type: string;
 };
 
+export type EntityCategory =
+  "CHARACTER" | "ITEM" | "LOCATION" | "ORGANIZATION" | "OTHER";
+
 export type EntityFilter = {
+  category?: EntityCategory | null | undefined;
   nameContains?: string | null | undefined;
   tagIds?: Array<string | number> | null | undefined;
   type?: string | null | undefined;
@@ -112,6 +117,7 @@ export type UpdateCampaignMemberRoleInput = {
 };
 
 export type UpdateEntityInput = {
+  category?: EntityCategory | null | undefined;
   description?: string | null | undefined;
   icon?: string | null | undefined;
   id: string | number;
@@ -430,6 +436,7 @@ export type EntitiesQuery = {
     name: string;
     description: string | null;
     type: string;
+    category: EntityCategory;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   }>;
@@ -2228,6 +2235,7 @@ export const EntitiesDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "category" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   Entity,
+  EntityCategory,
   EntityRepository,
   EntityVisibility,
   Event,
@@ -66,6 +67,7 @@ function makeEntity(overrides?: Partial<{ campaignId: string }>): Entity {
   return Entity.create({
     campaignId: overrides?.campaignId ?? "campaign-1",
     type: "npc",
+    category: EntityCategory.CHARACTER,
     name: "Goblin",
     visibility: EntityVisibility.PUBLIC,
   });

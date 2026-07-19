@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   Entity,
+  EntityCategory,
   EntityRepository,
   NotFoundError,
   Territory,
@@ -154,6 +155,7 @@ describe("TerritoryService", () => {
       return Entity.create({
         campaignId,
         type: "location",
+        category: EntityCategory.LOCATION,
         name: "Thornwood",
       });
     }

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   Entity,
+  EntityCategory,
   EntityRepository,
   EntityVisibility,
   NotFoundError,
@@ -34,6 +35,7 @@ function makeEntityRepository(): EntityRepository {
 const entity = Entity.create({
   campaignId: "campaign-1",
   type: "npc",
+  category: EntityCategory.CHARACTER,
   name: "Goblin",
   visibility: EntityVisibility.PUBLIC,
 });

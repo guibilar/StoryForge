@@ -6,9 +6,3 @@
 .coords > * {
   flex: 1;
 }
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}

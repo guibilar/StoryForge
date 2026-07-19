@@ -3,6 +3,7 @@ import { useMutation } from "urql";
 import {
   Button,
   Form,
+  FormActions,
   FormError,
   FormField,
   Input,
@@ -14,7 +15,6 @@ import { CreateEntityDocument } from "../gql/graphql";
 import type { EntityVisibility } from "../gql/graphql";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
-import styles from "./EntityFormWindow.module.css";
 
 const VISIBILITIES: EntityVisibility[] = ["PUBLIC", "STORYTELLER", "PRIVATE"];
 
@@ -98,14 +98,14 @@ export function EntityFormWindow({
           ))}
         </Select>
       </FormField>
-      <div className={styles.actions}>
+      <FormActions>
         <Button type="button" variant="secondary" onClick={onClose}>
           Cancel
         </Button>
         <Button type="submit" disabled={createEntityState.fetching}>
           Create
         </Button>
-      </div>
+      </FormActions>
     </Form>
   );
 }

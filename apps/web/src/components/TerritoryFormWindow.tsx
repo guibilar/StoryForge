@@ -4,6 +4,7 @@ import { useMutation } from "urql";
 import {
   Button,
   Form,
+  FormActions,
   FormError,
   FormField,
   Input,
@@ -230,7 +231,7 @@ export function TerritoryFormWindow({
           rows={3}
         />
       </FormField>
-      <div className={styles.actions}>
+      <FormActions>
         {mode.mode === "edit" ? (
           <Button
             type="button"
@@ -250,7 +251,7 @@ export function TerritoryFormWindow({
         >
           Save
         </Button>
-      </div>
+      </FormActions>
     </Form>
   );
 }

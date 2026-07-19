@@ -4,6 +4,7 @@ import { useMutation } from "urql";
 import {
   Button,
   Form,
+  FormActions,
   FormError,
   FormField,
   Input,
@@ -113,14 +114,14 @@ export function ManageCampaignModal({
             rows={4}
           />
         </FormField>
-        <div className={styles.actions}>
+        <FormActions>
           <Button type="button" variant="secondary" onClick={handleClose}>
             Cancel
           </Button>
           <Button type="submit" disabled={fetching}>
             Save
           </Button>
-        </div>
+        </FormActions>
       </Form>
 
       <div className={styles.archiveSection}>
@@ -131,7 +132,7 @@ export function ManageCampaignModal({
               Archive &quot;{campaign.name}&quot;? It will disappear from the
               dashboard and can&apos;t be reopened.
             </p>
-            <div className={styles.actions}>
+            <FormActions>
               <Button
                 type="button"
                 variant="text"
@@ -147,7 +148,7 @@ export function ManageCampaignModal({
               >
                 Confirm archive
               </Button>
-            </div>
+            </FormActions>
           </>
         ) : (
           <Button

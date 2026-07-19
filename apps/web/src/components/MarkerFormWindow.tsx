@@ -4,6 +4,7 @@ import { useMutation } from "urql";
 import {
   Button,
   Form,
+  FormActions,
   FormError,
   FormField,
   Input,
@@ -175,7 +176,7 @@ export function MarkerFormWindow({
           rows={3}
         />
       </FormField>
-      <div className={styles.actions}>
+      <FormActions>
         <Button type="button" variant="secondary" onClick={onClose}>
           Cancel
         </Button>
@@ -185,7 +186,7 @@ export function MarkerFormWindow({
         >
           Save
         </Button>
-      </div>
+      </FormActions>
     </Form>
   );
 }

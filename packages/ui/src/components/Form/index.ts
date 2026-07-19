@@ -6,3 +6,5 @@ export { FormField } from "./FormField";
 export type { FormFieldProps } from "./FormField";
 export { FormError } from "./FormError";
 export type { FormErrorProps } from "./FormError";
+export { FormActions } from "./FormActions";
+export type { FormActionsProps } from "./FormActions";

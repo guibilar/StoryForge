@@ -344,6 +344,13 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       non-`LOCATION` `entityId` with `ValidationError`; `EntitySelectField`
       (`categories` prop) filters the picker client-side to match, so
       `MarkerFormWindow` only ever offers `LOCATION` entities.
+- [x] Territory entity links restricted to ORGANIZATION/LOCATION-category
+      entities (KAN-122) — same shape as KAN-121, but a two-value allowlist:
+      `Territory.type` already free-strings "territory"/"region"/"district"
+      (see `Territory.ts`), and a district is more location-like than
+      org-like, so `LOCATION` is included alongside `ORGANIZATION` rather
+      than restricting to factions/orgs alone. `TerritoryFormWindow` passes
+      both categories to `EntitySelectField`.
 
 ## Plugin Runtime
 

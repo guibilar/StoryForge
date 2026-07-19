@@ -151,18 +151,21 @@ describe("TerritoryService", () => {
   });
 
   describe("entity link", () => {
-    function entityInCampaign(campaignId: string): Entity {
+    function entityInCampaign(
+      campaignId: string,
+      category: EntityCategory = EntityCategory.LOCATION,
+    ): Entity {
       return Entity.create({
         campaignId,
         type: "location",
-        category: EntityCategory.LOCATION,
+        category,
         name: "Thornwood",
       });
     }
 
-    it("links a territory to an entity in the same campaign", async () => {
+    it("links a territory to a LOCATION-category entity in the same campaign", async () => {
       vi.mocked(entityRepository.findById).mockResolvedValue(
-        entityInCampaign("campaign-1"),
+        entityInCampaign("campaign-1", EntityCategory.LOCATION),
       );
 
       const territory = await service.createTerritory({
@@ -171,6 +174,30 @@ describe("TerritoryService", () => {
       });
 
       expect(territory.EntityId).toBe("entity-1");
+    });
+
+    it("links a territory to an ORGANIZATION-category entity in the same campaign", async () => {
+      vi.mocked(entityRepository.findById).mockResolvedValue(
+        entityInCampaign("campaign-1", EntityCategory.ORGANIZATION),
+      );
+
+      const territory = await service.createTerritory({
+        ...createDto,
+        entityId: "entity-1",
+      });
+
+      expect(territory.EntityId).toBe("entity-1");
+    });
+
+    it("rejects an entity that is neither ORGANIZATION nor LOCATION-category", async () => {
+      vi.mocked(entityRepository.findById).mockResolvedValue(
+        entityInCampaign("campaign-1", EntityCategory.CHARACTER),
+      );
+
+      await expect(
+        service.createTerritory({ ...createDto, entityId: "entity-1" }),
+      ).rejects.toThrow(ValidationError);
+      expect(repository.create).not.toHaveBeenCalled();
     });
 
     it("rejects an entity from a different campaign", async () => {

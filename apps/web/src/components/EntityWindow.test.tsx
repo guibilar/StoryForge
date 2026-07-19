@@ -9,6 +9,7 @@ import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   CampaignDocument,
   EntitiesDocument,
+  ForceOpenEntityWindowDocument,
   MeDocument,
   RelationshipsDocument,
   UpdateEntityDocument,
@@ -41,6 +42,17 @@ const playerMembers = [
     userId: CURRENT_USER_ID,
     role: "PLAYER",
     user: { id: CURRENT_USER_ID, email: "player@example.com" },
+  },
+];
+
+// A writer (Storyteller) alongside a PLAYER — what the force-open
+// broadcast-target picker's dropdown should offer (KAN-133).
+const ownerWithPlayersMembers = [
+  ...ownerMembers,
+  {
+    userId: "user-2",
+    role: "PLAYER",
+    user: { id: "user-2", email: "player-two@example.com" },
   },
 ];
 
@@ -104,6 +116,12 @@ function setupQueries({
   uploadEntityImageFetching = false,
   uploadEntityImageError = undefined as
     { graphQLErrors: unknown[] } | undefined,
+  forceOpenEntityWindow = vi
+    .fn()
+    .mockResolvedValue({ data: { forceOpenEntityWindow: true } }),
+  forceOpenEntityWindowFetching = false,
+  forceOpenEntityWindowError = undefined as
+    { graphQLErrors: unknown[] } | undefined,
   updateEntity = vi.fn().mockImplementation(({ input }) =>
     Promise.resolve({
       data: { updateEntity: { id: input.id, color: input.color ?? null } },
@@ -162,6 +180,16 @@ function setupQueries({
         uploadEntityImage,
       ];
     }
+    if (document === ForceOpenEntityWindowDocument) {
+      return [
+        {
+          fetching: forceOpenEntityWindowFetching,
+          error: forceOpenEntityWindowError,
+          stale: false,
+        },
+        forceOpenEntityWindow,
+      ];
+    }
     if (document === UpdateEntityDocument) {
       return [
         { fetching: updateEntityFetching, error: undefined, stale: false },
@@ -175,6 +203,7 @@ function setupQueries({
     reexecuteEntities,
     reexecuteRelationships,
     uploadEntityImage,
+    forceOpenEntityWindow,
     updateEntity,
   };
 }
@@ -542,5 +571,111 @@ describe("EntityWindow", () => {
     await user.click(screen.getByRole("tab", { name: "Overview" }));
 
     expect(chromeApi.setLoading).toHaveBeenLastCalledWith(false);
+  });
+
+  describe("KAN-133 force-open entity window", () => {
+    it("hides the 'Open for player(s)…' action for a Player", () => {
+      setupQueries({ members: playerMembers });
+      setupDesktopWindows();
+      render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+      expect(
+        screen.queryByRole("button", { name: "Open for player(s)…" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows the 'Open for player(s)…' action for a Storyteller-tier writer", () => {
+      setupQueries({ members: ownerWithPlayersMembers });
+      setupDesktopWindows();
+      render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+      expect(
+        screen.getByRole("button", { name: "Open for player(s)…" }),
+      ).toBeInTheDocument();
+    });
+
+    it("sends forceOpenEntityWindow for this entity with an 'all players' target by default", async () => {
+      const { forceOpenEntityWindow } = setupQueries({
+        members: ownerWithPlayersMembers,
+      });
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Open for player(s)…" }),
+      );
+      await user.click(screen.getByRole("button", { name: "Send" }));
+
+      expect(forceOpenEntityWindow).toHaveBeenCalledWith({
+        input: {
+          campaignId: "camp-1",
+          entityId: "e-1",
+          target: { allPlayers: true, userIds: [] },
+        },
+      });
+    });
+
+    it("sends forceOpenEntityWindow targeted at a single selected player", async () => {
+      const { forceOpenEntityWindow } = setupQueries({
+        members: ownerWithPlayersMembers,
+      });
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Open for player(s)…" }),
+      );
+      await user.selectOptions(
+        screen.getByRole("combobox", { name: "Open for player(s) target" }),
+        "player-two@example.com",
+      );
+      await user.click(screen.getByRole("button", { name: "Send" }));
+
+      expect(forceOpenEntityWindow).toHaveBeenCalledWith({
+        input: {
+          campaignId: "camp-1",
+          entityId: "e-1",
+          target: { allPlayers: false, userIds: ["user-2"] },
+        },
+      });
+    });
+
+    it("shows a success message once forceOpenEntityWindow resolves", async () => {
+      setupQueries({ members: ownerWithPlayersMembers });
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Open for player(s)…" }),
+      );
+      await user.click(screen.getByRole("button", { name: "Send" }));
+
+      expect(screen.getByText("Opened.")).toBeInTheDocument();
+    });
+
+    it("surfaces an error when forceOpenEntityWindow fails", async () => {
+      setupQueries({
+        members: ownerWithPlayersMembers,
+        forceOpenEntityWindow: vi.fn().mockResolvedValue({ data: undefined }),
+        forceOpenEntityWindowError: {
+          graphQLErrors: [{ message: "You are not allowed to do that." }],
+        } as never,
+      });
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Open for player(s)…" }),
+      );
+      await user.click(screen.getByRole("button", { name: "Send" }));
+
+      expect(
+        screen.getByText("You are not allowed to do that."),
+      ).toBeInTheDocument();
+    });
   });
 });

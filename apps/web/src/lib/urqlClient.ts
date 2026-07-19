@@ -7,4 +7,8 @@ export const urqlClient = createClient({
   url: API_URL,
   exchanges: [cacheExchange, fetchExchange],
   fetchOptions: { credentials: "include" },
+  // graphql-yoga serves subscriptions as `text/event-stream` (SSE) responses
+  // over the same HTTP endpoint used for queries/mutations — no separate
+  // WebSocket transport or exchange is needed. See KAN-127.
+  fetchSubscriptions: true,
 });

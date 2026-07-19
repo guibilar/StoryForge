@@ -6,6 +6,7 @@ import { CampaignDocument, MeDocument } from "../gql/graphql";
 import { AppCommandPalette } from "../components/AppCommandPalette";
 import { DesktopBoard } from "../components/DesktopBoard";
 import { EntitySidebar } from "../components/EntitySidebar";
+import { ForceOpenEntityListener } from "../components/ForceOpenEntityListener";
 import { MobileDesktop } from "../components/MobileDesktop";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useDesktopWindowsController } from "../hooks/useDesktopWindowsController";
@@ -84,6 +85,11 @@ export function CampaignDesktopPage() {
           </div>
         )}
         <AppCommandPalette campaignId={campaign.id} role={role} />
+        {/* KAN-133 side A: always mounted regardless of which window has
+            focus, same as AppCommandPalette above — every campaign member
+            needs to receive a Storyteller's force-open broadcast, not just
+            whoever's looking at a particular window. */}
+        <ForceOpenEntityListener campaignId={campaign.id} />
       </DesktopWindowsContext.Provider>
     </main>
   );

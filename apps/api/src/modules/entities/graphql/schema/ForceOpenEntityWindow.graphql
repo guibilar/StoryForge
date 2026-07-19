@@ -1,0 +1,37 @@
+"""
+Recipients of a Storyteller push-to-player action. Mirrors the shape used
+by KAN-129's viewport sync (`allPlayers` vs. an explicit `userIds` list) so
+both "push to player screens" features share the same input conventions.
+"""
+input ForceOpenEntityWindowTargetInput {
+  allPlayers: Boolean!
+  userIds: [ID!]!
+}
+
+input ForceOpenEntityWindowInput {
+  campaignId: ID!
+  entityId: ID!
+  target: ForceOpenEntityWindowTargetInput!
+}
+
+extend type Mutation {
+  """
+  Storyteller-only (KAN-128 `BROADCAST_TO_PLAYERS`): force-opens an entity's
+  window on the targeted players' connected clients, publishing the fully
+  resolved entity on the `entityWindowForceOpened` subscription. This is a
+  deliberate, explicit bypass of the normal `EntityVisibility` read filter —
+  see the resolver for the full rationale.
+  """
+  forceOpenEntityWindow(input: ForceOpenEntityWindowInput!): Boolean!
+}
+
+extend type Subscription {
+  """
+  Delivers the entity a Storyteller force-opened via `forceOpenEntityWindow`
+  (KAN-132), scoped to the campaign and filtered so only a targeted
+  subscriber receives it. The payload is the same `Entity` type the normal
+  `entity`/`entities` queries return — intentionally not visibility-filtered
+  for this one push, per the mutation's documented exception.
+  """
+  entityWindowForceOpened(campaignId: ID!): Entity!
+}

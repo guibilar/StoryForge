@@ -1,0 +1,3 @@
+mutation ForceOpenEntityWindow($input: ForceOpenEntityWindowInput!) {
+  forceOpenEntityWindow(input: $input)
+}

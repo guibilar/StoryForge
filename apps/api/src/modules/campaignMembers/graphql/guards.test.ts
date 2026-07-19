@@ -7,6 +7,7 @@ import {
   User,
 } from "@storyforge/domain";
 import {
+  requireCampaignBroadcaster,
   requireCampaignMember,
   requireCampaignRole,
   requireCampaignWriter,
@@ -171,6 +172,53 @@ describe("requireCampaignWriter", () => {
       await expect(requireCampaignWriter(context, campaignId)).resolves.toBe(
         membership,
       );
+    },
+  );
+});
+
+describe("requireCampaignBroadcaster", () => {
+  it("throws AuthenticationError when logged out", async () => {
+    const context = makeContext(null, { getMembership: vi.fn() });
+
+    await expect(
+      requireCampaignBroadcaster(context, campaignId),
+    ).rejects.toThrow(AuthenticationError);
+  });
+
+  it("throws ForbiddenError when the user has no membership", async () => {
+    const context = makeContext(user, {
+      getMembership: vi.fn().mockResolvedValue(null),
+    });
+
+    await expect(
+      requireCampaignBroadcaster(context, campaignId),
+    ).rejects.toThrow(ForbiddenError);
+  });
+
+  it.each(["PLAYER", "OBSERVER"] as const)(
+    "throws ForbiddenError when the user is a %s",
+    async (role) => {
+      const membership = makeMembership(role);
+      const context = makeContext(user, {
+        getMembership: vi.fn().mockResolvedValue(membership),
+      });
+
+      await expect(
+        requireCampaignBroadcaster(context, campaignId),
+      ).rejects.toThrow(ForbiddenError);
+    },
+  );
+
+  it.each(["OWNER", "STORYTELLER", "CO_STORYTELLER"] as const)(
+    "resolves with the membership when the user is a %s",
+    async (role) => {
+      const membership = makeMembership(role);
+      const getMembership = vi.fn().mockResolvedValue(membership);
+      const context = makeContext(user, { getMembership });
+
+      await expect(
+        requireCampaignBroadcaster(context, campaignId),
+      ).resolves.toBe(membership);
     },
   );
 });

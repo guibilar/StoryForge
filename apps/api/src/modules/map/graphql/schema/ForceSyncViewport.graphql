@@ -1,0 +1,44 @@
+"""
+A map center point, as sent over the wire for force-syncing viewports
+(KAN-129). Mirrors `apps/web`'s `MapPosition`/`MapViewport` shape (KAN-130)
+so the frontend hook this feeds (KAN-131) can pass values straight through.
+"""
+type ForceSyncViewportPosition {
+  lat: Float!
+  lng: Float!
+}
+
+input ForceSyncViewportPositionInput {
+  lat: Float!
+  lng: Float!
+}
+
+"""
+Who a `forceSyncViewport` mutation should be delivered to. Set `allPlayers`
+to broadcast to every current PLAYER/OBSERVER member of the campaign
+(resolved from the campaign's membership roster, not from any kind of
+"who's currently online" presence tracking — this app has none). Otherwise,
+`userIds` targets specific members directly (e.g. a single player).
+"""
+input ForceSyncViewportTargetInput {
+  allPlayers: Boolean!
+  userIds: [ID!]!
+}
+
+input ForceSyncViewportInput {
+  campaignId: ID!
+  center: ForceSyncViewportPositionInput!
+  zoom: Int!
+  target: ForceSyncViewportTargetInput!
+}
+
+"""
+Pushed to every targeted player's client when a Storyteller force-syncs
+their live map viewport (KAN-129).
+"""
+type ForceSyncViewportEvent {
+  campaignId: ID!
+  center: ForceSyncViewportPosition!
+  zoom: Int!
+  broadcasterId: ID!
+}

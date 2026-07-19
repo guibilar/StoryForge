@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
-import { useMutation, useQuery } from "urql";
+import { useMutation, useQuery, useSubscription } from "urql";
 
 import { MapsWindow } from "./MapsWindow";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
@@ -12,9 +12,11 @@ import {
   CampaignDocument,
   DeleteMapImageDocument,
   DeleteMarkerDocument,
+  ForceSyncViewportDocument,
   MapImageDocument,
   MarkersDocument,
   MeDocument,
+  OnForceSyncViewportDocument,
   TerritoriesDocument,
   UploadMapImageDocument,
 } from "../gql/graphql";
@@ -94,6 +96,21 @@ vi.mock("./MapCanvas", () => ({
           Complete territory
         </button>
       ) : null}
+      {props.onViewportChange ? (
+        <button
+          onClick={() =>
+            props.onViewportChange?.({
+              center: { lat: 10.5, lng: 20.25 },
+              zoom: 7,
+            })
+          }
+        >
+          Report viewport
+        </button>
+      ) : null}
+      <span data-testid="applied-viewport">
+        {props.viewport ? JSON.stringify(props.viewport) : ""}
+      </span>
       {props.onOpenEntity && props.markers?.[0]?.entity ? (
         <button onClick={() => props.onOpenEntity?.(props.markers![0].entity!)}>
           Open linked entity
@@ -109,7 +126,12 @@ vi.mock("../hooks/useOpenEntityWindow", () => ({
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useMutation: vi.fn(), useQuery: vi.fn() };
+  return {
+    ...actual,
+    useMutation: vi.fn(),
+    useQuery: vi.fn(),
+    useSubscription: vi.fn(),
+  };
 });
 
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -138,6 +160,22 @@ const playerMembers = [
     userId: CURRENT_USER_ID,
     role: "PLAYER",
     user: { id: CURRENT_USER_ID, email: "player@example.com" },
+  },
+];
+
+// A writer (Storyteller) alongside a couple of PLAYER/OBSERVER members —
+// what the broadcast-target picker's dropdown should offer.
+const ownerWithPlayersMembers = [
+  ...ownerMembers,
+  {
+    userId: "user-2",
+    role: "PLAYER",
+    user: { id: "user-2", email: "player-two@example.com" },
+  },
+  {
+    userId: "user-3",
+    role: "OBSERVER",
+    user: { id: "user-3", email: "observer@example.com" },
   },
 ];
 
@@ -183,6 +221,9 @@ function setupMocks({
   deleteMapImage = vi
     .fn()
     .mockResolvedValue({ data: { deleteMapImage: true } }),
+  forceSyncViewport = vi
+    .fn()
+    .mockResolvedValue({ data: { forceSyncViewport: true } }),
   reexecuteMarkers = vi.fn(),
   reexecuteTerritories = vi.fn(),
   reexecuteMapImage = vi.fn(),
@@ -190,8 +231,19 @@ function setupMocks({
   deleteMarkerError = undefined as { graphQLErrors: unknown[] } | undefined,
   deleteMapImageFetching = false,
   deleteMapImageError = undefined as { graphQLErrors: unknown[] } | undefined,
+  forceSyncViewportFetching = false,
+  forceSyncViewportError = undefined as
+    { graphQLErrors: unknown[] } | undefined,
   markersFetching = false,
   markersLoaded = true,
+  syncEvent = undefined as
+    | {
+        campaignId: string;
+        center: { lat: number; lng: number };
+        zoom: number;
+        broadcasterId: string;
+      }
+    | undefined,
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === MeDocument) {
@@ -278,13 +330,49 @@ function setupMocks({
       ];
     }
 
+    if (document === ForceSyncViewportDocument) {
+      return [
+        {
+          fetching: forceSyncViewportFetching,
+          error: forceSyncViewportError,
+          stale: false,
+        },
+        forceSyncViewport,
+      ];
+    }
+
     throw new Error("Unexpected mutation in test");
+  }) as never);
+
+  // Computed once per setupMocks() call rather than inside the
+  // mockImplementation closure below: a real urql `useSubscription` only
+  // hands back a new `data` object reference when a genuinely new message
+  // arrives, not on every unrelated re-render. Rebuilding the wrapper object
+  // on every invocation would make MapsWindow's `useEffect(..., [syncEventData])`
+  // see a "new" value on every render and loop forever.
+  const syncSubscriptionData = syncEvent
+    ? { forceSyncViewport: syncEvent }
+    : undefined;
+  vi.mocked(useSubscription).mockImplementation(((args: { query: unknown }) => {
+    if (args.query === OnForceSyncViewportDocument) {
+      return [
+        {
+          data: syncSubscriptionData,
+          fetching: false,
+          stale: false,
+        },
+        vi.fn(),
+      ];
+    }
+
+    throw new Error("Unexpected subscription in test");
   }) as never);
 
   return {
     deleteMarker,
     uploadMapImage,
     deleteMapImage,
+    forceSyncViewport,
     reexecuteMarkers,
     reexecuteTerritories,
     reexecuteMapImage,
@@ -928,5 +1016,151 @@ describe("MapsWindow", () => {
     expect(() => renderWindow()).not.toThrow();
     expect(screen.getByText("Territory Thornwood")).toBeInTheDocument();
     expect(screen.queryByText("Territory Corrupted")).not.toBeInTheDocument();
+  });
+
+  describe("KAN-131 viewport sync", () => {
+    it("hides the sync-to-players control for a Player (read-only)", () => {
+      setupMocks({ members: playerMembers });
+      setupDesktopWindows();
+      renderWindow();
+
+      expect(
+        screen.queryByRole("button", { name: "Sync view to players" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows the sync-to-players control for a Storyteller-tier writer", () => {
+      setupMocks({ members: ownerWithPlayersMembers });
+      setupDesktopWindows();
+      renderWindow();
+
+      expect(
+        screen.getByRole("button", { name: "Sync view to players" }),
+      ).toBeInTheDocument();
+    });
+
+    it("disables the sync button until MapCanvas has reported a live viewport", () => {
+      setupMocks({ members: ownerWithPlayersMembers });
+      setupDesktopWindows();
+      renderWindow();
+
+      expect(
+        screen.getByRole("button", { name: "Sync view to players" }),
+      ).toBeDisabled();
+    });
+
+    it("sends forceSyncViewport with the live viewport and an 'all players' target by default", async () => {
+      const { forceSyncViewport } = setupMocks({
+        members: ownerWithPlayersMembers,
+      });
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      renderWindow();
+
+      // MapCanvas is stubbed — this button stands in for its real
+      // onViewportChange firing on mount/pan/zoom (KAN-130).
+      await user.click(screen.getByRole("button", { name: "Report viewport" }));
+      await user.click(
+        screen.getByRole("button", { name: "Sync view to players" }),
+      );
+
+      expect(forceSyncViewport).toHaveBeenCalledWith({
+        input: {
+          campaignId: "camp-1",
+          center: { lat: 10.5, lng: 20.25 },
+          zoom: 7,
+          target: { allPlayers: true, userIds: [] },
+        },
+      });
+    });
+
+    it("sends forceSyncViewport targeted at a single selected player", async () => {
+      const { forceSyncViewport } = setupMocks({
+        members: ownerWithPlayersMembers,
+      });
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      renderWindow();
+
+      await user.click(screen.getByRole("button", { name: "Report viewport" }));
+      await user.selectOptions(
+        screen.getByRole("combobox", { name: "Sync view target" }),
+        "player-two@example.com",
+      );
+      await user.click(
+        screen.getByRole("button", { name: "Sync view to players" }),
+      );
+
+      expect(forceSyncViewport).toHaveBeenCalledWith({
+        input: {
+          campaignId: "camp-1",
+          center: { lat: 10.5, lng: 20.25 },
+          zoom: 7,
+          target: { allPlayers: false, userIds: ["user-2"] },
+        },
+      });
+    });
+
+    it("shows a success message once forceSyncViewport resolves", async () => {
+      setupMocks({ members: ownerWithPlayersMembers });
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      renderWindow();
+
+      await user.click(screen.getByRole("button", { name: "Report viewport" }));
+      await user.click(
+        screen.getByRole("button", { name: "Sync view to players" }),
+      );
+
+      expect(screen.getByText("Viewport synced.")).toBeInTheDocument();
+    });
+
+    it("surfaces an error when forceSyncViewport fails", async () => {
+      setupMocks({
+        members: ownerWithPlayersMembers,
+        forceSyncViewport: vi.fn().mockResolvedValue({ data: undefined }),
+        forceSyncViewportError: {
+          graphQLErrors: [{ message: "You are not allowed to do that." }],
+        } as never,
+      });
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      renderWindow();
+
+      await user.click(screen.getByRole("button", { name: "Report viewport" }));
+      await user.click(
+        screen.getByRole("button", { name: "Sync view to players" }),
+      );
+
+      expect(
+        screen.getByText("You are not allowed to do that."),
+      ).toBeInTheDocument();
+    });
+
+    it("applies an inbound forceSyncViewport subscription payload to MapCanvas's viewport prop, for any role", () => {
+      setupMocks({
+        members: playerMembers,
+        syncEvent: {
+          campaignId: "camp-1",
+          center: { lat: 33.3, lng: -12.1 },
+          zoom: 9,
+          broadcasterId: "user-1",
+        },
+      });
+      setupDesktopWindows();
+      renderWindow();
+
+      expect(screen.getByTestId("applied-viewport")).toHaveTextContent(
+        JSON.stringify({ center: { lat: 33.3, lng: -12.1 }, zoom: 9 }),
+      );
+    });
+
+    it("does not push anything into MapCanvas's viewport prop when no sync event has arrived", () => {
+      setupMocks({ members: playerMembers });
+      setupDesktopWindows();
+      renderWindow();
+
+      expect(screen.getByTestId("applied-viewport")).toHaveTextContent("");
+    });
   });
 });

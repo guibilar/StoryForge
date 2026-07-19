@@ -22,3 +22,14 @@
 .hiddenFileInput {
   display: none;
 }
+
+.syncControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.syncSuccess {
+  color: var(--accent);
+  font-size: 0.9em;
+}

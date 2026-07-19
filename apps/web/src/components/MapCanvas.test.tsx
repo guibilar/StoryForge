@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import L from "leaflet";
 
 import { MapCanvas } from "./MapCanvas";
@@ -56,7 +56,24 @@ const territory: MapTerritoryShape = {
   },
 };
 
+function mockMatchMedia(matches: boolean) {
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })) as unknown as typeof window.matchMedia;
+}
+
 describe("MapCanvas", () => {
+  afterEach(() => {
+    document.documentElement.removeAttribute("data-theme");
+    vi.unstubAllGlobals();
+  });
+
   it("renders a pannable/zoomable Leaflet viewport with a tile layer", () => {
     const { container } = render(<MapCanvas />);
 
@@ -65,14 +82,14 @@ describe("MapCanvas", () => {
     expect(container.querySelector(".leaflet-control-zoom-out")).toBeTruthy();
 
     const tile = container.querySelector<HTMLImageElement>(".leaflet-tile");
-    expect(tile?.src).toMatch(/tile\.openstreetmap\.org/);
+    expect(tile?.src).toMatch(/basemaps\.cartocdn\.com\/light_all/);
   });
 
   it("renders tiles for the requested zoom level", () => {
     const { container } = render(<MapCanvas zoom={5} />);
 
     const tile = container.querySelector<HTMLImageElement>(".leaflet-tile");
-    expect(tile?.src).toMatch(/tile\.openstreetmap\.org\/5\//);
+    expect(tile?.src).toMatch(/light_all\/5\//);
   });
 
   it("centers on the requested coordinates", () => {
@@ -214,6 +231,44 @@ describe("MapCanvas", () => {
     expect(disconnect).toHaveBeenCalled();
     invalidateSize.mockRestore();
     vi.unstubAllGlobals();
+  });
+
+  describe("theming", () => {
+    it("uses the dark basemap when the OS prefers dark", () => {
+      mockMatchMedia(true);
+
+      const { container } = render(<MapCanvas />);
+
+      const tile = container.querySelector<HTMLImageElement>(".leaflet-tile");
+      expect(tile?.src).toMatch(/basemaps\.cartocdn\.com\/dark_all/);
+    });
+
+    it("prefers an explicit [data-theme] over the OS preference", () => {
+      mockMatchMedia(true);
+      document.documentElement.dataset.theme = "light";
+
+      const { container } = render(<MapCanvas />);
+
+      const tile = container.querySelector<HTMLImageElement>(".leaflet-tile");
+      expect(tile?.src).toMatch(/basemaps\.cartocdn\.com\/light_all/);
+    });
+
+    it("switches the basemap when the theme changes after mount", async () => {
+      mockMatchMedia(false);
+
+      const { container } = render(<MapCanvas />);
+      expect(
+        container.querySelector<HTMLImageElement>(".leaflet-tile")?.src,
+      ).toMatch(/light_all/);
+
+      document.documentElement.dataset.theme = "dark";
+
+      await waitFor(() =>
+        expect(
+          container.querySelector<HTMLImageElement>(".leaflet-tile")?.src,
+        ).toMatch(/dark_all/),
+      );
+    });
   });
 
   describe("draw modes", () => {

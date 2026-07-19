@@ -1,3 +1,5 @@
+import { prefersDarkTheme } from "./colorScheme";
+
 // Validated 8-hue categorical palette (see the dataviz color-formula method).
 const CATEGORICAL_LIGHT = [
   "#2a78d6",
@@ -20,23 +22,6 @@ const CATEGORICAL_DARK = [
   "#9085e9",
   "#e66767",
 ];
-
-function prefersDarkTheme(): boolean {
-  if (typeof document !== "undefined") {
-    const explicit = document.documentElement.dataset.theme;
-    if (explicit === "dark") {
-      return true;
-    }
-    if (explicit === "light") {
-      return false;
-    }
-  }
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  );
-}
 
 // Entity.type and Relationship.type are open-ended free strings, not a fixed
 // enum, so there's no way to know the full set of categories up front —

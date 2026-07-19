@@ -81,6 +81,22 @@ export type EntityFilter = {
 
 export type EntityVisibility = "PRIVATE" | "PUBLIC" | "STORYTELLER";
 
+export type ForceOpenEntityWindowInput = {
+  campaignId: string | number;
+  entityId: string | number;
+  target: ForceOpenEntityWindowTargetInput;
+};
+
+/**
+ * Recipients of a Storyteller push-to-player action. Mirrors the shape used
+ * by KAN-129's viewport sync (`allPlayers` vs. an explicit `userIds` list) so
+ * both "push to player screens" features share the same input conventions.
+ */
+export type ForceOpenEntityWindowTargetInput = {
+  allPlayers: boolean;
+  userIds: Array<string | number>;
+};
+
 export type ForceSyncViewportInput = {
   campaignId: string | number;
   center: ForceSyncViewportPositionInput;
@@ -480,6 +496,12 @@ export type EventsQuery = {
   }>;
 };
 
+export type ForceOpenEntityWindowMutationVariables = Exact<{
+  input: ForceOpenEntityWindowInput;
+}>;
+
+export type ForceOpenEntityWindowMutation = { forceOpenEntityWindow: boolean };
+
 export type ForceSyncViewportMutationVariables = Exact<{
   input: ForceSyncViewportInput;
 }>;
@@ -565,6 +587,22 @@ export type NotesQuery = {
     createdAt: string;
     updatedAt: string;
   }>;
+};
+
+export type OnEntityWindowForceOpenedSubscriptionVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type OnEntityWindowForceOpenedSubscription = {
+  entityWindowForceOpened: {
+    id: string;
+    campaignId: string;
+    type: string;
+    name: string;
+    description: string | null;
+    image: string | null;
+    visibility: EntityVisibility;
+  };
 };
 
 export type OnForceSyncViewportSubscriptionVariables = Exact<{
@@ -2385,6 +2423,54 @@ export const EventsDocument = {
     },
   ],
 } as unknown as DocumentNode<EventsQuery, EventsQueryVariables>;
+export const ForceOpenEntityWindowDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "ForceOpenEntityWindow" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "ForceOpenEntityWindowInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "forceOpenEntityWindow" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ForceOpenEntityWindowMutation,
+  ForceOpenEntityWindowMutationVariables
+>;
 export const ForceSyncViewportDocument = {
   kind: "Document",
   definitions: [
@@ -2777,6 +2863,63 @@ export const NotesDocument = {
     },
   ],
 } as unknown as DocumentNode<NotesQuery, NotesQueryVariables>;
+export const OnEntityWindowForceOpenedDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "subscription",
+      name: { kind: "Name", value: "OnEntityWindowForceOpened" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "entityWindowForceOpened" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "image" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  OnEntityWindowForceOpenedSubscription,
+  OnEntityWindowForceOpenedSubscriptionVariables
+>;
 export const OnForceSyncViewportDocument = {
   kind: "Document",
   definitions: [

@@ -1,0 +1,11 @@
+subscription OnEntityWindowForceOpened($campaignId: ID!) {
+  entityWindowForceOpened(campaignId: $campaignId) {
+    id
+    campaignId
+    type
+    name
+    description
+    image
+    visibility
+  }
+}

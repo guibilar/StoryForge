@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useMutation, useQuery } from "urql";
+import { useMutation, useQuery, useSubscription } from "urql";
 
 import { CampaignDesktopPage } from "./CampaignDesktopPage";
 import {
@@ -15,11 +15,24 @@ import {
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useQuery: vi.fn(), useMutation: vi.fn() };
+  return {
+    ...actual,
+    useQuery: vi.fn(),
+    useMutation: vi.fn(),
+    useSubscription: vi.fn(),
+  };
 });
 
 vi.mocked(useMutation).mockImplementation((() => [
   { fetching: false, stale: false },
+  vi.fn(),
+]) as never);
+
+// ForceOpenEntityListener (KAN-133 side A) is mounted here unconditionally
+// (mobile and desktop alike) — no test in this file exercises a delivered
+// payload, so the subscription always resolves with no data.
+vi.mocked(useSubscription).mockImplementation((() => [
+  { data: undefined, fetching: false, stale: false },
   vi.fn(),
 ]) as never);
 

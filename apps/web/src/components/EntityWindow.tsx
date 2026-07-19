@@ -16,6 +16,7 @@ import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
+import { ForceOpenEntityAction } from "./ForceOpenEntityAction";
 import styles from "./EntityWindow.module.css";
 
 // Mirrors LocalImageStore's MAX_BYTES (apps/api/src/modules/entities/infrastructure/LocalImageStore.ts)
@@ -159,6 +160,16 @@ function OverviewTab({
             {image ? "Replace Picture" : "Upload Picture"}
           </Button>
           {actionError ? <FormError>{actionError}</FormError> : null}
+        </div>
+      ) : null}
+      {isWriter ? (
+        <div className={styles.portraitActions}>
+          <ForceOpenEntityAction
+            campaignId={campaignId}
+            entityId={entity.id}
+            members={members}
+            idPrefix={`entity-window-${entity.id}`}
+          />
         </div>
       ) : null}
     </div>

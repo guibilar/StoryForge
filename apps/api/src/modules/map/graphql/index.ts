@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 
 import { Query } from "./resolvers/Query";
 import { Mutation } from "./resolvers/Mutation";
+import { Subscription } from "./resolvers/Subscription";
 import { Marker } from "./resolvers/Marker";
 import { Territory } from "./resolvers/Territory";
 import { MapImage } from "./resolvers/MapImage";
@@ -18,8 +19,17 @@ export const typeDefs = [
   readTypeDefs("Marker.graphql"),
   readTypeDefs("Territory.graphql"),
   readTypeDefs("MapImage.graphql"),
+  readTypeDefs("ForceSyncViewport.graphql"),
   readTypeDefs("Query.graphql"),
   readTypeDefs("Mutation.graphql"),
+  readTypeDefs("Subscription.graphql"),
 ];
 
-export const resolvers = { Query, Mutation, Marker, Territory, MapImage };
+export const resolvers = {
+  Query,
+  Mutation,
+  Subscription,
+  Marker,
+  Territory,
+  MapImage,
+};

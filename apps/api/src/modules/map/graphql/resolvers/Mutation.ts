@@ -4,7 +4,11 @@ import { ValidationError } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../../graphql/context";
 import type { UploadableFile } from "../../../entities/infrastructure/LocalImageStore";
 import { toGraphQLError } from "../../../../graphql/errors";
-import { requireCampaignWriter } from "../../../campaignMembers/graphql/guards";
+import {
+  requireCampaignBroadcaster,
+  requireCampaignWriter,
+} from "../../../campaignMembers/graphql/guards";
+import { resolveViewportSyncTargets } from "../../application/ViewportSyncTargetResolver";
 
 export interface CreateMarkerInput {
   campaignId: string;
@@ -58,6 +62,13 @@ function parseGeometry(value: string): Record<string, unknown> {
   }
 
   return parsed as Record<string, unknown>;
+}
+
+export interface ForceSyncViewportInput {
+  campaignId: string;
+  center: { lat: number; lng: number };
+  zoom: number;
+  target: { allPlayers: boolean; userIds: string[] };
 }
 
 export const Mutation = {
@@ -211,6 +222,38 @@ export const Mutation = {
     try {
       await requireCampaignWriter(context, args.campaignId);
       await context.mapImageService.deleteMapImage(args.campaignId);
+      return true;
+    } catch (error) {
+      toGraphQLError(error);
+    }
+  },
+
+  forceSyncViewport: async (
+    _parent: unknown,
+    args: { input: ForceSyncViewportInput },
+    context: GraphQLContext,
+  ) => {
+    try {
+      const broadcaster = await requireCampaignBroadcaster(
+        context,
+        args.input.campaignId,
+      );
+      const members = await context.campaignMemberService.listMembers(
+        args.input.campaignId,
+      );
+      const targetUserIds = resolveViewportSyncTargets(
+        members,
+        args.input.target,
+      );
+
+      context.pubSub.publish("forceSyncViewport", args.input.campaignId, {
+        campaignId: args.input.campaignId,
+        center: args.input.center,
+        zoom: args.input.zoom,
+        broadcasterId: broadcaster.UserId.toString(),
+        targetUserIds,
+      });
+
       return true;
     } catch (error) {
       toGraphQLError(error);

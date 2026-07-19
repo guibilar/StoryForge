@@ -41,6 +41,34 @@ export interface EntityWindowForceOpenedPayload {
 }
 
 /**
+ * Position portion of a `forceSyncViewport` payload — mirrors
+ * `apps/web`'s `MapPosition`/`MapViewport` shape (KAN-130) so the frontend
+ * hook this feeds (KAN-131) can pass the payload straight through.
+ */
+export interface ForceSyncViewportPosition {
+  lat: number;
+  lng: number;
+}
+
+/**
+ * Payload emitted on the `forceSyncViewport` channel (KAN-129) whenever a
+ * Storyteller force-syncs their live map viewport to one or more players.
+ * `targetUserIds` is the resolved set of userIds this event is addressed to
+ * — it never reaches the GraphQL client (see the `Subscription.ts`
+ * resolver's `resolve`), it exists purely so the subscription resolver can
+ * filter delivery per-subscriber: the pub/sub channel itself is scoped only
+ * to `campaignId`, so without this the DM's live coordinates would reach
+ * every campaign member's subscription, not just the intended targets.
+ */
+export interface ForceSyncViewportPayload {
+  campaignId: string;
+  center: ForceSyncViewportPosition;
+  zoom: number;
+  broadcasterId: string;
+  targetUserIds: string[];
+}
+
+/**
  * Map of pub/sub channel name to a `[scopeId, payload]` tuple. Using the
  * `[scopeId, payload]` shape (rather than baking the scope into the channel
  * name as a string) lets `graphql-yoga`'s `createPubSub` filter delivery by
@@ -53,6 +81,7 @@ export interface EntityWindowForceOpenedPayload {
 export type PubSubChannels = {
   campaignBroadcast: [string, CampaignBroadcastPayload];
   entityWindowForceOpened: [string, EntityWindowForceOpenedPayload];
+  forceSyncViewport: [string, ForceSyncViewportPayload];
 };
 
 /**

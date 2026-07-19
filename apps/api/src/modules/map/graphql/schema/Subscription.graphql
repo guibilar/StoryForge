@@ -1,0 +1,12 @@
+extend type Subscription {
+  """
+  Delivers a `forceSyncViewport` mutation's event (KAN-129) to the calling
+  client, but only when they were one of that mutation's resolved targets —
+  the server-side subscription resolver filters per-subscriber by
+  `context.currentUser.id`, it does not broadcast to the whole campaign.
+  Any campaign member may subscribe (they just won't receive anything
+  unless targeted); only campaign membership is required, not the
+  BROADCAST_TO_PLAYERS permission needed to trigger the mutation itself.
+  """
+  forceSyncViewport(campaignId: ID!): ForceSyncViewportEvent!
+}

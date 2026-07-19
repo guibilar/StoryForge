@@ -27,7 +27,10 @@ export type AggregateEntity = {
 export type EntityMinAggregateOutputType = {
   id: string | null;
   campaignId: string | null;
+  ownerUserId: string | null;
   type: string | null;
+  category: $Enums.EntityCategory | null;
+  isPlayerCharacter: boolean | null;
   name: string | null;
   description: string | null;
   icon: string | null;
@@ -41,7 +44,10 @@ export type EntityMinAggregateOutputType = {
 export type EntityMaxAggregateOutputType = {
   id: string | null;
   campaignId: string | null;
+  ownerUserId: string | null;
   type: string | null;
+  category: $Enums.EntityCategory | null;
+  isPlayerCharacter: boolean | null;
   name: string | null;
   description: string | null;
   icon: string | null;
@@ -55,7 +61,10 @@ export type EntityMaxAggregateOutputType = {
 export type EntityCountAggregateOutputType = {
   id: number;
   campaignId: number;
+  ownerUserId: number;
   type: number;
+  category: number;
+  isPlayerCharacter: number;
   name: number;
   description: number;
   icon: number;
@@ -70,7 +79,10 @@ export type EntityCountAggregateOutputType = {
 export type EntityMinAggregateInputType = {
   id?: true;
   campaignId?: true;
+  ownerUserId?: true;
   type?: true;
+  category?: true;
+  isPlayerCharacter?: true;
   name?: true;
   description?: true;
   icon?: true;
@@ -84,7 +96,10 @@ export type EntityMinAggregateInputType = {
 export type EntityMaxAggregateInputType = {
   id?: true;
   campaignId?: true;
+  ownerUserId?: true;
   type?: true;
+  category?: true;
+  isPlayerCharacter?: true;
   name?: true;
   description?: true;
   icon?: true;
@@ -98,7 +113,10 @@ export type EntityMaxAggregateInputType = {
 export type EntityCountAggregateInputType = {
   id?: true;
   campaignId?: true;
+  ownerUserId?: true;
   type?: true;
+  category?: true;
+  isPlayerCharacter?: true;
   name?: true;
   description?: true;
   icon?: true;
@@ -192,7 +210,10 @@ export type EntityGroupByArgs<
 export type EntityGroupByOutputType = {
   id: string;
   campaignId: string;
+  ownerUserId: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter: boolean;
   name: string;
   description: string | null;
   icon: string | null;
@@ -225,7 +246,10 @@ export type EntityWhereInput = {
   NOT?: Prisma.EntityWhereInput | Prisma.EntityWhereInput[];
   id?: Prisma.StringFilter<"Entity"> | string;
   campaignId?: Prisma.StringFilter<"Entity"> | string;
+  ownerUserId?: Prisma.StringNullableFilter<"Entity"> | string | null;
   type?: Prisma.StringFilter<"Entity"> | string;
+  category?: Prisma.EnumEntityCategoryFilter<"Entity"> | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFilter<"Entity"> | boolean;
   name?: Prisma.StringFilter<"Entity"> | string;
   description?: Prisma.StringNullableFilter<"Entity"> | string | null;
   icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
@@ -238,6 +262,10 @@ export type EntityWhereInput = {
     Prisma.CampaignScalarRelationFilter,
     Prisma.CampaignWhereInput
   >;
+  owner?: Prisma.XOR<
+    Prisma.UserNullableScalarRelationFilter,
+    Prisma.UserWhereInput
+  > | null;
   tags?: Prisma.EntityTagListRelationFilter;
   relationshipsAsSource?: Prisma.RelationshipListRelationFilter;
   relationshipsAsTarget?: Prisma.RelationshipListRelationFilter;
@@ -250,7 +278,10 @@ export type EntityWhereInput = {
 export type EntityOrderByWithRelationInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  ownerUserId?: Prisma.SortOrderInput | Prisma.SortOrder;
   type?: Prisma.SortOrder;
+  category?: Prisma.SortOrder;
+  isPlayerCharacter?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrderInput | Prisma.SortOrder;
   icon?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -260,6 +291,7 @@ export type EntityOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   campaign?: Prisma.CampaignOrderByWithRelationInput;
+  owner?: Prisma.UserOrderByWithRelationInput;
   tags?: Prisma.EntityTagOrderByRelationAggregateInput;
   relationshipsAsSource?: Prisma.RelationshipOrderByRelationAggregateInput;
   relationshipsAsTarget?: Prisma.RelationshipOrderByRelationAggregateInput;
@@ -276,7 +308,11 @@ export type EntityWhereUniqueInput = Prisma.AtLeast<
     OR?: Prisma.EntityWhereInput[];
     NOT?: Prisma.EntityWhereInput | Prisma.EntityWhereInput[];
     campaignId?: Prisma.StringFilter<"Entity"> | string;
+    ownerUserId?: Prisma.StringNullableFilter<"Entity"> | string | null;
     type?: Prisma.StringFilter<"Entity"> | string;
+    category?:
+      Prisma.EnumEntityCategoryFilter<"Entity"> | $Enums.EntityCategory;
+    isPlayerCharacter?: Prisma.BoolFilter<"Entity"> | boolean;
     name?: Prisma.StringFilter<"Entity"> | string;
     description?: Prisma.StringNullableFilter<"Entity"> | string | null;
     icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
@@ -289,6 +325,10 @@ export type EntityWhereUniqueInput = Prisma.AtLeast<
       Prisma.CampaignScalarRelationFilter,
       Prisma.CampaignWhereInput
     >;
+    owner?: Prisma.XOR<
+      Prisma.UserNullableScalarRelationFilter,
+      Prisma.UserWhereInput
+    > | null;
     tags?: Prisma.EntityTagListRelationFilter;
     relationshipsAsSource?: Prisma.RelationshipListRelationFilter;
     relationshipsAsTarget?: Prisma.RelationshipListRelationFilter;
@@ -303,7 +343,10 @@ export type EntityWhereUniqueInput = Prisma.AtLeast<
 export type EntityOrderByWithAggregationInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  ownerUserId?: Prisma.SortOrderInput | Prisma.SortOrder;
   type?: Prisma.SortOrder;
+  category?: Prisma.SortOrder;
+  isPlayerCharacter?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrderInput | Prisma.SortOrder;
   icon?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -327,7 +370,13 @@ export type EntityScalarWhereWithAggregatesInput = {
     | Prisma.EntityScalarWhereWithAggregatesInput[];
   id?: Prisma.StringWithAggregatesFilter<"Entity"> | string;
   campaignId?: Prisma.StringWithAggregatesFilter<"Entity"> | string;
+  ownerUserId?:
+    Prisma.StringNullableWithAggregatesFilter<"Entity"> | string | null;
   type?: Prisma.StringWithAggregatesFilter<"Entity"> | string;
+  category?:
+    | Prisma.EnumEntityCategoryWithAggregatesFilter<"Entity">
+    | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolWithAggregatesFilter<"Entity"> | boolean;
   name?: Prisma.StringWithAggregatesFilter<"Entity"> | string;
   description?:
     Prisma.StringNullableWithAggregatesFilter<"Entity"> | string | null;
@@ -347,6 +396,8 @@ export type EntityScalarWhereWithAggregatesInput = {
 export type EntityCreateInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -356,6 +407,7 @@ export type EntityCreateInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  owner?: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput;
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
@@ -368,7 +420,10 @@ export type EntityCreateInput = {
 export type EntityUncheckedCreateInput = {
   id?: string;
   campaignId: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -389,6 +444,9 @@ export type EntityUncheckedCreateInput = {
 export type EntityUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -400,6 +458,7 @@ export type EntityUpdateInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutOwnedEntitiesNestedInput;
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
@@ -412,7 +471,11 @@ export type EntityUpdateInput = {
 export type EntityUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -435,7 +498,10 @@ export type EntityUncheckedUpdateInput = {
 export type EntityCreateManyInput = {
   id?: string;
   campaignId: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -449,6 +515,9 @@ export type EntityCreateManyInput = {
 export type EntityUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -464,7 +533,11 @@ export type EntityUpdateManyMutationInput = {
 export type EntityUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -490,7 +563,10 @@ export type EntityOrderByRelationAggregateInput = {
 export type EntityCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  ownerUserId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
+  category?: Prisma.SortOrder;
+  isPlayerCharacter?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
@@ -504,7 +580,10 @@ export type EntityCountOrderByAggregateInput = {
 export type EntityMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  ownerUserId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
+  category?: Prisma.SortOrder;
+  isPlayerCharacter?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
@@ -518,7 +597,10 @@ export type EntityMaxOrderByAggregateInput = {
 export type EntityMinOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   campaignId?: Prisma.SortOrder;
+  ownerUserId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
+  category?: Prisma.SortOrder;
+  isPlayerCharacter?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
@@ -623,6 +705,14 @@ export type EntityUncheckedUpdateManyWithoutCampaignNestedInput = {
     | Prisma.EntityUpdateManyWithWhereWithoutCampaignInput
     | Prisma.EntityUpdateManyWithWhereWithoutCampaignInput[];
   deleteMany?: Prisma.EntityScalarWhereInput | Prisma.EntityScalarWhereInput[];
+};
+
+export type EnumEntityCategoryFieldUpdateOperationsInput = {
+  set?: $Enums.EntityCategory;
+};
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean;
 };
 
 export type EnumVisibilityFieldUpdateOperationsInput = {
@@ -733,6 +823,92 @@ export type EntityUpdateOneRequiredWithoutRelationshipsAsTargetNestedInput = {
   >;
 };
 
+export type EntityCreateNestedManyWithoutOwnerInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.EntityCreateWithoutOwnerInput,
+        Prisma.EntityUncheckedCreateWithoutOwnerInput
+      >
+    | Prisma.EntityCreateWithoutOwnerInput[]
+    | Prisma.EntityUncheckedCreateWithoutOwnerInput[];
+  connectOrCreate?:
+    | Prisma.EntityCreateOrConnectWithoutOwnerInput
+    | Prisma.EntityCreateOrConnectWithoutOwnerInput[];
+  createMany?: Prisma.EntityCreateManyOwnerInputEnvelope;
+  connect?: Prisma.EntityWhereUniqueInput | Prisma.EntityWhereUniqueInput[];
+};
+
+export type EntityUncheckedCreateNestedManyWithoutOwnerInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.EntityCreateWithoutOwnerInput,
+        Prisma.EntityUncheckedCreateWithoutOwnerInput
+      >
+    | Prisma.EntityCreateWithoutOwnerInput[]
+    | Prisma.EntityUncheckedCreateWithoutOwnerInput[];
+  connectOrCreate?:
+    | Prisma.EntityCreateOrConnectWithoutOwnerInput
+    | Prisma.EntityCreateOrConnectWithoutOwnerInput[];
+  createMany?: Prisma.EntityCreateManyOwnerInputEnvelope;
+  connect?: Prisma.EntityWhereUniqueInput | Prisma.EntityWhereUniqueInput[];
+};
+
+export type EntityUpdateManyWithoutOwnerNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.EntityCreateWithoutOwnerInput,
+        Prisma.EntityUncheckedCreateWithoutOwnerInput
+      >
+    | Prisma.EntityCreateWithoutOwnerInput[]
+    | Prisma.EntityUncheckedCreateWithoutOwnerInput[];
+  connectOrCreate?:
+    | Prisma.EntityCreateOrConnectWithoutOwnerInput
+    | Prisma.EntityCreateOrConnectWithoutOwnerInput[];
+  upsert?:
+    | Prisma.EntityUpsertWithWhereUniqueWithoutOwnerInput
+    | Prisma.EntityUpsertWithWhereUniqueWithoutOwnerInput[];
+  createMany?: Prisma.EntityCreateManyOwnerInputEnvelope;
+  set?: Prisma.EntityWhereUniqueInput | Prisma.EntityWhereUniqueInput[];
+  disconnect?: Prisma.EntityWhereUniqueInput | Prisma.EntityWhereUniqueInput[];
+  delete?: Prisma.EntityWhereUniqueInput | Prisma.EntityWhereUniqueInput[];
+  connect?: Prisma.EntityWhereUniqueInput | Prisma.EntityWhereUniqueInput[];
+  update?:
+    | Prisma.EntityUpdateWithWhereUniqueWithoutOwnerInput
+    | Prisma.EntityUpdateWithWhereUniqueWithoutOwnerInput[];
+  updateMany?:
+    | Prisma.EntityUpdateManyWithWhereWithoutOwnerInput
+    | Prisma.EntityUpdateManyWithWhereWithoutOwnerInput[];
+  deleteMany?: Prisma.EntityScalarWhereInput | Prisma.EntityScalarWhereInput[];
+};
+
+export type EntityUncheckedUpdateManyWithoutOwnerNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.EntityCreateWithoutOwnerInput,
+        Prisma.EntityUncheckedCreateWithoutOwnerInput
+      >
+    | Prisma.EntityCreateWithoutOwnerInput[]
+    | Prisma.EntityUncheckedCreateWithoutOwnerInput[];
+  connectOrCreate?:
+    | Prisma.EntityCreateOrConnectWithoutOwnerInput
+    | Prisma.EntityCreateOrConnectWithoutOwnerInput[];
+  upsert?:
+    | Prisma.EntityUpsertWithWhereUniqueWithoutOwnerInput
+    | Prisma.EntityUpsertWithWhereUniqueWithoutOwnerInput[];
+  createMany?: Prisma.EntityCreateManyOwnerInputEnvelope;
+  set?: Prisma.EntityWhereUniqueInput | Prisma.EntityWhereUniqueInput[];
+  disconnect?: Prisma.EntityWhereUniqueInput | Prisma.EntityWhereUniqueInput[];
+  delete?: Prisma.EntityWhereUniqueInput | Prisma.EntityWhereUniqueInput[];
+  connect?: Prisma.EntityWhereUniqueInput | Prisma.EntityWhereUniqueInput[];
+  update?:
+    | Prisma.EntityUpdateWithWhereUniqueWithoutOwnerInput
+    | Prisma.EntityUpdateWithWhereUniqueWithoutOwnerInput[];
+  updateMany?:
+    | Prisma.EntityUpdateManyWithWhereWithoutOwnerInput
+    | Prisma.EntityUpdateManyWithWhereWithoutOwnerInput[];
+  deleteMany?: Prisma.EntityScalarWhereInput | Prisma.EntityScalarWhereInput[];
+};
+
 export type EntityCreateNestedOneWithoutBacklinksInput = {
   create?: Prisma.XOR<
     Prisma.EntityCreateWithoutBacklinksInput,
@@ -820,6 +996,8 @@ export type EntityUpdateOneWithoutTerritoriesNestedInput = {
 export type EntityCreateWithoutCampaignInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -828,6 +1006,7 @@ export type EntityCreateWithoutCampaignInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
+  owner?: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput;
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
@@ -839,7 +1018,10 @@ export type EntityCreateWithoutCampaignInput = {
 
 export type EntityUncheckedCreateWithoutCampaignInput = {
   id?: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -906,7 +1088,10 @@ export type EntityScalarWhereInput = {
   NOT?: Prisma.EntityScalarWhereInput | Prisma.EntityScalarWhereInput[];
   id?: Prisma.StringFilter<"Entity"> | string;
   campaignId?: Prisma.StringFilter<"Entity"> | string;
+  ownerUserId?: Prisma.StringNullableFilter<"Entity"> | string | null;
   type?: Prisma.StringFilter<"Entity"> | string;
+  category?: Prisma.EnumEntityCategoryFilter<"Entity"> | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFilter<"Entity"> | boolean;
   name?: Prisma.StringFilter<"Entity"> | string;
   description?: Prisma.StringNullableFilter<"Entity"> | string | null;
   icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
@@ -920,6 +1105,8 @@ export type EntityScalarWhereInput = {
 export type EntityCreateWithoutEventParticipationsInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -929,6 +1116,7 @@ export type EntityCreateWithoutEventParticipationsInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  owner?: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput;
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
@@ -940,7 +1128,10 @@ export type EntityCreateWithoutEventParticipationsInput = {
 export type EntityUncheckedCreateWithoutEventParticipationsInput = {
   id?: string;
   campaignId: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -988,6 +1179,9 @@ export type EntityUpdateToOneWithWhereWithoutEventParticipationsInput = {
 export type EntityUpdateWithoutEventParticipationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -999,6 +1193,7 @@ export type EntityUpdateWithoutEventParticipationsInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutOwnedEntitiesNestedInput;
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
@@ -1010,7 +1205,11 @@ export type EntityUpdateWithoutEventParticipationsInput = {
 export type EntityUncheckedUpdateWithoutEventParticipationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1032,6 +1231,8 @@ export type EntityUncheckedUpdateWithoutEventParticipationsInput = {
 export type EntityCreateWithoutTagsInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1041,6 +1242,7 @@ export type EntityCreateWithoutTagsInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  owner?: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
   backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
@@ -1052,7 +1254,10 @@ export type EntityCreateWithoutTagsInput = {
 export type EntityUncheckedCreateWithoutTagsInput = {
   id?: string;
   campaignId: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1100,6 +1305,9 @@ export type EntityUpdateToOneWithWhereWithoutTagsInput = {
 export type EntityUpdateWithoutTagsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1111,6 +1319,7 @@ export type EntityUpdateWithoutTagsInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutOwnedEntitiesNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
   backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
@@ -1122,7 +1331,11 @@ export type EntityUpdateWithoutTagsInput = {
 export type EntityUncheckedUpdateWithoutTagsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1144,6 +1357,8 @@ export type EntityUncheckedUpdateWithoutTagsInput = {
 export type EntityCreateWithoutRelationshipsAsSourceInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1153,6 +1368,7 @@ export type EntityCreateWithoutRelationshipsAsSourceInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  owner?: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput;
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
   backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
@@ -1164,7 +1380,10 @@ export type EntityCreateWithoutRelationshipsAsSourceInput = {
 export type EntityUncheckedCreateWithoutRelationshipsAsSourceInput = {
   id?: string;
   campaignId: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1192,6 +1411,8 @@ export type EntityCreateOrConnectWithoutRelationshipsAsSourceInput = {
 export type EntityCreateWithoutRelationshipsAsTargetInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1201,6 +1422,7 @@ export type EntityCreateWithoutRelationshipsAsTargetInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  owner?: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput;
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
@@ -1212,7 +1434,10 @@ export type EntityCreateWithoutRelationshipsAsTargetInput = {
 export type EntityUncheckedCreateWithoutRelationshipsAsTargetInput = {
   id?: string;
   campaignId: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1260,6 +1485,9 @@ export type EntityUpdateToOneWithWhereWithoutRelationshipsAsSourceInput = {
 export type EntityUpdateWithoutRelationshipsAsSourceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1271,6 +1499,7 @@ export type EntityUpdateWithoutRelationshipsAsSourceInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutOwnedEntitiesNestedInput;
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
   backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
@@ -1282,7 +1511,11 @@ export type EntityUpdateWithoutRelationshipsAsSourceInput = {
 export type EntityUncheckedUpdateWithoutRelationshipsAsSourceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1324,6 +1557,9 @@ export type EntityUpdateToOneWithWhereWithoutRelationshipsAsTargetInput = {
 export type EntityUpdateWithoutRelationshipsAsTargetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1335,6 +1571,7 @@ export type EntityUpdateWithoutRelationshipsAsTargetInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutOwnedEntitiesNestedInput;
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
@@ -1346,7 +1583,11 @@ export type EntityUpdateWithoutRelationshipsAsTargetInput = {
 export type EntityUncheckedUpdateWithoutRelationshipsAsTargetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1365,9 +1606,11 @@ export type EntityUncheckedUpdateWithoutRelationshipsAsTargetInput = {
   territories?: Prisma.TerritoryUncheckedUpdateManyWithoutEntityNestedInput;
 };
 
-export type EntityCreateWithoutBacklinksInput = {
+export type EntityCreateWithoutOwnerInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1380,6 +1623,94 @@ export type EntityCreateWithoutBacklinksInput = {
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutEntityInput;
+  markers?: Prisma.MarkerCreateNestedManyWithoutEntityInput;
+  territories?: Prisma.TerritoryCreateNestedManyWithoutEntityInput;
+};
+
+export type EntityUncheckedCreateWithoutOwnerInput = {
+  id?: string;
+  campaignId: string;
+  type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  image?: string | null;
+  visibility?: $Enums.Visibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  tags?: Prisma.EntityTagUncheckedCreateNestedManyWithoutEntityInput;
+  relationshipsAsSource?: Prisma.RelationshipUncheckedCreateNestedManyWithoutSourceInput;
+  relationshipsAsTarget?: Prisma.RelationshipUncheckedCreateNestedManyWithoutTargetInput;
+  backlinks?: Prisma.NoteLinkUncheckedCreateNestedManyWithoutTargetEntityInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedCreateNestedManyWithoutEntityInput;
+  markers?: Prisma.MarkerUncheckedCreateNestedManyWithoutEntityInput;
+  territories?: Prisma.TerritoryUncheckedCreateNestedManyWithoutEntityInput;
+};
+
+export type EntityCreateOrConnectWithoutOwnerInput = {
+  where: Prisma.EntityWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.EntityCreateWithoutOwnerInput,
+    Prisma.EntityUncheckedCreateWithoutOwnerInput
+  >;
+};
+
+export type EntityCreateManyOwnerInputEnvelope = {
+  data: Prisma.EntityCreateManyOwnerInput | Prisma.EntityCreateManyOwnerInput[];
+  skipDuplicates?: boolean;
+};
+
+export type EntityUpsertWithWhereUniqueWithoutOwnerInput = {
+  where: Prisma.EntityWhereUniqueInput;
+  update: Prisma.XOR<
+    Prisma.EntityUpdateWithoutOwnerInput,
+    Prisma.EntityUncheckedUpdateWithoutOwnerInput
+  >;
+  create: Prisma.XOR<
+    Prisma.EntityCreateWithoutOwnerInput,
+    Prisma.EntityUncheckedCreateWithoutOwnerInput
+  >;
+};
+
+export type EntityUpdateWithWhereUniqueWithoutOwnerInput = {
+  where: Prisma.EntityWhereUniqueInput;
+  data: Prisma.XOR<
+    Prisma.EntityUpdateWithoutOwnerInput,
+    Prisma.EntityUncheckedUpdateWithoutOwnerInput
+  >;
+};
+
+export type EntityUpdateManyWithWhereWithoutOwnerInput = {
+  where: Prisma.EntityScalarWhereInput;
+  data: Prisma.XOR<
+    Prisma.EntityUpdateManyMutationInput,
+    Prisma.EntityUncheckedUpdateManyWithoutOwnerInput
+  >;
+};
+
+export type EntityCreateWithoutBacklinksInput = {
+  id?: string;
+  type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  image?: string | null;
+  visibility?: $Enums.Visibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+  campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  owner?: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput;
+  tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
+  relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
+  relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
   eventParticipations?: Prisma.EventParticipantCreateNestedManyWithoutEntityInput;
   markers?: Prisma.MarkerCreateNestedManyWithoutEntityInput;
   territories?: Prisma.TerritoryCreateNestedManyWithoutEntityInput;
@@ -1388,7 +1719,10 @@ export type EntityCreateWithoutBacklinksInput = {
 export type EntityUncheckedCreateWithoutBacklinksInput = {
   id?: string;
   campaignId: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1436,6 +1770,9 @@ export type EntityUpdateToOneWithWhereWithoutBacklinksInput = {
 export type EntityUpdateWithoutBacklinksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1447,6 +1784,7 @@ export type EntityUpdateWithoutBacklinksInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutOwnedEntitiesNestedInput;
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
@@ -1458,7 +1796,11 @@ export type EntityUpdateWithoutBacklinksInput = {
 export type EntityUncheckedUpdateWithoutBacklinksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1480,6 +1822,8 @@ export type EntityUncheckedUpdateWithoutBacklinksInput = {
 export type EntityCreateWithoutMarkersInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1489,6 +1833,7 @@ export type EntityCreateWithoutMarkersInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  owner?: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput;
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
@@ -1500,7 +1845,10 @@ export type EntityCreateWithoutMarkersInput = {
 export type EntityUncheckedCreateWithoutMarkersInput = {
   id?: string;
   campaignId: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1548,6 +1896,9 @@ export type EntityUpdateToOneWithWhereWithoutMarkersInput = {
 export type EntityUpdateWithoutMarkersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1559,6 +1910,7 @@ export type EntityUpdateWithoutMarkersInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutOwnedEntitiesNestedInput;
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
@@ -1570,7 +1922,11 @@ export type EntityUpdateWithoutMarkersInput = {
 export type EntityUncheckedUpdateWithoutMarkersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1592,6 +1948,8 @@ export type EntityUncheckedUpdateWithoutMarkersInput = {
 export type EntityCreateWithoutTerritoriesInput = {
   id?: string;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1601,6 +1959,7 @@ export type EntityCreateWithoutTerritoriesInput = {
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
   campaign: Prisma.CampaignCreateNestedOneWithoutEntitiesInput;
+  owner?: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput;
   tags?: Prisma.EntityTagCreateNestedManyWithoutEntityInput;
   relationshipsAsSource?: Prisma.RelationshipCreateNestedManyWithoutSourceInput;
   relationshipsAsTarget?: Prisma.RelationshipCreateNestedManyWithoutTargetInput;
@@ -1612,7 +1971,10 @@ export type EntityCreateWithoutTerritoriesInput = {
 export type EntityUncheckedCreateWithoutTerritoriesInput = {
   id?: string;
   campaignId: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1660,6 +2022,9 @@ export type EntityUpdateToOneWithWhereWithoutTerritoriesInput = {
 export type EntityUpdateWithoutTerritoriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1671,6 +2036,7 @@ export type EntityUpdateWithoutTerritoriesInput = {
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutOwnedEntitiesNestedInput;
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
@@ -1682,7 +2048,11 @@ export type EntityUpdateWithoutTerritoriesInput = {
 export type EntityUncheckedUpdateWithoutTerritoriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1703,7 +2073,10 @@ export type EntityUncheckedUpdateWithoutTerritoriesInput = {
 
 export type EntityCreateManyCampaignInput = {
   id?: string;
+  ownerUserId?: string | null;
   type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1717,6 +2090,9 @@ export type EntityCreateManyCampaignInput = {
 export type EntityUpdateWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1727,6 +2103,7 @@ export type EntityUpdateWithoutCampaignInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
     Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  owner?: Prisma.UserUpdateOneWithoutOwnedEntitiesNestedInput;
   tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
   relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
   relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
@@ -1738,7 +2115,11 @@ export type EntityUpdateWithoutCampaignInput = {
 
 export type EntityUncheckedUpdateWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1760,7 +2141,98 @@ export type EntityUncheckedUpdateWithoutCampaignInput = {
 
 export type EntityUncheckedUpdateManyWithoutCampaignInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  ownerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+};
+
+export type EntityCreateManyOwnerInput = {
+  id?: string;
+  campaignId: string;
+  type: string;
+  category: $Enums.EntityCategory;
+  isPlayerCharacter?: boolean;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  image?: string | null;
+  visibility?: $Enums.Visibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  deletedAt?: Date | string | null;
+};
+
+export type EntityUpdateWithoutOwnerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  campaign?: Prisma.CampaignUpdateOneRequiredWithoutEntitiesNestedInput;
+  tags?: Prisma.EntityTagUpdateManyWithoutEntityNestedInput;
+  relationshipsAsSource?: Prisma.RelationshipUpdateManyWithoutSourceNestedInput;
+  relationshipsAsTarget?: Prisma.RelationshipUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUpdateManyWithoutEntityNestedInput;
+  markers?: Prisma.MarkerUpdateManyWithoutEntityNestedInput;
+  territories?: Prisma.TerritoryUpdateManyWithoutEntityNestedInput;
+};
+
+export type EntityUncheckedUpdateWithoutOwnerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  deletedAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  tags?: Prisma.EntityTagUncheckedUpdateManyWithoutEntityNestedInput;
+  relationshipsAsSource?: Prisma.RelationshipUncheckedUpdateManyWithoutSourceNestedInput;
+  relationshipsAsTarget?: Prisma.RelationshipUncheckedUpdateManyWithoutTargetNestedInput;
+  backlinks?: Prisma.NoteLinkUncheckedUpdateManyWithoutTargetEntityNestedInput;
+  eventParticipations?: Prisma.EventParticipantUncheckedUpdateManyWithoutEntityNestedInput;
+  markers?: Prisma.MarkerUncheckedUpdateManyWithoutEntityNestedInput;
+  territories?: Prisma.TerritoryUncheckedUpdateManyWithoutEntityNestedInput;
+};
+
+export type EntityUncheckedUpdateManyWithoutOwnerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  campaignId?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.StringFieldUpdateOperationsInput | string;
+  category?:
+    Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
+  isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1893,7 +2365,10 @@ export type EntitySelect<
   {
     id?: boolean;
     campaignId?: boolean;
+    ownerUserId?: boolean;
     type?: boolean;
+    category?: boolean;
+    isPlayerCharacter?: boolean;
     name?: boolean;
     description?: boolean;
     icon?: boolean;
@@ -1903,6 +2378,7 @@ export type EntitySelect<
     updatedAt?: boolean;
     deletedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    owner?: boolean | Prisma.Entity$ownerArgs<ExtArgs>;
     tags?: boolean | Prisma.Entity$tagsArgs<ExtArgs>;
     relationshipsAsSource?:
       boolean | Prisma.Entity$relationshipsAsSourceArgs<ExtArgs>;
@@ -1925,7 +2401,10 @@ export type EntitySelectCreateManyAndReturn<
   {
     id?: boolean;
     campaignId?: boolean;
+    ownerUserId?: boolean;
     type?: boolean;
+    category?: boolean;
+    isPlayerCharacter?: boolean;
     name?: boolean;
     description?: boolean;
     icon?: boolean;
@@ -1935,6 +2414,7 @@ export type EntitySelectCreateManyAndReturn<
     updatedAt?: boolean;
     deletedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    owner?: boolean | Prisma.Entity$ownerArgs<ExtArgs>;
   },
   ExtArgs["result"]["entity"]
 >;
@@ -1946,7 +2426,10 @@ export type EntitySelectUpdateManyAndReturn<
   {
     id?: boolean;
     campaignId?: boolean;
+    ownerUserId?: boolean;
     type?: boolean;
+    category?: boolean;
+    isPlayerCharacter?: boolean;
     name?: boolean;
     description?: boolean;
     icon?: boolean;
@@ -1956,6 +2439,7 @@ export type EntitySelectUpdateManyAndReturn<
     updatedAt?: boolean;
     deletedAt?: boolean;
     campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+    owner?: boolean | Prisma.Entity$ownerArgs<ExtArgs>;
   },
   ExtArgs["result"]["entity"]
 >;
@@ -1963,7 +2447,10 @@ export type EntitySelectUpdateManyAndReturn<
 export type EntitySelectScalar = {
   id?: boolean;
   campaignId?: boolean;
+  ownerUserId?: boolean;
   type?: boolean;
+  category?: boolean;
+  isPlayerCharacter?: boolean;
   name?: boolean;
   description?: boolean;
   icon?: boolean;
@@ -1980,7 +2467,10 @@ export type EntityOmit<
 > = runtime.Types.Extensions.GetOmit<
   | "id"
   | "campaignId"
+  | "ownerUserId"
   | "type"
+  | "category"
+  | "isPlayerCharacter"
   | "name"
   | "description"
   | "icon"
@@ -1996,6 +2486,7 @@ export type EntityInclude<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  owner?: boolean | Prisma.Entity$ownerArgs<ExtArgs>;
   tags?: boolean | Prisma.Entity$tagsArgs<ExtArgs>;
   relationshipsAsSource?:
     boolean | Prisma.Entity$relationshipsAsSourceArgs<ExtArgs>;
@@ -2013,12 +2504,14 @@ export type EntityIncludeCreateManyAndReturn<
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  owner?: boolean | Prisma.Entity$ownerArgs<ExtArgs>;
 };
 export type EntityIncludeUpdateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
 > = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>;
+  owner?: boolean | Prisma.Entity$ownerArgs<ExtArgs>;
 };
 
 export type $EntityPayload<
@@ -2028,6 +2521,7 @@ export type $EntityPayload<
   name: "Entity";
   objects: {
     campaign: Prisma.$CampaignPayload<ExtArgs>;
+    owner: Prisma.$UserPayload<ExtArgs> | null;
     tags: Prisma.$EntityTagPayload<ExtArgs>[];
     relationshipsAsSource: Prisma.$RelationshipPayload<ExtArgs>[];
     relationshipsAsTarget: Prisma.$RelationshipPayload<ExtArgs>[];
@@ -2040,7 +2534,10 @@ export type $EntityPayload<
     {
       id: string;
       campaignId: string;
+      ownerUserId: string | null;
       type: string;
+      category: $Enums.EntityCategory;
+      isPlayerCharacter: boolean;
       name: string;
       description: string | null;
       icon: string | null;
@@ -2613,6 +3110,19 @@ export interface Prisma__EntityClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  owner<T extends Prisma.Entity$ownerArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Entity$ownerArgs<ExtArgs>>,
+  ): Prisma.Prisma__UserClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$UserPayload<ExtArgs>,
+      T,
+      "findUniqueOrThrow",
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
   tags<T extends Prisma.Entity$tagsArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.Entity$tagsArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
@@ -2734,7 +3244,10 @@ export interface Prisma__EntityClient<
 export interface EntityFieldRefs {
   readonly id: Prisma.FieldRef<"Entity", "String">;
   readonly campaignId: Prisma.FieldRef<"Entity", "String">;
+  readonly ownerUserId: Prisma.FieldRef<"Entity", "String">;
   readonly type: Prisma.FieldRef<"Entity", "String">;
+  readonly category: Prisma.FieldRef<"Entity", "EntityCategory">;
+  readonly isPlayerCharacter: Prisma.FieldRef<"Entity", "Boolean">;
   readonly name: Prisma.FieldRef<"Entity", "String">;
   readonly description: Prisma.FieldRef<"Entity", "String">;
   readonly icon: Prisma.FieldRef<"Entity", "String">;
@@ -3200,6 +3713,28 @@ export type EntityDeleteManyArgs<
    * Limit how many Entities to delete.
    */
   limit?: number;
+};
+
+/**
+ * Entity.owner
+ */
+export type Entity$ownerArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null;
+  where?: Prisma.UserWhereInput;
 };
 
 /**

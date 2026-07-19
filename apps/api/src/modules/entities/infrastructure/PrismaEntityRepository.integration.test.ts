@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
-import { Entity, EntityId, EntityVisibility } from "@storyforge/domain";
+import {
+  Entity,
+  EntityCategory,
+  EntityId,
+  EntityVisibility,
+} from "@storyforge/domain";
 import { prisma } from "@storyforge/database";
 import { PrismaEntityRepository } from "./PrismaEntityRepository";
 
@@ -47,6 +52,7 @@ describe("PrismaEntityRepository", () => {
     const entity = Entity.create({
       campaignId,
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: uniqueName(),
       visibility: EntityVisibility.PUBLIC,
     });
@@ -70,6 +76,7 @@ describe("PrismaEntityRepository", () => {
     const entity = Entity.create({
       campaignId,
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: uniqueName(),
       visibility: EntityVisibility.PUBLIC,
     });
@@ -87,12 +94,14 @@ describe("PrismaEntityRepository", () => {
     const kept = Entity.create({
       campaignId,
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: uniqueName(),
       visibility: EntityVisibility.PUBLIC,
     });
     const deleted = Entity.create({
       campaignId,
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: uniqueName(),
       visibility: EntityVisibility.PUBLIC,
     });
@@ -112,6 +121,7 @@ describe("PrismaEntityRepository", () => {
     const entity = Entity.create({
       campaignId,
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name,
       visibility: EntityVisibility.PUBLIC,
     });
@@ -129,6 +139,7 @@ describe("PrismaEntityRepository", () => {
     const deleted = Entity.create({
       campaignId,
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name,
       visibility: EntityVisibility.PUBLIC,
     });
@@ -143,6 +154,7 @@ describe("PrismaEntityRepository", () => {
     const recreated = Entity.create({
       campaignId,
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name,
       visibility: EntityVisibility.PUBLIC,
     });
@@ -154,6 +166,7 @@ describe("PrismaEntityRepository", () => {
     const entity = Entity.create({
       campaignId,
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: uniqueName(),
       visibility: EntityVisibility.PUBLIC,
     });
@@ -174,12 +187,14 @@ describe("PrismaEntityRepository", () => {
       const npc = Entity.create({
         campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: uniqueName(),
         visibility: EntityVisibility.PUBLIC,
       });
       const location = Entity.create({
         campaignId,
         type: "location",
+        category: EntityCategory.LOCATION,
         name: uniqueName(),
         visibility: EntityVisibility.PUBLIC,
       });
@@ -198,12 +213,14 @@ describe("PrismaEntityRepository", () => {
       const goblin = Entity.create({
         campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: `Goblin-${randomUUID()}`,
         visibility: EntityVisibility.PUBLIC,
       });
       const orc = Entity.create({
         campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: `Orc-${randomUUID()}`,
         visibility: EntityVisibility.PUBLIC,
       });
@@ -230,18 +247,21 @@ describe("PrismaEntityRepository", () => {
       const taggedWithBoth = Entity.create({
         campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: uniqueName(),
         visibility: EntityVisibility.PUBLIC,
       });
       const taggedWithOther = Entity.create({
         campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: uniqueName(),
         visibility: EntityVisibility.PUBLIC,
       });
       const untagged = Entity.create({
         campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: uniqueName(),
         visibility: EntityVisibility.PUBLIC,
       });
@@ -266,18 +286,21 @@ describe("PrismaEntityRepository", () => {
       const matching = Entity.create({
         campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: `Goblin-${randomUUID()}`,
         visibility: EntityVisibility.PUBLIC,
       });
       const wrongType = Entity.create({
         campaignId,
         type: "location",
+        category: EntityCategory.LOCATION,
         name: `Goblin-${randomUUID()}`,
         visibility: EntityVisibility.PUBLIC,
       });
       const wrongName = Entity.create({
         campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: `Orc-${randomUUID()}`,
         visibility: EntityVisibility.PUBLIC,
       });
@@ -300,6 +323,7 @@ describe("PrismaEntityRepository", () => {
       const deleted = Entity.create({
         campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: uniqueName(),
         visibility: EntityVisibility.PUBLIC,
       });

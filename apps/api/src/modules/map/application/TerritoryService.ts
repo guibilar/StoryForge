@@ -1,4 +1,5 @@
 import {
+  EntityCategory,
   EntityId,
   EntityRepository,
   NotFoundError,
@@ -8,6 +9,15 @@ import {
   TerritoryRepository,
   ValidationError,
 } from "@storyforge/domain";
+
+// A Territory can represent either a faction/org's holdings or a plain
+// geographic subdivision (Territory.type already free-strings "territory"
+// vs "region" vs "district" — see Territory.ts's own doc comment), so the
+// allowlist covers both rather than ORGANIZATION alone.
+const LINKABLE_CATEGORIES: EntityCategory[] = [
+  EntityCategory.ORGANIZATION,
+  EntityCategory.LOCATION,
+];
 
 export interface CreateTerritoryDto {
   campaignId: string;
@@ -119,6 +129,12 @@ export class TerritoryService {
 
     if (entity.CampaignId !== campaignId) {
       throw new ValidationError("Entity does not belong to this campaign.");
+    }
+
+    if (!LINKABLE_CATEGORIES.includes(entity.Category)) {
+      throw new ValidationError(
+        "Territory can only be linked to an ORGANIZATION or LOCATION-category entity.",
+      );
     }
   }
 }

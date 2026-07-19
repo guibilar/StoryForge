@@ -50,6 +50,7 @@ async function createEntity(campaignId: string): Promise<string> {
       id: randomUUID(),
       campaignId,
       type: "npc",
+      category: "CHARACTER",
       name: `test-entity-${randomUUID()}`,
     },
   });

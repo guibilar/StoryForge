@@ -26,6 +26,14 @@ enum Visibility {
   PRIVATE
 }
 
+enum EntityCategory {
+  CHARACTER
+  LOCATION
+  ORGANIZATION
+  ITEM
+  OTHER
+}
+
 enum NoteVisibility {
   SHARED
   PRIVATE
@@ -55,16 +63,26 @@ model Campaign {
 }
 
 model Entity {
-  id         String @id @default(uuid())
-  campaignId String
+  id          String  @id @default(uuid())
+  campaignId  String
+  ownerUserId String?
 
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  // The Player Character's owning campaign member. Nullable, and cleared
+  // (not cascaded) when the User is removed — a departed player's PC stays
+  // in the campaign, just unowned. Resolved via (campaignId, ownerUserId)
+  // at the application layer, not this User relation directly, since a
+  // CampaignMember has no synthetic id of its own (see CampaignMember
+  // model's @@unique([campaignId, userId])).
+  owner    User?    @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
 
-  type        String
-  name        String
-  description String?
-  icon        String?
-  image       String?
+  type              String
+  category          EntityCategory
+  isPlayerCharacter Boolean        @default(false)
+  name              String
+  description       String?
+  icon              String?
+  image             String?
 
   visibility Visibility @default(PUBLIC)
 
@@ -88,6 +106,7 @@ model Entity {
   // declarative @@unique can't express a WHERE deletedAt IS NULL clause.
   @@index([campaignId, name])
   @@index([campaignId])
+  @@index([ownerUserId])
 }
 
 model Session {
@@ -235,6 +254,7 @@ model User {
   sessionAttendances  SessionAttendee[]
   noteRecipiencies    NoteRecipient[]
   workspaceStates     WorkspaceState[]
+  ownedEntities       Entity[]
 }
 
 model Note {

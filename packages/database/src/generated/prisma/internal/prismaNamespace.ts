@@ -1972,7 +1972,10 @@ export type CampaignScalarFieldEnum =
 export const EntityScalarFieldEnum = {
   id: "id",
   campaignId: "campaignId",
+  ownerUserId: "ownerUserId",
   type: "type",
+  category: "category",
+  isPlayerCharacter: "isPlayerCharacter",
   name: "name",
   description: "description",
   icon: "icon",
@@ -2273,6 +2276,28 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<
   $PrismaModel,
   "DateTime[]"
+>;
+
+/**
+ * Reference to a field of type 'EntityCategory'
+ */
+export type EnumEntityCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  "EntityCategory"
+>;
+
+/**
+ * Reference to a field of type 'EntityCategory[]'
+ */
+export type ListEnumEntityCategoryFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, "EntityCategory[]">;
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  "Boolean"
 >;
 
 /**

@@ -16,11 +16,16 @@ import {
   DeleteTerritoryDocument,
   UpdateTerritoryDocument,
 } from "../gql/graphql";
+import type { EntityCategory } from "../gql/graphql";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { EntitySelectField } from "./EntitySelectField";
 import styles from "./TerritoryFormWindow.module.css";
+
+// A Territory can represent a faction/org's holdings or a plain geographic
+// subdivision (KAN-122) — enforced server-side too (TerritoryService).
+const LINKABLE_CATEGORIES: EntityCategory[] = ["ORGANIZATION", "LOCATION"];
 
 export interface TerritoryRow {
   id: string;
@@ -206,6 +211,7 @@ export function TerritoryFormWindow({
         id="territory-entity"
         name="entityId"
         defaultValue={initialTerritory?.entityId}
+        categories={LINKABLE_CATEGORIES}
       />
       {/* Collapsed by default: the shape is normally drawn on the map, so the
           raw ring is reference material rather than something to fill in. The

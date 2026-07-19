@@ -26,6 +26,17 @@ export const Visibility = {
 
 export type Visibility = (typeof Visibility)[keyof typeof Visibility];
 
+export const EntityCategory = {
+  CHARACTER: "CHARACTER",
+  LOCATION: "LOCATION",
+  ORGANIZATION: "ORGANIZATION",
+  ITEM: "ITEM",
+  OTHER: "OTHER",
+} as const;
+
+export type EntityCategory =
+  (typeof EntityCategory)[keyof typeof EntityCategory];
+
 export const NoteVisibility = {
   SHARED: "SHARED",
   PRIVATE: "PRIVATE",

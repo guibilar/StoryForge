@@ -702,11 +702,25 @@ auth flow, and the campaign desktop shell are all wired:
     (`src/components/ComingSoonPanel.tsx`), a one-line placeholder naming
     the tracking ticket. `relationships` (`RelationshipGraphWindow`,
     KAN-42) is also real — a `@xyflow/react` node-link diagram of
-    `entities(campaignId)`/`relationships(campaignId)`, view-only (no
-    `visibleToRoles` restriction, no create/edit UI), colored by `type`
+    `entities(campaignId)`/`relationships(campaignId)`, colored by `type`
     via `src/lib/categoryColor.ts`'s fixed 8-hue categorical palette
     (first-seen order, since `Entity.type`/`Relationship.type` are open
-    free strings, not enums).
+    free strings, not enums). No `visibleToRoles` restriction — every
+    campaign role sees the graph. Create/edit UI landed in KAN-123:
+    writers (Owner/Storyteller/Co-Storyteller, checked client-side the
+    same way `MapsWindow` derives `isWriter`) get a "+ Add Relationship"
+    button and can click an edge to edit or delete it via
+    `RelationshipFormWindow` (`useAddEditWindow`, same shape as
+    `MarkerFormWindow`/`TerritoryFormWindow`). Source/target entity
+    pickers are unrestricted by category (unlike Marker/Territory,
+    KAN-121/122 — a Relationship connects any two entities) and only
+    settable at creation, since `UpdateRelationshipInput` has no
+    `sourceEntityId`/`targetEntityId` (KAN-41 — repoint by delete +
+    recreate). The type field suggests category-pair-appropriate values
+    via a `<datalist>` (`src/lib/relationshipTypeSuggestions.ts`) but
+    stays a free string end to end — a hint, not a constraint, so a
+    future plugin (e.g. VTM's Sire/Childe/Ghoul) can still define its own
+    values with no core change.
 - `src/index.css` only holds `apps/web`-shell layout/typography rules;
   design tokens (colors, fonts, shadows) live in
   `@storyforge/ui/tokens.css`, imported once in `main.tsx`.
@@ -1276,9 +1290,38 @@ full per-feature checklist):
   `include: { members: true }` query (KAN-79), so `archiveCampaign`'s
   no-owner check now resolves correctly.
 - **Entity** — a single generic, polymorphic domain object with a
-  `type: string` field (e.g. `"character"`, `"location"`, `"item"`,
-  `"note"`) rather than separate Character/Location/Item/Note models.
-  Has `name`, `description`, `icon`, `image`, `visibility`
+  `type: string` field (e.g. `"Vampire"`, `"Dungeon"`, `"Guild"`) rather
+  than separate Character/Location/Item/Note models. Since KAN-118
+  (entity type constraints, KAN-117), `Entity` also carries a required
+  `category: EntityCategory` — a small, closed, core-owned enum
+  (`CHARACTER`/`LOCATION`/`ORGANIZATION`/`ITEM`/`OTHER`) that other
+  features constrain against (e.g. Marker/Territory entity links, KAN-121/
+  122). `category` is the enforced classification; `type` stays the free
+  subtype/flavor label KAN-35 established — plugins keep contributing new
+  `type` values with no core change, only `category` is closed. Since
+  KAN-119, a `CHARACTER`-category entity can also carry
+  `isPlayerCharacter: boolean` (default `false`) — the real PC/NPC split,
+  replacing the old `type:"npc"` string convention the removed KAN-39 NPCs
+  window relied on; `Entity.changeCategory`/`changeIsPlayerCharacter`
+  cross-validate so a non-`CHARACTER` entity can never be flagged as a PC
+  (`EntityService.updateEntity` applies whichever of the two fields moves
+  toward `isPlayerCharacter=false` first when both change in the same
+  call, since `false` is always valid regardless of category — otherwise
+  a legal combined transition, e.g. category `CHARACTER`→`LOCATION` +
+  `isPlayerCharacter` `true`→`false`, could be rejected by validation
+  order alone). Since KAN-120, a Player Character can also carry
+  `ownerUserId: string | null` — the owning campaign member, referenced by
+  User id rather than a synthetic `CampaignMember` id (that aggregate has
+  none; it's identified by `(campaignId, userId)` everywhere, see
+  `CampaignMemberMapper`'s synthesized GraphQL `id`). `Entity.linkOwner`
+  enforces the same-aggregate half of the invariant (only a PC can have an
+  owner; `changeIsPlayerCharacter(false)` auto-clears it rather than
+  blocking); `EntityService` resolves the cross-aggregate half (owner must
+  be a real member of the entity's campaign) via
+  `CampaignMemberRepository.findByCampaignAndUser`, applied last in
+  `updateEntity` after category/isPlayerCharacter have settled. Data model
+  only — does not itself change who can write to the entity. Has `name`,
+  `description`, `icon`, `image`, `visibility`
   (`PUBLIC`/`STORYTELLER`/`PRIVATE`), soft delete (`deletedAt`), and a
   `(campaignId, name)` uniqueness constraint. Fully wired
   domain → service → Prisma repository → GraphQL: `createEntity`/

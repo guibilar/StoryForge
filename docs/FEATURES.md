@@ -135,7 +135,33 @@ tracks what's actually built, not just planned.
       entity).
 - [x] Entity soft delete
 - [x] Duplicate-name validation per campaign
-- [x] Generic `type` field (Character/Location/Organization via type string, no type-specific schema)
+- [x] Generic `type` field (free subtype label, no type-specific schema)
+- [x] `EntityCategory` closed core enum (KAN-118) — `CHARACTER`/`LOCATION`/
+      `ORGANIZATION`/`ITEM`/`OTHER`, required alongside `type`; enforced via
+      `Entity.validateCategory`, filterable via `EntityFilter.category`.
+      Existing rows backfilled by migration
+      `20260719024607_add_entity_category` (best-effort match against the
+      pre-existing free-string `type`, falling back to `OTHER`).
+- [x] Player Character / NPC split (KAN-119) — `isPlayerCharacter: boolean`
+      on `Entity` (default `false`), settable only when `category ===
+CHARACTER` (enforced in both directions: `changeCategory` and
+      `changeIsPlayerCharacter` cross-validate). `EntityFormWindow` shows
+      the toggle only when `CHARACTER` is selected.
+- [x] Player Character owner link (KAN-120) — `Entity.ownerUserId` (nullable,
+      `onDelete: SetNull`), settable only on an `isPlayerCharacter` entity;
+      `Entity.linkOwner`/`changeIsPlayerCharacter` cross-validate the same
+      way `category`/`isPlayerCharacter` do (turning `isPlayerCharacter`
+      off auto-clears the owner rather than blocking the change).
+      References a `User`, not a synthetic `CampaignMember` id — a
+      `CampaignMember` is identified by `(campaignId, userId)` everywhere
+      in this codebase (see `CampaignMemberMapper`'s `id` synthesis).
+      `EntityService` validates the owner is an actual member of the
+      entity's campaign via `CampaignMemberRepository.findByCampaignAndUser`.
+      GraphQL: `Entity.ownerUserId`/`Entity.ownerMember` (resolved via
+      `campaignMemberService.getMembership`), `ownerUserId` on
+      `CreateEntityInput`/`UpdateEntityInput`. Data model only — does not
+      grant the linked player write access to their own PC (a future
+      permission ticket).
 - [x] Portrait / image upload — `uploadEntityImage` mutation (GraphQL multipart
       request spec), `LocalImageStore` (validates JPEG/PNG/GIF/WEBP, 5MB limit,
       writes to `UPLOADS_DIR/<entityId>/<uuid>.<ext>`), guarded via
@@ -196,9 +222,27 @@ tracks what's actually built, not just planned.
       8-hue categorical palette (assigned in first-seen order since both
       `type` fields are open-ended free strings, not enums) — the type name
       is always shown as a text label too so color is never the only cue.
-      Pan/zoom via React Flow defaults; clicking a node is a no-op stub (no
-      entity detail page exists yet). View-only for v1 — visible to every
-      campaign role, no create/edit UI.
+      Pan/zoom via React Flow defaults; clicking a node opens that entity's
+      window. Visible to every campaign role (no `visibleToRoles`
+      restriction).
+- [x] Relationship create/edit/delete UI (KAN-123) — `RelationshipFormWindow`
+      (`useAddEditWindow`, same shape as `MarkerFormWindow`/
+      `TerritoryFormWindow`), opened from `RelationshipGraphWindow`'s
+      "+ Add Relationship" button (writers only — Owner/Storyteller/
+      Co-Storyteller, checked client-side the same way `MapsWindow` derives
+      `isWriter`) or by clicking an edge to edit/delete it. Source/target
+      entity pickers (`EntitySelectField`, extended with `required` and
+      `onChange` props for this) are unrestricted by category — a
+      Relationship connects any two entities, unlike Marker/Territory
+      (KAN-121/122) — and only settable at creation, since
+      `UpdateRelationshipInput` has no `sourceEntityId`/`targetEntityId`
+      (KAN-41 — repoint by delete + recreate, not in-place edit). The type
+      input suggests category-pair-appropriate values (e.g.
+      CHARACTER+ORGANIZATION → "MemberOf") via a `<datalist>`
+      (`src/lib/relationshipTypeSuggestions.ts`, pure/unit-tested) but the
+      field stays free text end to end — `Relationship.type` is unchanged
+      from KAN-41's decision to keep it an unvalidated string so future
+      plugins can define their own values with no core migration.
 
 ## Notes & Assets
 
@@ -315,6 +359,18 @@ tracks what's actually built, not just planned.
 - [ ] Leaflet integration
 - [ ] Markers, territories, regions, districts
 - [ ] Custom overlays / images as maps
+- [x] Marker entity links restricted to LOCATION-category entities
+      (KAN-121) — `MarkerService.requireEntityInCampaign` rejects a
+      non-`LOCATION` `entityId` with `ValidationError`; `EntitySelectField`
+      (`categories` prop) filters the picker client-side to match, so
+      `MarkerFormWindow` only ever offers `LOCATION` entities.
+- [x] Territory entity links restricted to ORGANIZATION/LOCATION-category
+      entities (KAN-122) — same shape as KAN-121, but a two-value allowlist:
+      `Territory.type` already free-strings "territory"/"region"/"district"
+      (see `Territory.ts`), and a district is more location-like than
+      org-like, so `LOCATION` is included alongside `ORGANIZATION` rather
+      than restricting to factions/orgs alone. `TerritoryFormWindow` passes
+      both categories to `EntitySelectField`.
 
 ## Plugin Runtime
 

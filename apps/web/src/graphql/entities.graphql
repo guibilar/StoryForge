@@ -4,6 +4,8 @@ query Entities($campaignId: ID!, $filter: EntityFilter) {
     name
     description
     type
+    category
+    isPlayerCharacter
     image
     visibility
     tags {

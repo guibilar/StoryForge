@@ -3,7 +3,7 @@ import { Campaign } from "./Campaign";
 import { CampaignId } from "./CampaignId";
 import { CampaignMember } from "../campaignMember";
 import { Entity } from "../entity";
-import { EntityVisibility } from "../entity";
+import { EntityCategory, EntityVisibility } from "../entity";
 import { UserId } from "../user";
 import { ValidationError } from "../shared";
 
@@ -21,6 +21,7 @@ function makeEntity() {
   return Entity.create({
     campaignId: "campaign-1",
     type: "npc",
+    category: EntityCategory.CHARACTER,
     name: "Goblin",
     visibility: EntityVisibility.PUBLIC,
   });

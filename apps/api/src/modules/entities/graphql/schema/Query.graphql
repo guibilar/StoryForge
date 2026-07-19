@@ -1,5 +1,7 @@
 input EntityFilter {
   type: String
+  category: EntityCategory
+  isPlayerCharacter: Boolean
   nameContains: String
   tagIds: [ID!]
 }

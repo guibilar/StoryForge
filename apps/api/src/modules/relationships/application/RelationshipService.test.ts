@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   Entity,
+  EntityCategory,
   EntityRepository,
   EntityVisibility,
   NotFoundError,
@@ -42,12 +43,14 @@ const createDto = {
 const sourceEntity = Entity.create({
   campaignId: "campaign-1",
   type: "npc",
+  category: EntityCategory.CHARACTER,
   name: "Source",
   visibility: EntityVisibility.PUBLIC,
 });
 const targetEntity = Entity.create({
   campaignId: "campaign-1",
   type: "npc",
+  category: EntityCategory.CHARACTER,
   name: "Target",
   visibility: EntityVisibility.PUBLIC,
 });
@@ -93,6 +96,7 @@ describe("RelationshipService", () => {
           return Entity.create({
             campaignId: "other-campaign",
             type: "npc",
+            category: EntityCategory.CHARACTER,
             name: "Source",
             visibility: EntityVisibility.PUBLIC,
           });

@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { Entity } from "./Entity";
+import { EntityCategory } from "./EntityCategory";
 import { EntityId } from "./EntityId";
 import { EntityVisibility } from "./EntityVisibility";
 
 const validProps = {
   campaignId: "campaign-1",
   type: "npc",
+  category: EntityCategory.CHARACTER,
   name: "Goblin",
   description: "A sneaky goblin",
   icon: "goblin.png",
@@ -18,6 +20,7 @@ describe("Entity", () => {
 
     expect(entity.CampaignId).toBe(validProps.campaignId);
     expect(entity.Type).toBe(validProps.type);
+    expect(entity.Category).toBe(EntityCategory.CHARACTER);
     expect(entity.Name).toBe(validProps.name);
     expect(entity.Description).toBe(validProps.description);
     expect(entity.Icon).toBe(validProps.icon);
@@ -30,6 +33,7 @@ describe("Entity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PRIVATE,
     });
@@ -47,10 +51,13 @@ describe("Entity", () => {
       id,
       campaignId: validProps.campaignId,
       type: validProps.type,
+      category: validProps.category,
       name: validProps.name,
       description: null,
       icon: null,
       visibility: EntityVisibility.STORYTELLER,
+      isPlayerCharacter: false,
+      ownerUserId: null,
       createdAt,
       updatedAt,
       deletedAt: null,
@@ -91,6 +98,12 @@ describe("Entity", () => {
     ).toThrow("Entity type is too long.");
   });
 
+  it("rejects an invalid category", () => {
+    expect(() =>
+      Entity.create({ ...validProps, category: "PLANET" as EntityCategory }),
+    ).toThrow("Entity category is invalid.");
+  });
+
   it("trims the name on rename", () => {
     const entity = Entity.create(validProps);
 
@@ -109,6 +122,124 @@ describe("Entity", () => {
     expect(entity.Description).toBe("New description");
     expect(entity.Icon).toBe("new-icon.png");
     expect(entity.Visibility).toBe(EntityVisibility.PRIVATE);
+  });
+
+  it("changes category", () => {
+    const entity = Entity.create(validProps);
+
+    entity.changeCategory(EntityCategory.LOCATION);
+
+    expect(entity.Category).toBe(EntityCategory.LOCATION);
+  });
+
+  it("rejects changing to an invalid category", () => {
+    const entity = Entity.create(validProps);
+
+    expect(() => entity.changeCategory("PLANET" as EntityCategory)).toThrow(
+      "Entity category is invalid.",
+    );
+  });
+
+  it("defaults isPlayerCharacter to false", () => {
+    const entity = Entity.create(validProps);
+
+    expect(entity.IsPlayerCharacter).toBe(false);
+  });
+
+  it("creates a Player Character on a CHARACTER-category entity", () => {
+    const entity = Entity.create({ ...validProps, isPlayerCharacter: true });
+
+    expect(entity.IsPlayerCharacter).toBe(true);
+  });
+
+  it("rejects creating a Player Character on a non-CHARACTER entity", () => {
+    expect(() =>
+      Entity.create({
+        ...validProps,
+        category: EntityCategory.LOCATION,
+        isPlayerCharacter: true,
+      }),
+    ).toThrow(
+      "Only a CHARACTER-category entity can be marked as a Player Character.",
+    );
+  });
+
+  it("changes isPlayerCharacter on a CHARACTER-category entity", () => {
+    const entity = Entity.create(validProps);
+
+    entity.changeIsPlayerCharacter(true);
+    expect(entity.IsPlayerCharacter).toBe(true);
+
+    entity.changeIsPlayerCharacter(false);
+    expect(entity.IsPlayerCharacter).toBe(false);
+  });
+
+  it("rejects flagging a non-CHARACTER entity as a Player Character", () => {
+    const entity = Entity.create({
+      ...validProps,
+      category: EntityCategory.ITEM,
+    });
+
+    expect(() => entity.changeIsPlayerCharacter(true)).toThrow(
+      "Only a CHARACTER-category entity can be marked as a Player Character.",
+    );
+  });
+
+  it("rejects changing category away from CHARACTER while flagged as a Player Character", () => {
+    const entity = Entity.create({ ...validProps, isPlayerCharacter: true });
+
+    expect(() => entity.changeCategory(EntityCategory.LOCATION)).toThrow(
+      "Only a CHARACTER-category entity can be marked as a Player Character.",
+    );
+  });
+
+  it("defaults ownerUserId to null", () => {
+    const entity = Entity.create(validProps);
+
+    expect(entity.OwnerUserId).toBeNull();
+  });
+
+  it("links and unlinks an owner on a Player Character", () => {
+    const entity = Entity.create({ ...validProps, isPlayerCharacter: true });
+
+    entity.linkOwner("user-1");
+    expect(entity.OwnerUserId).toBe("user-1");
+
+    entity.linkOwner(null);
+    expect(entity.OwnerUserId).toBeNull();
+  });
+
+  it("rejects linking an owner to a non-Player-Character entity", () => {
+    const entity = Entity.create(validProps);
+
+    expect(() => entity.linkOwner("user-1")).toThrow(
+      "Only a Player Character can have an owning campaign member.",
+    );
+  });
+
+  it("clears the owner when isPlayerCharacter is turned off", () => {
+    const entity = Entity.create({ ...validProps, isPlayerCharacter: true });
+    entity.linkOwner("user-1");
+
+    entity.changeIsPlayerCharacter(false);
+
+    expect(entity.OwnerUserId).toBeNull();
+  });
+
+  it("creates a Player Character with an owner set", () => {
+    const entity = Entity.create({
+      ...validProps,
+      isPlayerCharacter: true,
+      ownerUserId: "user-1",
+    });
+
+    expect(entity.OwnerUserId).toBe("user-1");
+  });
+
+  it("rejects creating a non-Player-Character entity with an owner set", () => {
+    expect(() =>
+      Entity.create({ ...validProps, ownerUserId: "user-1" }),
+    ).toThrow("Only a Player Character can have an owning campaign member.");
   });
 
   it("soft-deletes and restores", () => {

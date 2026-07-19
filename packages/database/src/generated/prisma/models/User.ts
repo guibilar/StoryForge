@@ -190,6 +190,7 @@ export type UserWhereInput = {
   sessionAttendances?: Prisma.SessionAttendeeListRelationFilter;
   noteRecipiencies?: Prisma.NoteRecipientListRelationFilter;
   workspaceStates?: Prisma.WorkspaceStateListRelationFilter;
+  ownedEntities?: Prisma.EntityListRelationFilter;
 };
 
 export type UserOrderByWithRelationInput = {
@@ -203,6 +204,7 @@ export type UserOrderByWithRelationInput = {
   sessionAttendances?: Prisma.SessionAttendeeOrderByRelationAggregateInput;
   noteRecipiencies?: Prisma.NoteRecipientOrderByRelationAggregateInput;
   workspaceStates?: Prisma.WorkspaceStateOrderByRelationAggregateInput;
+  ownedEntities?: Prisma.EntityOrderByRelationAggregateInput;
 };
 
 export type UserWhereUniqueInput = Prisma.AtLeast<
@@ -220,6 +222,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     sessionAttendances?: Prisma.SessionAttendeeListRelationFilter;
     noteRecipiencies?: Prisma.NoteRecipientListRelationFilter;
     workspaceStates?: Prisma.WorkspaceStateListRelationFilter;
+    ownedEntities?: Prisma.EntityListRelationFilter;
   },
   "id" | "email"
 >;
@@ -261,6 +264,7 @@ export type UserCreateInput = {
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserUncheckedCreateInput = {
@@ -274,6 +278,7 @@ export type UserUncheckedCreateInput = {
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserUpdateInput = {
@@ -287,6 +292,7 @@ export type UserUpdateInput = {
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserUncheckedUpdateInput = {
@@ -300,6 +306,7 @@ export type UserUncheckedUpdateInput = {
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserCreateManyInput = {
@@ -324,6 +331,11 @@ export type UserUncheckedUpdateManyInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null;
+  isNot?: Prisma.UserWhereInput | null;
 };
 
 export type UserScalarRelationFilter = {
@@ -353,6 +365,34 @@ export type UserMinOrderByAggregateInput = {
   password?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
+};
+
+export type UserCreateNestedOneWithoutOwnedEntitiesInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutOwnedEntitiesInput,
+    Prisma.UserUncheckedCreateWithoutOwnedEntitiesInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOwnedEntitiesInput;
+  connect?: Prisma.UserWhereUniqueInput;
+};
+
+export type UserUpdateOneWithoutOwnedEntitiesNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutOwnedEntitiesInput,
+    Prisma.UserUncheckedCreateWithoutOwnedEntitiesInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOwnedEntitiesInput;
+  upsert?: Prisma.UserUpsertWithoutOwnedEntitiesInput;
+  disconnect?: Prisma.UserWhereInput | boolean;
+  delete?: Prisma.UserWhereInput | boolean;
+  connect?: Prisma.UserWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.UserUpdateToOneWithWhereWithoutOwnedEntitiesInput,
+      Prisma.UserUpdateWithoutOwnedEntitiesInput
+    >,
+    Prisma.UserUncheckedUpdateWithoutOwnedEntitiesInput
+  >;
 };
 
 export type UserCreateNestedOneWithoutSessionAttendancesInput = {
@@ -485,6 +525,86 @@ export type UserUpdateOneRequiredWithoutWorkspaceStatesNestedInput = {
   >;
 };
 
+export type UserCreateWithoutOwnedEntitiesInput = {
+  id?: string;
+  email: string;
+  password: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  campaignMemberships?: Prisma.CampaignMemberCreateNestedManyWithoutUserInput;
+  notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
+  sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
+  noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
+  workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
+};
+
+export type UserUncheckedCreateWithoutOwnedEntitiesInput = {
+  id?: string;
+  email: string;
+  password: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  campaignMemberships?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutUserInput;
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
+  sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
+  noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
+  workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
+};
+
+export type UserCreateOrConnectWithoutOwnedEntitiesInput = {
+  where: Prisma.UserWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutOwnedEntitiesInput,
+    Prisma.UserUncheckedCreateWithoutOwnedEntitiesInput
+  >;
+};
+
+export type UserUpsertWithoutOwnedEntitiesInput = {
+  update: Prisma.XOR<
+    Prisma.UserUpdateWithoutOwnedEntitiesInput,
+    Prisma.UserUncheckedUpdateWithoutOwnedEntitiesInput
+  >;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutOwnedEntitiesInput,
+    Prisma.UserUncheckedCreateWithoutOwnedEntitiesInput
+  >;
+  where?: Prisma.UserWhereInput;
+};
+
+export type UserUpdateToOneWithWhereWithoutOwnedEntitiesInput = {
+  where?: Prisma.UserWhereInput;
+  data: Prisma.XOR<
+    Prisma.UserUpdateWithoutOwnedEntitiesInput,
+    Prisma.UserUncheckedUpdateWithoutOwnedEntitiesInput
+  >;
+};
+
+export type UserUpdateWithoutOwnedEntitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  password?: Prisma.StringFieldUpdateOperationsInput | string;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  campaignMemberships?: Prisma.CampaignMemberUpdateManyWithoutUserNestedInput;
+  notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
+  sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
+  noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
+  workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutOwnedEntitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  password?: Prisma.StringFieldUpdateOperationsInput | string;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  campaignMemberships?: Prisma.CampaignMemberUncheckedUpdateManyWithoutUserNestedInput;
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
+  sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
+  noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
+  workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
+};
+
 export type UserCreateWithoutSessionAttendancesInput = {
   id?: string;
   email: string;
@@ -495,6 +615,7 @@ export type UserCreateWithoutSessionAttendancesInput = {
   notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserUncheckedCreateWithoutSessionAttendancesInput = {
@@ -507,6 +628,7 @@ export type UserUncheckedCreateWithoutSessionAttendancesInput = {
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserCreateOrConnectWithoutSessionAttendancesInput = {
@@ -547,6 +669,7 @@ export type UserUpdateWithoutSessionAttendancesInput = {
   notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutSessionAttendancesInput = {
@@ -559,6 +682,7 @@ export type UserUncheckedUpdateWithoutSessionAttendancesInput = {
   notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserCreateWithoutNotesInput = {
@@ -571,6 +695,7 @@ export type UserCreateWithoutNotesInput = {
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserUncheckedCreateWithoutNotesInput = {
@@ -583,6 +708,7 @@ export type UserUncheckedCreateWithoutNotesInput = {
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserCreateOrConnectWithoutNotesInput = {
@@ -623,6 +749,7 @@ export type UserUpdateWithoutNotesInput = {
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutNotesInput = {
@@ -635,6 +762,7 @@ export type UserUncheckedUpdateWithoutNotesInput = {
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserCreateWithoutNoteRecipienciesInput = {
@@ -647,6 +775,7 @@ export type UserCreateWithoutNoteRecipienciesInput = {
   notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserUncheckedCreateWithoutNoteRecipienciesInput = {
@@ -659,6 +788,7 @@ export type UserUncheckedCreateWithoutNoteRecipienciesInput = {
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserCreateOrConnectWithoutNoteRecipienciesInput = {
@@ -699,6 +829,7 @@ export type UserUpdateWithoutNoteRecipienciesInput = {
   notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutNoteRecipienciesInput = {
@@ -711,6 +842,7 @@ export type UserUncheckedUpdateWithoutNoteRecipienciesInput = {
   notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserCreateWithoutCampaignMembershipsInput = {
@@ -723,6 +855,7 @@ export type UserCreateWithoutCampaignMembershipsInput = {
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserUncheckedCreateWithoutCampaignMembershipsInput = {
@@ -735,6 +868,7 @@ export type UserUncheckedCreateWithoutCampaignMembershipsInput = {
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserCreateOrConnectWithoutCampaignMembershipsInput = {
@@ -775,6 +909,7 @@ export type UserUpdateWithoutCampaignMembershipsInput = {
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutCampaignMembershipsInput = {
@@ -787,6 +922,7 @@ export type UserUncheckedUpdateWithoutCampaignMembershipsInput = {
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserCreateWithoutWorkspaceStatesInput = {
@@ -799,6 +935,7 @@ export type UserCreateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserUncheckedCreateWithoutWorkspaceStatesInput = {
@@ -811,6 +948,7 @@ export type UserUncheckedCreateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
 
 export type UserCreateOrConnectWithoutWorkspaceStatesInput = {
@@ -851,6 +989,7 @@ export type UserUpdateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutWorkspaceStatesInput = {
@@ -863,6 +1002,7 @@ export type UserUncheckedUpdateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
 
 /**
@@ -875,6 +1015,7 @@ export type UserCountOutputType = {
   sessionAttendances: number;
   noteRecipiencies: number;
   workspaceStates: number;
+  ownedEntities: number;
 };
 
 export type UserCountOutputTypeSelect<
@@ -887,6 +1028,7 @@ export type UserCountOutputTypeSelect<
   sessionAttendances?: boolean | UserCountOutputTypeCountSessionAttendancesArgs;
   noteRecipiencies?: boolean | UserCountOutputTypeCountNoteRecipienciesArgs;
   workspaceStates?: boolean | UserCountOutputTypeCountWorkspaceStatesArgs;
+  ownedEntities?: boolean | UserCountOutputTypeCountOwnedEntitiesArgs;
 };
 
 /**
@@ -952,6 +1094,16 @@ export type UserCountOutputTypeCountWorkspaceStatesArgs<
   where?: Prisma.WorkspaceStateWhereInput;
 };
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOwnedEntitiesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.EntityWhereInput;
+};
+
 export type UserSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -968,6 +1120,7 @@ export type UserSelect<
     sessionAttendances?: boolean | Prisma.User$sessionAttendancesArgs<ExtArgs>;
     noteRecipiencies?: boolean | Prisma.User$noteRecipienciesArgs<ExtArgs>;
     workspaceStates?: boolean | Prisma.User$workspaceStatesArgs<ExtArgs>;
+    ownedEntities?: boolean | Prisma.User$ownedEntitiesArgs<ExtArgs>;
     _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["user"]
@@ -1025,6 +1178,7 @@ export type UserInclude<
   sessionAttendances?: boolean | Prisma.User$sessionAttendancesArgs<ExtArgs>;
   noteRecipiencies?: boolean | Prisma.User$noteRecipienciesArgs<ExtArgs>;
   workspaceStates?: boolean | Prisma.User$workspaceStatesArgs<ExtArgs>;
+  ownedEntities?: boolean | Prisma.User$ownedEntitiesArgs<ExtArgs>;
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type UserIncludeCreateManyAndReturn<
@@ -1047,6 +1201,7 @@ export type $UserPayload<
     sessionAttendances: Prisma.$SessionAttendeePayload<ExtArgs>[];
     noteRecipiencies: Prisma.$NoteRecipientPayload<ExtArgs>[];
     workspaceStates: Prisma.$WorkspaceStatePayload<ExtArgs>[];
+    ownedEntities: Prisma.$EntityPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1658,6 +1813,17 @@ export interface Prisma__UserClient<
   ): Prisma.PrismaPromise<
     | runtime.Types.Result.GetResult<
         Prisma.$WorkspaceStatePayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  ownedEntities<T extends Prisma.User$ownedEntitiesArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.User$ownedEntitiesArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$EntityPayload<ExtArgs>,
         T,
         "findMany",
         GlobalOmitOptions
@@ -2296,6 +2462,35 @@ export type User$workspaceStatesArgs<
   distinct?:
     | Prisma.WorkspaceStateScalarFieldEnum
     | Prisma.WorkspaceStateScalarFieldEnum[];
+};
+
+/**
+ * User.ownedEntities
+ */
+export type User$ownedEntitiesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Entity
+   */
+  select?: Prisma.EntitySelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Entity
+   */
+  omit?: Prisma.EntityOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EntityInclude<ExtArgs> | null;
+  where?: Prisma.EntityWhereInput;
+  orderBy?:
+    | Prisma.EntityOrderByWithRelationInput
+    | Prisma.EntityOrderByWithRelationInput[];
+  cursor?: Prisma.EntityWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.EntityScalarFieldEnum | Prisma.EntityScalarFieldEnum[];
 };
 
 /**

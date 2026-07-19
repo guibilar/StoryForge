@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   CampaignMember,
   Entity,
+  EntityCategory,
   EntityVisibility,
   User,
 } from "@storyforge/domain";
@@ -70,6 +71,7 @@ const playerMembership = CampaignMember.create({
 const entity = Entity.create({
   campaignId: "campaign-1",
   type: "npc",
+  category: EntityCategory.CHARACTER,
   name: "Goblin",
   visibility: EntityVisibility.PUBLIC,
 });

@@ -1,9 +1,10 @@
 import {
+  EntityCategory,
+  EntityId,
+  EntityRepository,
   Marker,
   MarkerId,
   MarkerRepository,
-  EntityId,
-  EntityRepository,
   NotFoundError,
   ValidationError,
 } from "@storyforge/domain";
@@ -112,6 +113,12 @@ export class MarkerService {
 
     if (entity.CampaignId !== campaignId) {
       throw new ValidationError("Entity does not belong to this campaign.");
+    }
+
+    if (entity.Category !== EntityCategory.LOCATION) {
+      throw new ValidationError(
+        "Marker can only be linked to a LOCATION-category entity.",
+      );
     }
   }
 }

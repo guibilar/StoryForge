@@ -220,9 +220,27 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       8-hue categorical palette (assigned in first-seen order since both
       `type` fields are open-ended free strings, not enums) — the type name
       is always shown as a text label too so color is never the only cue.
-      Pan/zoom via React Flow defaults; clicking a node is a no-op stub (no
-      entity detail page exists yet). View-only for v1 — visible to every
-      campaign role, no create/edit UI.
+      Pan/zoom via React Flow defaults; clicking a node opens that entity's
+      window. Visible to every campaign role (no `visibleToRoles`
+      restriction).
+- [x] Relationship create/edit/delete UI (KAN-123) — `RelationshipFormWindow`
+      (`useAddEditWindow`, same shape as `MarkerFormWindow`/
+      `TerritoryFormWindow`), opened from `RelationshipGraphWindow`'s
+      "+ Add Relationship" button (writers only — Owner/Storyteller/
+      Co-Storyteller, checked client-side the same way `MapsWindow` derives
+      `isWriter`) or by clicking an edge to edit/delete it. Source/target
+      entity pickers (`EntitySelectField`, extended with `required` and
+      `onChange` props for this) are unrestricted by category — a
+      Relationship connects any two entities, unlike Marker/Territory
+      (KAN-121/122) — and only settable at creation, since
+      `UpdateRelationshipInput` has no `sourceEntityId`/`targetEntityId`
+      (KAN-41 — repoint by delete + recreate, not in-place edit). The type
+      input suggests category-pair-appropriate values (e.g.
+      CHARACTER+ORGANIZATION → "MemberOf") via a `<datalist>`
+      (`src/lib/relationshipTypeSuggestions.ts`, pure/unit-tested) but the
+      field stays free text end to end — `Relationship.type` is unchanged
+      from KAN-41's decision to keep it an unvalidated string so future
+      plugins can define their own values with no core migration.
 
 ## Notes & Assets
 

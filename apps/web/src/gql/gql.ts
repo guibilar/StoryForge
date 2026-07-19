@@ -25,6 +25,7 @@ type Documents = {
   "mutation CreateEvent($input: CreateEventInput!) {\n  createEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.CreateEventDocument;
   "mutation CreateMarker($input: CreateMarkerInput!) {\n  createMarker(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}": typeof types.CreateMarkerDocument;
   "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.CreateNoteDocument;
+  "mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}": typeof types.CreateRelationshipDocument;
   "mutation CreateSession($input: CreateSessionInput!) {\n  createSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.CreateSessionDocument;
   "mutation CreateTerritory($input: CreateTerritoryInput!) {\n  createTerritory(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}": typeof types.CreateTerritoryDocument;
   "mutation DeleteEntity($id: ID!) {\n  deleteEntity(id: $id)\n}": typeof types.DeleteEntityDocument;
@@ -32,6 +33,7 @@ type Documents = {
   "mutation DeleteMapImage($campaignId: ID!) {\n  deleteMapImage(campaignId: $campaignId)\n}": typeof types.DeleteMapImageDocument;
   "mutation DeleteMarker($id: ID!) {\n  deleteMarker(id: $id)\n}": typeof types.DeleteMarkerDocument;
   "mutation DeleteNote($id: ID!) {\n  deleteNote(id: $id)\n}": typeof types.DeleteNoteDocument;
+  "mutation DeleteRelationship($id: ID!) {\n  deleteRelationship(id: $id)\n}": typeof types.DeleteRelationshipDocument;
   "mutation DeleteSession($id: ID!) {\n  deleteSession(id: $id)\n}": typeof types.DeleteSessionDocument;
   "mutation DeleteTerritory($id: ID!) {\n  deleteTerritory(id: $id)\n}": typeof types.DeleteTerritoryDocument;
   "mutation DetachParticipant($eventId: ID!, $entityId: ID!) {\n  detachParticipant(eventId: $eventId, entityId: $entityId) {\n    id\n    participants {\n      id\n      name\n    }\n  }\n}": typeof types.DetachParticipantDocument;
@@ -57,6 +59,7 @@ type Documents = {
   "mutation UpdateEvent($input: UpdateEventInput!) {\n  updateEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateEventDocument;
   "mutation UpdateMarker($input: UpdateMarkerInput!) {\n  updateMarker(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}": typeof types.UpdateMarkerDocument;
   "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateNoteDocument;
+  "mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}": typeof types.UpdateRelationshipDocument;
   "mutation UpdateSession($input: UpdateSessionInput!) {\n  updateSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.UpdateSessionDocument;
   "mutation UpdateTerritory($input: UpdateTerritoryInput!) {\n  updateTerritory(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}": typeof types.UpdateTerritoryDocument;
   "mutation UploadMapImage($campaignId: ID!, $file: Upload!) {\n  uploadMapImage(campaignId: $campaignId, file: $file) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}": typeof types.UploadMapImageDocument;
@@ -84,6 +87,8 @@ const documents: Documents = {
     types.CreateMarkerDocument,
   "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
     types.CreateNoteDocument,
+  "mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}":
+    types.CreateRelationshipDocument,
   "mutation CreateSession($input: CreateSessionInput!) {\n  createSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}":
     types.CreateSessionDocument,
   "mutation CreateTerritory($input: CreateTerritoryInput!) {\n  createTerritory(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}":
@@ -98,6 +103,8 @@ const documents: Documents = {
     types.DeleteMarkerDocument,
   "mutation DeleteNote($id: ID!) {\n  deleteNote(id: $id)\n}":
     types.DeleteNoteDocument,
+  "mutation DeleteRelationship($id: ID!) {\n  deleteRelationship(id: $id)\n}":
+    types.DeleteRelationshipDocument,
   "mutation DeleteSession($id: ID!) {\n  deleteSession(id: $id)\n}":
     types.DeleteSessionDocument,
   "mutation DeleteTerritory($id: ID!) {\n  deleteTerritory(id: $id)\n}":
@@ -146,6 +153,8 @@ const documents: Documents = {
     types.UpdateMarkerDocument,
   "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
     types.UpdateNoteDocument,
+  "mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}":
+    types.UpdateRelationshipDocument,
   "mutation UpdateSession($input: UpdateSessionInput!) {\n  updateSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}":
     types.UpdateSessionDocument,
   "mutation UpdateTerritory($input: UpdateTerritoryInput!) {\n  updateTerritory(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}":
@@ -238,6 +247,12 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
+  source: "mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}",
+): (typeof documents)["mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
   source: "mutation CreateSession($input: CreateSessionInput!) {\n  createSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}",
 ): (typeof documents)["mutation CreateSession($input: CreateSessionInput!) {\n  createSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}"];
 /**
@@ -276,6 +291,12 @@ export function graphql(
 export function graphql(
   source: "mutation DeleteNote($id: ID!) {\n  deleteNote(id: $id)\n}",
 ): (typeof documents)["mutation DeleteNote($id: ID!) {\n  deleteNote(id: $id)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: "mutation DeleteRelationship($id: ID!) {\n  deleteRelationship(id: $id)\n}",
+): (typeof documents)["mutation DeleteRelationship($id: ID!) {\n  deleteRelationship(id: $id)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -426,6 +447,12 @@ export function graphql(
 export function graphql(
   source: "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}",
 ): (typeof documents)["mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: "mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}",
+): (typeof documents)["mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

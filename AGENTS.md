@@ -702,11 +702,25 @@ auth flow, and the campaign desktop shell are all wired:
     (`src/components/ComingSoonPanel.tsx`), a one-line placeholder naming
     the tracking ticket. `relationships` (`RelationshipGraphWindow`,
     KAN-42) is also real — a `@xyflow/react` node-link diagram of
-    `entities(campaignId)`/`relationships(campaignId)`, view-only (no
-    `visibleToRoles` restriction, no create/edit UI), colored by `type`
+    `entities(campaignId)`/`relationships(campaignId)`, colored by `type`
     via `src/lib/categoryColor.ts`'s fixed 8-hue categorical palette
     (first-seen order, since `Entity.type`/`Relationship.type` are open
-    free strings, not enums).
+    free strings, not enums). No `visibleToRoles` restriction — every
+    campaign role sees the graph. Create/edit UI landed in KAN-123:
+    writers (Owner/Storyteller/Co-Storyteller, checked client-side the
+    same way `MapsWindow` derives `isWriter`) get a "+ Add Relationship"
+    button and can click an edge to edit or delete it via
+    `RelationshipFormWindow` (`useAddEditWindow`, same shape as
+    `MarkerFormWindow`/`TerritoryFormWindow`). Source/target entity
+    pickers are unrestricted by category (unlike Marker/Territory,
+    KAN-121/122 — a Relationship connects any two entities) and only
+    settable at creation, since `UpdateRelationshipInput` has no
+    `sourceEntityId`/`targetEntityId` (KAN-41 — repoint by delete +
+    recreate). The type field suggests category-pair-appropriate values
+    via a `<datalist>` (`src/lib/relationshipTypeSuggestions.ts`) but
+    stays a free string end to end — a hint, not a constraint, so a
+    future plugin (e.g. VTM's Sire/Childe/Ghoul) can still define its own
+    values with no core change.
 - `src/index.css` only holds `apps/web`-shell layout/typography rules;
   design tokens (colors, fonts, shadows) live in
   `@storyforge/ui/tokens.css`, imported once in `main.tsx`.

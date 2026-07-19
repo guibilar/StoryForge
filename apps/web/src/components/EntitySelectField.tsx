@@ -18,6 +18,15 @@ export interface EntitySelectFieldProps {
   // whole campaign up front and a category allowlist is a small, static
   // set — no need for a second round trip or a list-valued filter arg.
   categories?: EntityCategory[];
+  // Omits the "None" option and marks the native select required, for a
+  // link that can't be unset (e.g. Relationship.sourceEntityId/targetEntityId,
+  // KAN-123) as opposed to Marker/Territory's optional entityId.
+  required?: boolean;
+  // Uncontrolled by design (see defaultValue below) — this only lets a
+  // caller observe the current selection (e.g. to look up the selected
+  // entity's category for a dependent suggestion, KAN-123) without owning
+  // the select's value itself.
+  onChange?: (entityId: string) => void;
 }
 
 // Picks the world-data Entity a map feature represents (KAN-116). Loads the
@@ -32,6 +41,8 @@ export function EntitySelectField({
   label = "Entity",
   defaultValue,
   categories,
+  required,
+  onChange,
 }: EntitySelectFieldProps) {
   const [{ data, fetching }] = useQuery({
     query: EntitiesDocument,
@@ -61,9 +72,14 @@ export function EntitySelectField({
         name={name}
         defaultValue={defaultValue ?? ""}
         disabled={fetching}
+        required={required}
+        onChange={
+          onChange ? (event) => onChange(event.target.value) : undefined
+        }
       >
-        {/* Unlinked is a normal state, not a prompt to fix something. */}
-        <option value="">None</option>
+        {/* Unlinked is a normal state, not a prompt to fix something —
+            except when required, where there's no valid "no selection". */}
+        {required ? null : <option value="">None</option>}
         {groups.map(([type, entities]) => (
           <optgroup key={type} label={type}>
             {entities.map((entity) => (

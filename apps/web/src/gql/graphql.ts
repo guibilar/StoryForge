@@ -30,6 +30,7 @@ export type CreateEntityInput = {
   image?: string | null | undefined;
   isPlayerCharacter?: boolean | null | undefined;
   name: string;
+  ownerUserId?: string | number | null | undefined;
   type: string;
   visibility?: EntityVisibility | null | undefined;
 };
@@ -58,6 +59,14 @@ export type CreateNoteInput = {
   recipientIds?: Array<string | number> | null | undefined;
   title: string;
   visibility?: NoteVisibility | null | undefined;
+};
+
+export type CreateRelationshipInput = {
+  campaignId: string | number;
+  description?: string | null | undefined;
+  sourceEntityId: string | number;
+  targetEntityId: string | number;
+  type: string;
 };
 
 export type CreateSessionInput = {
@@ -126,6 +135,7 @@ export type UpdateEntityInput = {
   image?: string | null | undefined;
   isPlayerCharacter?: boolean | null | undefined;
   name?: string | null | undefined;
+  ownerUserId?: string | number | null | undefined;
   visibility?: EntityVisibility | null | undefined;
 };
 
@@ -152,6 +162,12 @@ export type UpdateNoteInput = {
   recipientIds?: Array<string | number> | null | undefined;
   title?: string | null | undefined;
   visibility?: NoteVisibility | null | undefined;
+};
+
+export type UpdateRelationshipInput = {
+  description?: string | null | undefined;
+  id: string | number;
+  type?: string | null | undefined;
 };
 
 export type UpdateSessionInput = {
@@ -326,6 +342,20 @@ export type CreateNoteMutation = {
   };
 };
 
+export type CreateRelationshipMutationVariables = Exact<{
+  input: CreateRelationshipInput;
+}>;
+
+export type CreateRelationshipMutation = {
+  createRelationship: {
+    id: string;
+    sourceEntityId: string;
+    targetEntityId: string;
+    type: string;
+    description: string | null;
+  };
+};
+
 export type CreateSessionMutationVariables = Exact<{
   input: CreateSessionInput;
 }>;
@@ -391,6 +421,12 @@ export type DeleteNoteMutationVariables = Exact<{
 }>;
 
 export type DeleteNoteMutation = { deleteNote: boolean };
+
+export type DeleteRelationshipMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type DeleteRelationshipMutation = { deleteRelationship: boolean };
 
 export type DeleteSessionMutationVariables = Exact<{
   id: string | number;
@@ -711,6 +747,20 @@ export type UpdateNoteMutation = {
     recipientIds: Array<string>;
     createdAt: string;
     updatedAt: string;
+  };
+};
+
+export type UpdateRelationshipMutationVariables = Exact<{
+  input: UpdateRelationshipInput;
+}>;
+
+export type UpdateRelationshipMutation = {
+  updateRelationship: {
+    id: string;
+    sourceEntityId: string;
+    targetEntityId: string;
+    type: string;
+    description: string | null;
   };
 };
 
@@ -1536,6 +1586,70 @@ export const CreateNoteDocument = {
     },
   ],
 } as unknown as DocumentNode<CreateNoteMutation, CreateNoteMutationVariables>;
+export const CreateRelationshipDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateRelationship" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateRelationshipInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createRelationship" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "sourceEntityId" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "targetEntityId" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreateRelationshipMutation,
+  CreateRelationshipMutationVariables
+>;
 export const CreateSessionDocument = {
   kind: "Document",
   definitions: [
@@ -1912,6 +2026,48 @@ export const DeleteNoteDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteNoteMutation, DeleteNoteMutationVariables>;
+export const DeleteRelationshipDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteRelationship" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteRelationship" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteRelationshipMutation,
+  DeleteRelationshipMutationVariables
+>;
 export const DeleteSessionDocument = {
   kind: "Document",
   definitions: [
@@ -3503,6 +3659,70 @@ export const UpdateNoteDocument = {
     },
   ],
 } as unknown as DocumentNode<UpdateNoteMutation, UpdateNoteMutationVariables>;
+export const UpdateRelationshipDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateRelationship" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateRelationshipInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateRelationship" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "sourceEntityId" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "targetEntityId" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateRelationshipMutation,
+  UpdateRelationshipMutationVariables
+>;
 export const UpdateSessionDocument = {
   kind: "Document",
   definitions: [

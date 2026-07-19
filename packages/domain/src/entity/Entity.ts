@@ -12,6 +12,7 @@ export interface CreateEntityProps {
   icon?: string | null;
   image?: string | null;
   visibility: EntityVisibility;
+  isPlayerCharacter?: boolean;
 }
 
 export interface RehydrateEntityProps {
@@ -24,6 +25,7 @@ export interface RehydrateEntityProps {
   icon: string | null;
   image: string | null;
   visibility: EntityVisibility;
+  isPlayerCharacter: boolean;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -40,6 +42,7 @@ export class Entity {
     private iconValue: string | null,
     private imageValue: string | null,
     private visibilityValue: EntityVisibility,
+    private isPlayerCharacterValue: boolean,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
     private deletedAtValue: Date | null,
@@ -48,6 +51,7 @@ export class Entity {
     this.validateDescription(descriptionValue);
     this.validateType(typeValue);
     this.validateCategory(categoryValue);
+    this.validateIsPlayerCharacter(isPlayerCharacterValue, categoryValue);
   }
 
   static create(props: CreateEntityProps): Entity {
@@ -61,6 +65,7 @@ export class Entity {
       props.icon ?? null,
       props.image ?? null,
       props.visibility,
+      props.isPlayerCharacter ?? false,
       new Date(),
       new Date(),
       null,
@@ -78,6 +83,7 @@ export class Entity {
       props.icon,
       props.image,
       props.visibility,
+      props.isPlayerCharacter,
       props.createdAt,
       props.updatedAt,
       props.deletedAt,
@@ -120,6 +126,10 @@ export class Entity {
     return this.visibilityValue;
   }
 
+  get IsPlayerCharacter(): boolean {
+    return this.isPlayerCharacterValue;
+  }
+
   get CreatedAt(): Date {
     return this.createdAtValue;
   }
@@ -155,8 +165,16 @@ export class Entity {
 
   changeCategory(category: EntityCategory): void {
     this.validateCategory(category);
+    this.validateIsPlayerCharacter(this.isPlayerCharacterValue, category);
 
     this.categoryValue = category;
+    this.updatedAtValue = new Date();
+  }
+
+  changeIsPlayerCharacter(isPlayerCharacter: boolean): void {
+    this.validateIsPlayerCharacter(isPlayerCharacter, this.categoryValue);
+
+    this.isPlayerCharacterValue = isPlayerCharacter;
     this.updatedAtValue = new Date();
   }
 
@@ -227,6 +245,17 @@ export class Entity {
   private validateCategory(category: EntityCategory): void {
     if (!isEntityCategory(category)) {
       throw new ValidationError("Entity category is invalid.");
+    }
+  }
+
+  private validateIsPlayerCharacter(
+    isPlayerCharacter: boolean,
+    category: EntityCategory,
+  ): void {
+    if (isPlayerCharacter && category !== EntityCategory.CHARACTER) {
+      throw new ValidationError(
+        "Only a CHARACTER-category entity can be marked as a Player Character.",
+      );
     }
   }
 }

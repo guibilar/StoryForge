@@ -5,6 +5,7 @@ import { EntityId } from "./EntityId";
 export interface EntityFilter {
   type?: string;
   category?: EntityCategory;
+  isPlayerCharacter?: boolean;
   nameContains?: string;
   tagIds?: string[];
 }

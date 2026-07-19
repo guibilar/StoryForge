@@ -42,6 +42,10 @@ export class PrismaEntityRepository implements EntityRepository {
       where.category = filter.category;
     }
 
+    if (filter?.isPlayerCharacter !== undefined) {
+      where.isPlayerCharacter = filter.isPlayerCharacter;
+    }
+
     if (filter?.nameContains) {
       where.name = { contains: filter.nameContains, mode: "insensitive" };
     }

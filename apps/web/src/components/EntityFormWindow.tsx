@@ -1,7 +1,9 @@
 import type { FormEvent } from "react";
+import { useState } from "react";
 import { useMutation } from "urql";
 import {
   Button,
+  Checkbox,
   Form,
   FormActions,
   FormError,
@@ -41,6 +43,8 @@ export function EntityFormWindow({
   onClose,
 }: EntityFormWindowProps) {
   const [createEntityState, createEntity] = useMutation(CreateEntityDocument);
+  const [category, setCategory] = useState<EntityCategory>(CATEGORIES[0]);
+  const [isPlayerCharacter, setIsPlayerCharacter] = useState(false);
 
   // Forms have nothing to "refresh" — only the blocking loading state
   // applies while a save is in flight.
@@ -51,9 +55,6 @@ export function EntityFormWindow({
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") ?? "").trim();
     const type = String(form.get("type") ?? "").trim();
-    const category = String(
-      form.get("category") ?? CATEGORIES[0],
-    ) as EntityCategory;
     const description = String(form.get("description") ?? "").trim();
     const visibility = String(
       form.get("visibility") ?? "PUBLIC",
@@ -71,6 +72,7 @@ export function EntityFormWindow({
         name,
         description: description || null,
         visibility,
+        isPlayerCharacter: category === "CHARACTER" && isPlayerCharacter,
       },
     });
     if (result.data?.createEntity) {
@@ -89,15 +91,29 @@ export function EntityFormWindow({
         <Select
           id="create-entity-category"
           name="category"
-          defaultValue={CATEGORIES[0]}
+          value={category}
+          onChange={(event) => {
+            const nextCategory = event.target.value as EntityCategory;
+            setCategory(nextCategory);
+            if (nextCategory !== "CHARACTER") {
+              setIsPlayerCharacter(false);
+            }
+          }}
         >
-          {CATEGORIES.map((category) => (
-            <option key={category} value={category}>
-              {category}
+          {CATEGORIES.map((option) => (
+            <option key={option} value={option}>
+              {option}
             </option>
           ))}
         </Select>
       </FormField>
+      {category === "CHARACTER" ? (
+        <Checkbox
+          label="Player Character"
+          checked={isPlayerCharacter}
+          onChange={(event) => setIsPlayerCharacter(event.target.checked)}
+        />
+      ) : null}
       <FormField label="Type" htmlFor="create-entity-type">
         <Input
           id="create-entity-type"

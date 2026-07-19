@@ -1284,8 +1284,18 @@ full per-feature checklist):
   features constrain against (e.g. Marker/Territory entity links, KAN-121/
   122). `category` is the enforced classification; `type` stays the free
   subtype/flavor label KAN-35 established — plugins keep contributing new
-  `type` values with no core change, only `category` is closed. Has
-  `name`, `description`, `icon`, `image`, `visibility`
+  `type` values with no core change, only `category` is closed. Since
+  KAN-119, a `CHARACTER`-category entity can also carry
+  `isPlayerCharacter: boolean` (default `false`) — the real PC/NPC split,
+  replacing the old `type:"npc"` string convention the removed KAN-39 NPCs
+  window relied on; `Entity.changeCategory`/`changeIsPlayerCharacter`
+  cross-validate so a non-`CHARACTER` entity can never be flagged as a PC
+  (`EntityService.updateEntity` applies whichever of the two fields moves
+  toward `isPlayerCharacter=false` first when both change in the same
+  call, since `false` is always valid regardless of category — otherwise
+  a legal combined transition, e.g. category `CHARACTER`→`LOCATION` +
+  `isPlayerCharacter` `true`→`false`, could be rejected by validation
+  order alone). Has `name`, `description`, `icon`, `image`, `visibility`
   (`PUBLIC`/`STORYTELLER`/`PRIVATE`), soft delete (`deletedAt`), and a
   `(campaignId, name)` uniqueness constraint. Fully wired
   domain → service → Prisma repository → GraphQL: `createEntity`/

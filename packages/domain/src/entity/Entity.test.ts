@@ -56,6 +56,7 @@ describe("Entity", () => {
       description: null,
       icon: null,
       visibility: EntityVisibility.STORYTELLER,
+      isPlayerCharacter: false,
       createdAt,
       updatedAt,
       deletedAt: null,
@@ -135,6 +136,59 @@ describe("Entity", () => {
 
     expect(() => entity.changeCategory("PLANET" as EntityCategory)).toThrow(
       "Entity category is invalid.",
+    );
+  });
+
+  it("defaults isPlayerCharacter to false", () => {
+    const entity = Entity.create(validProps);
+
+    expect(entity.IsPlayerCharacter).toBe(false);
+  });
+
+  it("creates a Player Character on a CHARACTER-category entity", () => {
+    const entity = Entity.create({ ...validProps, isPlayerCharacter: true });
+
+    expect(entity.IsPlayerCharacter).toBe(true);
+  });
+
+  it("rejects creating a Player Character on a non-CHARACTER entity", () => {
+    expect(() =>
+      Entity.create({
+        ...validProps,
+        category: EntityCategory.LOCATION,
+        isPlayerCharacter: true,
+      }),
+    ).toThrow(
+      "Only a CHARACTER-category entity can be marked as a Player Character.",
+    );
+  });
+
+  it("changes isPlayerCharacter on a CHARACTER-category entity", () => {
+    const entity = Entity.create(validProps);
+
+    entity.changeIsPlayerCharacter(true);
+    expect(entity.IsPlayerCharacter).toBe(true);
+
+    entity.changeIsPlayerCharacter(false);
+    expect(entity.IsPlayerCharacter).toBe(false);
+  });
+
+  it("rejects flagging a non-CHARACTER entity as a Player Character", () => {
+    const entity = Entity.create({
+      ...validProps,
+      category: EntityCategory.ITEM,
+    });
+
+    expect(() => entity.changeIsPlayerCharacter(true)).toThrow(
+      "Only a CHARACTER-category entity can be marked as a Player Character.",
+    );
+  });
+
+  it("rejects changing category away from CHARACTER while flagged as a Player Character", () => {
+    const entity = Entity.create({ ...validProps, isPlayerCharacter: true });
+
+    expect(() => entity.changeCategory(EntityCategory.LOCATION)).toThrow(
+      "Only a CHARACTER-category entity can be marked as a Player Character.",
     );
   });
 

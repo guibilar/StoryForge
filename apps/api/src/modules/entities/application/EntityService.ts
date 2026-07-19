@@ -19,6 +19,7 @@ export interface CreateEntityDto {
   icon?: string | null;
   image?: string | null;
   visibility: EntityVisibility;
+  isPlayerCharacter?: boolean;
 }
 
 export interface UpdateEntityDto {
@@ -29,6 +30,7 @@ export interface UpdateEntityDto {
   icon?: string | null;
   image?: string | null;
   visibility?: EntityVisibility;
+  isPlayerCharacter?: boolean;
 }
 
 export class EntityService {
@@ -74,8 +76,33 @@ export class EntityService {
       entity.rename(dto.name);
     }
 
-    if (dto.category !== undefined) {
-      entity.changeCategory(dto.category);
+    // Order matters when both fields change in the same call: category and
+    // isPlayerCharacter validate against each other's *current* value
+    // (Entity.changeCategory/changeIsPlayerCharacter), so applying them in
+    // the wrong order can reject a transition that is valid end-to-end (e.g.
+    // category CHARACTER->LOCATION + isPlayerCharacter true->false). Apply
+    // whichever change moves toward the final isPlayerCharacter=false state
+    // first, since false is always valid regardless of category.
+    const finalIsPlayerCharacter =
+      dto.isPlayerCharacter ?? entity.IsPlayerCharacter;
+
+    const applyCategory = () => {
+      if (dto.category !== undefined) {
+        entity.changeCategory(dto.category);
+      }
+    };
+    const applyIsPlayerCharacter = () => {
+      if (dto.isPlayerCharacter !== undefined) {
+        entity.changeIsPlayerCharacter(dto.isPlayerCharacter);
+      }
+    };
+
+    if (finalIsPlayerCharacter) {
+      applyCategory();
+      applyIsPlayerCharacter();
+    } else {
+      applyIsPlayerCharacter();
+      applyCategory();
     }
 
     if (dto.description !== undefined) {

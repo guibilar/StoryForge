@@ -108,6 +108,7 @@ export const EntityScalarFieldEnum = {
   campaignId: "campaignId",
   type: "type",
   category: "category",
+  isPlayerCharacter: "isPlayerCharacter",
   name: "name",
   description: "description",
   icon: "icon",

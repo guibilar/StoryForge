@@ -142,6 +142,11 @@ tracks what's actually built, not just planned.
       Existing rows backfilled by migration
       `20260719024607_add_entity_category` (best-effort match against the
       pre-existing free-string `type`, falling back to `OTHER`).
+- [x] Player Character / NPC split (KAN-119) — `isPlayerCharacter: boolean`
+      on `Entity` (default `false`), settable only when `category ===
+    CHARACTER` (enforced in both directions: `changeCategory` and
+      `changeIsPlayerCharacter` cross-validate). `EntityFormWindow` shows
+      the toggle only when `CHARACTER` is selected.
 - [x] Portrait / image upload — `uploadEntityImage` mutation (GraphQL multipart
       request spec), `LocalImageStore` (validates JPEG/PNG/GIF/WEBP, 5MB limit,
       writes to `UPLOADS_DIR/<entityId>/<uuid>.<ext>`), guarded via

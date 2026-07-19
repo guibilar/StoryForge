@@ -28,6 +28,7 @@ export type CreateEntityInput = {
   description?: string | null | undefined;
   icon?: string | null | undefined;
   image?: string | null | undefined;
+  isPlayerCharacter?: boolean | null | undefined;
   name: string;
   type: string;
   visibility?: EntityVisibility | null | undefined;
@@ -79,6 +80,7 @@ export type EntityCategory =
 
 export type EntityFilter = {
   category?: EntityCategory | null | undefined;
+  isPlayerCharacter?: boolean | null | undefined;
   nameContains?: string | null | undefined;
   tagIds?: Array<string | number> | null | undefined;
   type?: string | null | undefined;
@@ -122,6 +124,7 @@ export type UpdateEntityInput = {
   icon?: string | null | undefined;
   id: string | number;
   image?: string | null | undefined;
+  isPlayerCharacter?: boolean | null | undefined;
   name?: string | null | undefined;
   visibility?: EntityVisibility | null | undefined;
 };
@@ -437,6 +440,7 @@ export type EntitiesQuery = {
     description: string | null;
     type: string;
     category: EntityCategory;
+    isPlayerCharacter: boolean;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   }>;
@@ -2236,6 +2240,10 @@ export const EntitiesDocument = {
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "category" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "isPlayerCharacter" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",

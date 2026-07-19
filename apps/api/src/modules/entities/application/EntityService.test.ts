@@ -121,6 +121,61 @@ describe("EntityService", () => {
       expect(updated.Visibility).toBe(EntityVisibility.PRIVATE);
       expect(repository.update).toHaveBeenCalledWith(entity);
     });
+
+    it("flags an existing CHARACTER entity as a Player Character", async () => {
+      const entity = Entity.create(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      const updated = await service.updateEntity({
+        id: entity.Id.toString(),
+        isPlayerCharacter: true,
+      });
+
+      expect(updated.IsPlayerCharacter).toBe(true);
+    });
+
+    it("moves category to CHARACTER and flags Player Character in the same call", async () => {
+      const entity = Entity.create({
+        ...createDto,
+        category: EntityCategory.LOCATION,
+      });
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      const updated = await service.updateEntity({
+        id: entity.Id.toString(),
+        category: EntityCategory.CHARACTER,
+        isPlayerCharacter: true,
+      });
+
+      expect(updated.Category).toBe(EntityCategory.CHARACTER);
+      expect(updated.IsPlayerCharacter).toBe(true);
+    });
+
+    it("un-flags Player Character and moves category away from CHARACTER in the same call", async () => {
+      const entity = Entity.create({ ...createDto, isPlayerCharacter: true });
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      const updated = await service.updateEntity({
+        id: entity.Id.toString(),
+        category: EntityCategory.LOCATION,
+        isPlayerCharacter: false,
+      });
+
+      expect(updated.Category).toBe(EntityCategory.LOCATION);
+      expect(updated.IsPlayerCharacter).toBe(false);
+    });
+
+    it("rejects moving category away from CHARACTER while still flagged as a Player Character", async () => {
+      const entity = Entity.create({ ...createDto, isPlayerCharacter: true });
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      await expect(
+        service.updateEntity({
+          id: entity.Id.toString(),
+          category: EntityCategory.LOCATION,
+        }),
+      ).rejects.toThrow(ValidationError);
+    });
   });
 
   describe("deleteEntity", () => {

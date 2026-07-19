@@ -56,10 +56,43 @@ describe("EntityFormWindow", () => {
         name: "Lucien Dubois",
         description: null,
         visibility: "PUBLIC",
+        isPlayerCharacter: false,
       },
     });
     expect(onCreated).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("submits isPlayerCharacter when checked on a CHARACTER entity", async () => {
+    const { createEntity } = setupMocks();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.type(screen.getByLabelText("Name"), "Lucien Dubois");
+    await user.type(screen.getByLabelText("Type"), "Vampire");
+    await user.click(screen.getByLabelText("Player Character"));
+    await user.click(screen.getByRole("button", { name: "Create" }));
+
+    expect(createEntity).toHaveBeenCalledWith({
+      input: {
+        campaignId: "camp-1",
+        type: "Vampire",
+        category: "CHARACTER",
+        name: "Lucien Dubois",
+        description: null,
+        visibility: "PUBLIC",
+        isPlayerCharacter: true,
+      },
+    });
+  });
+
+  it("hides the Player Character checkbox for non-CHARACTER categories", async () => {
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.selectOptions(screen.getByLabelText("Category"), "LOCATION");
+
+    expect(screen.queryByLabelText("Player Character")).not.toBeInTheDocument();
   });
 
   it("does not submit without a name or type", async () => {

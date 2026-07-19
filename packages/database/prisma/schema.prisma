@@ -68,12 +68,13 @@ model Entity {
 
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
-  type        String
-  category    EntityCategory
-  name        String
-  description String?
-  icon        String?
-  image       String?
+  type              String
+  category          EntityCategory
+  isPlayerCharacter Boolean        @default(false)
+  name              String
+  description       String?
+  icon              String?
+  image             String?
 
   visibility Visibility @default(PUBLIC)
 

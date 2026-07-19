@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Territory } from "./Territory";
 import { TerritoryId } from "./TerritoryId";
 
@@ -136,7 +136,11 @@ describe("Territory", () => {
       expect(territory.EntityId).toBeNull();
     });
 
-    it("links and unlinks, bumping updatedAt", async () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("links and unlinks, bumping updatedAt", () => {
       const territory = Territory.create({
         campaignId: "22222222-2222-2222-2222-222222222222",
         name: "Thornwood",
@@ -144,7 +148,10 @@ describe("Territory", () => {
         geometry: { type: "Polygon", coordinates: [] },
       });
       const before = territory.UpdatedAt;
-      await new Promise((resolve) => setTimeout(resolve, 1));
+      // Real timers can tie in the same millisecond on a fast run — advance
+      // the clock deterministically instead of racing a real setTimeout.
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(before.getTime() + 1));
 
       territory.linkEntity("entity-1");
       expect(territory.EntityId).toBe("entity-1");

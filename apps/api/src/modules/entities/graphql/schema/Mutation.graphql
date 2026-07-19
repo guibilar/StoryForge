@@ -1,20 +1,28 @@
 input CreateEntityInput {
   campaignId: ID!
   type: String!
+  category: EntityCategory!
   name: String!
   description: String
   icon: String
   image: String
+  color: String
   visibility: EntityVisibility = PUBLIC
+  isPlayerCharacter: Boolean = false
+  ownerUserId: ID
 }
 
 input UpdateEntityInput {
   id: ID!
   name: String
+  category: EntityCategory
   description: String
   icon: String
   image: String
+  color: String
   visibility: EntityVisibility
+  isPlayerCharacter: Boolean
+  ownerUserId: ID
 }
 scalar Upload 
 extend type Mutation {

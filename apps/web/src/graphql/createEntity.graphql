@@ -4,6 +4,7 @@ mutation CreateEntity($input: CreateEntityInput!) {
     name
     description
     image
+    color
     visibility
     tags {
       id

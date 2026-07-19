@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Marker } from "./Marker";
 import { MarkerId } from "./MarkerId";
 
@@ -129,7 +129,11 @@ describe("Marker", () => {
       expect(marker.EntityId).toBeNull();
     });
 
-    it("links and unlinks, bumping updatedAt", async () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("links and unlinks, bumping updatedAt", () => {
       const marker = Marker.create({
         campaignId: "22222222-2222-2222-2222-222222222222",
         name: "Old Mill",
@@ -137,7 +141,10 @@ describe("Marker", () => {
         lng: -0.09,
       });
       const before = marker.UpdatedAt;
-      await new Promise((resolve) => setTimeout(resolve, 1));
+      // Real timers can tie in the same millisecond on a fast run — advance
+      // the clock deterministically instead of racing a real setTimeout.
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(before.getTime() + 1));
 
       marker.linkEntity("entity-1");
       expect(marker.EntityId).toBe("entity-1");

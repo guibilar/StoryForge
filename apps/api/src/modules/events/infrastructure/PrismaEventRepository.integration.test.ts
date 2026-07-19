@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import {
   Entity,
+  EntityCategory,
   EntityVisibility,
   Event,
   EventId,
@@ -33,6 +34,7 @@ async function createEntity(campaignId: string): Promise<Entity> {
   const entity = Entity.create({
     campaignId,
     type: "npc",
+    category: EntityCategory.CHARACTER,
     name: uniqueName("test-entity"),
     visibility: EntityVisibility.PUBLIC,
   });

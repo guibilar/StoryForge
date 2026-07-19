@@ -4,6 +4,7 @@ mutation UpdateEntity($input: UpdateEntityInput!) {
     name
     description
     image
+    color
     visibility
     tags {
       id

@@ -3,9 +3,11 @@ subscription OnEntityWindowForceOpened($campaignId: ID!) {
     id
     campaignId
     type
+    category
     name
     description
     image
+    color
     visibility
   }
 }

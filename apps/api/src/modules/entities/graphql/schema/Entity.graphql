@@ -4,15 +4,28 @@ enum EntityVisibility {
   PRIVATE
 }
 
+enum EntityCategory {
+  CHARACTER
+  LOCATION
+  ORGANIZATION
+  ITEM
+  OTHER
+}
+
 type Entity {
   id: ID!
   campaignId: ID!
   type: String!
+  category: EntityCategory!
   name: String!
   description: String
   icon: String
   image: String
+  color: String
   visibility: EntityVisibility!
+  isPlayerCharacter: Boolean!
+  ownerUserId: ID
+  ownerMember: CampaignMember
   createdAt: String!
   updatedAt: String!
   deletedAt: String

@@ -19,7 +19,12 @@ function setupMocks({
     .mockResolvedValue({ data: { createMarker: { id: "marker-2" } } }),
   updateMarker = vi.fn().mockResolvedValue({ data: { updateMarker: {} } }),
   createFetching = false,
-  entities = [] as { id: string; name: string; type: string }[],
+  entities = [] as {
+    id: string;
+    name: string;
+    type: string;
+    category: string;
+  }[],
 } = {}) {
   // EntitySelectField loads the campaign's entities for the link picker.
   vi.mocked(useQuery).mockReturnValue([
@@ -253,8 +258,18 @@ describe("MarkerFormWindow", () => {
   it("links the marker to the chosen entity", async () => {
     const { createMarker } = setupMocks({
       entities: [
-        { id: "entity-1", name: "Riverwood", type: "location" },
-        { id: "entity-2", name: "Bandit Chief", type: "npc" },
+        {
+          id: "entity-1",
+          name: "Riverwood",
+          type: "location",
+          category: "LOCATION",
+        },
+        {
+          id: "entity-2",
+          name: "Ashfen Village",
+          type: "location",
+          category: "LOCATION",
+        },
       ],
     });
     const user = userEvent.setup();
@@ -269,9 +284,42 @@ describe("MarkerFormWindow", () => {
     });
   });
 
+  it("excludes non-LOCATION entities from the picker", () => {
+    setupMocks({
+      entities: [
+        {
+          id: "entity-1",
+          name: "Riverwood",
+          type: "location",
+          category: "LOCATION",
+        },
+        {
+          id: "entity-2",
+          name: "Bandit Chief",
+          type: "npc",
+          category: "CHARACTER",
+        },
+      ],
+    });
+    renderCreate();
+
+    const options = screen.getByLabelText("Entity").querySelectorAll("option");
+    const names = [...options].map((option) => option.textContent);
+
+    expect(names).toContain("Riverwood");
+    expect(names).not.toContain("Bandit Chief");
+  });
+
   it("submits null rather than an empty string when left unlinked", async () => {
     const { createMarker } = setupMocks({
-      entities: [{ id: "entity-1", name: "Riverwood", type: "location" }],
+      entities: [
+        {
+          id: "entity-1",
+          name: "Riverwood",
+          type: "location",
+          category: "LOCATION",
+        },
+      ],
     });
     const user = userEvent.setup();
     renderCreate();
@@ -288,7 +336,14 @@ describe("MarkerFormWindow", () => {
 
   it("preselects the existing link when editing and can clear it", async () => {
     const { updateMarker } = setupMocks({
-      entities: [{ id: "entity-1", name: "Riverwood", type: "location" }],
+      entities: [
+        {
+          id: "entity-1",
+          name: "Riverwood",
+          type: "location",
+          category: "LOCATION",
+        },
+      ],
     });
     const user = userEvent.setup();
     renderEdit({

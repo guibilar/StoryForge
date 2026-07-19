@@ -1,0 +1,9 @@
+mutation CreateRelationship($input: CreateRelationshipInput!) {
+  createRelationship(input: $input) {
+    id
+    sourceEntityId
+    targetEntityId
+    type
+    description
+  }
+}

@@ -10,12 +10,21 @@ import {
   type Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { Button } from "@storyforge/ui";
 
-import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
+import {
+  CampaignDocument,
+  EntitiesDocument,
+  MeDocument,
+  RelationshipsDocument,
+} from "../gql/graphql";
+import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { buildCategoryColorMap } from "../lib/categoryColor";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
+import { RelationshipFormWindow } from "./RelationshipFormWindow";
+import type { RelationshipRow } from "./RelationshipFormWindow";
 import styles from "./RelationshipGraphWindow.module.css";
 
 const RADIUS = 220;
@@ -28,10 +37,25 @@ function circlePosition(index: number, total: number) {
   };
 }
 
+// Create/edit UI (KAN-123) on top of the KAN-42 view-only graph: Owner/
+// Storyteller/Co-Storyteller get a "+ Add Relationship" button and can click
+// an edge to edit or delete it, gated the same way MapsWindow gates map
+// authoring — Players/Observers still get the read-only view KAN-42 shipped.
 export function RelationshipGraphWindow() {
   const { id: campaignId } = useParams<{ id: string }>();
   const openEntityWindow = useOpenEntityWindow(campaignId ?? "");
+  const { openAddEditWindow: openRelationshipWindow } = useAddEditWindow({
+    idPrefix: "relationship-form",
+    width: 380,
+    height: 480,
+  });
 
+  const [{ data: meData }] = useQuery({ query: MeDocument });
+  const [{ data: campaignData }] = useQuery({
+    query: CampaignDocument,
+    variables: { id: campaignId ?? "" },
+    pause: !campaignId,
+  });
   const [
     { data: entitiesData, fetching: entitiesFetching, error: entitiesError },
     reexecuteEntities,
@@ -57,6 +81,16 @@ export function RelationshipGraphWindow() {
     reexecuteEntities({ requestPolicy: "network-only" });
     reexecuteRelationships({ requestPolicy: "network-only" });
   }
+
+  const currentUserId = meData?.me?.id;
+  const members = campaignData?.campaign?.members ?? [];
+  const myRole = members.find(
+    (member) => member.userId === currentUserId,
+  )?.role;
+  const isWriter =
+    myRole === "OWNER" ||
+    myRole === "STORYTELLER" ||
+    myRole === "CO_STORYTELLER";
 
   const entities = useMemo(() => entitiesData?.entities ?? [], [entitiesData]);
   const relationships = useMemo(
@@ -111,6 +145,42 @@ export function RelationshipGraphWindow() {
     [relationships, relationshipColors],
   );
 
+  function openCreateRelationshipWindow() {
+    if (!campaignId) {
+      return;
+    }
+    openRelationshipWindow<RelationshipRow>(
+      { mode: "create" },
+      "New Relationship",
+      (close) => (
+        <RelationshipFormWindow
+          campaignId={campaignId}
+          mode={{ mode: "create" }}
+          onSaved={refetch}
+          onClose={close}
+        />
+      ),
+    );
+  }
+
+  function openEditRelationshipWindow(relationship: RelationshipRow) {
+    if (!campaignId) {
+      return;
+    }
+    openRelationshipWindow<RelationshipRow>(
+      { mode: "edit", item: relationship },
+      `Edit: ${relationship.type}`,
+      (close) => (
+        <RelationshipFormWindow
+          campaignId={campaignId}
+          mode={{ mode: "edit", item: relationship }}
+          onSaved={refetch}
+          onClose={close}
+        />
+      ),
+    );
+  }
+
   useWindowChromeSync(entitiesFetching || relationshipsFetching, refetch);
 
   if (entitiesFetching || relationshipsFetching) {
@@ -132,23 +202,45 @@ export function RelationshipGraphWindow() {
 
   return (
     <div className={styles.wrap}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        fitView
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable={false}
-        onNodeClick={(_event, node) => {
-          const entity = entities.find((candidate) => candidate.id === node.id);
-          if (entity) {
-            openEntityWindow(entity);
-          }
-        }}
-      >
-        <Background />
-        <Controls showInteractive={false} />
-      </ReactFlow>
+      {isWriter ? (
+        <div className={styles.actions}>
+          <Button type="button" onClick={openCreateRelationshipWindow}>
+            + Add Relationship
+          </Button>
+        </div>
+      ) : null}
+      <div className={styles.canvas}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          fitView
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable={false}
+          onNodeClick={(_event, node) => {
+            const entity = entities.find(
+              (candidate) => candidate.id === node.id,
+            );
+            if (entity) {
+              openEntityWindow(entity);
+            }
+          }}
+          onEdgeClick={(_event, edge) => {
+            if (!isWriter) {
+              return;
+            }
+            const relationship = relationships.find(
+              (candidate) => candidate.id === edge.id,
+            );
+            if (relationship) {
+              openEditRelationshipWindow(relationship);
+            }
+          }}
+        >
+          <Background />
+          <Controls showInteractive={false} />
+        </ReactFlow>
+      </div>
     </div>
   );
 }

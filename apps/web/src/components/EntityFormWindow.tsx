@@ -1,7 +1,9 @@
 import type { FormEvent } from "react";
+import { useState } from "react";
 import { useMutation } from "urql";
 import {
   Button,
+  Checkbox,
   Form,
   FormActions,
   FormError,
@@ -12,11 +14,21 @@ import {
 } from "@storyforge/ui";
 
 import { CreateEntityDocument } from "../gql/graphql";
-import type { EntityVisibility } from "../gql/graphql";
+import type { EntityCategory, EntityVisibility } from "../gql/graphql";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 
 const VISIBILITIES: EntityVisibility[] = ["PUBLIC", "STORYTELLER", "PRIVATE"];
+const CATEGORIES: EntityCategory[] = [
+  "CHARACTER",
+  "LOCATION",
+  "ORGANIZATION",
+  "ITEM",
+  "OTHER",
+];
+// Entities that can be placed on the map (KAN-121/122's Marker/Territory
+// entityId constraints) — the only ones a map color is meaningful for.
+const MAP_LINKABLE_CATEGORIES: EntityCategory[] = ["LOCATION", "ORGANIZATION"];
 
 export interface EntityFormWindowProps {
   campaignId: string;
@@ -35,6 +47,9 @@ export function EntityFormWindow({
   onClose,
 }: EntityFormWindowProps) {
   const [createEntityState, createEntity] = useMutation(CreateEntityDocument);
+  const [category, setCategory] = useState<EntityCategory>(CATEGORIES[0]);
+  const [isPlayerCharacter, setIsPlayerCharacter] = useState(false);
+  const [color, setColor] = useState<string | null>(null);
 
   // Forms have nothing to "refresh" — only the blocking loading state
   // applies while a save is in flight.
@@ -58,9 +73,12 @@ export function EntityFormWindow({
       input: {
         campaignId,
         type,
+        category,
         name,
         description: description || null,
         visibility,
+        isPlayerCharacter: category === "CHARACTER" && isPlayerCharacter,
+        color: MAP_LINKABLE_CATEGORIES.includes(category) ? color : null,
       },
     });
     if (result.data?.createEntity) {
@@ -75,11 +93,52 @@ export function EntityFormWindow({
       <FormField label="Name" htmlFor="create-entity-name">
         <Input id="create-entity-name" name="name" required />
       </FormField>
+      <FormField label="Category" htmlFor="create-entity-category">
+        <Select
+          id="create-entity-category"
+          name="category"
+          value={category}
+          onChange={(event) => {
+            const nextCategory = event.target.value as EntityCategory;
+            setCategory(nextCategory);
+            if (nextCategory !== "CHARACTER") {
+              setIsPlayerCharacter(false);
+            }
+            if (!MAP_LINKABLE_CATEGORIES.includes(nextCategory)) {
+              setColor(null);
+            }
+          }}
+        >
+          {CATEGORIES.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </Select>
+      </FormField>
+      {category === "CHARACTER" ? (
+        <Checkbox
+          label="Player Character"
+          checked={isPlayerCharacter}
+          onChange={(event) => setIsPlayerCharacter(event.target.checked)}
+        />
+      ) : null}
+      {MAP_LINKABLE_CATEGORIES.includes(category) ? (
+        <FormField label="Map Color" htmlFor="create-entity-color">
+          <Input
+            id="create-entity-color"
+            name="color"
+            type="color"
+            value={color ?? "#3388ff"}
+            onChange={(event) => setColor(event.target.value)}
+          />
+        </FormField>
+      ) : null}
       <FormField label="Type" htmlFor="create-entity-type">
         <Input
           id="create-entity-type"
           name="type"
-          placeholder="e.g. Character, Location, Item"
+          placeholder="e.g. Bandit Chief, Dungeon, Guild"
           required
         />
       </FormField>

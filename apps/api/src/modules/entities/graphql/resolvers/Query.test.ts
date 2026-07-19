@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   CampaignMember,
   Entity,
+  EntityCategory,
   EntityVisibility,
   NotFoundError,
   User,
@@ -86,6 +87,7 @@ describe("entities Query.entity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -108,6 +110,7 @@ describe("entities Query.entity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -133,6 +136,7 @@ describe("entities Query.entity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -157,6 +161,7 @@ describe("entities Query.entity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Secret Goblin",
       visibility: EntityVisibility.PRIVATE,
     });
@@ -198,6 +203,7 @@ describe("entities Query.entity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -222,6 +228,7 @@ describe("entities Query.entity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Secret Goblin",
       visibility: EntityVisibility.STORYTELLER,
     });
@@ -285,6 +292,7 @@ describe("entities Query.entities", () => {
       Entity.create({
         campaignId: "campaign-1",
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: "Goblin",
         visibility: EntityVisibility.PUBLIC,
       }),
@@ -344,12 +352,14 @@ describe("entities Query.entities", () => {
     const publicEntity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
     const privateEntity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Secret Goblin",
       visibility: EntityVisibility.PRIVATE,
     });
@@ -382,12 +392,14 @@ describe("entities Query.entities", () => {
       Entity.create({
         campaignId: "campaign-1",
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: "Goblin",
         visibility: EntityVisibility.PUBLIC,
       }),
       Entity.create({
         campaignId: "campaign-1",
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: "Secret Goblin",
         visibility: EntityVisibility.PRIVATE,
       }),
@@ -417,12 +429,14 @@ describe("entities Query.entities", () => {
     const publicEntity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
     const privateEntity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Secret Goblin",
       visibility: EntityVisibility.PRIVATE,
     });

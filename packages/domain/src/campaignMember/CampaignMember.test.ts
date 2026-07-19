@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CampaignMember } from "./CampaignMember";
 import { UserId } from "../user";
 
@@ -36,7 +36,7 @@ describe("CampaignMember", () => {
     expect(member.UpdatedAt).toBe(updatedAt);
   });
 
-  it("changes the role and bumps updatedAt", async () => {
+  it("changes the role and bumps updatedAt", () => {
     const member = CampaignMember.create({
       campaignId: "campaign-1",
       userId: UserId.create(),
@@ -44,8 +44,15 @@ describe("CampaignMember", () => {
     });
     const before = member.UpdatedAt;
 
-    await new Promise((resolve) => setTimeout(resolve, 5));
-    member.changeRole("STORYTELLER");
+    // Real timers can tie in the same millisecond on a fast run — advance
+    // the clock deterministically instead of racing a real setTimeout.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(before.getTime() + 1));
+    try {
+      member.changeRole("STORYTELLER");
+    } finally {
+      vi.useRealTimers();
+    }
 
     expect(member.Role).toBe("STORYTELLER");
     expect(member.UpdatedAt.getTime()).toBeGreaterThan(before.getTime());

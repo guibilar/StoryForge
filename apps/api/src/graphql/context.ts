@@ -70,11 +70,12 @@ export interface GraphQLContext extends YogaInitialContext {
 }
 
 const noteLinkRepository = new PrismaNoteLinkRepository();
+const campaignMemberRepository = new PrismaCampaignMemberRepository();
 const entityService = new EntityService(
   new PrismaEntityRepository(),
   noteLinkRepository,
+  campaignMemberRepository,
 );
-const campaignMemberRepository = new PrismaCampaignMemberRepository();
 const campaignService = new CampaignService(
   new PrismaCampaignRepository(),
   campaignMemberRepository,

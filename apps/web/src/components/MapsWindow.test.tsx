@@ -6,6 +6,7 @@ import { useMutation, useQuery, useSubscription } from "urql";
 
 import { MapsWindow } from "./MapsWindow";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   CampaignDocument,
@@ -110,8 +111,17 @@ vi.mock("./MapCanvas", () => ({
       <span data-testid="applied-viewport">
         {props.viewport ? JSON.stringify(props.viewport) : ""}
       </span>
+      {props.onOpenEntity && props.markers?.[0]?.entity ? (
+        <button onClick={() => props.onOpenEntity?.(props.markers![0].entity!)}>
+          Open linked entity
+        </button>
+      ) : null}
     </div>
   ),
+}));
+
+vi.mock("../hooks/useOpenEntityWindow", () => ({
+  useOpenEntityWindow: vi.fn(),
 }));
 
 vi.mock("urql", async (importOriginal) => {
@@ -712,6 +722,48 @@ describe("MapsWindow", () => {
     expect(reexecuteTerritories).toHaveBeenCalledWith({
       requestPolicy: "network-only",
     });
+  });
+
+  it("passes the linked entity's image and color through when opening it from a marker", async () => {
+    const openEntityWindow = vi.fn();
+    vi.mocked(useOpenEntityWindow).mockReturnValue(openEntityWindow);
+    setupMocks({
+      markerList: [
+        {
+          id: "marker-1",
+          name: "Old Mill",
+          lat: 1,
+          lng: 2,
+          description: null,
+          entity: {
+            id: "e-1",
+            name: "Riverwood",
+            type: "City",
+            category: "LOCATION",
+            description: "A quiet town.",
+            image: "/uploads/e-1/portrait.png",
+            color: "#4287f5",
+            visibility: "PUBLIC",
+          },
+        },
+      ] as never,
+    });
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(
+      screen.getByRole("button", { name: "Open linked entity" }),
+    );
+
+    expect(openEntityWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "e-1",
+        image: "/uploads/e-1/portrait.png",
+        color: "#4287f5",
+        category: "LOCATION",
+      }),
+    );
   });
 
   it("opens an edit territory window when a territory is clicked (writer only)", async () => {

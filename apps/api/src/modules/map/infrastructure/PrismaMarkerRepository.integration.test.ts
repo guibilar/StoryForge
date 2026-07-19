@@ -116,6 +116,7 @@ describe("PrismaMarkerRepository", () => {
           id: randomUUID(),
           campaignId,
           type: "location",
+          category: "LOCATION",
           name: `Riverwood ${randomUUID()}`,
         },
       });

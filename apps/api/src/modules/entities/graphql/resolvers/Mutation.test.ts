@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   CampaignMember,
   Entity,
+  EntityCategory,
   EntityVisibility,
   User,
 } from "@storyforge/domain";
@@ -176,6 +177,7 @@ describe("entities Mutation.createEntity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -209,6 +211,7 @@ describe("entities Mutation.createEntity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -287,6 +290,7 @@ describe("entities Mutation.updateEntity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -313,6 +317,7 @@ describe("entities Mutation.updateEntity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -341,6 +346,7 @@ describe("entities Mutation.updateEntity", () => {
     const existing = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -351,6 +357,7 @@ describe("entities Mutation.updateEntity", () => {
     const updated = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Renamed",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -397,6 +404,7 @@ describe("entities Mutation.deleteEntity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -422,6 +430,7 @@ describe("entities Mutation.deleteEntity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -449,6 +458,7 @@ describe("entities Mutation.deleteEntity", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -507,6 +517,7 @@ describe("entities Mutation.uploadEntityImage", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -537,6 +548,7 @@ describe("entities Mutation.uploadEntityImage", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -569,6 +581,7 @@ describe("entities Mutation.uploadEntityImage", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -580,6 +593,7 @@ describe("entities Mutation.uploadEntityImage", () => {
     const updated = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       image: "/uploads/entity-1/a.png",
       visibility: EntityVisibility.PUBLIC,
@@ -764,6 +778,7 @@ describe("entities Mutation.forceOpenEntityWindow", () => {
     const secretEntity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Secret Villain",
       visibility: EntityVisibility.PRIVATE,
     });
@@ -813,6 +828,7 @@ describe("entities Mutation.forceOpenEntityWindow", () => {
     const entity = Entity.create({
       campaignId: "campaign-1",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });
@@ -851,6 +867,7 @@ describe("entities Mutation.forceOpenEntityWindow", () => {
     const otherCampaignEntity = Entity.create({
       campaignId: "campaign-2",
       type: "npc",
+      category: EntityCategory.CHARACTER,
       name: "Goblin",
       visibility: EntityVisibility.PUBLIC,
     });

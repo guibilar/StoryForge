@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
-import { Entity, EntityVisibility, Tag, TagId } from "@storyforge/domain";
+import {
+  Entity,
+  EntityCategory,
+  EntityVisibility,
+  Tag,
+  TagId,
+} from "@storyforge/domain";
 import { prisma } from "@storyforge/database";
 import { PrismaEntityRepository } from "../../entities/infrastructure/PrismaEntityRepository";
 import { PrismaTagRepository } from "./PrismaTagRepository";
@@ -25,6 +31,7 @@ async function createEntity(campaignId: string) {
   const entity = Entity.create({
     campaignId,
     type: "npc",
+    category: EntityCategory.CHARACTER,
     name: uniqueName("test-entity"),
     visibility: EntityVisibility.PUBLIC,
   });

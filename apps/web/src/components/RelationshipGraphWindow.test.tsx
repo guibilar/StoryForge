@@ -6,7 +6,12 @@ import { useQuery } from "urql";
 import { RelationshipGraphWindow } from "./RelationshipGraphWindow";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
 import { WindowChromeContext } from "../lib/WindowChromeContext";
-import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
+import {
+  CampaignDocument,
+  EntitiesDocument,
+  MeDocument,
+  RelationshipsDocument,
+} from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
@@ -91,6 +96,24 @@ function getBBoxStub(): DOMRect {
   } as DOMRect;
 }
 
+const CURRENT_USER_ID = "user-1";
+
+const ownerMembers = [
+  {
+    userId: CURRENT_USER_ID,
+    role: "OWNER",
+    user: { id: CURRENT_USER_ID, email: "owner@example.com" },
+  },
+];
+
+const playerMembers = [
+  {
+    userId: CURRENT_USER_ID,
+    role: "PLAYER",
+    user: { id: CURRENT_USER_ID, email: "player@example.com" },
+  },
+];
+
 const entities = [
   {
     id: "ent-1",
@@ -120,12 +143,33 @@ const relationships = [
 ];
 
 function setupMocks({
+  members = ownerMembers,
   entitiesResult = entities,
   relationshipsResult = relationships,
   reexecuteEntities = vi.fn(),
   reexecuteRelationships = vi.fn(),
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
+    if (args.query === MeDocument) {
+      return [
+        {
+          data: { me: { id: CURRENT_USER_ID, email: "member@example.com" } },
+          fetching: false,
+          stale: false,
+        },
+        vi.fn(),
+      ];
+    }
+    if (args.query === CampaignDocument) {
+      return [
+        {
+          data: { campaign: { id: "camp-1", name: "Campaign", members } },
+          fetching: false,
+          stale: false,
+        },
+        vi.fn(),
+      ];
+    }
     if (args.query === EntitiesDocument) {
       return [
         { data: { entities: entitiesResult }, fetching: false, stale: false },
@@ -294,5 +338,64 @@ describe("RelationshipGraphWindow", () => {
     expect(reexecuteRelationships).toHaveBeenCalledWith({
       requestPolicy: "network-only",
     });
+  });
+
+  it("shows the Add Relationship button for a writer role", () => {
+    setupMocks({ members: ownerMembers });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.getByRole("button", { name: "+ Add Relationship" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the Add Relationship button for a Player", () => {
+    setupMocks({ members: playerMembers });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.queryByRole("button", { name: "+ Add Relationship" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens the create-relationship window when a writer clicks Add Relationship", () => {
+    setupMocks({ members: ownerMembers });
+    const { openWindow } = setupDesktopWindows();
+    renderWindow();
+
+    fireEvent.click(screen.getByRole("button", { name: "+ Add Relationship" }));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "relationship-form:new",
+        title: "New Relationship",
+      }),
+    );
+  });
+
+  it("opens the edit-relationship window when a writer clicks an edge", async () => {
+    setupMocks({ members: ownerMembers });
+    const { openWindow } = setupDesktopWindows();
+    renderWindow();
+
+    fireEvent.click(await screen.findByText("MemberOf"));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "relationship-form:rel-1" }),
+    );
+  });
+
+  it("does not open an edit window when a Player clicks an edge", async () => {
+    setupMocks({ members: playerMembers });
+    const { openWindow } = setupDesktopWindows();
+    renderWindow();
+
+    fireEvent.click(await screen.findByText("MemberOf"));
+
+    expect(openWindow).not.toHaveBeenCalledWith(
+      expect.objectContaining({ id: "relationship-form:rel-1" }),
+    );
   });
 });

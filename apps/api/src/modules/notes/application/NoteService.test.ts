@@ -3,15 +3,16 @@ import {
   CampaignMember,
   CampaignMemberRepository,
   Entity,
+  EntityCategory,
   EntityRepository,
   EntityVisibility,
+  NotFoundError,
   Note,
   NoteId,
   NoteLink,
   NoteLinkRepository,
   NoteRepository,
   NoteVisibility,
-  NotFoundError,
   UserId,
 } from "@storyforge/domain";
 import { NoteService } from "./NoteService";
@@ -392,6 +393,7 @@ describe("NoteService", () => {
       const entity = Entity.create({
         campaignId: createDto.campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: "Gruk the Orc",
         visibility: EntityVisibility.PUBLIC,
       });
@@ -442,6 +444,7 @@ describe("NoteService", () => {
       const entity = Entity.create({
         campaignId: createDto.campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: "Gruk the Orc",
         visibility: EntityVisibility.PUBLIC,
       });
@@ -467,6 +470,7 @@ describe("NoteService", () => {
       const entity = Entity.create({
         campaignId: createDto.campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: "Gruk the Orc",
         visibility: EntityVisibility.PUBLIC,
       });
@@ -488,6 +492,7 @@ describe("NoteService", () => {
       const entity = Entity.create({
         campaignId: createDto.campaignId,
         type: "npc",
+        category: EntityCategory.CHARACTER,
         name: "Gruk the Orc",
         visibility: EntityVisibility.PUBLIC,
       });

@@ -3,6 +3,7 @@ import { createPubSub } from "graphql-yoga";
 import {
   CampaignMember,
   Entity,
+  EntityCategory,
   EntityVisibility,
   User,
 } from "@storyforge/domain";
@@ -52,6 +53,7 @@ const otherPlayerMembership = CampaignMember.create({
 const secretEntity = Entity.create({
   campaignId: "campaign-1",
   type: "npc",
+  category: EntityCategory.CHARACTER,
   name: "Secret Villain",
   visibility: EntityVisibility.PRIVATE,
 });

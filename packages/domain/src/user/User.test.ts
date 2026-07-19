@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { User } from "./User";
 import { UserId } from "./UserId";
 import { ValidationError } from "../shared";
@@ -74,12 +74,19 @@ describe("User", () => {
     ).toThrow("Password cannot exceed 72 bytes.");
   });
 
-  it("changes the email and bumps updatedAt", async () => {
+  it("changes the email and bumps updatedAt", () => {
     const user = User.create(validProps);
     const before = user.UpdatedAt;
 
-    await new Promise((resolve) => setTimeout(resolve, 5));
-    user.changeEmail("new@example.com");
+    // Real timers can tie in the same millisecond on a fast run — advance
+    // the clock deterministically instead of racing a real setTimeout.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(before.getTime() + 1));
+    try {
+      user.changeEmail("new@example.com");
+    } finally {
+      vi.useRealTimers();
+    }
 
     expect(user.Email).toBe("new@example.com");
     expect(user.UpdatedAt.getTime()).toBeGreaterThan(before.getTime());

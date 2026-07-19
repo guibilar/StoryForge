@@ -24,10 +24,14 @@ export type CreateCampaignDto = {
 
 export type CreateEntityInput = {
   campaignId: string | number;
+  category: EntityCategory;
+  color?: string | null | undefined;
   description?: string | null | undefined;
   icon?: string | null | undefined;
   image?: string | null | undefined;
+  isPlayerCharacter?: boolean | null | undefined;
   name: string;
+  ownerUserId?: string | number | null | undefined;
   type: string;
   visibility?: EntityVisibility | null | undefined;
 };
@@ -58,6 +62,14 @@ export type CreateNoteInput = {
   visibility?: NoteVisibility | null | undefined;
 };
 
+export type CreateRelationshipInput = {
+  campaignId: string | number;
+  description?: string | null | undefined;
+  sourceEntityId: string | number;
+  targetEntityId: string | number;
+  type: string;
+};
+
 export type CreateSessionInput = {
   campaignId: string | number;
   date: string;
@@ -73,7 +85,12 @@ export type CreateTerritoryInput = {
   type: string;
 };
 
+export type EntityCategory =
+  "CHARACTER" | "ITEM" | "LOCATION" | "ORGANIZATION" | "OTHER";
+
 export type EntityFilter = {
+  category?: EntityCategory | null | undefined;
+  isPlayerCharacter?: boolean | null | undefined;
   nameContains?: string | null | undefined;
   tagIds?: Array<string | number> | null | undefined;
   type?: string | null | undefined;
@@ -152,11 +169,15 @@ export type UpdateCampaignMemberRoleInput = {
 };
 
 export type UpdateEntityInput = {
+  category?: EntityCategory | null | undefined;
+  color?: string | null | undefined;
   description?: string | null | undefined;
   icon?: string | null | undefined;
   id: string | number;
   image?: string | null | undefined;
+  isPlayerCharacter?: boolean | null | undefined;
   name?: string | null | undefined;
+  ownerUserId?: string | number | null | undefined;
   visibility?: EntityVisibility | null | undefined;
 };
 
@@ -183,6 +204,12 @@ export type UpdateNoteInput = {
   recipientIds?: Array<string | number> | null | undefined;
   title?: string | null | undefined;
   visibility?: NoteVisibility | null | undefined;
+};
+
+export type UpdateRelationshipInput = {
+  description?: string | null | undefined;
+  id: string | number;
+  type?: string | null | undefined;
 };
 
 export type UpdateSessionInput = {
@@ -294,6 +321,7 @@ export type CreateEntityMutation = {
     name: string;
     description: string | null;
     image: string | null;
+    color: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   };
@@ -355,6 +383,20 @@ export type CreateNoteMutation = {
     recipientIds: Array<string>;
     createdAt: string;
     updatedAt: string;
+  };
+};
+
+export type CreateRelationshipMutationVariables = Exact<{
+  input: CreateRelationshipInput;
+}>;
+
+export type CreateRelationshipMutation = {
+  createRelationship: {
+    id: string;
+    sourceEntityId: string;
+    targetEntityId: string;
+    type: string;
+    description: string | null;
   };
 };
 
@@ -424,6 +466,12 @@ export type DeleteNoteMutationVariables = Exact<{
 
 export type DeleteNoteMutation = { deleteNote: boolean };
 
+export type DeleteRelationshipMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type DeleteRelationshipMutation = { deleteRelationship: boolean };
+
 export type DeleteSessionMutationVariables = Exact<{
   id: string | number;
 }>;
@@ -471,7 +519,10 @@ export type EntitiesQuery = {
     name: string;
     description: string | null;
     type: string;
+    category: EntityCategory;
+    isPlayerCharacter: boolean;
     image: string | null;
+    color: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   }>;
@@ -548,7 +599,10 @@ export type MarkersQuery = {
       id: string;
       name: string;
       type: string;
+      category: EntityCategory;
       description: string | null;
+      image: string | null;
+      color: string | null;
       visibility: EntityVisibility;
     } | null;
   }>;
@@ -598,9 +652,11 @@ export type OnEntityWindowForceOpenedSubscription = {
     id: string;
     campaignId: string;
     type: string;
+    category: EntityCategory;
     name: string;
     description: string | null;
     image: string | null;
+    color: string | null;
     visibility: EntityVisibility;
   };
 };
@@ -686,7 +742,10 @@ export type TerritoriesQuery = {
       id: string;
       name: string;
       type: string;
+      category: EntityCategory;
       description: string | null;
+      image: string | null;
+      color: string | null;
       visibility: EntityVisibility;
     } | null;
   }>;
@@ -723,6 +782,7 @@ export type UpdateEntityMutation = {
     name: string;
     description: string | null;
     image: string | null;
+    color: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   };
@@ -784,6 +844,20 @@ export type UpdateNoteMutation = {
     recipientIds: Array<string>;
     createdAt: string;
     updatedAt: string;
+  };
+};
+
+export type UpdateRelationshipMutationVariables = Exact<{
+  input: UpdateRelationshipInput;
+}>;
+
+export type UpdateRelationshipMutation = {
+  updateRelationship: {
+    id: string;
+    sourceEntityId: string;
+    targetEntityId: string;
+    type: string;
+    description: string | null;
   };
 };
 
@@ -1372,6 +1446,7 @@ export const CreateEntityDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 { kind: "Field", name: { kind: "Name", value: "image" } },
+                { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",
@@ -1619,6 +1694,70 @@ export const CreateNoteDocument = {
     },
   ],
 } as unknown as DocumentNode<CreateNoteMutation, CreateNoteMutationVariables>;
+export const CreateRelationshipDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateRelationship" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateRelationshipInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createRelationship" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "sourceEntityId" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "targetEntityId" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreateRelationshipMutation,
+  CreateRelationshipMutationVariables
+>;
 export const CreateSessionDocument = {
   kind: "Document",
   definitions: [
@@ -1995,6 +2134,48 @@ export const DeleteNoteDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteNoteMutation, DeleteNoteMutationVariables>;
+export const DeleteRelationshipDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteRelationship" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteRelationship" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteRelationshipMutation,
+  DeleteRelationshipMutationVariables
+>;
 export const DeleteSessionDocument = {
   kind: "Document",
   definitions: [
@@ -2322,7 +2503,13 @@ export const EntitiesDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "category" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "isPlayerCharacter" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "image" } },
+                { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",
@@ -2700,8 +2887,14 @@ export const MarkersDocument = {
                       { kind: "Field", name: { kind: "Name", value: "type" } },
                       {
                         kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                      },
+                      {
+                        kind: "Field",
                         name: { kind: "Name", value: "description" },
                       },
+                      { kind: "Field", name: { kind: "Name", value: "image" } },
+                      { kind: "Field", name: { kind: "Name", value: "color" } },
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "visibility" },
@@ -2905,9 +3098,11 @@ export const OnEntityWindowForceOpenedDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "campaignId" } },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "category" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 { kind: "Field", name: { kind: "Name", value: "image" } },
+                { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
               ],
             },
@@ -3377,8 +3572,14 @@ export const TerritoriesDocument = {
                       { kind: "Field", name: { kind: "Name", value: "type" } },
                       {
                         kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                      },
+                      {
+                        kind: "Field",
                         name: { kind: "Name", value: "description" },
                       },
+                      { kind: "Field", name: { kind: "Name", value: "image" } },
+                      { kind: "Field", name: { kind: "Name", value: "color" } },
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "visibility" },
@@ -3556,6 +3757,7 @@ export const UpdateEntityDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 { kind: "Field", name: { kind: "Name", value: "image" } },
+                { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",
@@ -3803,6 +4005,70 @@ export const UpdateNoteDocument = {
     },
   ],
 } as unknown as DocumentNode<UpdateNoteMutation, UpdateNoteMutationVariables>;
+export const UpdateRelationshipDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateRelationship" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateRelationshipInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateRelationship" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "sourceEntityId" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "targetEntityId" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateRelationshipMutation,
+  UpdateRelationshipMutationVariables
+>;
 export const UpdateSessionDocument = {
   kind: "Document",
   definitions: [

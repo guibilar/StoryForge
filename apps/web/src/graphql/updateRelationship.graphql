@@ -1,0 +1,9 @@
+mutation UpdateRelationship($input: UpdateRelationshipInput!) {
+  updateRelationship(input: $input) {
+    id
+    sourceEntityId
+    targetEntityId
+    type
+    description
+  }
+}

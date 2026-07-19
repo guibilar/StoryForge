@@ -1,37 +1,49 @@
 import {
+  CampaignMemberRepository,
   Entity,
+  EntityCategory,
   EntityFilter,
   EntityId,
   EntityRepository,
   EntityVisibility,
   NoteLinkRepository,
   NotFoundError,
+  UserId,
   ValidationError,
 } from "@storyforge/domain";
 
 export interface CreateEntityDto {
   campaignId: string;
   type: string;
+  category: EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
   image?: string | null;
+  color?: string | null;
   visibility: EntityVisibility;
+  isPlayerCharacter?: boolean;
+  ownerUserId?: string | null;
 }
 
 export interface UpdateEntityDto {
   id: string;
   name?: string;
+  category?: EntityCategory;
   description?: string | null;
   icon?: string | null;
   image?: string | null;
+  color?: string | null;
   visibility?: EntityVisibility;
+  isPlayerCharacter?: boolean;
+  ownerUserId?: string | null;
 }
 
 export class EntityService {
   constructor(
     private readonly repository: EntityRepository,
     private readonly noteLinkRepository: NoteLinkRepository,
+    private readonly campaignMemberRepository: CampaignMemberRepository,
   ) {}
 
   async createEntity(dto: CreateEntityDto): Promise<Entity> {
@@ -41,6 +53,10 @@ export class EntityService {
       throw new ValidationError(
         "An entity with this name already exists in this campaign.",
       );
+    }
+
+    if (dto.ownerUserId) {
+      await this.requireMemberInCampaign(dto.ownerUserId, dto.campaignId);
     }
 
     const entity = Entity.create(dto);
@@ -71,6 +87,45 @@ export class EntityService {
       entity.rename(dto.name);
     }
 
+    // Order matters when both fields change in the same call: category and
+    // isPlayerCharacter validate against each other's *current* value
+    // (Entity.changeCategory/changeIsPlayerCharacter), so applying them in
+    // the wrong order can reject a transition that is valid end-to-end (e.g.
+    // category CHARACTER->LOCATION + isPlayerCharacter true->false). Apply
+    // whichever change moves toward the final isPlayerCharacter=false state
+    // first, since false is always valid regardless of category.
+    const finalIsPlayerCharacter =
+      dto.isPlayerCharacter ?? entity.IsPlayerCharacter;
+
+    const applyCategory = () => {
+      if (dto.category !== undefined) {
+        entity.changeCategory(dto.category);
+      }
+    };
+    const applyIsPlayerCharacter = () => {
+      if (dto.isPlayerCharacter !== undefined) {
+        entity.changeIsPlayerCharacter(dto.isPlayerCharacter);
+      }
+    };
+
+    if (finalIsPlayerCharacter) {
+      applyCategory();
+      applyIsPlayerCharacter();
+    } else {
+      applyIsPlayerCharacter();
+      applyCategory();
+    }
+
+    // Applied last, once category/isPlayerCharacter have settled: linking a
+    // non-null owner requires isPlayerCharacter to already be true, which
+    // only holds once the ordering above has run.
+    if (dto.ownerUserId !== undefined) {
+      if (dto.ownerUserId) {
+        await this.requireMemberInCampaign(dto.ownerUserId, entity.CampaignId);
+      }
+      entity.linkOwner(dto.ownerUserId);
+    }
+
     if (dto.description !== undefined) {
       entity.changeDescription(dto.description);
     }
@@ -81,6 +136,10 @@ export class EntityService {
 
     if (dto.image !== undefined) {
       entity.changeImage(dto.image);
+    }
+
+    if (dto.color !== undefined) {
+      entity.changeColor(dto.color);
     }
 
     if (dto.visibility !== undefined) {
@@ -143,5 +202,26 @@ export class EntityService {
     filter?: EntityFilter | null,
   ): Promise<Entity[]> {
     return this.repository.findByCampaign(campaignId, filter);
+  }
+
+  // A CampaignMember has no synthetic id — it's identified by
+  // (campaignId, userId) everywhere in this codebase (see
+  // CampaignMemberRepository) — so "does this owner belong to this
+  // entity's campaign" is answered by the same lookup used elsewhere,
+  // not a separate id-based fetch.
+  private async requireMemberInCampaign(
+    userId: string,
+    campaignId: string,
+  ): Promise<void> {
+    const member = await this.campaignMemberRepository.findByCampaignAndUser(
+      campaignId,
+      UserId.fromString(userId),
+    );
+
+    if (!member) {
+      throw new NotFoundError(
+        "Owner must be a member of this entity's campaign.",
+      );
+    }
   }
 }

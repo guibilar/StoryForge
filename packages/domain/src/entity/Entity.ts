@@ -1,26 +1,46 @@
 import { ValidationError } from "../shared";
+import { EntityCategory, isEntityCategory } from "./EntityCategory";
 import { EntityId } from "./EntityId";
 import { EntityVisibility } from "./EntityVisibility";
 
 export interface CreateEntityProps {
   campaignId: string;
   type: string;
+  category: EntityCategory;
   name: string;
   description?: string | null;
   icon?: string | null;
   image?: string | null;
+  // Overrides the type-derived colour markers/territories fall back to on
+  // the map (MapCanvas's colorForEntityType) — only meaningful for a
+  // LOCATION/ORGANIZATION entity, but not enforced here since a colour set
+  // before a category change (or on any other category) isn't harmful, just
+  // unused until the entity becomes map-linkable.
+  color?: string | null;
   visibility: EntityVisibility;
+  isPlayerCharacter?: boolean;
+  // References a User (a campaign's members are identified by
+  // (campaignId, userId), not a synthetic CampaignMember id — see
+  // CampaignMemberMapper/the CampaignMember GraphQL resolver, which
+  // synthesizes `id` as `${campaignId}:${userId}` for the same reason).
+  // Resolving this to the owning CampaignMember is a cross-aggregate
+  // question answered by EntityService, mirroring Marker.EntityId.
+  ownerUserId?: string | null;
 }
 
 export interface RehydrateEntityProps {
   id: EntityId;
   campaignId: string;
   type: string;
+  category: EntityCategory;
   name: string;
   description: string | null;
   icon: string | null;
   image: string | null;
+  color: string | null;
   visibility: EntityVisibility;
+  isPlayerCharacter: boolean;
+  ownerUserId: string | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -31,11 +51,15 @@ export class Entity {
     private readonly idValue: EntityId,
     private readonly campaignIdValue: string,
     private readonly typeValue: string,
+    private categoryValue: EntityCategory,
     private nameValue: string,
     private descriptionValue: string | null,
     private iconValue: string | null,
     private imageValue: string | null,
+    private colorValue: string | null,
     private visibilityValue: EntityVisibility,
+    private isPlayerCharacterValue: boolean,
+    private ownerUserIdValue: string | null,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
     private deletedAtValue: Date | null,
@@ -43,6 +67,10 @@ export class Entity {
     this.validateName(nameValue);
     this.validateDescription(descriptionValue);
     this.validateType(typeValue);
+    this.validateCategory(categoryValue);
+    this.validateIsPlayerCharacter(isPlayerCharacterValue, categoryValue);
+    this.validateOwnerUserId(ownerUserIdValue, isPlayerCharacterValue);
+    this.validateColor(colorValue);
   }
 
   static create(props: CreateEntityProps): Entity {
@@ -50,11 +78,15 @@ export class Entity {
       EntityId.create(),
       props.campaignId,
       props.type,
+      props.category,
       props.name,
       props.description ?? null,
       props.icon ?? null,
       props.image ?? null,
+      props.color ?? null,
       props.visibility,
+      props.isPlayerCharacter ?? false,
+      props.ownerUserId ?? null,
       new Date(),
       new Date(),
       null,
@@ -66,11 +98,15 @@ export class Entity {
       props.id,
       props.campaignId,
       props.type,
+      props.category,
       props.name,
       props.description,
       props.icon,
       props.image,
+      props.color,
       props.visibility,
+      props.isPlayerCharacter,
+      props.ownerUserId,
       props.createdAt,
       props.updatedAt,
       props.deletedAt,
@@ -89,6 +125,10 @@ export class Entity {
     return this.typeValue;
   }
 
+  get Category(): EntityCategory {
+    return this.categoryValue;
+  }
+
   get Name(): string {
     return this.nameValue;
   }
@@ -105,8 +145,20 @@ export class Entity {
     return this.imageValue;
   }
 
+  get Color(): string | null {
+    return this.colorValue;
+  }
+
   get Visibility(): EntityVisibility {
     return this.visibilityValue;
+  }
+
+  get IsPlayerCharacter(): boolean {
+    return this.isPlayerCharacterValue;
+  }
+
+  get OwnerUserId(): string | null {
+    return this.ownerUserIdValue;
   }
 
   get CreatedAt(): Date {
@@ -142,6 +194,39 @@ export class Entity {
     this.updatedAtValue = new Date();
   }
 
+  changeCategory(category: EntityCategory): void {
+    this.validateCategory(category);
+    this.validateIsPlayerCharacter(this.isPlayerCharacterValue, category);
+
+    this.categoryValue = category;
+    this.updatedAtValue = new Date();
+  }
+
+  changeIsPlayerCharacter(isPlayerCharacter: boolean): void {
+    this.validateIsPlayerCharacter(isPlayerCharacter, this.categoryValue);
+
+    this.isPlayerCharacterValue = isPlayerCharacter;
+    // A non-PC can't have an owning member — clear it instead of leaving a
+    // dangling link that validateOwnerUserId would then reject on the next
+    // mutation. Losing PC status is a deliberate demotion, not an error.
+    if (!isPlayerCharacter) {
+      this.ownerUserIdValue = null;
+    }
+    this.updatedAtValue = new Date();
+  }
+
+  // Cross-aggregate validation (does this user exist and belong to this
+  // entity's campaign) is a question for EntityService, mirroring
+  // Marker.linkEntity/MarkerService.requireEntityInCampaign — this only
+  // enforces the same-aggregate invariant that only a Player Character can
+  // have an owner.
+  linkOwner(ownerUserId: string | null): void {
+    this.validateOwnerUserId(ownerUserId, this.isPlayerCharacterValue);
+
+    this.ownerUserIdValue = ownerUserId;
+    this.updatedAtValue = new Date();
+  }
+
   changeIcon(icon: string | null): void {
     this.iconValue = icon;
     this.updatedAtValue = new Date();
@@ -149,6 +234,13 @@ export class Entity {
 
   changeImage(image: string | null): void {
     this.imageValue = image;
+    this.updatedAtValue = new Date();
+  }
+
+  changeColor(color: string | null): void {
+    this.validateColor(color);
+
+    this.colorValue = color;
     this.updatedAtValue = new Date();
   }
 
@@ -203,6 +295,46 @@ export class Entity {
 
     if (trimmed.length > 100) {
       throw new ValidationError("Entity type is too long.");
+    }
+  }
+
+  private validateCategory(category: EntityCategory): void {
+    if (!isEntityCategory(category)) {
+      throw new ValidationError("Entity category is invalid.");
+    }
+  }
+
+  private validateIsPlayerCharacter(
+    isPlayerCharacter: boolean,
+    category: EntityCategory,
+  ): void {
+    if (isPlayerCharacter && category !== EntityCategory.CHARACTER) {
+      throw new ValidationError(
+        "Only a CHARACTER-category entity can be marked as a Player Character.",
+      );
+    }
+  }
+
+  private validateOwnerUserId(
+    ownerUserId: string | null,
+    isPlayerCharacter: boolean,
+  ): void {
+    if (ownerUserId !== null && !isPlayerCharacter) {
+      throw new ValidationError(
+        "Only a Player Character can have an owning campaign member.",
+      );
+    }
+  }
+
+  private validateColor(color: string | null): void {
+    if (color === null) {
+      return;
+    }
+
+    if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
+      throw new ValidationError(
+        "Entity color must be a 6-digit hex code, e.g. #4287f5.",
+      );
     }
   }
 }

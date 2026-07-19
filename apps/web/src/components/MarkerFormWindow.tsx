@@ -12,11 +12,16 @@ import {
 } from "@storyforge/ui";
 
 import { CreateMarkerDocument, UpdateMarkerDocument } from "../gql/graphql";
+import type { EntityCategory } from "../gql/graphql";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { EntitySelectField } from "./EntitySelectField";
 import styles from "./MarkerFormWindow.module.css";
+
+// A Marker represents a place on the map (KAN-121) — only LOCATION-category
+// entities are valid links, enforced server-side too (MarkerService).
+const LINKABLE_CATEGORIES: EntityCategory[] = ["LOCATION"];
 
 export interface MarkerRow {
   id: string;
@@ -25,7 +30,10 @@ export interface MarkerRow {
     id: string;
     name: string;
     type: string;
+    category: string;
     description?: string | null;
+    image?: string | null;
+    color?: string | null;
     visibility: string;
   } | null;
   name: string;
@@ -167,6 +175,7 @@ export function MarkerFormWindow({
         id="marker-entity"
         name="entityId"
         defaultValue={initialMarker?.entityId}
+        categories={LINKABLE_CATEGORIES}
       />
       <FormField label="Description" htmlFor="marker-description">
         <Textarea

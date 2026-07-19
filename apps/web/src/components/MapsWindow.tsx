@@ -1,16 +1,18 @@
 import { useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useParams } from "react-router-dom";
-import { useMutation, useQuery } from "urql";
+import { useMutation, useQuery, useSubscription } from "urql";
 import { Button, FormError } from "@storyforge/ui";
 
 import {
   CampaignDocument,
   DeleteMapImageDocument,
   DeleteMarkerDocument,
+  ForceSyncViewportDocument,
   MapImageDocument,
   MarkersDocument,
   MeDocument,
+  OnForceSyncViewportDocument,
   TerritoriesDocument,
   UploadMapImageDocument,
 } from "../gql/graphql";
@@ -18,7 +20,10 @@ import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { ALL_PLAYERS_TARGET } from "../lib/broadcastTarget";
+import type { BroadcastTarget } from "../lib/broadcastTarget";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
+import { BroadcastTargetPicker } from "./BroadcastTargetPicker";
 import { MapCanvas } from "./MapCanvas";
 import type {
   MapDrawMode,
@@ -26,6 +31,7 @@ import type {
   MapMarkerPoint,
   MapPosition,
   MapTerritoryShape,
+  MapViewport,
 } from "./MapCanvas";
 import { MarkerFormWindow } from "./MarkerFormWindow";
 import type { MarkerRow } from "./MarkerFormWindow";
@@ -89,9 +95,27 @@ export function MapsWindow() {
   const [deleteMapImageState, deleteMapImage] = useMutation(
     DeleteMapImageDocument,
   );
+  const [forceSyncViewportState, forceSyncViewport] = useMutation(
+    ForceSyncViewportDocument,
+  );
+  // Any campaign member may receive a force-synced viewport (KAN-131 side B)
+  // — the server already filters delivery to whoever the mutation targeted,
+  // so this subscription stays active unconditionally, not just for writers.
+  const [{ data: syncEventData }] = useSubscription({
+    query: OnForceSyncViewportDocument,
+    variables: { campaignId: campaignId ?? "" },
+    pause: !campaignId,
+  });
   const [uploadValidationError, setUploadValidationError] = useState<
     string | null
   >(null);
+  // The live camera of *this* client's own map — fed by MapCanvas's
+  // onViewportChange (KAN-130) and, for a Storyteller, what a "sync view"
+  // broadcast actually sends.
+  const [liveViewport, setLiveViewport] = useState<MapViewport | null>(null);
+  const [broadcastTarget, setBroadcastTarget] =
+    useState<BroadcastTarget>(ALL_PLAYERS_TARGET);
+  const [syncSent, setSyncSent] = useState(false);
   const [drawMode, setDrawMode] = useState<MapDrawMode>("none");
   // View mode by default: during play the map is read, not authored, and
   // clicking a territory shouldn't drop you into its edit form.
@@ -164,6 +188,38 @@ export function MapsWindow() {
   const imageOverlay = mapImage
     ? { ...mapImage, url: resolveUploadUrl(mapImage.url) }
     : null;
+
+  // Derived directly from the subscription result rather than mirrored into
+  // its own state: applies every incoming force-sync event to this client's
+  // own map, regardless of role — a Storyteller can be the target of
+  // another Storyteller's broadcast in a multi-DM campaign just as easily as
+  // a player. The server-side subscription resolver only ever delivers
+  // events this client was actually targeted for, so no further filtering
+  // happens here. `MapCanvas`'s own `MapViewportApplier` (KAN-130) only
+  // re-applies a value that's genuinely changed, so re-renders that don't
+  // carry a new subscription payload are a no-op on the map.
+  const syncEvent = syncEventData?.forceSyncViewport;
+  const inboundViewport: MapViewport | null = syncEvent
+    ? { center: syncEvent.center, zoom: syncEvent.zoom }
+    : null;
+
+  async function handleSyncViewport() {
+    if (!campaignId || !liveViewport) {
+      return;
+    }
+    setSyncSent(false);
+    const result = await forceSyncViewport({
+      input: {
+        campaignId,
+        center: liveViewport.center,
+        zoom: liveViewport.zoom,
+        target: broadcastTarget,
+      },
+    });
+    if (result.data?.forceSyncViewport) {
+      setSyncSent(true);
+    }
+  }
 
   function handleEditingChange(next: boolean) {
     setEditing(next);
@@ -365,7 +421,8 @@ export function MapsWindow() {
     uploadValidationError ??
     formatGraphQLError(uploadMapImageState.error) ??
     formatGraphQLError(deleteMarkerState.error) ??
-    formatGraphQLError(deleteMapImageState.error);
+    formatGraphQLError(deleteMapImageState.error) ??
+    formatGraphQLError(forceSyncViewportState.error);
 
   return (
     <div className={styles.wrap}>
@@ -387,6 +444,8 @@ export function MapsWindow() {
           onTerritoryClick={
             isWriter && editing ? openEditTerritoryWindow : undefined
           }
+          onViewportChange={setLiveViewport}
+          viewport={inboundViewport}
         />
       </div>
       {isWriter ? (
@@ -436,6 +495,27 @@ export function MapsWindow() {
               Remove Map Image
             </Button>
           ) : null}
+          <div className={styles.syncControls}>
+            <BroadcastTargetPicker
+              id="viewport-sync-target"
+              aria-label="Sync view target"
+              members={members}
+              value={broadcastTarget}
+              onChange={setBroadcastTarget}
+              disabled={forceSyncViewportState.fetching}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!liveViewport || forceSyncViewportState.fetching}
+              onClick={handleSyncViewport}
+            >
+              Sync view to players
+            </Button>
+            {syncSent ? (
+              <span className={styles.syncSuccess}>Viewport synced.</span>
+            ) : null}
+          </div>
           {actionError ? <FormError>{actionError}</FormError> : null}
         </div>
       ) : null}

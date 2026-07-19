@@ -1,0 +1,11 @@
+subscription OnForceSyncViewport($campaignId: ID!) {
+  forceSyncViewport(campaignId: $campaignId) {
+    campaignId
+    center {
+      lat
+      lng
+    }
+    zoom
+    broadcasterId
+  }
+}

@@ -38,6 +38,7 @@ type Documents = {
   "mutation DetachSessionAttendee($sessionId: ID!, $userId: ID!) {\n  detachSessionAttendee(sessionId: $sessionId, userId: $userId) {\n    id\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.DetachSessionAttendeeDocument;
   "query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    name\n    description\n    type\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}": typeof types.EntitiesDocument;
   "query Events($campaignId: ID!) {\n  events(campaignId: $campaignId) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.EventsDocument;
+  "mutation ForceSyncViewport($input: ForceSyncViewportInput!) {\n  forceSyncViewport(input: $input)\n}": typeof types.ForceSyncViewportDocument;
   "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.LoginDocument;
   "mutation Logout {\n  logout\n}": typeof types.LogoutDocument;
   "query MapImage($campaignId: ID!) {\n  mapImage(campaignId: $campaignId) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}": typeof types.MapImageDocument;
@@ -45,6 +46,7 @@ type Documents = {
   "query Me {\n  me {\n    id\n    email\n  }\n}": typeof types.MeDocument;
   "query MyWorkspaceState($campaignId: ID!) {\n  myWorkspaceState(campaignId: $campaignId) {\n    id\n    layout\n    recentEntityIds\n    updatedAt\n  }\n}": typeof types.MyWorkspaceStateDocument;
   "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.NotesDocument;
+  "subscription OnForceSyncViewport($campaignId: ID!) {\n  forceSyncViewport(campaignId: $campaignId) {\n    campaignId\n    center {\n      lat\n      lng\n    }\n    zoom\n    broadcasterId\n  }\n}": typeof types.OnForceSyncViewportDocument;
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.RegisterDocument;
   "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}": typeof types.RelationshipsDocument;
   "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}": typeof types.RemoveCampaignMemberDocument;
@@ -111,6 +113,8 @@ const documents: Documents = {
     types.EntitiesDocument,
   "query Events($campaignId: ID!) {\n  events(campaignId: $campaignId) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}":
     types.EventsDocument,
+  "mutation ForceSyncViewport($input: ForceSyncViewportInput!) {\n  forceSyncViewport(input: $input)\n}":
+    types.ForceSyncViewportDocument,
   "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}":
     types.LoginDocument,
   "mutation Logout {\n  logout\n}": types.LogoutDocument,
@@ -123,6 +127,8 @@ const documents: Documents = {
     types.MyWorkspaceStateDocument,
   "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
     types.NotesDocument,
+  "subscription OnForceSyncViewport($campaignId: ID!) {\n  forceSyncViewport(campaignId: $campaignId) {\n    campaignId\n    center {\n      lat\n      lng\n    }\n    zoom\n    broadcasterId\n  }\n}":
+    types.OnForceSyncViewportDocument,
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}":
     types.RegisterDocument,
   "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}":
@@ -319,6 +325,12 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
+  source: "mutation ForceSyncViewport($input: ForceSyncViewportInput!) {\n  forceSyncViewport(input: $input)\n}",
+): (typeof documents)["mutation ForceSyncViewport($input: ForceSyncViewportInput!) {\n  forceSyncViewport(input: $input)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
   source: "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}",
 ): (typeof documents)["mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}"];
 /**
@@ -357,6 +369,12 @@ export function graphql(
 export function graphql(
   source: "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}",
 ): (typeof documents)["query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: "subscription OnForceSyncViewport($campaignId: ID!) {\n  forceSyncViewport(campaignId: $campaignId) {\n    campaignId\n    center {\n      lat\n      lng\n    }\n    zoom\n    broadcasterId\n  }\n}",
+): (typeof documents)["subscription OnForceSyncViewport($campaignId: ID!) {\n  forceSyncViewport(campaignId: $campaignId) {\n    campaignId\n    center {\n      lat\n      lng\n    }\n    zoom\n    broadcasterId\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

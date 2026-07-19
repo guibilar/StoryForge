@@ -81,6 +81,30 @@ export type EntityFilter = {
 
 export type EntityVisibility = "PRIVATE" | "PUBLIC" | "STORYTELLER";
 
+export type ForceSyncViewportInput = {
+  campaignId: string | number;
+  center: ForceSyncViewportPositionInput;
+  target: ForceSyncViewportTargetInput;
+  zoom: number;
+};
+
+export type ForceSyncViewportPositionInput = {
+  lat: number;
+  lng: number;
+};
+
+/**
+ * Who a `forceSyncViewport` mutation should be delivered to. Set `allPlayers`
+ * to broadcast to every current PLAYER/OBSERVER member of the campaign
+ * (resolved from the campaign's membership roster, not from any kind of
+ * "who's currently online" presence tracking — this app has none). Otherwise,
+ * `userIds` targets specific members directly (e.g. a single player).
+ */
+export type ForceSyncViewportTargetInput = {
+  allPlayers: boolean;
+  userIds: Array<string | number>;
+};
+
 export type LoginInput = {
   email: string;
   password: string;
@@ -456,6 +480,12 @@ export type EventsQuery = {
   }>;
 };
 
+export type ForceSyncViewportMutationVariables = Exact<{
+  input: ForceSyncViewportInput;
+}>;
+
+export type ForceSyncViewportMutation = { forceSyncViewport: boolean };
+
 export type LoginMutationVariables = Exact<{
   input: LoginInput;
 }>;
@@ -535,6 +565,19 @@ export type NotesQuery = {
     createdAt: string;
     updatedAt: string;
   }>;
+};
+
+export type OnForceSyncViewportSubscriptionVariables = Exact<{
+  campaignId: string | number;
+}>;
+
+export type OnForceSyncViewportSubscription = {
+  forceSyncViewport: {
+    campaignId: string;
+    zoom: number;
+    broadcasterId: string;
+    center: { lat: number; lng: number };
+  };
 };
 
 export type RegisterMutationVariables = Exact<{
@@ -2342,6 +2385,54 @@ export const EventsDocument = {
     },
   ],
 } as unknown as DocumentNode<EventsQuery, EventsQueryVariables>;
+export const ForceSyncViewportDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "ForceSyncViewport" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "ForceSyncViewportInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "forceSyncViewport" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ForceSyncViewportMutation,
+  ForceSyncViewportMutationVariables
+>;
 export const LoginDocument = {
   kind: "Document",
   definitions: [
@@ -2686,6 +2777,73 @@ export const NotesDocument = {
     },
   ],
 } as unknown as DocumentNode<NotesQuery, NotesQueryVariables>;
+export const OnForceSyncViewportDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "subscription",
+      name: { kind: "Name", value: "OnForceSyncViewport" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "campaignId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "forceSyncViewport" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "campaignId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "campaignId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "center" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "lat" } },
+                      { kind: "Field", name: { kind: "Name", value: "lng" } },
+                    ],
+                  },
+                },
+                { kind: "Field", name: { kind: "Name", value: "zoom" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "broadcasterId" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  OnForceSyncViewportSubscription,
+  OnForceSyncViewportSubscriptionVariables
+>;
 export const RegisterDocument = {
   kind: "Document",
   definitions: [

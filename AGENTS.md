@@ -33,7 +33,7 @@ what's still a stub or not yet started):
 storyforge/
 
 apps/
-    api/                    GraphQL server (graphql-yoga), 11 vertical-slice
+    api/                    GraphQL server (graphql-yoga), 14 vertical-slice
                             modules — see apps/api below
     web/                    React app — auth flow, dashboard, campaign
                             desktop shell — see apps/web below
@@ -46,8 +46,10 @@ packages/
                             below) + permission matrix + shared errors
     plugin-sdk/             empty — not started
     shared/                 empty — not started
-    ui/                     shared React components (Button, Input, Form, Link,
-                             Modal, Window) + Storybook — see packages/ui
+    ui/                     shared React components (Button, Checkbox,
+                             CommandPalette, Form, Icon, Input, Link, Modal,
+                             Select, Tabs, Textarea, Window) + Storybook —
+                             see packages/ui
     vtm-plugin/             empty — not started (Vampire plugin placeholder)
 
 docs/
@@ -213,12 +215,25 @@ Currently contains:
   `SessionRepository`.
 - `event/` (KAN-48) — the `Event` aggregate (timeline event, optional
   session link, `occurredAt`), `EventId`, `EventRepository`.
-- `permission/` (KAN-62) — the role-based permission matrix:
+- `map/` (KAN-50/51/52) — `Marker`/`Territory` aggregates (each an
+  optional `entityId` link plus its own geometry — a lat/lng point for
+  `Marker`, a GeoJSON polygon string for `Territory` — and free-string
+  `type`/`name`/`description`), `MarkerId`/`TerritoryId`,
+  `MarkerRepository`/`TerritoryRepository`; `MapImage` aggregate + `MapImageId`
+  - `MapImageRepository` for the optional per-campaign custom map image
+    (`CRS.Simple` rendering, replacing the geographic tile layer when set).
+- `workspaceState/` (KAN-103) — the `WorkspaceState` aggregate (one row per
+  `(campaignId, userId)`, storing the frontend's serialized desktop layout
+  - recent-entity-ids JSON blobs — opaque to the domain, it doesn't parse
+    them), `WorkspaceStateId`, `WorkspaceStateRepository`.
+- `permission/` (KAN-62/128) — the role-based permission matrix:
   `hasPermission(role, action)` over a `CampaignRole → PermissionAction`
-  map (`VIEW_ENTITY`, `EDIT_ENTITY`, `MANAGE_MEMBERS`,
-  `MANAGE_CAMPAIGN_SETTINGS`), plus `canViewVisibility`/
-  `filterByVisibility` for the Player/Observer read path. Framework-free —
-  consumed by the apps/api guards.
+  map (`VIEW_ENTITY`, `EDIT_ENTITY`, `CREATE_NOTE`, `MANAGE_MEMBERS`,
+  `MANAGE_CAMPAIGN_SETTINGS`, `BROADCAST_TO_PLAYERS` — the last one gates
+  the Storyteller-only real-time push features, see the apps/web "Real-time"
+  subsection below), plus `canViewVisibility`/`filterByVisibility` for the
+  Player/Observer read path. Framework-free — consumed by the apps/api
+  guards.
 - `shared/errors/` — `DomainError` (abstract base), `NotFoundError`,
   `ValidationError`, `AuthenticationError`, `ForbiddenError`.
 
@@ -358,15 +373,17 @@ Core depends only on interfaces.
 
 ---
 
-## packages/ui (KAN-75/KAN-31/KAN-80 — thin scope: Button, Input, Form, Link, Modal, Window; plus Storybook)
+## packages/ui (KAN-75/KAN-31/KAN-80 — thin scope: Button, Checkbox, CommandPalette, Form, Icon, Input, Link, Modal, Select, Tabs, Textarea, Window; plus Storybook)
 
 `@storyforge/ui`, consumed by `apps/web` today. Deliberately not a full
 design system yet — built to exactly what each landed ticket needed
-(KAN-31 auth + campaign screens, KAN-80 desktop shell), per KAN-75's DoD
-("not a speculative component library built ahead of need"). Tables are
-still unbuilt — both the Members (KAN-81) and NPCs (KAN-39) list views
-shipped as plain `<ul>` lists instead, matching current scale; pick a
-Table up when a window's list actually needs it.
+(KAN-31 auth + campaign screens, KAN-80 desktop shell, later ones adding
+`Checkbox`/`Select`/`Textarea`/`Tabs`/`CommandPalette`/`Icon` as each
+feature needed them), per KAN-75's DoD ("not a speculative component
+library built ahead of need"). Tables are still unbuilt — every list-shaped
+window (Members, Sessions, Timeline, Notes, the entity sidebar) ships as a
+plain `<ul>` instead, matching current scale; pick a Table up when a
+window's list actually needs it (sorting, pagination, columns).
 
 **No build step.** `main`/`types` point straight at `src/index.ts` (no
 `dist/`), same "just-in-time package" pattern as `packages/database` —
@@ -397,31 +414,69 @@ yet (out of scope for KAN-75) — a future one just needs
 **Components** (`src/components/`, one directory each, barrel-exported
 from `src/index.ts`):
 
-- `Button` — native `<button>` props + `variant?: "primary" | "secondary"`.
+- `Button` — native `<button>` props +
+  `variant?: "primary" | "secondary" | "ghost" | "text" | "destructive" | "tab"`.
+  Base class is `display: inline-flex; align-items: center; gap` so an
+  `Icon` passed as a child lines up with label text with no extra wrapper.
+- `Icon` — thin wrapper around a `lucide-react` icon component
+  (`<Icon icon={Trash2} />`, `size`/`strokeWidth` default to `18`/`1.75`).
+  Callers import the icon component itself from `lucide-react` (a direct
+  dependency of both this package and `apps/web`) rather than this package
+  re-exporting one per icon.
 - `Input` — native `<input>` props + `invalid?: boolean` (sets `aria-invalid` + error styling).
+- `Textarea`, `Select` — same shape as `Input` (native props + CSS Modules
+  styling, no extra behavior).
+- `Checkbox` — native `<input type="checkbox">` wrapped in a pill-styled
+  `<label>`; takes a required `label: ReactNode`.
 - `Form` family (`src/components/Form/`) — `Form` (styled `<form>`), `Label`,
   `FormField` (`{label, htmlFor, error?, children}`, wires label/input/error
-  association), `FormError` (form-level error banner). Not a form-state
-  library — no react-hook-form, this is markup only.
+  association), `FormError` (form-level error banner), `FormActions`
+  (right-aligned button row — extracted once 7+ *FormWindow components had
+  duplicated the same Cancel/Save/Delete row markup, KAN-107 era). Not a
+  form-state library — no react-hook-form, this is markup only.
 - `Link` — polymorphic via a plain `as?: ElementType` prop (default `"a"`),
   no `react-router-dom` dependency in this package itself. Consumers do
-  `<Link as={RouterLink} to="/x">` in `apps/web`.
+  `<Link as={RouterLink} to="/x">` in `apps/web`. Same inline-flex + gap base
+  as `Button`, for the same icon+text reason.
 - `Modal` — wraps a native `<dialog>` (`open`/`onClose` props). Calls
   `showModal()`/`close()` imperatively via a ref when available, falling
   back to toggling the `open` attribute directly when they aren't (jsdom,
   used in tests, doesn't implement `HTMLDialogElement.showModal`/`close`).
   Clicking the backdrop (`event.target === dialogRef.current`, the standard
   native-`<dialog>` trick) and native cancel (Escape) both call `onClose`.
-  First consumer: KAN-31's create-campaign dialog; KAN-82's manage-campaign
-  modal should reuse it rather than building its own.
-- `Window` (KAN-80/KAN-88) — chrome for one desktop window: title bar
-  (`title`, a close button calling `onClose`) + body (`children`) + a
-  resize handle. Drag/resize and z-index-to-front are not implemented
-  inside `Window` itself — it just exposes `onTitleBarPointerDown`/
-  `onPointerDownCapture`/`onResizeHandlePointerDown` passthrough props
-  so the consumer's own pointer-event logic (`apps/web`'s
-  `useDesktopLayout` hook) can drive position/size/z-index externally.
-  Pure presentational component, no internal state.
+  Used by the create-campaign dialog and `ManageCampaignModal`. Most other
+  create/edit flows since KAN-107/108 use a desktop `Window` instead (via
+  `useAddEditWindow`) rather than `Modal` — reach for `Window` for anything
+  that behaves like the rest of the campaign desktop.
+- `Window` (KAN-80/KAN-88, extended by KAN-106/110/111) — chrome for one
+  desktop window: title bar (`title`, an optional refresh button shown when
+  `onRefresh` is passed, and a close button calling `onClose`, both now
+  `Icon`-based — `RefreshCw`/`X` — rather than raw glyph characters) + body
+  (`children`) + a resize handle + an optional blocking `isLoading` overlay
+  (spinner + `role="status"`, covers the title bar/body/resize handle so
+  none of them can be interacted with mid-refresh). A focus trap
+  (`src/lib/focusTrap.ts`) keeps Tab/Shift+Tab cycling within the window,
+  Escape calls `onClose`, and closing restores focus to whatever had it
+  before the window opened — opt out per-window via `autoFocus={false}` for
+  a window that's simply present on initial load rather than one a user
+  action just opened. Drag/resize and z-index-to-front are still not
+  implemented inside `Window` itself — it just exposes
+  `onTitleBarPointerDown`/`onPointerDownCapture`/
+  `onResizeHandlePointerDown` passthrough props so the consumer's own
+  pointer-event logic (`apps/web`'s `useDesktopLayout` hook) can drive
+  position/size/z-index externally.
+- `Tabs` — accessible tab list (`role="tablist"`/`"tab"`/`"tabpanel"`,
+  roving `tabIndex`, Arrow/Home/End keyboard navigation) over a
+  `{items: {id, label}[], activeId, onChange}` shape; renders whatever
+  `children` the caller passes for the active panel's content (the caller
+  owns panel switching, `Tabs` only owns the tab strip + a11y wiring). Used
+  by `EntityWindow`'s Overview/Relationships/Notes tabs.
+- `CommandPalette` — presentational ⌘K-style palette: sectioned, scored
+  results (`sections: {label, items: {id, icon?, label, sublabel?}[]}`),
+  arrow-key navigation, `onCommit`/`onClose`. Owns none of the actual
+  search/matching logic or the keyboard shortcut to open it — `apps/web`'s
+  `AppCommandPalette` (see apps/web section) supplies the query scoring,
+  data sources, and global ⌘K/Ctrl+K listener on top of this shell.
 
 Usage from `apps/web`:
 
@@ -429,17 +484,24 @@ Usage from `apps/web`:
 import {
   Button,
   Form,
+  FormActions,
   FormField,
+  Icon,
   Input,
   Link,
   Modal,
+  Tabs,
   Window,
 } from "@storyforge/ui";
 ```
 
 Real consumers: `LoginPage.tsx`, `RegisterPage.tsx`, `DashboardPage.tsx`
-(KAN-31 — `Button`/`Form`/`Input`/`Link`/`Modal`), and `DesktopBoard.tsx`
-(KAN-80 — `Window`, see `apps/web` section below).
+(`Button`/`Form`/`Input`/`Link`/`Modal`); `DesktopBoard.tsx` (`Window`, see
+`apps/web` section below); every `*FormWindow.tsx` component (`Form`/
+`FormField`/`FormActions`/`Input`/`Textarea`/`Select`/`Checkbox`);
+`EntityWindow.tsx` (`Tabs`); `AppCommandPalette.tsx` (`CommandPalette`); and
+most components across `apps/web/src/components` for `Icon`, since the UI
+polish pass that replaced ad hoc unicode glyphs with real icons.
 
 The `Dock` component (KAN-80 — row of toggle buttons reopening closed
 windows) and the dedicated `npcs` catalog window/`NpcsWindow` were
@@ -500,14 +562,21 @@ Current implementation:
   only supports v15/v16 as a peer; do not bump to a v17 prerelease
   without confirming yoga supports it (a stray `^17` pin previously broke
   introspection's default arguments in confusing ways).
-- Eleven vertical-slice modules under `src/modules/` today: `auth`,
+- Fourteen vertical-slice modules under `src/modules/` today: `auth`,
   `campaigns`, `campaignMembers`, `entities`, `tags`, `relationships`,
-  `notes`, `noteLinks`, `sessions`, `events`, `attachments`. All follow the
-  same `application/` (service, use cases) → `graphql/` (schema +
-  resolvers) → `infrastructure/` (Prisma repository + mapper) layout; only
-  the two most load-bearing are detailed below. See `docs/FEATURES.md` for
-  current per-module status — that file is kept in sync with what's
-  actually built, this section isn't re-derived from it automatically.
+  `notes`, `noteLinks`, `sessions`, `events`, `attachments`, `map` (Markers/
+  Territories/the custom map image, KAN-50/51/52), `campaignBroadcast`
+  (the real-time GraphQL-subscriptions-over-SSE transport, KAN-127, plus its
+  own `campaignBroadcast` proof-of-concept heartbeat channel), and
+  `workspace` (server-persisted per-user desktop layout + recent-entities
+  state, KAN-103). Most follow the same `application/` (service, use cases)
+  → `graphql/` (schema + resolvers) → `infrastructure/` (Prisma repository +
+  mapper) layout — `campaignBroadcast` is the exception, GraphQL-only with
+  no domain aggregate or repository since it has no persisted state of its
+  own; only the two most load-bearing modules are detailed below. See
+  `docs/FEATURES.md` for current per-module status — that file is kept in
+  sync with what's actually built, this section isn't re-derived from it
+  automatically.
   - `src/modules/entities/`, split into `application/` (`EntityService.ts`
     — create/update/delete/get/list use cases), `graphql/` (schema +
     resolvers, fully implemented — `entities(campaignId, filter:
@@ -632,7 +701,9 @@ implemented yet and would need an atomic swap), and archived campaigns
 are excluded from `listCampaigns` (still reachable via `campaign(id)`).
 
 Remaining known gaps: `Entity.visibility`-based read filtering only
-exists for entities, not notes/sessions/timeline; the `Campaign.members`
+exists for entities, not sessions/timeline (`Note` has its own separate
+visibility mechanism — `SHARED`/`PRIVATE`/`TARGETED`, KAN-63 — not this
+same `EntityVisibility` enum); the `Campaign.members`
 field resolver is unguarded by design for now (the web app reads it to
 resolve the viewer's own role — needs a dedicated "my membership" query
 before it can be restricted); `Campaign.name` is globally unique across
@@ -670,19 +741,31 @@ auth flow, and the campaign desktop shell are all wired:
 - `CampaignDesktopPage` (`src/pages/CampaignDesktopPage.tsx`, KAN-80) —
   loads the campaign via the `campaign(id)`/`me` queries, resolves the
   caller's role from `campaign.members`, then renders `DesktopBoard`
-  (viewport ≥768px) or `MobileDesktop` (<768px) via `useMediaQuery`:
+  (viewport ≥768px) or `MobileDesktop` (<768px) via `useMediaQuery`. Also
+  mounts, unconditionally and regardless of which window has focus:
+  `AppCommandPalette` (the global command palette) and
+  `ForceOpenEntityListener` (KAN-133 — receives a Storyteller's
+  force-open-entity broadcast, see the real-time section below), plus wires
+  `useWorkspaceStateSync` (KAN-103/104) alongside `useDesktopWindowsController`.
   - `DesktopBoard` (`src/components/DesktopBoard.tsx`) — renders one
     `@storyforge/ui` `Window` per entry in `WINDOW_CATALOG`
     (`src/lib/windowCatalog.ts`), positioned/sized/z-ordered from
-    `useDesktopLayout` (`src/hooks/useDesktopLayout.ts`). That hook owns
-    drag and resize (pointer-event based, clamped to the board's bounds,
-    KAN-88), bring-to-front on click/drag-start, close/reopen (`toggle`),
-    and persists the full layout to `localStorage` under
-    `storyforge:desktop:<campaignId>` on every drag/resize-end and toggle
-    — so
-    arrangement survives a page reload, scoped per campaign. `EntitySidebar`'s
-    World nav (sibling of `DesktopBoard`, sharing state via
-    `DesktopWindowsContext`) lists every catalog entry and toggles
+    `useDesktopWindowsController`/`useDesktopLayout`
+    (`src/hooks/useDesktopLayout.ts`). That hook owns drag and resize
+    (pointer-event based, clamped to the board's bounds, KAN-88),
+    bring-to-front on click/drag-start, close/reopen (`toggle`), _named
+    layout presets_ (KAN-101 — `savePreset(name)`/`applyPreset(name)`,
+    stored alongside the layout itself), and dynamic per-id windows
+    (KAN-95 — `openWindow`/`closeWindow` for windows not in the static
+    catalog, e.g. an entity detail window keyed `entity:<id>`). Everything
+    persists to `localStorage` under `storyforge:desktop:<campaignId>` on
+    every drag/resize-end/toggle/preset change, so arrangement survives a
+    page reload, scoped per campaign — and, since KAN-103/104, the same
+    layout plus the recently-opened-entities list additionally syncs to the
+    server per user per campaign (`useWorkspaceStateSync`, debounced save,
+    server hydration on mount, fails open to localStorage-only on any
+    error). `EntitySidebar`'s World nav (sibling of `DesktopBoard`, sharing
+    state via `DesktopWindowsContext`) lists every catalog entry and toggles
     visibility; a "Reset layout" button clears storage and restores
     `DEFAULT_LAYOUT`.
   - `MobileDesktop` (`src/components/MobileDesktop.tsx`) — the same
@@ -690,48 +773,125 @@ auth flow, and the campaign desktop shell are all wired:
     instead of draggable windows. No layout persistence (nothing to
     persist — just an `activeId` selection).
   - `WINDOW_CATALOG` (`src/lib/windowCatalog.ts`) is data-driven —
-    `{id, title, render, visibleToRoles?}` entries — specifically so
-    KAN-39/81/84/49/85 can each swap their entry's `render` for a real
-    component without touching `DesktopBoard`/`MobileDesktop`. There is no
-    dedicated `npcs` entry — NPCs are entities like any other, reached via
-    `EntitySidebar`'s Entities list. `members` (`MembersWindow` — Owner
-    gets add/remove/change-role with mutation errors surfaced in a
-    `FormError` banner; hidden entirely from Players/Observers via
-    `visibleToRoles`) is real now; `sessions`/`timeline`/`notes` still
-    render `ComingSoonPanel`
-    (`src/components/ComingSoonPanel.tsx`), a one-line placeholder naming
-    the tracking ticket. `relationships` (`RelationshipGraphWindow`,
-    KAN-42) is also real — a `@xyflow/react` node-link diagram of
-    `entities(campaignId)`/`relationships(campaignId)`, colored by `type`
-    via `src/lib/categoryColor.ts`'s fixed 8-hue categorical palette
-    (first-seen order, since `Entity.type`/`Relationship.type` are open
-    free strings, not enums). No `visibleToRoles` restriction — every
-    campaign role sees the graph. Create/edit UI landed in KAN-123:
-    writers (Owner/Storyteller/Co-Storyteller, checked client-side the
-    same way `MapsWindow` derives `isWriter`) get a "+ Add Relationship"
-    button and can click an edge to edit or delete it via
-    `RelationshipFormWindow` (`useAddEditWindow`, same shape as
-    `MarkerFormWindow`/`TerritoryFormWindow`). Source/target entity
-    pickers are unrestricted by category (unlike Marker/Territory,
-    KAN-121/122 — a Relationship connects any two entities) and only
-    settable at creation, since `UpdateRelationshipInput` has no
-    `sourceEntityId`/`targetEntityId` (KAN-41 — repoint by delete +
-    recreate). The type field suggests category-pair-appropriate values
-    via a `<datalist>` (`src/lib/relationshipTypeSuggestions.ts`) but
-    stays a free string end to end — a hint, not a constraint, so a
-    future plugin (e.g. VTM's Sire/Childe/Ghoul) can still define its own
-    values with no core change.
+    `{id, title, render, visibleToRoles?}` entries. There is no dedicated
+    `npcs` entry — NPCs are entities like any other, reached via
+    `EntitySidebar`'s Entities list. All six entries are real, role-aware
+    content today — no `ComingSoonPanel` placeholders remain:
+    - `members` (`MembersWindow`) — Owner gets add/remove/change-role with
+      mutation errors surfaced in a `FormError` banner; hidden entirely from
+      Players/Observers via `visibleToRoles`.
+    - `sessions` (`SessionsWindow`) and `timeline` (`TimelineWindow`) —
+      list + create/edit/delete for `Session`/`Event`, writer-gated
+      (Owner/Storyteller/Co-Storyteller) the same way world-data mutations
+      are elsewhere.
+    - `notes` (`NotesWindow`) — list + create/edit/delete, visible to every
+      role since KAN-63/89/90: the API filters what each role can read
+      (`SHARED` notes to everyone, `PRIVATE` to the author, `TARGETED`
+      handouts to their named recipients) rather than the window hiding
+      itself. Players can author their own notes (`requireCampaignMember`,
+      not writer-gated, KAN-90).
+    - `relationships` (`RelationshipGraphWindow`) — a `@xyflow/react`
+      node-link diagram of `entities(campaignId)`/`relationships(campaignId)`,
+      colored by `type` via `src/lib/categoryColor.ts`'s fixed 8-hue
+      categorical palette (first-seen order, since `Entity.type`/
+      `Relationship.type` are open free strings, not enums). No
+      `visibleToRoles` restriction — every campaign role sees the graph.
+      Writers (checked client-side the same way `MapsWindow` derives
+      `isWriter`) get an "Add Relationship" button and can click an edge to
+      edit or delete it via `RelationshipFormWindow` (`useAddEditWindow`,
+      same shape as `MarkerFormWindow`/`TerritoryFormWindow`). Source/target
+      entity pickers are unrestricted by category (unlike Marker/Territory,
+      KAN-121/122 — a Relationship connects any two entities) and only
+      settable at creation, since `UpdateRelationshipInput` has no
+      `sourceEntityId`/`targetEntityId` (KAN-41 — repoint by delete +
+      recreate). The type field suggests category-pair-appropriate values
+      via a `<datalist>` (`src/lib/relationshipTypeSuggestions.ts`) but
+      stays a free string end to end — a hint, not a constraint, so a
+      future plugin (e.g. VTM's Sire/Childe/Ghoul) can still define its own
+      values with no core change.
+    - `maps` (`MapsWindow`) — `MapCanvas` (`react-leaflet`) rendering a
+      campaign's Markers/Territories and, optionally, a custom uploaded map
+      image (`CRS.Simple`) instead of the geographic tile layer. Writers get
+      draw-mode toolbars to place markers/draw territory polygons directly
+      on the map and link them to a `LOCATION`- (Markers, KAN-121) or
+      `LOCATION`/`ORGANIZATION`-category (Territories, KAN-122) entity via
+      `EntitySelectField`'s `categories` filter; a marker/territory's pin
+      or outline color is the linked entity's own `color` when set, falling
+      back to a hash-of-`type` color otherwise (`MapCanvas`'s
+      `resolveFeatureColor`). Also hosts the Storyteller-only live-viewport
+      force-sync control — see the real-time section below.
 - `src/index.css` only holds `apps/web`-shell layout/typography rules;
   design tokens (colors, fonts, shadows) live in
   `@storyforge/ui/tokens.css`, imported once in `main.tsx`.
+- **Command palette** (KAN-99/100) — `AppCommandPalette.tsx` wraps
+  `@storyforge/ui`'s presentational `CommandPalette` with the actual data:
+  sections for entities, notes, sessions, and quick actions (new entity,
+  new note), fuzzy-scored client-side (`src/lib/commandScore.ts`) against
+  the same `EntitiesDocument`/`NotesDocument`/`SessionsDocument` queries the
+  rest of the app already runs, no dedicated search backend. Opens on
+  ⌘K/Ctrl+K globally. Recently-opened entities (`useRecentEntities.ts`,
+  `localStorage`-backed, most-recent-first, capped at 10, hydrated from the
+  server workspace-state sync above) surface as their own section so a
+  session's frequently-referenced NPCs stay one keystroke away.
+- **Entity detail window** (`EntityWindow.tsx`, KAN-96/97) — opened via
+  `useOpenEntityWindow` (shared by `EntitySidebar`, `RelationshipGraphWindow`'s
+  node click, `AppCommandPalette`, and `ForceOpenEntityListener`) as a
+  dynamic `entity:<id>` window. Three `@storyforge/ui` `Tabs`: Overview
+  (name/type/description/visibility, a portrait upload control, and — for
+  `LOCATION`/`ORGANIZATION` entities — the map-color override control, see
+  the Entity notes above), Relationships (this entity's `Relationship` rows,
+  clicking a counterpart opens _its_ entity window), and Notes (still a
+  one-line "coming soon" stub — no per-entity notes view exists yet, only
+  the campaign-wide `NotesWindow`). The generic entity path has no edit form
+  for name/type/description yet — `EntityFormWindow` is create-only; only
+  the portrait and map-color controls are editable post-creation, both via
+  dedicated single-purpose mutations rather than a general update form.
 
 Target responsibilities not yet realized: UI extension rendering
-(plugin-contributed UI), and the real content for the remaining Campaign
-Desktop windows (Timeline, Sessions, Notes — KAN-49/84/85), which are
-still `ComingSoonPanel` placeholders inside the KAN-80 shell. NPCs
-(KAN-39) and Members (KAN-81) now render real content.
+(plugin-contributed UI), and a general entity edit form (name/type/
+description — currently create-only, see above).
 
 No business logic.
+
+---
+
+### Real-time: GraphQL subscriptions over SSE (KAN-127–133)
+
+`apps/api`'s `campaignBroadcast` module (`src/graphql/pubsub.ts` +
+`modules/campaignBroadcast/`) is the transport foundation: an in-process
+pub/sub keyed by `(channel, campaignId)`, exposed to GraphQL as
+`Subscription` fields resolved by `graphql-yoga`'s native SSE support (no
+WebSocket server, no extra dependency). `campaignBroadcast(campaignId)`
+itself is a proof-of-concept heartbeat channel (KAN-127) that exists only to
+prove the transport end-to-end — feature channels publish on their own
+event, not on an interval.
+
+Two Storyteller-only push features are built on top, both gated by the
+`BROADCAST_TO_PLAYERS` permission (KAN-128, `packages/domain/src/permission`)
+and both using the same "all players, or an explicit `userIds` list"
+target shape (`{allPlayers: Boolean!, userIds: [ID!]!}`) and the same
+`BroadcastTargetPicker` frontend control:
+
+- **Force-sync viewport** (KAN-129/130/131) — a Storyteller's `MapsWindow`
+  reports its live camera (`MapCanvas`'s `onViewportChange`) and can push it
+  to targeted players via `forceSyncViewport`; each target's `MapCanvas`
+  applies it imperatively (`viewport` prop, one-shot "jump to this view",
+  not a continuous lock — the player's own panning afterward is left
+  alone) on receiving `onForceSyncViewport`.
+- **Force-open entity window** (KAN-132/133) — a Storyteller can push
+  `forceOpenEntityWindow` (from `EntitySidebar`'s per-row
+  `ForceOpenEntityAction` or `EntityWindow`'s Overview tab) to open a
+  specific entity's window on targeted players' screens, bypassing the
+  normal `Visibility: PUBLIC` read filter by design (a deliberate,
+  documented exception — the Storyteller is explicitly choosing to show
+  this). `ForceOpenEntityListener`, mounted once per campaign alongside
+  `AppCommandPalette`, receives it on every client and opens the window via
+  the same `useOpenEntityWindow` every other entity-opening call site uses.
+
+There is no online-presence tracking anywhere in the app — "all players"
+resolves against the campaign's static membership roster
+(`ViewportSyncTargetResolver`/its `forceOpenEntityWindow` equivalent), not
+who currently has a subscription open.
 
 ---
 
@@ -1131,8 +1291,8 @@ the hook never needs a live Postgres — CI still runs the full suite
 
 Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
 `test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
-so workspace deps are built first). Current coverage (605 tests: 168
-`packages/domain` + 437 `apps/api`).
+so workspace deps are built first). Current coverage (875 tests: 302
+`packages/domain` + 573 `apps/api`).
 
 Every package also exposes a `test:unit` script (turbo task `test:unit`)
 that runs the same suite minus the Prisma repository integration tests —
@@ -1201,11 +1361,14 @@ Gotchas learned building this out, worth knowing before adding more:
   files relative to it.
 
 `apps/web` and `packages/ui` have Vitest + Testing Library test infra
-(component/unit level, 99 tests total: 73 `apps/web` + 26 `packages/ui`)
+(component/unit level, 506 tests total: 426 `apps/web` + 80 `packages/ui`)
 — `apps/web/src/router.test.tsx`, page-level tests per page
 (`LoginPage`/`RegisterPage`/`DashboardPage`/`CampaignDesktopPage.test.tsx`),
-component-level tests for the KAN-80 shell (`DesktopBoard.test.tsx`,
-`MobileDesktop.test.tsx`), and per-component `*.test.tsx` files under
+component-level tests for the desktop shell (`DesktopBoard.test.tsx`,
+`MobileDesktop.test.tsx`) and every real window/form component
+(`MapsWindow`/`MapCanvas`/`RelationshipGraphWindow`/`SessionsWindow`/
+`TimelineWindow`/`NotesWindow`/`EntityWindow`/the `*FormWindow` family/
+etc.), and per-component `*.test.tsx` files under
 `packages/ui/src/components/` (including `Window`) — run via the
 same root `pnpm turbo run lint build test` as everything else. No
 frontend end-to-end (real browser, real backend) test infra exists yet
@@ -1343,10 +1506,18 @@ full per-feature checklist):
   `removeTagFromEntity` mutations, `campaignTags` query, `Entity.tags`
   field.
 - **Relationships** (KAN-40/41), **Notes** incl. nesting, wiki-style
-  links, and attachments (KAN-43/44/45/46), **Sessions** (KAN-47), and
-  **Events** incl. participants (KAN-48) — all follow the same
-  domain → service → Prisma repository → GraphQL shape; per-module detail
-  in the apps/api notes above and `docs/FEATURES.md`.
+  links, visibility (shared/private/targeted-handout, KAN-63), and
+  attachments (KAN-43/44/45/46), **Sessions** (KAN-47), and **Events**
+  incl. participants (KAN-48) — all follow the same domain → service →
+  Prisma repository → GraphQL shape; per-module detail in the apps/api
+  notes above and `docs/FEATURES.md`.
+- **Maps** (KAN-50/51/52) — `Marker`/`Territory` domain aggregates
+  (`packages/domain/src/map/`, referencing an `Entity` by nullable
+  `entityId`, constrained to `LOCATION`/`ORGANIZATION`-category entities
+  per KAN-121/122) plus an optional per-campaign custom map image, rendered
+  by `apps/web`'s Leaflet-based `MapCanvas`. See the apps/web "Real-time"
+  subsection above for the Storyteller live-viewport force-sync feature
+  built on top.
 
 Not yet implemented, despite being referenced elsewhere in this
 document as target scope: Worlds, and dedicated

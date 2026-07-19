@@ -6,7 +6,10 @@ query Territories($campaignId: ID!) {
       id
       name
       type
+      category
       description
+      image
+      color
       visibility
     }
     name

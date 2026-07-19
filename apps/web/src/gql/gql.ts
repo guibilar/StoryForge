@@ -21,7 +21,7 @@ type Documents = {
   "query Campaign($id: ID!) {\n  campaign(id: $id) {\n    id\n    name\n    members {\n      userId\n      role\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.CampaignDocument;
   "query Campaigns {\n  campaigns {\n    id\n    name\n    description\n    archivedAt\n    members {\n      userId\n      role\n    }\n  }\n}": typeof types.CampaignsDocument;
   "mutation CreateCampaign($input: CreateCampaignDTO!) {\n  createCampaign(input: $input) {\n    id\n    name\n    description\n    archivedAt\n    members {\n      userId\n      role\n    }\n  }\n}": typeof types.CreateCampaignDocument;
-  "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    name\n    description\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}": typeof types.CreateEntityDocument;
+  "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    name\n    description\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}": typeof types.CreateEntityDocument;
   "mutation CreateEvent($input: CreateEventInput!) {\n  createEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.CreateEventDocument;
   "mutation CreateMarker($input: CreateMarkerInput!) {\n  createMarker(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}": typeof types.CreateMarkerDocument;
   "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.CreateNoteDocument;
@@ -38,12 +38,12 @@ type Documents = {
   "mutation DeleteTerritory($id: ID!) {\n  deleteTerritory(id: $id)\n}": typeof types.DeleteTerritoryDocument;
   "mutation DetachParticipant($eventId: ID!, $entityId: ID!) {\n  detachParticipant(eventId: $eventId, entityId: $entityId) {\n    id\n    participants {\n      id\n      name\n    }\n  }\n}": typeof types.DetachParticipantDocument;
   "mutation DetachSessionAttendee($sessionId: ID!, $userId: ID!) {\n  detachSessionAttendee(sessionId: $sessionId, userId: $userId) {\n    id\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.DetachSessionAttendeeDocument;
-  "query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    name\n    description\n    type\n    category\n    isPlayerCharacter\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}": typeof types.EntitiesDocument;
+  "query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    name\n    description\n    type\n    category\n    isPlayerCharacter\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}": typeof types.EntitiesDocument;
   "query Events($campaignId: ID!) {\n  events(campaignId: $campaignId) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.EventsDocument;
   "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.LoginDocument;
   "mutation Logout {\n  logout\n}": typeof types.LogoutDocument;
   "query MapImage($campaignId: ID!) {\n  mapImage(campaignId: $campaignId) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}": typeof types.MapImageDocument;
-  "query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}": typeof types.MarkersDocument;
+  "query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}": typeof types.MarkersDocument;
   "query Me {\n  me {\n    id\n    email\n  }\n}": typeof types.MeDocument;
   "query MyWorkspaceState($campaignId: ID!) {\n  myWorkspaceState(campaignId: $campaignId) {\n    id\n    layout\n    recentEntityIds\n    updatedAt\n  }\n}": typeof types.MyWorkspaceStateDocument;
   "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.NotesDocument;
@@ -52,10 +52,10 @@ type Documents = {
   "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}": typeof types.RemoveCampaignMemberDocument;
   "mutation SaveWorkspaceState($input: SaveWorkspaceStateInput!) {\n  saveWorkspaceState(input: $input) {\n    id\n    updatedAt\n  }\n}": typeof types.SaveWorkspaceStateDocument;
   "query Sessions($campaignId: ID!) {\n  sessions(campaignId: $campaignId) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.SessionsDocument;
-  "query Territories($campaignId: ID!) {\n  territories(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}": typeof types.TerritoriesDocument;
+  "query Territories($campaignId: ID!) {\n  territories(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}": typeof types.TerritoriesDocument;
   "mutation UpdateCampaign($input: UpdateCampaignInput!) {\n  updateCampaign(input: $input) {\n    id\n    name\n    description\n    archivedAt\n  }\n}": typeof types.UpdateCampaignDocument;
   "mutation UpdateCampaignMemberRole($input: UpdateCampaignMemberRoleInput!) {\n  updateCampaignMemberRole(input: $input) {\n    userId\n    role\n  }\n}": typeof types.UpdateCampaignMemberRoleDocument;
-  "mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}": typeof types.UpdateEntityDocument;
+  "mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}": typeof types.UpdateEntityDocument;
   "mutation UpdateEvent($input: UpdateEventInput!) {\n  updateEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateEventDocument;
   "mutation UpdateMarker($input: UpdateMarkerInput!) {\n  updateMarker(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}": typeof types.UpdateMarkerDocument;
   "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateNoteDocument;
@@ -80,7 +80,7 @@ const documents: Documents = {
     types.CampaignsDocument,
   "mutation CreateCampaign($input: CreateCampaignDTO!) {\n  createCampaign(input: $input) {\n    id\n    name\n    description\n    archivedAt\n    members {\n      userId\n      role\n    }\n  }\n}":
     types.CreateCampaignDocument,
-  "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    name\n    description\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}":
+  "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    name\n    description\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}":
     types.CreateEntityDocument,
   "mutation CreateEvent($input: CreateEventInput!) {\n  createEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}":
     types.CreateEventDocument,
@@ -114,7 +114,7 @@ const documents: Documents = {
     types.DetachParticipantDocument,
   "mutation DetachSessionAttendee($sessionId: ID!, $userId: ID!) {\n  detachSessionAttendee(sessionId: $sessionId, userId: $userId) {\n    id\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}":
     types.DetachSessionAttendeeDocument,
-  "query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    name\n    description\n    type\n    category\n    isPlayerCharacter\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}":
+  "query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    name\n    description\n    type\n    category\n    isPlayerCharacter\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}":
     types.EntitiesDocument,
   "query Events($campaignId: ID!) {\n  events(campaignId: $campaignId) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}":
     types.EventsDocument,
@@ -123,7 +123,7 @@ const documents: Documents = {
   "mutation Logout {\n  logout\n}": types.LogoutDocument,
   "query MapImage($campaignId: ID!) {\n  mapImage(campaignId: $campaignId) {\n    id\n    url\n    fileName\n    width\n    height\n  }\n}":
     types.MapImageDocument,
-  "query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}":
+  "query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}":
     types.MarkersDocument,
   "query Me {\n  me {\n    id\n    email\n  }\n}": types.MeDocument,
   "query MyWorkspaceState($campaignId: ID!) {\n  myWorkspaceState(campaignId: $campaignId) {\n    id\n    layout\n    recentEntityIds\n    updatedAt\n  }\n}":
@@ -140,13 +140,13 @@ const documents: Documents = {
     types.SaveWorkspaceStateDocument,
   "query Sessions($campaignId: ID!) {\n  sessions(campaignId: $campaignId) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}":
     types.SessionsDocument,
-  "query Territories($campaignId: ID!) {\n  territories(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}":
+  "query Territories($campaignId: ID!) {\n  territories(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}":
     types.TerritoriesDocument,
   "mutation UpdateCampaign($input: UpdateCampaignInput!) {\n  updateCampaign(input: $input) {\n    id\n    name\n    description\n    archivedAt\n  }\n}":
     types.UpdateCampaignDocument,
   "mutation UpdateCampaignMemberRole($input: UpdateCampaignMemberRoleInput!) {\n  updateCampaignMemberRole(input: $input) {\n    userId\n    role\n  }\n}":
     types.UpdateCampaignMemberRoleDocument,
-  "mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}":
+  "mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}":
     types.UpdateEntityDocument,
   "mutation UpdateEvent($input: UpdateEventInput!) {\n  updateEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}":
     types.UpdateEventDocument,
@@ -226,8 +226,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    name\n    description\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}",
-): (typeof documents)["mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    name\n    description\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}"];
+  source: "mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    name\n    description\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}",
+): (typeof documents)["mutation CreateEntity($input: CreateEntityInput!) {\n  createEntity(input: $input) {\n    id\n    name\n    description\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -328,8 +328,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    name\n    description\n    type\n    category\n    isPlayerCharacter\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}",
-): (typeof documents)["query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    name\n    description\n    type\n    category\n    isPlayerCharacter\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}"];
+  source: "query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    name\n    description\n    type\n    category\n    isPlayerCharacter\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}",
+): (typeof documents)["query Entities($campaignId: ID!, $filter: EntityFilter) {\n  entities(campaignId: $campaignId, filter: $filter) {\n    id\n    name\n    description\n    type\n    category\n    isPlayerCharacter\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -358,8 +358,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}",
-): (typeof documents)["query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}"];
+  source: "query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}",
+): (typeof documents)["query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -412,8 +412,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "query Territories($campaignId: ID!) {\n  territories(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}",
-): (typeof documents)["query Territories($campaignId: ID!) {\n  territories(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}"];
+  source: "query Territories($campaignId: ID!) {\n  territories(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}",
+): (typeof documents)["query Territories($campaignId: ID!) {\n  territories(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -430,8 +430,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}",
-): (typeof documents)["mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    image\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}"];
+  source: "mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}",
+): (typeof documents)["mutation UpdateEntity($input: UpdateEntityInput!) {\n  updateEntity(input: $input) {\n    id\n    name\n    description\n    image\n    color\n    visibility\n    tags {\n      id\n      name\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

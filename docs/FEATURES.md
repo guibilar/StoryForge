@@ -168,6 +168,21 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       `requireCampaignWriter` (loads the entity first, same as above); frontend
       upload control and rendering live in `EntityWindow`'s Overview tab
       (KAN-124, KAN-125)
+- [x] Entity map colour override — nullable `Entity.color` (6-digit hex,
+      validated by `Entity.changeColor`), settable via `createEntity`/
+      `updateEntity`. `EntityFormWindow` shows a colour picker at create time
+      and `EntityWindow`'s Overview tab a "Set/Change Map Color"/"Reset"
+      control at edit time, both gated to `LOCATION`/`ORGANIZATION` categories
+      (the only ones Markers/Territories can link to, KAN-121/122). `MapCanvas`
+      prefers `entity.color` over its existing type-derived hash colour
+      (`resolveFeatureColor`), so a specific location/faction can be made to
+      stand out on the map; unset falls back to the pre-existing hash.
+      Fixed alongside it: `markers.graphql`/`territories.graphql` previously
+      under-selected their linked `entity` (missing `category`/`image`/
+      `color`), so opening an entity from a map marker/territory popup always
+      showed the placeholder portrait even when the entity had one — widened
+      both queries and `MapCanvas`'s `MapLinkedEntity` type to carry the same
+      fields `EntityWindow` needs.
 - [x] Tags (KAN-37) — campaign-scoped `Tag`/`EntityTag` join model (reusable
       across entities in a campaign, name normalized trim+lowercase);
       `addTagToEntity`/`removeTagFromEntity` GraphQL mutations (find-or-create
@@ -371,6 +386,10 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       org-like, so `LOCATION` is included alongside `ORGANIZATION` rather
       than restricting to factions/orgs alone. `TerritoryFormWindow` passes
       both categories to `EntitySelectField`.
+- [x] Marker/territory colour from the linked entity — `MapCanvas` colours
+      pins and territory outlines by the linked entity's own `color` when
+      set, falling back to its existing hash-of-`type` colour when not (see
+      the entity map colour override bullet under World Building).
 
 ## Plugin Runtime
 

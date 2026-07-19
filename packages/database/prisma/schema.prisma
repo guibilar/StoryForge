@@ -83,6 +83,9 @@ model Entity {
   description       String?
   icon              String?
   image             String?
+  // Overrides the type-derived colour markers/territories otherwise fall
+  // back to on the map — see Entity.Color in packages/domain.
+  color             String?
 
   visibility Visibility @default(PUBLIC)
 

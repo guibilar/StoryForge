@@ -45,12 +45,19 @@ const DEFAULT_CENTER: LatLngExpression = [20, 0];
 const DEFAULT_ZOOM = 3;
 
 // Mirrors EntitySummary (EntityWindow.tsx) so a popup's entity link can open
-// the real entity window without a second fetch.
+// the real entity window without a second fetch — this has to carry the same
+// fields EntityWindow needs (image, category, color), or opening an entity
+// from the map silently drops them (it used to, for image).
 export interface MapLinkedEntity {
   id: string;
   name: string;
   type: string;
+  category: string;
   description?: string | null;
+  image?: string | null;
+  // A user-set override for this entity's marker/territory colour. Falls
+  // back to colorForEntityType(type) when unset (see resolveFeatureColor).
+  color?: string | null;
   visibility: string;
 }
 
@@ -170,6 +177,13 @@ function colorForEntityType(type: string | null | undefined): string {
   }
 
   return ENTITY_TYPE_COLORS[Math.abs(hash) % ENTITY_TYPE_COLORS.length];
+}
+
+// A user-set Entity.color always wins — it's a deliberate choice to make a
+// specific location/organization stand out or group visually. The type hash
+// is only a fallback for entities nobody has coloured yet.
+function resolveFeatureColor(entity: MapLinkedEntity | null | undefined) {
+  return entity?.color ?? colorForEntityType(entity?.type);
 }
 
 // Leaflet's default marker is a fixed-colour PNG sprite, so tinting it means
@@ -762,7 +776,7 @@ export function MapCanvas({
           <GeoJSON
             key={`${territory.id}:${editing}`}
             data={territory.geometry as unknown as GeoJsonObject}
-            style={{ color: colorForEntityType(territory.entity?.type) }}
+            style={{ color: resolveFeatureColor(territory.entity) }}
             eventHandlers={{
               // While a mode is armed, a click that lands on an existing
               // territory is the user placing a point on top of it — not a
@@ -795,7 +809,7 @@ export function MapCanvas({
           <Marker
             key={marker.id}
             position={[marker.lat, marker.lng]}
-            icon={pinIcon(colorForEntityType(marker.entity?.type))}
+            icon={pinIcon(resolveFeatureColor(marker.entity))}
           >
             {/* Fixed-size, unlike territory labels: a marker is a point, so
                 there is no shape to scale its name against. */}

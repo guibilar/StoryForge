@@ -30,7 +30,10 @@ export interface MarkerRow {
     id: string;
     name: string;
     type: string;
+    category: string;
     description?: string | null;
+    image?: string | null;
+    color?: string | null;
     visibility: string;
   } | null;
   name: string;

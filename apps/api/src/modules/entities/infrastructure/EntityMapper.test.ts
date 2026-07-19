@@ -14,6 +14,7 @@ describe("EntityMapper", () => {
       description: "A sneaky goblin",
       icon: "goblin.png",
       image: "goblin.jpg",
+      color: "#4287f5",
       visibility: "PRIVATE",
       isPlayerCharacter: true,
       ownerUserId: "33333333-3333-3333-3333-333333333333",
@@ -32,6 +33,7 @@ describe("EntityMapper", () => {
     expect(entity.Description).toBe(record.description);
     expect(entity.Icon).toBe(record.icon);
     expect(entity.Image).toBe(record.image);
+    expect(entity.Color).toBe(record.color);
     expect(entity.Visibility).toBe(EntityVisibility.PRIVATE);
     expect(entity.IsPlayerCharacter).toBe(true);
     expect(entity.OwnerUserId).toBe(record.ownerUserId);
@@ -63,6 +65,7 @@ describe("EntityMapper", () => {
       description: entity.Description,
       icon: entity.Icon,
       image: entity.Image,
+      color: entity.Color,
       visibility: entity.Visibility,
       isPlayerCharacter: entity.IsPlayerCharacter,
       ownerUserId: entity.OwnerUserId,

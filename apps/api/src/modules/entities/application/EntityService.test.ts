@@ -178,6 +178,23 @@ describe("EntityService", () => {
       expect(repository.update).toHaveBeenCalledWith(entity);
     });
 
+    it("changes and clears the color", async () => {
+      const entity = Entity.create(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      const updated = await service.updateEntity({
+        id: entity.Id.toString(),
+        color: "#4287f5",
+      });
+      expect(updated.Color).toBe("#4287f5");
+
+      const cleared = await service.updateEntity({
+        id: entity.Id.toString(),
+        color: null,
+      });
+      expect(cleared.Color).toBeNull();
+    });
+
     it("flags an existing CHARACTER entity as a Player Character", async () => {
       const entity = Entity.create(createDto);
       vi.mocked(repository.findById).mockResolvedValue(entity);

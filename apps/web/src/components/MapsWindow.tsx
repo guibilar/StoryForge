@@ -179,7 +179,10 @@ export function MapsWindow() {
       id: entity.id,
       name: entity.name,
       type: entity.type,
+      category: entity.category as never,
       description: entity.description,
+      image: entity.image,
+      color: entity.color,
       visibility: entity.visibility as never,
     });
   }

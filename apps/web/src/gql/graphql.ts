@@ -25,6 +25,7 @@ export type CreateCampaignDto = {
 export type CreateEntityInput = {
   campaignId: string | number;
   category: EntityCategory;
+  color?: string | null | undefined;
   description?: string | null | undefined;
   icon?: string | null | undefined;
   image?: string | null | undefined;
@@ -129,6 +130,7 @@ export type UpdateCampaignMemberRoleInput = {
 
 export type UpdateEntityInput = {
   category?: EntityCategory | null | undefined;
+  color?: string | null | undefined;
   description?: string | null | undefined;
   icon?: string | null | undefined;
   id: string | number;
@@ -279,6 +281,7 @@ export type CreateEntityMutation = {
     name: string;
     description: string | null;
     image: string | null;
+    color: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   };
@@ -479,6 +482,7 @@ export type EntitiesQuery = {
     category: EntityCategory;
     isPlayerCharacter: boolean;
     image: string | null;
+    color: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   }>;
@@ -543,7 +547,10 @@ export type MarkersQuery = {
       id: string;
       name: string;
       type: string;
+      category: EntityCategory;
       description: string | null;
+      image: string | null;
+      color: string | null;
       visibility: EntityVisibility;
     } | null;
   }>;
@@ -652,7 +659,10 @@ export type TerritoriesQuery = {
       id: string;
       name: string;
       type: string;
+      category: EntityCategory;
       description: string | null;
+      image: string | null;
+      color: string | null;
       visibility: EntityVisibility;
     } | null;
   }>;
@@ -689,6 +699,7 @@ export type UpdateEntityMutation = {
     name: string;
     description: string | null;
     image: string | null;
+    color: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   };
@@ -1352,6 +1363,7 @@ export const CreateEntityDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 { kind: "Field", name: { kind: "Name", value: "image" } },
+                { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",
@@ -2414,6 +2426,7 @@ export const EntitiesDocument = {
                   name: { kind: "Name", value: "isPlayerCharacter" },
                 },
                 { kind: "Field", name: { kind: "Name", value: "image" } },
+                { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",
@@ -2695,8 +2708,14 @@ export const MarkersDocument = {
                       { kind: "Field", name: { kind: "Name", value: "type" } },
                       {
                         kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                      },
+                      {
+                        kind: "Field",
                         name: { kind: "Name", value: "description" },
                       },
+                      { kind: "Field", name: { kind: "Name", value: "image" } },
+                      { kind: "Field", name: { kind: "Name", value: "color" } },
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "visibility" },
@@ -3248,8 +3267,14 @@ export const TerritoriesDocument = {
                       { kind: "Field", name: { kind: "Name", value: "type" } },
                       {
                         kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                      },
+                      {
+                        kind: "Field",
                         name: { kind: "Name", value: "description" },
                       },
+                      { kind: "Field", name: { kind: "Name", value: "image" } },
+                      { kind: "Field", name: { kind: "Name", value: "color" } },
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "visibility" },
@@ -3427,6 +3452,7 @@ export const UpdateEntityDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 { kind: "Field", name: { kind: "Name", value: "image" } },
+                { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",

@@ -11,6 +11,12 @@ export interface CreateEntityProps {
   description?: string | null;
   icon?: string | null;
   image?: string | null;
+  // Overrides the type-derived colour markers/territories fall back to on
+  // the map (MapCanvas's colorForEntityType) — only meaningful for a
+  // LOCATION/ORGANIZATION entity, but not enforced here since a colour set
+  // before a category change (or on any other category) isn't harmful, just
+  // unused until the entity becomes map-linkable.
+  color?: string | null;
   visibility: EntityVisibility;
   isPlayerCharacter?: boolean;
   // References a User (a campaign's members are identified by
@@ -31,6 +37,7 @@ export interface RehydrateEntityProps {
   description: string | null;
   icon: string | null;
   image: string | null;
+  color: string | null;
   visibility: EntityVisibility;
   isPlayerCharacter: boolean;
   ownerUserId: string | null;
@@ -49,6 +56,7 @@ export class Entity {
     private descriptionValue: string | null,
     private iconValue: string | null,
     private imageValue: string | null,
+    private colorValue: string | null,
     private visibilityValue: EntityVisibility,
     private isPlayerCharacterValue: boolean,
     private ownerUserIdValue: string | null,
@@ -62,6 +70,7 @@ export class Entity {
     this.validateCategory(categoryValue);
     this.validateIsPlayerCharacter(isPlayerCharacterValue, categoryValue);
     this.validateOwnerUserId(ownerUserIdValue, isPlayerCharacterValue);
+    this.validateColor(colorValue);
   }
 
   static create(props: CreateEntityProps): Entity {
@@ -74,6 +83,7 @@ export class Entity {
       props.description ?? null,
       props.icon ?? null,
       props.image ?? null,
+      props.color ?? null,
       props.visibility,
       props.isPlayerCharacter ?? false,
       props.ownerUserId ?? null,
@@ -93,6 +103,7 @@ export class Entity {
       props.description,
       props.icon,
       props.image,
+      props.color,
       props.visibility,
       props.isPlayerCharacter,
       props.ownerUserId,
@@ -132,6 +143,10 @@ export class Entity {
 
   get Image(): string | null {
     return this.imageValue;
+  }
+
+  get Color(): string | null {
+    return this.colorValue;
   }
 
   get Visibility(): EntityVisibility {
@@ -222,6 +237,13 @@ export class Entity {
     this.updatedAtValue = new Date();
   }
 
+  changeColor(color: string | null): void {
+    this.validateColor(color);
+
+    this.colorValue = color;
+    this.updatedAtValue = new Date();
+  }
+
   delete(): void {
     if (this.deletedAtValue !== null) {
       return;
@@ -300,6 +322,18 @@ export class Entity {
     if (ownerUserId !== null && !isPlayerCharacter) {
       throw new ValidationError(
         "Only a Player Character can have an owning campaign member.",
+      );
+    }
+  }
+
+  private validateColor(color: string | null): void {
+    if (color === null) {
+      return;
+    }
+
+    if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
+      throw new ValidationError(
+        "Entity color must be a 6-digit hex code, e.g. #4287f5.",
       );
     }
   }

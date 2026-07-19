@@ -1321,10 +1321,19 @@ full per-feature checklist):
   `CampaignMemberRepository.findByCampaignAndUser`, applied last in
   `updateEntity` after category/isPlayerCharacter have settled. Data model
   only — does not itself change who can write to the entity. Has `name`,
-  `description`, `icon`, `image`, `visibility`
+  `description`, `icon`, `image`, `color`, `visibility`
   (`PUBLIC`/`STORYTELLER`/`PRIVATE`), soft delete (`deletedAt`), and a
-  `(campaignId, name)` uniqueness constraint. Fully wired
-  domain → service → Prisma repository → GraphQL: `createEntity`/
+  `(campaignId, name)` uniqueness constraint. `color` (nullable, validated
+  as a 6-digit hex `#rrggbb` by `Entity.changeColor`) lets a
+  `LOCATION`/`ORGANIZATION` entity override the type-derived colour Markers
+  and Territories otherwise fall back to on the map (`MapCanvas`'s
+  `resolveFeatureColor`); not restricted at the domain level to those two
+  categories (a colour set before a category change isn't harmful, just
+  unused until the entity becomes map-linkable) — the UI is what gates it
+  (`EntityFormWindow`'s create-time picker, `EntityWindow`'s Overview-tab
+  "Set/Change Map Color" control via the `updateEntity` mutation, both
+  restricted to `MAP_LINKABLE_CATEGORIES = [LOCATION, ORGANIZATION]`).
+  Fully wired domain → service → Prisma repository → GraphQL: `createEntity`/
   `updateEntity`/`deleteEntity`/`uploadEntityImage` mutations,
   `entity`/`entities` queries (see apps/api notes above for image
   upload details).

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useMutation, useQuery } from "urql";
@@ -11,6 +11,7 @@ import {
   EntitiesDocument,
   MeDocument,
   RelationshipsDocument,
+  UpdateEntityDocument,
   UploadEntityImageDocument,
 } from "../gql/graphql";
 
@@ -47,8 +48,21 @@ const ENTITY = {
   id: "e-1",
   name: "Carlos Mendoza",
   type: "Character",
+  category: "CHARACTER" as const,
   description: "A Tremere regent",
   image: null as string | null,
+  color: null as string | null,
+  visibility: "PUBLIC" as const,
+};
+
+const LOCATION_ENTITY = {
+  id: "e-3",
+  name: "The Rack",
+  type: "District",
+  category: "LOCATION" as const,
+  description: null,
+  image: null as string | null,
+  color: null as string | null,
   visibility: "PUBLIC" as const,
 };
 
@@ -58,8 +72,10 @@ const ENTITIES = [
     id: "e-2",
     name: "Beatriz Moreau",
     type: "Character",
+    category: "CHARACTER" as const,
     description: null,
     image: null,
+    color: null,
     visibility: "PUBLIC" as const,
   },
 ];
@@ -88,6 +104,12 @@ function setupQueries({
   uploadEntityImageFetching = false,
   uploadEntityImageError = undefined as
     { graphQLErrors: unknown[] } | undefined,
+  updateEntity = vi.fn().mockImplementation(({ input }) =>
+    Promise.resolve({
+      data: { updateEntity: { id: input.id, color: input.color ?? null } },
+    }),
+  ),
+  updateEntityFetching = false,
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === MeDocument) {
@@ -140,10 +162,21 @@ function setupQueries({
         uploadEntityImage,
       ];
     }
+    if (document === UpdateEntityDocument) {
+      return [
+        { fetching: updateEntityFetching, error: undefined, stale: false },
+        updateEntity,
+      ];
+    }
     throw new Error("Unexpected mutation in test");
   }) as never);
 
-  return { reexecuteEntities, reexecuteRelationships, uploadEntityImage };
+  return {
+    reexecuteEntities,
+    reexecuteRelationships,
+    uploadEntityImage,
+    updateEntity,
+  };
 }
 
 function setupDesktopWindows() {
@@ -307,6 +340,111 @@ describe("EntityWindow", () => {
 
     expect(
       screen.getByText("You are not allowed to do that."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows Set Map Color for a writer on a map-linkable entity", () => {
+    setupQueries();
+    setupDesktopWindows();
+    render(<EntityWindow entity={LOCATION_ENTITY} campaignId="camp-1" />);
+
+    expect(
+      screen.getByRole("button", { name: "Set Map Color" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the map color control for a non-map-linkable entity", () => {
+    setupQueries();
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    expect(
+      screen.queryByRole("button", { name: "Set Map Color" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the map color control for a non-writer", () => {
+    setupQueries({ members: playerMembers });
+    setupDesktopWindows();
+    render(<EntityWindow entity={LOCATION_ENTITY} campaignId="camp-1" />);
+
+    expect(
+      screen.queryByRole("button", { name: "Set Map Color" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("sets the map color and shows a swatch and Reset button", async () => {
+    const { updateEntity } = setupQueries();
+    setupDesktopWindows();
+    render(<EntityWindow entity={LOCATION_ENTITY} campaignId="camp-1" />);
+
+    const input = document.querySelector('input[type="color"]');
+    expect(input).toBeTruthy();
+    fireEvent.change(input as HTMLInputElement, {
+      target: { value: "#4287f5" },
+    });
+
+    expect(updateEntity).toHaveBeenCalledWith({
+      input: { id: "e-3", color: "#4287f5" },
+    });
+    expect(
+      await screen.findByRole("button", { name: "Change Map Color" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reset" })).toBeInTheDocument();
+  });
+
+  it("resets the map color", async () => {
+    const { updateEntity } = setupQueries();
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    render(
+      <EntityWindow
+        entity={{ ...LOCATION_ENTITY, color: "#4287f5" }}
+        campaignId="camp-1"
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Reset" }));
+
+    expect(updateEntity).toHaveBeenCalledWith({
+      input: { id: "e-3", color: null },
+    });
+    expect(
+      screen.getByRole("button", { name: "Set Map Color" }),
+    ).toBeInTheDocument();
+  });
+
+  it("resyncs local image/color state when the same window is reopened with fresher entity data", () => {
+    setupQueries();
+    setupDesktopWindows();
+    const { rerender } = render(
+      <EntityWindow
+        entity={{ ...LOCATION_ENTITY, image: null, color: null }}
+        campaignId="camp-1"
+      />,
+    );
+
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Set Map Color" }),
+    ).toBeInTheDocument();
+
+    rerender(
+      <EntityWindow
+        entity={{
+          ...LOCATION_ENTITY,
+          image: "/uploads/e-3/portrait.png",
+          color: "#4287f5",
+        }}
+        campaignId="camp-1"
+      />,
+    );
+
+    expect(
+      screen.getByRole("img", { name: "The Rack portrait" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Change Map Color" }),
     ).toBeInTheDocument();
   });
 

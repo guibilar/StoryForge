@@ -83,6 +83,17 @@ export interface MapPosition {
   lng: number;
 }
 
+// The live camera of a mounted map: where it's centered and how far zoomed
+// in. Symmetric in both directions (KAN-130) — `onViewportChange` reports it
+// out (e.g. a Storyteller's map broadcasting what they're currently looking
+// at), `viewport` pushes one in (e.g. a player's map snapping to it). Neither
+// direction is wired to a subscription/mutation here — that's KAN-129/131,
+// built on top of this plumbing.
+export interface MapViewport {
+  center: MapPosition;
+  zoom: number;
+}
+
 // Which authoring gesture the map is currently armed for (KAN-113). The mode
 // is owned by the caller rather than this component so that placing a marker
 // can disarm it as a side effect of opening a form — MapCanvas only reports
@@ -92,6 +103,19 @@ export type MapDrawMode = "none" | "marker" | "territory";
 export interface MapCanvasProps {
   center?: LatLngExpression;
   zoom?: number;
+  // Reports the mounted map's live center/zoom whenever a pan or zoom
+  // settles — the outward half of KAN-130's live-view plumbing. `center`/
+  // `zoom` above only seed the *initial* view (react-leaflet never re-applies
+  // them after mount); this is how a caller finds out where the map has
+  // moved to since.
+  onViewportChange?: (viewport: MapViewport) => void;
+  // Pushes a center/zoom to imperatively apply to the already-mounted map —
+  // the inward half of KAN-130's live-view plumbing (e.g. snapping a
+  // player's map to a Storyteller's). Applied once per genuinely new value
+  // (compared to the last one applied, not every render) via `setView`, so
+  // it's a one-shot "jump to this view" rather than a continuous lock: the
+  // user's own panning afterward is left alone.
+  viewport?: MapViewport | null;
   markers?: MapMarkerPoint[];
   territories?: MapTerritoryShape[];
   imageOverlay?: MapImageOverlay | null;
@@ -438,6 +462,76 @@ function MapViewWatcher({ onChange }: { onChange: (view: MapView) => void }) {
   return null;
 }
 
+// Outward half of KAN-130's live-view plumbing: reports the map's live
+// center/zoom to whoever is listening (e.g. a Storyteller broadcasting their
+// current view, KAN-129/131). Deliberately separate from MapViewWatcher
+// above — that one's `onChange` is wired to MapCanvas's own internal `view`
+// state purely for territory-label sizing, and never reaches a caller.
+// `moveend` covers every pan/zoom that settles (including a `dragend`'s own
+// trailing moveend), so subscribing to `dragend` too doesn't add coverage —
+// it's still listed alongside `moveend` because that's the pair the ticket
+// asks this to report on, and a second call with identical values is
+// harmless.
+function MapViewportWatcher({
+  onChange,
+}: {
+  onChange?: (viewport: MapViewport) => void;
+}) {
+  const map = useMap();
+
+  const report = useCallback(() => {
+    if (!onChange) {
+      return;
+    }
+    const center = map.getCenter();
+    onChange({
+      center: { lat: center.lat, lng: center.lng },
+      zoom: map.getZoom(),
+    });
+  }, [map, onChange]);
+
+  useEffect(report, [report]);
+
+  useMapEvents({
+    moveend: report,
+    dragend: report,
+  });
+
+  return null;
+}
+
+// Inward half of KAN-130's live-view plumbing: applies an externally-pushed
+// center/zoom to the already-mounted map. `viewport` is compared by value
+// against the last one this component itself applied (not against the map's
+// current live position) — so a re-render that hands back the same values in
+// a freshly-allocated object doesn't reapply, and doesn't stomp on wherever
+// the user has since panned to. Only a genuinely new incoming value triggers
+// another `setView` — a one-shot "jump to this view", not a continuously
+// enforced camera lock.
+function MapViewportApplier({ viewport }: { viewport?: MapViewport | null }) {
+  const map = useMap();
+  const appliedRef = useRef<MapViewport | undefined>(undefined);
+
+  useEffect(() => {
+    if (!viewport) {
+      return;
+    }
+    const applied = appliedRef.current;
+    if (
+      applied &&
+      applied.zoom === viewport.zoom &&
+      applied.center.lat === viewport.center.lat &&
+      applied.center.lng === viewport.center.lng
+    ) {
+      return;
+    }
+    appliedRef.current = viewport;
+    map.setView([viewport.center.lat, viewport.center.lng], viewport.zoom);
+  }, [map, viewport]);
+
+  return null;
+}
+
 // react-leaflet only exposes map-level events to children of MapContainer,
 // so the click handling for draw modes has to live in its own component
 // rather than in the MapCanvas body.
@@ -606,6 +700,8 @@ function boundsFor(image: MapImageOverlay): LatLngBoundsExpression {
 export function MapCanvas({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
+  onViewportChange,
+  viewport,
   markers = [],
   territories = [],
   imageOverlay = null,
@@ -736,6 +832,8 @@ export function MapCanvas({
       >
         <MapResizeWatcher />
         <MapViewWatcher onChange={setView} />
+        <MapViewportWatcher onChange={onViewportChange} />
+        <MapViewportApplier viewport={viewport} />
         <MapDrawLayer
           drawMode={drawMode}
           onDrawModeChange={onDrawModeChange}

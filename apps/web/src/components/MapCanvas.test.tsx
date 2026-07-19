@@ -1242,4 +1242,182 @@ describe("MapCanvas", () => {
       expect(screen.queryByTestId("marker-label")).toBeNull();
     });
   });
+
+  // KAN-130: MapCanvas's live-view plumbing — reporting the mounted map's own
+  // center/zoom out, and applying an externally-pushed one in. No
+  // subscription/mutation is wired here (that's KAN-129/131); these tests
+  // only cover the two hooks themselves.
+  describe("live viewport (KAN-130)", () => {
+    // Drags the map by firing a real Leaflet mousedown/mousemove/mouseup
+    // sequence on the container. Leaflet's Draggable computes movement from
+    // the events' own clientX/clientY deltas rather than layout, and the
+    // move/mouseup have to be dispatched on the map element (not `document`)
+    // — Leaflet reads `event.target` off them to tag the drag target, and a
+    // `document`-targeted event blows that up.
+    function dragMap(
+      map: HTMLElement,
+      from: [number, number],
+      to: [number, number],
+    ) {
+      const buttons = { button: 0, which: 1 };
+      fireEvent.mouseDown(map, {
+        clientX: from[0],
+        clientY: from[1],
+        ...buttons,
+      });
+      fireEvent.mouseMove(map, { clientX: to[0], clientY: to[1], ...buttons });
+      fireEvent.mouseUp(map, { clientX: to[0], clientY: to[1], ...buttons });
+    }
+
+    it("reports the initial center/zoom on mount", () => {
+      const onViewportChange = vi.fn();
+      render(
+        <MapCanvas
+          center={[51.505, -0.09]}
+          zoom={7}
+          onViewportChange={onViewportChange}
+        />,
+      );
+
+      expect(onViewportChange).toHaveBeenCalledWith({
+        center: { lat: 51.505, lng: -0.09 },
+        zoom: 7,
+      });
+    });
+
+    it("reports the live center once panning settles (moveend/dragend)", () => {
+      const onViewportChange = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          center={[51.505, -0.09]}
+          zoom={5}
+          onViewportChange={onViewportChange}
+        />,
+      );
+      const map = container.querySelector<HTMLElement>(".leaflet-container")!;
+
+      onViewportChange.mockClear();
+      dragMap(map, [200, 200], [260, 240]);
+
+      expect(onViewportChange).toHaveBeenCalled();
+      const reported = onViewportChange.mock.calls.at(-1)![0];
+      // The map has genuinely panned — a different center than what was
+      // mounted with — while the zoom, untouched by a drag, stays put.
+      expect(reported.center.lat).not.toBeCloseTo(51.505, 3);
+      expect(reported.zoom).toBe(5);
+    });
+
+    it("does not report a live center without onViewportChange wired", () => {
+      // Absence of the callback is what MapViewportWatcher itself has to
+      // guard — this only proves dragging without it doesn't throw.
+      const { container } = render(
+        <MapCanvas center={[51.505, -0.09]} zoom={5} />,
+      );
+      const map = container.querySelector<HTMLElement>(".leaflet-container")!;
+
+      expect(() => dragMap(map, [200, 200], [260, 240])).not.toThrow();
+    });
+
+    it("applies an inbound viewport to the mounted map via setView", () => {
+      const setView = vi.spyOn(L.Map.prototype, "setView");
+      const { rerender } = render(
+        <MapCanvas center={[0, 0]} zoom={3} viewport={null} />,
+      );
+      setView.mockClear();
+
+      rerender(
+        <MapCanvas
+          center={[0, 0]}
+          zoom={3}
+          viewport={{ center: { lat: 12, lng: 34 }, zoom: 9 }}
+        />,
+      );
+
+      expect(setView).toHaveBeenCalledWith([12, 34], 9);
+      setView.mockRestore();
+    });
+
+    it("applies a viewport supplied at initial mount too", () => {
+      const setView = vi.spyOn(L.Map.prototype, "setView");
+
+      render(
+        <MapCanvas
+          center={[0, 0]}
+          zoom={3}
+          viewport={{ center: { lat: 12, lng: 34 }, zoom: 9 }}
+        />,
+      );
+
+      expect(setView).toHaveBeenCalledWith([12, 34], 9);
+      setView.mockRestore();
+    });
+
+    it("does not reapply the same external viewport value on every render", () => {
+      const setView = vi.spyOn(L.Map.prototype, "setView");
+      const viewport = { center: { lat: 12, lng: 34 }, zoom: 9 };
+      const { rerender } = render(
+        <MapCanvas center={[0, 0]} zoom={3} viewport={viewport} />,
+      );
+      setView.mockClear();
+
+      // A fresh object with identical values — the common case of a parent
+      // re-rendering without memoizing the prop — must not count as a new
+      // external command.
+      rerender(
+        <MapCanvas
+          center={[0, 0]}
+          zoom={3}
+          viewport={{ center: { lat: 12, lng: 34 }, zoom: 9 }}
+        />,
+      );
+
+      expect(setView).not.toHaveBeenCalled();
+      setView.mockRestore();
+    });
+
+    it("does not let the user's own subsequent panning get overridden by a stale viewport", () => {
+      const setView = vi.spyOn(L.Map.prototype, "setView");
+      const viewport = { center: { lat: 12, lng: 34 }, zoom: 9 };
+      const { container, rerender } = render(
+        <MapCanvas center={[0, 0]} zoom={3} viewport={viewport} />,
+      );
+      const map = container.querySelector<HTMLElement>(".leaflet-container")!;
+      setView.mockClear();
+
+      // The user pans manually after the one-shot jump landed.
+      dragMap(map, [200, 200], [260, 240]);
+      setView.mockClear();
+
+      // The parent re-renders for an unrelated reason, handing back the same
+      // external viewport it already applied once — this must not snap the
+      // map back to it.
+      rerender(<MapCanvas center={[0, 0]} zoom={3} viewport={viewport} />);
+
+      expect(setView).not.toHaveBeenCalled();
+      setView.mockRestore();
+    });
+
+    it("applies a new external viewport once it genuinely changes", () => {
+      const setView = vi.spyOn(L.Map.prototype, "setView");
+      const { rerender } = render(
+        <MapCanvas
+          center={[0, 0]}
+          zoom={3}
+          viewport={{ center: { lat: 12, lng: 34 }, zoom: 9 }}
+        />,
+      );
+      setView.mockClear();
+
+      rerender(
+        <MapCanvas
+          center={[0, 0]}
+          zoom={3}
+          viewport={{ center: { lat: 55, lng: 66 }, zoom: 11 }}
+        />,
+      );
+
+      expect(setView).toHaveBeenCalledWith([55, 66], 11);
+      setView.mockRestore();
+    });
+  });
 });

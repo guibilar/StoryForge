@@ -15,7 +15,8 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import { Button } from "@storyforge/ui";
+import { LandPlot, MapPin, Pencil, Tag, Trash2 } from "lucide-react";
+import { Button, Icon } from "@storyforge/ui";
 import "leaflet/dist/leaflet.css";
 
 import { fitTerritoryLabel, ringsIn } from "./mapLabels";
@@ -681,7 +682,7 @@ export function MapCanvas({
             aria-label="Toggle territory names"
             onClick={() => setShowTerritoryNames((shown) => !shown)}
           >
-            ▭
+            <Icon icon={LandPlot} size={15} aria-hidden="true" />
           </button>
           <button
             type="button"
@@ -691,7 +692,7 @@ export function MapCanvas({
             aria-label="Toggle markers"
             onClick={() => setShowMarkers((shown) => !shown)}
           >
-            ⚲
+            <Icon icon={MapPin} size={15} aria-hidden="true" />
           </button>
           <button
             type="button"
@@ -704,7 +705,7 @@ export function MapCanvas({
             disabled={!showMarkers}
             onClick={() => setShowMarkerNames((shown) => !shown)}
           >
-            ◉
+            <Icon icon={Tag} size={15} aria-hidden="true" />
           </button>
         </div>
         {canEdit ? (
@@ -841,6 +842,7 @@ export function MapCanvas({
                       disabled={markerActionPending}
                       onClick={() => onEditMarker?.(marker)}
                     >
+                      <Icon icon={Pencil} size={14} aria-hidden="true" />
                       Edit
                     </Button>
                     <Button
@@ -849,6 +851,7 @@ export function MapCanvas({
                       disabled={markerActionPending}
                       onClick={() => onDeleteMarker?.(marker)}
                     >
+                      <Icon icon={Trash2} size={14} aria-hidden="true" />
                       Delete
                     </Button>
                   </div>

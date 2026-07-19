@@ -201,7 +201,7 @@ describe("NotesWindow", () => {
     renderWindow();
 
     expect(
-      screen.getByRole("button", { name: "+ New note" }),
+      screen.getByRole("button", { name: "New note" }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(2);
   });
@@ -212,7 +212,7 @@ describe("NotesWindow", () => {
     renderWindow();
 
     expect(
-      screen.getByRole("button", { name: "+ New note" }),
+      screen.getByRole("button", { name: "New note" }),
     ).toBeInTheDocument();
   });
 
@@ -230,7 +230,7 @@ describe("NotesWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getByRole("button", { name: "+ New note" }));
+    await user.click(screen.getByRole("button", { name: "New note" }));
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "note-form:new", title: "New Note" }),
@@ -296,7 +296,7 @@ describe("NotesWindow", () => {
 
     expect(screen.getByText("For you")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "+ New note" }),
+      screen.getByRole("button", { name: "New note" }),
     ).toBeInTheDocument();
   });
 

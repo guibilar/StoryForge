@@ -1,4 +1,7 @@
 .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font: inherit;
   font-weight: 550;
   font-size: 14px;

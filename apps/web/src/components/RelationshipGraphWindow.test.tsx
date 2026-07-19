@@ -346,7 +346,7 @@ describe("RelationshipGraphWindow", () => {
     renderWindow();
 
     expect(
-      screen.getByRole("button", { name: "+ Add Relationship" }),
+      screen.getByRole("button", { name: "Add Relationship" }),
     ).toBeInTheDocument();
   });
 
@@ -356,7 +356,7 @@ describe("RelationshipGraphWindow", () => {
     renderWindow();
 
     expect(
-      screen.queryByRole("button", { name: "+ Add Relationship" }),
+      screen.queryByRole("button", { name: "Add Relationship" }),
     ).not.toBeInTheDocument();
   });
 
@@ -365,7 +365,7 @@ describe("RelationshipGraphWindow", () => {
     const { openWindow } = setupDesktopWindows();
     renderWindow();
 
-    fireEvent.click(screen.getByRole("button", { name: "+ Add Relationship" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add Relationship" }));
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useMutation, useQuery } from "urql";
-import { Button, FormError, Tabs } from "@storyforge/ui";
+import { ImagePlus, Palette, RotateCcw } from "lucide-react";
+import { Button, FormError, Icon, Tabs } from "@storyforge/ui";
 import type { TabItem } from "@storyforge/ui";
 
 import {
@@ -212,6 +213,7 @@ function OverviewTab({
             disabled={uploadState.fetching}
             onClick={openFilePicker}
           >
+            <Icon icon={ImagePlus} size={15} aria-hidden="true" />
             {image ? "Replace Picture" : "Upload Picture"}
           </Button>
           {isMapLinkable ? (
@@ -232,6 +234,7 @@ function OverviewTab({
                 disabled={updateEntityState.fetching}
                 onClick={openColorPicker}
               >
+                <Icon icon={Palette} size={15} aria-hidden="true" />
                 {color ? "Change Map Color" : "Set Map Color"}
               </Button>
               {color ? (
@@ -247,6 +250,7 @@ function OverviewTab({
                     disabled={updateEntityState.fetching}
                     onClick={handleResetColor}
                   >
+                    <Icon icon={RotateCcw} size={15} aria-hidden="true" />
                     Reset
                   </Button>
                 </>

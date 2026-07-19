@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import { Button, FormError } from "@storyforge/ui";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Button, FormError, Icon } from "@storyforge/ui";
 
 import {
   CampaignDocument,
@@ -150,6 +151,7 @@ export function SessionsWindow() {
                   variant="secondary"
                   onClick={() => openEditWindow(session)}
                 >
+                  <Icon icon={Pencil} size={15} aria-hidden="true" />
                   Edit
                 </Button>
                 {confirmingDeleteId === session.id ? (
@@ -177,6 +179,7 @@ export function SessionsWindow() {
                     variant="secondary"
                     onClick={() => setConfirmingDeleteId(session.id)}
                   >
+                    <Icon icon={Trash2} size={15} aria-hidden="true" />
                     Delete
                   </Button>
                 )}
@@ -191,7 +194,8 @@ export function SessionsWindow() {
 
       {isWriter ? (
         <Button type="button" onClick={openCreateWindow}>
-          + Log session
+          <Icon icon={Plus} size={15} aria-hidden="true" />
+          Log session
         </Button>
       ) : null}
     </div>

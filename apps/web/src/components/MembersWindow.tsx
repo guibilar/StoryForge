@@ -1,11 +1,13 @@
 import type { FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
+import { UserMinus } from "lucide-react";
 import {
   Button,
   Form,
   FormError,
   FormField,
+  Icon,
   Input,
   Select,
 } from "@storyforge/ui";
@@ -142,6 +144,7 @@ export function MembersWindow() {
                 disabled={removeState.fetching}
                 onClick={() => handleRemove(member.userId)}
               >
+                <Icon icon={UserMinus} size={15} aria-hidden="true" />
                 Remove
               </Button>
             ) : null}

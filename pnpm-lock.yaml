@@ -111,6 +111,9 @@ importers:
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
+      lucide-react:
+        specifier: ^1.25.0
+        version: 1.25.0(react@19.2.7)
       react:
         specifier: ^19.2.7
         version: 19.2.7

@@ -203,7 +203,7 @@ describe("TimelineWindow", () => {
     renderWindow();
 
     expect(
-      screen.getByRole("button", { name: "+ New event" }),
+      screen.getByRole("button", { name: "New event" }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(2);
@@ -218,7 +218,7 @@ describe("TimelineWindow", () => {
       screen.getByText("Coterie forms an uneasy alliance"),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "+ New event" }),
+      screen.queryByRole("button", { name: "New event" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Edit" }),
@@ -274,7 +274,7 @@ describe("TimelineWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getByRole("button", { name: "+ New event" }));
+    await user.click(screen.getByRole("button", { name: "New event" }));
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "event-form:new", title: "New Event" }),

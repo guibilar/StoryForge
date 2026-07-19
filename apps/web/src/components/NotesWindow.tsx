@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import { Button, FormError } from "@storyforge/ui";
+import { Plus, Trash2 } from "lucide-react";
+import { Button, FormError, Icon } from "@storyforge/ui";
 
 import {
   CampaignDocument,
@@ -186,6 +187,7 @@ export function NotesWindow() {
                     variant="secondary"
                     onClick={() => setConfirmingDeleteId(note.id)}
                   >
+                    <Icon icon={Trash2} size={15} aria-hidden="true" />
                     Delete
                   </Button>
                 )}
@@ -200,7 +202,8 @@ export function NotesWindow() {
 
       {canCreate ? (
         <Button type="button" onClick={openCreateWindow}>
-          + New note
+          <Icon icon={Plus} size={15} aria-hidden="true" />
+          New note
         </Button>
       ) : null}
     </div>

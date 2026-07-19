@@ -1,6 +1,7 @@
 import { Link as RouterLink, useParams } from "react-router-dom";
 import { useQuery } from "urql";
-import { Link } from "@storyforge/ui";
+import { ArrowLeft } from "lucide-react";
+import { Icon, Link } from "@storyforge/ui";
 
 import { CampaignDocument, MeDocument } from "../gql/graphql";
 import { AppCommandPalette } from "../components/AppCommandPalette";
@@ -64,7 +65,8 @@ export function CampaignDesktopPage() {
     <main className={styles.deskMain}>
       <header className={styles.header}>
         <Link as={RouterLink} to="/dashboard">
-          ← Dashboard
+          <Icon icon={ArrowLeft} size={15} aria-hidden="true" />
+          Dashboard
         </Link>
         <p className={styles.crumb}>
           {campaign.name}

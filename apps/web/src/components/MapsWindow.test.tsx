@@ -155,7 +155,7 @@ const territories = [
   },
 ];
 
-// Manual-coordinate entry ("+ Add Marker"/"+ Add Territory") only appears on
+// Manual-coordinate entry ("Add Marker"/"Add Territory") only appears on
 // a custom map image, so tests that exercise it have to set one.
 const imageMap = {
   id: "map-image-1",
@@ -345,10 +345,10 @@ describe("MapsWindow", () => {
     await user.click(screen.getByRole("button", { name: "Edit map" }));
 
     expect(
-      screen.getByRole("button", { name: "+ Add Marker" }),
+      screen.getByRole("button", { name: "Add Marker" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "+ Add Territory" }),
+      screen.getByRole("button", { name: "Add Territory" }),
     ).toBeInTheDocument();
   });
 
@@ -382,10 +382,10 @@ describe("MapsWindow", () => {
     // canvas is the way in. Upload stays, or there'd be no way to add an
     // image in the first place.
     expect(
-      screen.queryByRole("button", { name: "+ Add Marker" }),
+      screen.queryByRole("button", { name: "Add Marker" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "+ Add Territory" }),
+      screen.queryByRole("button", { name: "Add Territory" }),
     ).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Upload Map Image" }),
@@ -398,10 +398,10 @@ describe("MapsWindow", () => {
     renderWindow();
 
     expect(
-      screen.queryByRole("button", { name: "+ Add Marker" }),
+      screen.queryByRole("button", { name: "Add Marker" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "+ Add Territory" }),
+      screen.queryByRole("button", { name: "Add Territory" }),
     ).not.toBeInTheDocument();
   });
 
@@ -414,7 +414,7 @@ describe("MapsWindow", () => {
     // Edit affordances are opt-in now — enter edit mode first.
     await user.click(screen.getByRole("button", { name: "Edit map" }));
 
-    await user.click(screen.getByRole("button", { name: "+ Add Marker" }));
+    await user.click(screen.getByRole("button", { name: "Add Marker" }));
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "marker-form:new", title: "New Marker" }),
@@ -547,7 +547,7 @@ describe("MapsWindow", () => {
     // Edit affordances are opt-in now — enter edit mode first.
     await user.click(screen.getByRole("button", { name: "Edit map" }));
 
-    await user.click(screen.getByRole("button", { name: "+ Add Territory" }));
+    await user.click(screen.getByRole("button", { name: "Add Territory" }));
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "territory-form:new" }),
@@ -563,7 +563,7 @@ describe("MapsWindow", () => {
     // Edit affordances are opt-in now — enter edit mode first.
     await user.click(screen.getByRole("button", { name: "Edit map" }));
 
-    await user.click(screen.getByRole("button", { name: "+ Add Marker" }));
+    await user.click(screen.getByRole("button", { name: "Add Marker" }));
 
     // The click handler must not leak its MouseEvent into the position
     // parameter — the id stays unsuffixed and nothing is prefilled.
@@ -588,7 +588,7 @@ describe("MapsWindow", () => {
     // Edit affordances are opt-in now — enter edit mode first.
     await user.click(screen.getByRole("button", { name: "Edit map" }));
 
-    await user.click(screen.getByRole("button", { name: "+ Add Territory" }));
+    await user.click(screen.getByRole("button", { name: "Add Territory" }));
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -73,10 +73,6 @@
     color var(--dur-1) var(--ease);
 }
 
-.refresh {
-  font-size: 13px;
-}
-
 .close:hover,
 .refresh:hover:not(:disabled) {
   background: var(--accent-bg);

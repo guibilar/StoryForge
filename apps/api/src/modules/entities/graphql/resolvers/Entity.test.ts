@@ -37,6 +37,7 @@ describe("Entity resolver", () => {
     expect(Entity.name(entity)).toBe(entity.Name);
     expect(Entity.visibility(entity)).toBe(EntityVisibility.PUBLIC);
     expect(Entity.isPlayerCharacter(entity)).toBe(true);
+    expect(Entity.color(entity)).toBeNull();
     expect(Entity.createdAt(entity)).toBe(entity.CreatedAt.toISOString());
     expect(Entity.updatedAt(entity)).toBe(entity.UpdatedAt.toISOString());
     expect(Entity.deletedAt(entity)).toBeNull();

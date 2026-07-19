@@ -20,6 +20,7 @@ export interface CreateEntityDto {
   description?: string | null;
   icon?: string | null;
   image?: string | null;
+  color?: string | null;
   visibility: EntityVisibility;
   isPlayerCharacter?: boolean;
   ownerUserId?: string | null;
@@ -32,6 +33,7 @@ export interface UpdateEntityDto {
   description?: string | null;
   icon?: string | null;
   image?: string | null;
+  color?: string | null;
   visibility?: EntityVisibility;
   isPlayerCharacter?: boolean;
   ownerUserId?: string | null;
@@ -134,6 +136,10 @@ export class EntityService {
 
     if (dto.image !== undefined) {
       entity.changeImage(dto.image);
+    }
+
+    if (dto.color !== undefined) {
+      entity.changeColor(dto.color);
     }
 
     if (dto.visibility !== undefined) {

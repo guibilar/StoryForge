@@ -9,9 +9,10 @@ import {
   EntitiesDocument,
   MeDocument,
   RelationshipsDocument,
+  UpdateEntityDocument,
   UploadEntityImageDocument,
 } from "../gql/graphql";
-import type { EntityVisibility } from "../gql/graphql";
+import type { EntityCategory, EntityVisibility } from "../gql/graphql";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
@@ -23,12 +24,19 @@ import styles from "./EntityWindow.module.css";
 // to have the server reject it afterwards.
 const MAX_ENTITY_IMAGE_BYTES = 5 * 1024 * 1024;
 
+// Entities that can be placed on the map (KAN-121/122's Marker/Territory
+// entityId constraints) — the only ones a map color override is meaningful
+// for.
+const MAP_LINKABLE_CATEGORIES: EntityCategory[] = ["LOCATION", "ORGANIZATION"];
+
 export interface EntitySummary {
   id: string;
   name: string;
   type: string;
+  category: EntityCategory;
   description?: string | null;
   image?: string | null;
+  color?: string | null;
   visibility: EntityVisibility;
 }
 
@@ -82,12 +90,32 @@ function OverviewTab({
   const [uploadState, uploadEntityImage] = useMutation(
     UploadEntityImageDocument,
   );
+  const [updateEntityState, updateEntity] = useMutation(UpdateEntityDocument);
   // The entity prop is a snapshot from whenever its window was opened, so a
-  // freshly uploaded image is tracked locally rather than waiting on the
-  // caller (EntitySidebar's entity list) to refetch and pass a new prop.
+  // freshly uploaded image/color is tracked locally rather than waiting on
+  // the caller (EntitySidebar's entity list) to refetch and pass a new prop.
   const [image, setImage] = useState(entity.image ?? null);
+  const [color, setColor] = useState(entity.color ?? null);
+  // The same window (keyed by `entity:{id}`) can be reopened with a fresher
+  // entity prop without unmounting — useDesktopWindowsController overwrites
+  // the render function but React reconciles it onto the existing instance,
+  // so a useState initializer alone would never see the new snapshot. This
+  // resyncs local state during render whenever the prop itself actually
+  // changes (React's documented pattern for adjusting state from a changed
+  // prop — https://react.dev/learn/you-might-not-need-an-effect), without
+  // clobbering an in-session upload/color change (that only updates state
+  // directly from the mutation response, not via a new `entity` prop).
+  const [prevEntity, setPrevEntity] = useState(entity);
+  if (entity !== prevEntity) {
+    setPrevEntity(entity);
+    setImage(entity.image ?? null);
+    setColor(entity.color ?? null);
+  }
   const [validationError, setValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const colorInputRef = useRef<HTMLInputElement>(null);
+
+  const isMapLinkable = MAP_LINKABLE_CATEGORIES.includes(entity.category);
 
   const currentUserId = meData?.me?.id;
   const members = campaignData?.campaign?.members ?? [];
@@ -120,7 +148,35 @@ function OverviewTab({
     }
   }
 
-  const actionError = validationError ?? formatGraphQLError(uploadState.error);
+  function openColorPicker() {
+    colorInputRef.current?.click();
+  }
+
+  async function handleColorSelected(event: ChangeEvent<HTMLInputElement>) {
+    const next = event.target.value;
+    setColor(next);
+    const result = await updateEntity({
+      input: { id: entity.id, color: next },
+    });
+    if (result.data?.updateEntity) {
+      setColor(result.data.updateEntity.color ?? null);
+    }
+  }
+
+  async function handleResetColor() {
+    setColor(null);
+    const result = await updateEntity({
+      input: { id: entity.id, color: null },
+    });
+    if (result.data?.updateEntity) {
+      setColor(result.data.updateEntity.color ?? null);
+    }
+  }
+
+  const actionError =
+    validationError ??
+    formatGraphQLError(uploadState.error) ??
+    formatGraphQLError(updateEntityState.error);
 
   return (
     <div className={styles.overview}>
@@ -158,6 +214,45 @@ function OverviewTab({
           >
             {image ? "Replace Picture" : "Upload Picture"}
           </Button>
+          {isMapLinkable ? (
+            <div className={styles.colorRow}>
+              <input
+                ref={colorInputRef}
+                type="color"
+                // A color input can't be empty — this is only the picker's
+                // starting hue when no override is set yet, not a preview of
+                // the type-derived colour the map actually falls back to.
+                value={color ?? "#3388ff"}
+                className={styles.hiddenFileInput}
+                onChange={handleColorSelected}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={updateEntityState.fetching}
+                onClick={openColorPicker}
+              >
+                {color ? "Change Map Color" : "Set Map Color"}
+              </Button>
+              {color ? (
+                <>
+                  <span
+                    className={styles.colorSwatch}
+                    style={{ backgroundColor: color }}
+                    aria-hidden="true"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={updateEntityState.fetching}
+                    onClick={handleResetColor}
+                  >
+                    Reset
+                  </Button>
+                </>
+              ) : null}
+            </div>
+          ) : null}
           {actionError ? <FormError>{actionError}</FormError> : null}
         </div>
       ) : null}
@@ -224,8 +319,10 @@ function RelationshipsTab({
       id: counterpart.id,
       name: counterpart.name,
       type: counterpart.type,
+      category: counterpart.category,
       description: counterpart.description,
       image: counterpart.image,
+      color: counterpart.color,
       visibility: counterpart.visibility,
     });
   }

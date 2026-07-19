@@ -685,7 +685,13 @@ describe("MapCanvas", () => {
       return {
         ...marker,
         entity: type
-          ? { id: "e-1", name: "Riverwood", type, visibility: "PUBLIC" }
+          ? {
+              id: "e-1",
+              name: "Riverwood",
+              type,
+              category: "LOCATION",
+              visibility: "PUBLIC",
+            }
           : null,
       };
     }
@@ -744,6 +750,7 @@ describe("MapCanvas", () => {
                 id: "e-1",
                 name: "R",
                 type: "city",
+                category: "LOCATION",
                 visibility: "PUBLIC",
               },
             },
@@ -753,6 +760,28 @@ describe("MapCanvas", () => {
 
       const shape = container.querySelector("path.leaflet-interactive");
       expect(shape?.getAttribute("stroke")).not.toBe("#3388ff");
+    });
+
+    it("prefers the entity's own color over the type-derived one", () => {
+      const { container } = render(
+        <MapCanvas
+          markers={[
+            {
+              ...marker,
+              entity: {
+                id: "e-1",
+                name: "Riverwood",
+                type: "city",
+                category: "LOCATION",
+                color: "#ff00ff",
+                visibility: "PUBLIC",
+              },
+            },
+          ]}
+        />,
+      );
+
+      expect(pinFill(container)).toBe("#ff00ff");
     });
 
     it("names the linked entity in the marker popup", () => {
@@ -773,6 +802,7 @@ describe("MapCanvas", () => {
       id: "e-1",
       name: "Riverwood",
       type: "city",
+      category: "LOCATION",
       visibility: "PUBLIC",
     };
 
@@ -889,6 +919,7 @@ describe("MapCanvas", () => {
                 id: "e-1",
                 name: "Riverwood",
                 type: "city",
+                category: "LOCATION",
                 visibility: "PUBLIC",
               },
             },

@@ -10,6 +10,7 @@ export const Entity = {
   description: (entity: DomainEntity) => entity.Description,
   icon: (entity: DomainEntity) => entity.Icon,
   image: (entity: DomainEntity) => entity.Image,
+  color: (entity: DomainEntity) => entity.Color,
   visibility: (entity: DomainEntity) => entity.Visibility,
   isPlayerCharacter: (entity: DomainEntity) => entity.IsPlayerCharacter,
   ownerUserId: (entity: DomainEntity) => entity.OwnerUserId,

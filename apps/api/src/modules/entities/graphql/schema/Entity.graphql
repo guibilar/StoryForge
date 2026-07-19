@@ -21,6 +21,7 @@ type Entity {
   description: String
   icon: String
   image: String
+  color: String
   visibility: EntityVisibility!
   isPlayerCharacter: Boolean!
   ownerUserId: ID

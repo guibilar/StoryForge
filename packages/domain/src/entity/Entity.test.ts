@@ -55,6 +55,8 @@ describe("Entity", () => {
       name: validProps.name,
       description: null,
       icon: null,
+      image: null,
+      color: null,
       visibility: EntityVisibility.STORYTELLER,
       isPlayerCharacter: false,
       ownerUserId: null,
@@ -240,6 +242,45 @@ describe("Entity", () => {
     expect(() =>
       Entity.create({ ...validProps, ownerUserId: "user-1" }),
     ).toThrow("Only a Player Character can have an owning campaign member.");
+  });
+
+  it("defaults color to null", () => {
+    const entity = Entity.create(validProps);
+
+    expect(entity.Color).toBeNull();
+  });
+
+  it("creates an entity with a valid color", () => {
+    const entity = Entity.create({ ...validProps, color: "#4287f5" });
+
+    expect(entity.Color).toBe("#4287f5");
+  });
+
+  it.each(["blue", "#fff", "#4287f5ff", "4287f5"])(
+    "rejects an invalid color %j",
+    (color) => {
+      expect(() => Entity.create({ ...validProps, color })).toThrow(
+        "Entity color must be a 6-digit hex code, e.g. #4287f5.",
+      );
+    },
+  );
+
+  it("changes and clears the color", () => {
+    const entity = Entity.create({ ...validProps, color: "#4287f5" });
+
+    entity.changeColor("#c2410c");
+    expect(entity.Color).toBe("#c2410c");
+
+    entity.changeColor(null);
+    expect(entity.Color).toBeNull();
+  });
+
+  it("rejects changing to an invalid color", () => {
+    const entity = Entity.create(validProps);
+
+    expect(() => entity.changeColor("not-a-color")).toThrow(
+      "Entity color must be a 6-digit hex code, e.g. #4287f5.",
+    );
   });
 
   it("soft-deletes and restores", () => {

@@ -6,6 +6,7 @@ input CreateEntityInput {
   description: String
   icon: String
   image: String
+  color: String
   visibility: EntityVisibility = PUBLIC
   isPlayerCharacter: Boolean = false
   ownerUserId: ID
@@ -18,6 +19,7 @@ input UpdateEntityInput {
   description: String
   icon: String
   image: String
+  color: String
   visibility: EntityVisibility
   isPlayerCharacter: Boolean
   ownerUserId: ID

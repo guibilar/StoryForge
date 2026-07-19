@@ -26,6 +26,9 @@ const CATEGORIES: EntityCategory[] = [
   "ITEM",
   "OTHER",
 ];
+// Entities that can be placed on the map (KAN-121/122's Marker/Territory
+// entityId constraints) — the only ones a map color is meaningful for.
+const MAP_LINKABLE_CATEGORIES: EntityCategory[] = ["LOCATION", "ORGANIZATION"];
 
 export interface EntityFormWindowProps {
   campaignId: string;
@@ -46,6 +49,7 @@ export function EntityFormWindow({
   const [createEntityState, createEntity] = useMutation(CreateEntityDocument);
   const [category, setCategory] = useState<EntityCategory>(CATEGORIES[0]);
   const [isPlayerCharacter, setIsPlayerCharacter] = useState(false);
+  const [color, setColor] = useState<string | null>(null);
 
   // Forms have nothing to "refresh" — only the blocking loading state
   // applies while a save is in flight.
@@ -74,6 +78,7 @@ export function EntityFormWindow({
         description: description || null,
         visibility,
         isPlayerCharacter: category === "CHARACTER" && isPlayerCharacter,
+        color: MAP_LINKABLE_CATEGORIES.includes(category) ? color : null,
       },
     });
     if (result.data?.createEntity) {
@@ -99,6 +104,9 @@ export function EntityFormWindow({
             if (nextCategory !== "CHARACTER") {
               setIsPlayerCharacter(false);
             }
+            if (!MAP_LINKABLE_CATEGORIES.includes(nextCategory)) {
+              setColor(null);
+            }
           }}
         >
           {CATEGORIES.map((option) => (
@@ -114,6 +122,17 @@ export function EntityFormWindow({
           checked={isPlayerCharacter}
           onChange={(event) => setIsPlayerCharacter(event.target.checked)}
         />
+      ) : null}
+      {MAP_LINKABLE_CATEGORIES.includes(category) ? (
+        <FormField label="Map Color" htmlFor="create-entity-color">
+          <Input
+            id="create-entity-color"
+            name="color"
+            type="color"
+            value={color ?? "#3388ff"}
+            onChange={(event) => setColor(event.target.value)}
+          />
+        </FormField>
       ) : null}
       <FormField label="Type" htmlFor="create-entity-type">
         <Input

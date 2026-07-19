@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { Query } from "./resolvers/Query";
 import { Mutation } from "./resolvers/Mutation";
 import { Entity } from "./resolvers/Entity";
+import { Subscription } from "./resolvers/Subscription";
 
 const schemaDir = join(dirname(fileURLToPath(import.meta.url)), "schema");
 
@@ -16,6 +17,7 @@ export const typeDefs = [
   readTypeDefs("Entity.graphql"),
   readTypeDefs("Query.graphql"),
   readTypeDefs("Mutation.graphql"),
+  readTypeDefs("ForceOpenEntityWindow.graphql"),
 ];
 
-export const resolvers = { Query, Mutation, Entity };
+export const resolvers = { Query, Mutation, Entity, Subscription };

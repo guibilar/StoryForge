@@ -5,11 +5,12 @@ import {
   EntityVisibility,
   User,
 } from "@storyforge/domain";
-import { Mutation } from "./Mutation";
+import { Mutation, resolveForceOpenTargetUserIds } from "./Mutation";
 import type { GraphQLContext } from "../../../../graphql/context";
 import type { EntityService } from "../../application/EntityService";
 import type { LocalImageStore } from "../../infrastructure/LocalImageStore";
 import type { CampaignMemberService } from "../../../campaignMembers/application/CampaignMemberService";
+import type { PubSub } from "../../../../graphql/pubsub";
 
 function makeEntityService(): EntityService {
   return {
@@ -27,7 +28,14 @@ function makeImageStorage(): LocalImageStore {
 }
 
 function makeCampaignMemberService(): CampaignMemberService {
-  return { getMembership: vi.fn() } as unknown as CampaignMemberService;
+  return {
+    getMembership: vi.fn(),
+    listMembers: vi.fn(),
+  } as unknown as CampaignMemberService;
+}
+
+function makePubSub(): PubSub {
+  return { publish: vi.fn(), subscribe: vi.fn() } as unknown as PubSub;
 }
 
 function makeContext(
@@ -35,12 +43,14 @@ function makeContext(
   imageStorage: LocalImageStore,
   campaignMemberService: CampaignMemberService,
   currentUser: User | null,
+  pubSub: PubSub = makePubSub(),
 ): GraphQLContext {
   return {
     entityService,
     imageStorage,
     campaignMemberService,
     currentUser,
+    pubSub,
   } as GraphQLContext;
 }
 
@@ -594,5 +604,272 @@ describe("entities Mutation.uploadEntityImage", () => {
       "/uploads/entity-1/a.png",
     );
     expect(result).toBe(updated);
+  });
+});
+
+describe("resolveForceOpenTargetUserIds", () => {
+  const storytellerUser = User.create({
+    email: "storyteller@example.com",
+    password: "hashed",
+  });
+  const playerOneUser = User.create({
+    email: "player-one@example.com",
+    password: "hashed",
+  });
+  const playerTwoUser = User.create({
+    email: "player-two@example.com",
+    password: "hashed",
+  });
+  const observerUser = User.create({
+    email: "observer@example.com",
+    password: "hashed",
+  });
+
+  const roster = [
+    CampaignMember.create({
+      campaignId: "campaign-1",
+      userId: storytellerUser.Id,
+      role: "STORYTELLER",
+    }),
+    CampaignMember.create({
+      campaignId: "campaign-1",
+      userId: playerOneUser.Id,
+      role: "PLAYER",
+    }),
+    CampaignMember.create({
+      campaignId: "campaign-1",
+      userId: playerTwoUser.Id,
+      role: "PLAYER",
+    }),
+    CampaignMember.create({
+      campaignId: "campaign-1",
+      userId: observerUser.Id,
+      role: "OBSERVER",
+    }),
+  ];
+
+  it("resolves allPlayers to every PLAYER/OBSERVER member, excluding the Storyteller", () => {
+    const result = resolveForceOpenTargetUserIds(roster, {
+      allPlayers: true,
+      userIds: [],
+    });
+
+    expect(new Set(result)).toEqual(
+      new Set([
+        playerOneUser.Id.toString(),
+        playerTwoUser.Id.toString(),
+        observerUser.Id.toString(),
+      ]),
+    );
+    expect(result).not.toContain(storytellerUser.Id.toString());
+  });
+
+  it("resolves an explicit userIds list to just that one targeted player", () => {
+    const result = resolveForceOpenTargetUserIds(roster, {
+      allPlayers: false,
+      userIds: [playerOneUser.Id.toString()],
+    });
+
+    expect(result).toEqual([playerOneUser.Id.toString()]);
+  });
+
+  it("drops ids from the explicit list that aren't real campaign members", () => {
+    const result = resolveForceOpenTargetUserIds(roster, {
+      allPlayers: false,
+      userIds: [playerOneUser.Id.toString(), "not-a-real-member"],
+    });
+
+    expect(result).toEqual([playerOneUser.Id.toString()]);
+  });
+});
+
+describe("entities Mutation.forceOpenEntityWindow", () => {
+  const playerUser = User.create({
+    email: "player@example.com",
+    password: "hashed",
+  });
+
+  const storytellerMembership = CampaignMember.create({
+    campaignId: "campaign-1",
+    userId: authenticatedUser.Id,
+    role: "STORYTELLER",
+  });
+
+  const roster = [
+    storytellerMembership,
+    CampaignMember.create({
+      campaignId: "campaign-1",
+      userId: playerUser.Id,
+      role: "PLAYER",
+    }),
+  ];
+
+  it("rejects with UNAUTHENTICATED when logged out", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      loggedOutUser,
+    );
+    const input = {
+      campaignId: "campaign-1",
+      entityId: "entity-1",
+      target: { allPlayers: true, userIds: [] },
+    };
+
+    await expect(
+      Mutation.forceOpenEntityWindow(undefined, { input }, context),
+    ).rejects.toMatchObject({ extensions: { code: "UNAUTHENTICATED" } });
+    expect(entityService.getEntity).not.toHaveBeenCalled();
+    expect(context.pubSub.publish).not.toHaveBeenCalled();
+  });
+
+  it("rejects with FORBIDDEN when the campaign member is a Player (lacks BROADCAST_TO_PLAYERS)", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      playerMembership,
+    );
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = {
+      campaignId: "campaign-1",
+      entityId: "entity-1",
+      target: { allPlayers: true, userIds: [] },
+    };
+
+    await expect(
+      Mutation.forceOpenEntityWindow(undefined, { input }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(entityService.getEntity).not.toHaveBeenCalled();
+    expect(context.pubSub.publish).not.toHaveBeenCalled();
+  });
+
+  it("publishes a PRIVATE-visibility entity to a targeted Player — the intentional visibility bypass", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      storytellerMembership,
+    );
+    vi.mocked(campaignMemberService.listMembers).mockResolvedValue(roster);
+    const secretEntity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Secret Villain",
+      visibility: EntityVisibility.PRIVATE,
+    });
+    vi.mocked(entityService.getEntity).mockResolvedValue(secretEntity);
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = {
+      campaignId: "campaign-1",
+      entityId: "entity-1",
+      target: { allPlayers: false, userIds: [playerUser.Id.toString()] },
+    };
+
+    const result = await Mutation.forceOpenEntityWindow(
+      undefined,
+      { input },
+      context,
+    );
+
+    expect(result).toBe(true);
+    // The published payload carries the resolved entity directly — with its
+    // PRIVATE visibility unchanged/unfiltered — proving the visibility
+    // filter that gates the normal `entity`/`entities` queries is
+    // deliberately not applied here.
+    expect(context.pubSub.publish).toHaveBeenCalledWith(
+      "entityWindowForceOpened",
+      "campaign-1",
+      {
+        entity: secretEntity,
+        targetUserIds: [playerUser.Id.toString()],
+      },
+    );
+    expect(secretEntity.Visibility).toBe(EntityVisibility.PRIVATE);
+  });
+
+  it("resolves allPlayers to the full PLAYER/OBSERVER roster", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      storytellerMembership,
+    );
+    vi.mocked(campaignMemberService.listMembers).mockResolvedValue(roster);
+    const entity = Entity.create({
+      campaignId: "campaign-1",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    });
+    vi.mocked(entityService.getEntity).mockResolvedValue(entity);
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = {
+      campaignId: "campaign-1",
+      entityId: "entity-1",
+      target: { allPlayers: true, userIds: [] },
+    };
+
+    await Mutation.forceOpenEntityWindow(undefined, { input }, context);
+
+    expect(context.pubSub.publish).toHaveBeenCalledWith(
+      "entityWindowForceOpened",
+      "campaign-1",
+      {
+        entity,
+        targetUserIds: [playerUser.Id.toString()],
+      },
+    );
+  });
+
+  it("rejects with FORBIDDEN when the entity does not belong to the given campaign", async () => {
+    const entityService = makeEntityService();
+    const imageStorage = makeImageStorage();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      storytellerMembership,
+    );
+    const otherCampaignEntity = Entity.create({
+      campaignId: "campaign-2",
+      type: "npc",
+      name: "Goblin",
+      visibility: EntityVisibility.PUBLIC,
+    });
+    vi.mocked(entityService.getEntity).mockResolvedValue(otherCampaignEntity);
+    const context = makeContext(
+      entityService,
+      imageStorage,
+      campaignMemberService,
+      authenticatedUser,
+    );
+    const input = {
+      campaignId: "campaign-1",
+      entityId: "entity-1",
+      target: { allPlayers: true, userIds: [] },
+    };
+
+    await expect(
+      Mutation.forceOpenEntityWindow(undefined, { input }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+    expect(context.pubSub.publish).not.toHaveBeenCalled();
   });
 });

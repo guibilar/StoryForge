@@ -139,7 +139,9 @@ tracks what's actually built, not just planned.
 - [x] Portrait / image upload — `uploadEntityImage` mutation (GraphQL multipart
       request spec), `LocalImageStore` (validates JPEG/PNG/GIF/WEBP, 5MB limit,
       writes to `UPLOADS_DIR/<entityId>/<uuid>.<ext>`), guarded via
-      `requireCampaignWriter` (loads the entity first, same as above)
+      `requireCampaignWriter` (loads the entity first, same as above); frontend
+      upload control and rendering live in `EntityWindow`'s Overview tab
+      (KAN-124, KAN-125)
 - [x] Tags (KAN-37) — campaign-scoped `Tag`/`EntityTag` join model (reusable
       across entities in a campaign, name normalized trim+lowercase);
       `addTagToEntity`/`removeTagFromEntity` GraphQL mutations (find-or-create

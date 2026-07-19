@@ -1,0 +1,6 @@
+mutation UploadEntityImage($entityId: ID!, $file: Upload!) {
+  uploadEntityImage(entityId: $entityId, file: $file) {
+    id
+    image
+  }
+}

@@ -253,6 +253,7 @@ export type CreateEntityMutation = {
     id: string;
     name: string;
     description: string | null;
+    image: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   };
@@ -430,6 +431,7 @@ export type EntitiesQuery = {
     name: string;
     description: string | null;
     type: string;
+    image: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   }>;
@@ -639,6 +641,7 @@ export type UpdateEntityMutation = {
     id: string;
     name: string;
     description: string | null;
+    image: string | null;
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   };
@@ -737,6 +740,15 @@ export type UpdateTerritoryMutation = {
       visibility: EntityVisibility;
     } | null;
   };
+};
+
+export type UploadEntityImageMutationVariables = Exact<{
+  entityId: string | number;
+  file: File;
+}>;
+
+export type UploadEntityImageMutation = {
+  uploadEntityImage: { id: string; image: string | null };
 };
 
 export type UploadMapImageMutationVariables = Exact<{
@@ -1278,6 +1290,7 @@ export const CreateEntityDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "image" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",
@@ -2228,6 +2241,7 @@ export const EntitiesDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "image" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",
@@ -3240,6 +3254,7 @@ export const UpdateEntityDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "image" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
                 {
                   kind: "Field",
@@ -3655,6 +3670,77 @@ export const UpdateTerritoryDocument = {
 } as unknown as DocumentNode<
   UpdateTerritoryMutation,
   UpdateTerritoryMutationVariables
+>;
+export const UploadEntityImageDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UploadEntityImage" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "entityId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "file" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Upload" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "uploadEntityImage" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "entityId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "entityId" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "file" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "file" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "image" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UploadEntityImageMutation,
+  UploadEntityImageMutationVariables
 >;
 export const UploadMapImageDocument = {
   kind: "Document",

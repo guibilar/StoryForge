@@ -10,7 +10,8 @@ import {
   type Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Button } from "@storyforge/ui";
+import { Plus } from "lucide-react";
+import { Button, Icon } from "@storyforge/ui";
 
 import {
   CampaignDocument,
@@ -205,7 +206,8 @@ export function RelationshipGraphWindow() {
       {isWriter ? (
         <div className={styles.actions}>
           <Button type="button" onClick={openCreateRelationshipWindow}>
-            + Add Relationship
+            <Icon icon={Plus} size={15} aria-hidden="true" />
+            Add Relationship
           </Button>
         </div>
       ) : null}

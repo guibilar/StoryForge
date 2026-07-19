@@ -1,12 +1,14 @@
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "urql";
+import { Trash2 } from "lucide-react";
 import {
   Button,
   Form,
   FormActions,
   FormError,
   FormField,
+  Icon,
   Input,
   Textarea,
 } from "@storyforge/ui";
@@ -249,6 +251,7 @@ export function RelationshipFormWindow({
             disabled={deleteState.fetching}
             onClick={handleDelete}
           >
+            <Icon icon={Trash2} size={15} aria-hidden="true" />
             Delete
           </Button>
         ) : null}

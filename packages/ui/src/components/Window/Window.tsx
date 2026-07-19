@@ -1,8 +1,10 @@
 import { useRef } from "react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
+import { RefreshCw, X } from "lucide-react";
 
 import { cx } from "../../lib/cx";
 import { useFocusTrap } from "../../lib/focusTrap";
+import { Icon } from "../Icon/Icon";
 import styles from "./Window.module.css";
 
 export interface WindowProps {
@@ -66,7 +68,7 @@ export function Window({
             onClick={onRefresh}
             disabled={isLoading}
           >
-            ⟳
+            <Icon icon={RefreshCw} size={14} aria-hidden="true" />
           </button>
         ) : null}
         <button
@@ -75,7 +77,7 @@ export function Window({
           aria-label={`Close ${title}`}
           onClick={onClose}
         >
-          ×
+          <Icon icon={X} size={15} aria-hidden="true" />
         </button>
       </div>
       <div className={styles.body} data-window-body>

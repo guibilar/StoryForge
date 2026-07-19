@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { useQuery } from "urql";
-import { Button } from "@storyforge/ui";
+import type { LucideIcon } from "lucide-react";
+import {
+  CalendarDays,
+  Clock,
+  Map as MapIcon,
+  Network,
+  Plus,
+  StickyNote,
+  Users,
+} from "lucide-react";
+import { Button, Icon } from "@storyforge/ui";
 
 import { CampaignDocument, EntitiesDocument } from "../gql/graphql";
 import type { CampaignRole } from "../gql/graphql";
@@ -23,13 +33,13 @@ export interface EntitySidebarProps {
 // Mirrors the windowCatalog entries (see windowCatalog.ts) as toggle links.
 // NPCs have no dedicated catalog window — they're entities of type "NPC",
 // reached through the Entities section below like any other entity.
-const WORLD_NAV: { id: string; label: string }[] = [
-  { id: "timeline", label: "Timeline" },
-  { id: "sessions", label: "Sessions" },
-  { id: "notes", label: "Notes" },
-  { id: "members", label: "Members" },
-  { id: "relationships", label: "Relationship Graph" },
-  { id: "maps", label: "Maps" },
+const WORLD_NAV: { id: string; label: string; icon: LucideIcon }[] = [
+  { id: "timeline", label: "Timeline", icon: Clock },
+  { id: "sessions", label: "Sessions", icon: CalendarDays },
+  { id: "notes", label: "Notes", icon: StickyNote },
+  { id: "members", label: "Members", icon: Users },
+  { id: "relationships", label: "Relationship Graph", icon: Network },
+  { id: "maps", label: "Maps", icon: MapIcon },
 ];
 
 function groupByType(entities: EntitySummary[]): [string, EntitySummary[]][] {
@@ -138,6 +148,7 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
               }
               onClick={() => toggle(item.id)}
             >
+              <Icon icon={item.icon} size={15} aria-hidden="true" />
               {item.label}
             </button>
           </li>
@@ -209,14 +220,16 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
             variant="secondary"
             onClick={openCreateEntityWindow}
           >
-            + New Entity
+            <Icon icon={Plus} size={15} aria-hidden="true" />
+            New Entity
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={openCreateNoteWindow}
           >
-            + New Note
+            <Icon icon={Plus} size={15} aria-hidden="true" />
+            New Note
           </Button>
         </div>
       ) : null}

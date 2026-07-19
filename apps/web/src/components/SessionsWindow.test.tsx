@@ -182,7 +182,7 @@ describe("SessionsWindow", () => {
     renderWindow();
 
     expect(
-      screen.getByRole("button", { name: "+ Log session" }),
+      screen.getByRole("button", { name: "Log session" }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(2);
@@ -195,7 +195,7 @@ describe("SessionsWindow", () => {
 
     expect(screen.getByText("The party arrived in town.")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "+ Log session" }),
+      screen.queryByRole("button", { name: "Log session" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Edit" }),
@@ -216,7 +216,7 @@ describe("SessionsWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getByRole("button", { name: "+ Log session" }));
+    await user.click(screen.getByRole("button", { name: "Log session" }));
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "session-form:new", title: "Log Session" }),

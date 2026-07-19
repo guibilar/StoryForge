@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import { Button, FormError, Input, Select } from "@storyforge/ui";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Button, FormError, Icon, Input, Select } from "@storyforge/ui";
 
 import {
   CampaignDocument,
@@ -193,6 +194,7 @@ export function TimelineWindow() {
                   variant="secondary"
                   onClick={() => openEditWindow(event)}
                 >
+                  <Icon icon={Pencil} size={15} aria-hidden="true" />
                   Edit
                 </Button>
                 {confirmingDeleteId === event.id ? (
@@ -220,6 +222,7 @@ export function TimelineWindow() {
                     variant="secondary"
                     onClick={() => setConfirmingDeleteId(event.id)}
                   >
+                    <Icon icon={Trash2} size={15} aria-hidden="true" />
                     Delete
                   </Button>
                 )}
@@ -234,7 +237,8 @@ export function TimelineWindow() {
 
       {isWriter ? (
         <Button type="button" onClick={openCreateWindow}>
-          + New event
+          <Icon icon={Plus} size={15} aria-hidden="true" />
+          New event
         </Button>
       ) : null}
     </div>

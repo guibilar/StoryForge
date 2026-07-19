@@ -2,7 +2,8 @@ import { useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useSubscription } from "urql";
-import { Button, FormError } from "@storyforge/ui";
+import { LandPlot, MapPin } from "lucide-react";
+import { Button, FormError, Icon } from "@storyforge/ui";
 
 import {
   CampaignDocument,
@@ -462,14 +463,16 @@ export function MapsWindow() {
           {mapImage && editing ? (
             <>
               <Button type="button" onClick={() => openCreateMarkerWindow()}>
-                + Add Marker
+                <Icon icon={MapPin} size={15} aria-hidden="true" />
+                Add Marker
               </Button>
               <Button
                 type="button"
                 variant="secondary"
                 onClick={() => openCreateTerritoryWindow()}
               >
-                + Add Territory
+                <Icon icon={LandPlot} size={15} aria-hidden="true" />
+                Add Territory
               </Button>
             </>
           ) : null}

@@ -232,7 +232,7 @@ describe("EntitySidebar", () => {
     renderSidebar("PLAYER");
 
     expect(
-      screen.queryByRole("button", { name: "+ New Entity" }),
+      screen.queryByRole("button", { name: "New Entity" }),
     ).not.toBeInTheDocument();
   });
 
@@ -242,7 +242,7 @@ describe("EntitySidebar", () => {
     const { openWindow } = setupDesktopWindows();
     renderSidebar("OWNER");
 
-    await user.click(screen.getByRole("button", { name: "+ New Entity" }));
+    await user.click(screen.getByRole("button", { name: "New Entity" }));
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "entity-form:new", title: "New Entity" }),
@@ -263,7 +263,7 @@ describe("EntitySidebar", () => {
     const { openWindow, toggle } = setupDesktopWindows({ notesHidden: true });
     renderSidebar("OWNER");
 
-    await user.click(screen.getByRole("button", { name: "+ New Note" }));
+    await user.click(screen.getByRole("button", { name: "New Note" }));
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "note-form:new", title: "New Note" }),
@@ -284,7 +284,7 @@ describe("EntitySidebar", () => {
     const { openWindow, toggle } = setupDesktopWindows({ notesHidden: false });
     renderSidebar("OWNER");
 
-    await user.click(screen.getByRole("button", { name: "+ New Note" }));
+    await user.click(screen.getByRole("button", { name: "New Note" }));
 
     const request = openWindow.mock.calls[0][0] as OpenWindowRequest;
     const element = request.render() as { props: { onSaved: () => void } };

@@ -35,8 +35,9 @@ export interface EntityFormWindowProps {
 
 // The "New Entity" quick-create form content — opened as its own window via
 // useAddEditWindow instead of nesting a Modal (KAN-108). Create-only for
-// now: there's no entity edit flow anywhere in the app yet (EntityWindow's
-// Overview tab is read-only), so this doesn't take a create/edit mode.
+// now: there's no entity edit flow anywhere in the app yet for its text
+// fields (EntityWindow's Overview tab only supports uploading a picture,
+// not editing name/type/description), so this doesn't take a create/edit mode.
 export function EntityFormWindow({
   campaignId,
   onCreated,

@@ -74,10 +74,10 @@
   height: 28px;
   padding: 0;
   line-height: 1;
-  border: 1px solid rgb(0 0 0 / 0.2);
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
-  background: #ffffff;
-  color: #1f2937;
+  background: var(--surface);
+  color: var(--text-h);
   cursor: pointer;
   /* Off reads as muted rather than as a different control. */
   opacity: 0.45;
@@ -103,10 +103,14 @@
   box-shadow: none;
   padding: 0;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-h);
+  /* A halo rather than a real background, so the label still reads over an
+     arbitrary spot on the tiles/image underneath — var(--bg) keeps the halo
+     the same light/dark as everything else instead of being hardcoded to
+     white, which any dark theme would have fought against. */
   text-shadow:
-    0 0 3px #ffffff,
-    0 0 3px #ffffff;
+    0 0 3px var(--bg),
+    0 0 3px var(--bg);
   white-space: nowrap;
 }
 
@@ -135,22 +139,6 @@
 .markerLabel::before {
   /* Kills the tooltip's little pointer arrow. */
   display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  .territoryLabel,
-  .markerLabel {
-    color: #f3f4f6;
-    text-shadow:
-      0 0 3px #111827,
-      0 0 3px #111827;
-  }
-
-  .labelToggle {
-    background: #1f2937;
-    color: #f3f4f6;
-    border-color: rgb(255 255 255 / 0.25);
-  }
 }
 
 .popupActions {

@@ -1,20 +1,34 @@
-import { useState } from "react";
-import { useQuery } from "urql";
-import { Tabs } from "@storyforge/ui";
+import { useRef, useState } from "react";
+import type { ChangeEvent } from "react";
+import { useMutation, useQuery } from "urql";
+import { Button, FormError, Tabs } from "@storyforge/ui";
 import type { TabItem } from "@storyforge/ui";
 
-import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
+import {
+  CampaignDocument,
+  EntitiesDocument,
+  MeDocument,
+  RelationshipsDocument,
+  UploadEntityImageDocument,
+} from "../gql/graphql";
 import type { EntityVisibility } from "../gql/graphql";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
+import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./EntityWindow.module.css";
+
+// Mirrors LocalImageStore's MAX_BYTES (apps/api/src/modules/entities/infrastructure/LocalImageStore.ts)
+// — checking client-side first avoids uploading a large file in full only
+// to have the server reject it afterwards.
+const MAX_ENTITY_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export interface EntitySummary {
   id: string;
   name: string;
   type: string;
   description?: string | null;
+  image?: string | null;
   visibility: EntityVisibility;
 }
 
@@ -41,7 +55,9 @@ export function EntityWindow({ entity, campaignId }: EntityWindowProps) {
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as TabId)}
       >
-        {activeTab === "overview" ? <OverviewTab entity={entity} /> : null}
+        {activeTab === "overview" ? (
+          <OverviewTab entity={entity} campaignId={campaignId} />
+        ) : null}
         {activeTab === "relationships" ? (
           <RelationshipsTab campaignId={campaignId} entity={entity} />
         ) : null}
@@ -51,9 +67,72 @@ export function EntityWindow({ entity, campaignId }: EntityWindowProps) {
   );
 }
 
-function OverviewTab({ entity }: { entity: EntitySummary }) {
+function OverviewTab({
+  entity,
+  campaignId,
+}: {
+  entity: EntitySummary;
+  campaignId: string;
+}) {
+  const [{ data: meData }] = useQuery({ query: MeDocument });
+  const [{ data: campaignData }] = useQuery({
+    query: CampaignDocument,
+    variables: { id: campaignId },
+  });
+  const [uploadState, uploadEntityImage] = useMutation(
+    UploadEntityImageDocument,
+  );
+  // The entity prop is a snapshot from whenever its window was opened, so a
+  // freshly uploaded image is tracked locally rather than waiting on the
+  // caller (EntitySidebar's entity list) to refetch and pass a new prop.
+  const [image, setImage] = useState(entity.image ?? null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const currentUserId = meData?.me?.id;
+  const members = campaignData?.campaign?.members ?? [];
+  const myRole = members.find(
+    (member) => member.userId === currentUserId,
+  )?.role;
+  const isWriter =
+    myRole === "OWNER" ||
+    myRole === "STORYTELLER" ||
+    myRole === "CO_STORYTELLER";
+
+  function openFilePicker() {
+    fileInputRef.current?.click();
+  }
+
+  async function handleFileSelected(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+    setValidationError(null);
+    if (file.size > MAX_ENTITY_IMAGE_BYTES) {
+      setValidationError("File size exceeds the maximum limit of 5MB.");
+      return;
+    }
+    const result = await uploadEntityImage({ entityId: entity.id, file });
+    if (result.data?.uploadEntityImage) {
+      setImage(result.data.uploadEntityImage.image ?? null);
+    }
+  }
+
+  const actionError = validationError ?? formatGraphQLError(uploadState.error);
+
   return (
     <div className={styles.overview}>
+      {image ? (
+        <img
+          className={styles.portrait}
+          src={resolveUploadUrl(image)}
+          alt={`${entity.name} portrait`}
+        />
+      ) : (
+        <div className={styles.portraitPlaceholder} aria-hidden="true" />
+      )}
       <span className={styles.type}>{entity.type}</span>
       <h2 className={styles.name}>{entity.name}</h2>
       <span className={styles.visibility}>{entity.visibility}</span>
@@ -62,6 +141,26 @@ function OverviewTab({ entity }: { entity: EntitySummary }) {
       ) : (
         <p className={styles.empty}>No description yet.</p>
       )}
+      {isWriter ? (
+        <div className={styles.portraitActions}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            className={styles.hiddenFileInput}
+            onChange={handleFileSelected}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={uploadState.fetching}
+            onClick={openFilePicker}
+          >
+            {image ? "Replace Picture" : "Upload Picture"}
+          </Button>
+          {actionError ? <FormError>{actionError}</FormError> : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -126,6 +225,7 @@ function RelationshipsTab({
       name: counterpart.name,
       type: counterpart.type,
       description: counterpart.description,
+      image: counterpart.image,
       visibility: counterpart.visibility,
     });
   }

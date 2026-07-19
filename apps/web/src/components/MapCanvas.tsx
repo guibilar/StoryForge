@@ -19,6 +19,8 @@ import { Button } from "@storyforge/ui";
 import "leaflet/dist/leaflet.css";
 
 import { fitTerritoryLabel, ringsIn } from "./mapLabels";
+import { useColorScheme } from "../hooks/useColorScheme";
+import type { ColorScheme } from "../hooks/useColorScheme";
 
 import markerIconUrl from "leaflet/dist/images/marker-icon.png";
 import markerIcon2xUrl from "leaflet/dist/images/marker-icon-2x.png";
@@ -140,6 +142,19 @@ const ENTITY_TYPE_COLORS = [
 ];
 
 const UNLINKED_COLOR = "#3388ff";
+
+// OSM's own tile server has only ever served one, light style — there's no
+// url param or style switch that makes it render dark. CARTO's Positron/Dark
+// Matter basemaps are built from the same OSM data and need no API key, so
+// swapping the tile source itself is what lets the map follow the app's
+// theme rather than staying light no matter what.
+const TILE_URL: Record<ColorScheme, string> = {
+  light: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+};
+
+const TILE_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
 // Stable across reloads and independent of load order: the same type always
 // lands on the same colour, which a running counter or index-into-the-list
@@ -615,6 +630,7 @@ export function MapCanvas({
     ? { crs: L.CRS.Simple, bounds: boundsFor(imageOverlay) }
     : { center, zoom };
 
+  const colorScheme = useColorScheme();
   const [view, setView] = useState<MapView>({ zoom, width: 0, height: 0 });
   // Both on by default — a map you can't read the names on is the worse
   // starting point. The toggles are for when the labels get in the way of the
@@ -733,8 +749,13 @@ export function MapCanvas({
           />
         ) : (
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            // Keyed on the scheme rather than relying on react-leaflet to
+            // diff-update both `url` and `attribution` in place: a remount
+            // on theme change is cheap and guarantees neither prop is left
+            // stale.
+            key={colorScheme}
+            attribution={TILE_ATTRIBUTION}
+            url={TILE_URL[colorScheme]}
           />
         )}
         {territories.map((territory) => (

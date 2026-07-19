@@ -8,6 +8,7 @@ import type { TabItem } from "@storyforge/ui";
 import {
   CampaignDocument,
   EntitiesDocument,
+  EntityNotesDocument,
   MeDocument,
   RelationshipsDocument,
   UpdateEntityDocument,
@@ -15,6 +16,7 @@ import {
 } from "../gql/graphql";
 import type { EntityCategory, EntityVisibility } from "../gql/graphql";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
+import { useOpenNoteWindow } from "../hooks/useOpenNoteWindow";
 import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
@@ -71,7 +73,9 @@ export function EntityWindow({ entity, campaignId }: EntityWindowProps) {
         {activeTab === "relationships" ? (
           <RelationshipsTab campaignId={campaignId} entity={entity} />
         ) : null}
-        {activeTab === "notes" ? <NotesTab /> : null}
+        {activeTab === "notes" ? (
+          <NotesTab campaignId={campaignId} entity={entity} />
+        ) : null}
       </Tabs>
     </div>
   );
@@ -374,6 +378,76 @@ function RelationshipsTab({
   );
 }
 
-function NotesTab() {
-  return <p className={styles.empty}>Notes — coming soon.</p>;
+// Every note that references this entity through a `[[link]]` — the
+// entity's side of the same NoteLink rows the note viewer reads. There is
+// no separate "attach note to entity" association: writing the link in a
+// note's body is what puts it here.
+function NotesTab({
+  campaignId,
+  entity,
+}: {
+  campaignId: string;
+  entity: EntitySummary;
+}) {
+  const openNoteWindow = useOpenNoteWindow(campaignId);
+
+  const [{ data, fetching, error }, reexecute] = useQuery({
+    query: EntityNotesDocument,
+    variables: { id: entity.id },
+  });
+
+  useWindowChromeSync(fetching, () =>
+    reexecute({ requestPolicy: "network-only" }),
+  );
+
+  if (fetching) {
+    return <p className={styles.empty}>Loading notes…</p>;
+  }
+
+  if (error) {
+    return (
+      <p className={styles.empty}>
+        {formatGraphQLError(error) ?? "Unable to load notes."}
+      </p>
+    );
+  }
+
+  const notes = data?.entity?.backlinks ?? [];
+
+  if (notes.length === 0) {
+    return (
+      <p className={styles.empty}>
+        No notes mention {entity.name} yet. Link one with [[{entity.name}]].
+      </p>
+    );
+  }
+
+  return (
+    <ul className={styles.noteList}>
+      {notes.map((note) => (
+        <li key={note.id} className={styles.noteRow}>
+          <button
+            type="button"
+            className={styles.noteButton}
+            onClick={() => openNoteWindow(note.id, note.title)}
+          >
+            <span className={styles.noteTitle}>{note.title}</span>
+            <span className={styles.notePreview}>
+              {notePreview(note.content)}
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function notePreview(content: string): string {
+  // Strip the link syntax so a preview reads as prose, not markup.
+  const flat = content
+    .replace(/\[\[\s*([^\]|]+?)\s*(?:\|[^\]]+)?\]\]/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return flat.length > 100 ? `${flat.slice(0, 100)}…` : flat;
 }

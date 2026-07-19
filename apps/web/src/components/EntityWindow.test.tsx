@@ -9,6 +9,7 @@ import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   CampaignDocument,
   EntitiesDocument,
+  EntityNotesDocument,
   ForceOpenEntityWindowDocument,
   MeDocument,
   RelationshipsDocument,
@@ -128,6 +129,7 @@ function setupQueries({
     }),
   ),
   updateEntityFetching = false,
+  backlinks = [] as { id: string; title: string; content: string }[],
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     if (args.query === MeDocument) {
@@ -164,6 +166,16 @@ function setupQueries({
           stale: false,
         },
         reexecuteRelationships,
+      ];
+    }
+    if (args.query === EntityNotesDocument) {
+      return [
+        {
+          data: { entity: { id: ENTITY.id, backlinks } },
+          fetching: false,
+          stale: false,
+        },
+        vi.fn(),
       ];
     }
     throw new Error("Unexpected query in test");
@@ -477,7 +489,7 @@ describe("EntityWindow", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows the Notes tab as a stub", async () => {
+  it("tells you how to relate a note when nothing links to the entity yet", async () => {
     const user = userEvent.setup();
     setupQueries();
     setupDesktopWindows();
@@ -485,7 +497,56 @@ describe("EntityWindow", () => {
 
     await user.click(screen.getByRole("tab", { name: "Notes" }));
 
-    expect(screen.getByText("Notes — coming soon.")).toBeInTheDocument();
+    expect(
+      screen.getByText(`No notes mention ${ENTITY.name} yet.`, {
+        exact: false,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("lists the notes that [[link]] to this entity, with the link syntax stripped from the preview", async () => {
+    const user = userEvent.setup();
+    setupQueries({
+      backlinks: [
+        {
+          id: "note-1",
+          title: "Ambush at the docks",
+          content: "The [[Carlos Mendoza|entity:e-1]] crew hit us.",
+        },
+      ],
+    });
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("tab", { name: "Notes" }));
+
+    expect(screen.getByText("Ambush at the docks")).toBeInTheDocument();
+    expect(
+      screen.getByText("The Carlos Mendoza crew hit us."),
+    ).toBeInTheDocument();
+  });
+
+  it("opens a note window when a linked note is clicked", async () => {
+    const user = userEvent.setup();
+    setupQueries({
+      backlinks: [
+        { id: "note-1", title: "Ambush at the docks", content: "shots" },
+      ],
+    });
+    const { openWindow } = setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("tab", { name: "Notes" }));
+    await user.click(
+      screen.getByRole("button", { name: /Ambush at the docks/ }),
+    );
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "note:note-1",
+        title: "Ambush at the docks",
+      }),
+    );
   });
 
   it("lists relationships with the counterpart's name and relationship type", async () => {

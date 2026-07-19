@@ -1,0 +1,9 @@
+mutation UploadNoteAttachment($noteId: ID!, $file: Upload!) {
+  uploadNoteAttachment(noteId: $noteId, file: $file) {
+    id
+    fileName
+    mimeType
+    sizeBytes
+    url
+  }
+}

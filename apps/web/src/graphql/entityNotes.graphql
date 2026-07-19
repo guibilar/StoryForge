@@ -1,0 +1,14 @@
+query EntityNotes($id: ID!) {
+  entity(id: $id) {
+    id
+    backlinks {
+      id
+      authorId
+      title
+      content
+      visibility
+      recipientIds
+      updatedAt
+    }
+  }
+}

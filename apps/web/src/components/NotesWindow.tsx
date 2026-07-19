@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import { Check, Plus, Trash2, X } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button, FormError, Icon, IconButton } from "@storyforge/ui";
 
 import {
@@ -11,6 +11,7 @@ import {
   NotesDocument,
 } from "../gql/graphql";
 import { useAddEditWindow } from "../hooks/useAddEditWindow";
+import { useOpenNoteWindow } from "../hooks/useOpenNoteWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { NoteFormWindow } from "./NoteFormWindow";
@@ -38,6 +39,7 @@ export function NotesWindow() {
   });
 
   const [deleteState, deleteNote] = useMutation(DeleteNoteDocument);
+  const openNoteWindow = useOpenNoteWindow(campaignId);
   const { openAddEditWindow } = useAddEditWindow({
     idPrefix: "note-form",
     width: 420,
@@ -151,10 +153,7 @@ export function NotesWindow() {
             <button
               type="button"
               className={styles.info}
-              onClick={() =>
-                canModify(note) ? openEditWindow(note) : undefined
-              }
-              disabled={!canModify(note)}
+              onClick={() => openNoteWindow(note.id, note.title)}
             >
               <span className={styles.titleLine}>
                 <span className={styles.title}>{note.title}</span>
@@ -187,11 +186,18 @@ export function NotesWindow() {
                     />
                   </>
                 ) : (
-                  <IconButton
-                    icon={Trash2}
-                    label={`Delete ${note.title}`}
-                    onClick={() => setConfirmingDeleteId(note.id)}
-                  />
+                  <>
+                    <IconButton
+                      icon={Pencil}
+                      label={`Edit ${note.title}`}
+                      onClick={() => openEditWindow(note)}
+                    />
+                    <IconButton
+                      icon={Trash2}
+                      label={`Delete ${note.title}`}
+                      onClick={() => setConfirmingDeleteId(note.id)}
+                    />
+                  </>
                 )}
               </div>
             ) : null}

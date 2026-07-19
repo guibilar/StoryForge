@@ -1,0 +1,41 @@
+/* The markdown preview ships its own theme; pin it to the app surface so a
+   note reads as part of the window rather than a white card inside it. */
+.content {
+  font-size: 13.5px;
+  color: var(--text-h);
+}
+
+.content :global(.wmde-markdown) {
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Wiki links are in-app navigation, so they get the accent treatment
+   regardless of what the markdown theme does with ordinary anchors. */
+.content a[href^="#sf-link:"] {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent-border);
+  cursor: pointer;
+}
+
+.content a[href^="#sf-link:"]:hover {
+  color: var(--accent-strong);
+  background: var(--accent-bg);
+}
+
+/* A reference the API could not resolve — a typo, or a target that doesn't
+   exist yet. Shown, not hidden, so the writer can see it needs fixing. */
+.content a[href="#sf-link:unresolved"] {
+  color: var(--text);
+  opacity: 0.7;
+  border-bottom-style: dashed;
+  border-bottom-color: var(--border-strong);
+  cursor: help;
+}
+
+.content a[href="#sf-link:unresolved"]:hover {
+  color: var(--text);
+  background: none;
+}

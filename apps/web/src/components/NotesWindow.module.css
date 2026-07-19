@@ -40,10 +40,6 @@
   text-align: left;
 }
 
-.info:disabled {
-  cursor: default;
-}
-
 .titleLine {
   display: flex;
   align-items: center;

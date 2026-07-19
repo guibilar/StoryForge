@@ -237,7 +237,7 @@ describe("NotesWindow", () => {
     );
   });
 
-  it("opens an edit window when a modifiable note is clicked", async () => {
+  it("opens the note viewer when a row is clicked", async () => {
     setupMocks();
     const { openWindow } = setupDesktopWindows();
     const user = userEvent.setup();
@@ -247,9 +247,48 @@ describe("NotesWindow", () => {
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({
+        id: "note:note-1",
+        title: "Session 1 recap",
+      }),
+    );
+  });
+
+  it("opens the editor from the row's Edit action, not from the row itself", async () => {
+    setupMocks();
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(
+      screen.getByRole("button", { name: "Edit Session 1 recap" }),
+    );
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
         id: "note-form:note-1",
         title: "Edit: Session 1 recap",
       }),
+    );
+  });
+
+  it("opens the viewer for a note the current user cannot edit", async () => {
+    const gmNote: NoteFixture = {
+      id: "note-gm",
+      authorId: "someone-else",
+      title: "Party log",
+      content: "shared",
+      visibility: "SHARED",
+      recipientIds: [],
+    };
+    setupMocks({ members: playerMembers, noteRoots: [gmNote] });
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(screen.getByText("Party log"));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "note:note-gm" }),
     );
   });
 
@@ -337,11 +376,14 @@ describe("NotesWindow", () => {
     renderWindow();
 
     expect(screen.getAllByRole("button", { name: /^Delete / })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /^Edit / })).toHaveLength(1);
 
+    // Both rows stay clickable — reading someone else's note is allowed,
+    // only editing it isn't.
     const ownRow = screen.getByText("My journal").closest("button");
     const gmRow = screen.getByText("Party log").closest("button");
     expect(ownRow).toBeEnabled();
-    expect(gmRow).toBeDisabled();
+    expect(gmRow).toBeEnabled();
   });
 
   it("reports its loading state and a network-only refresh to the window chrome", () => {

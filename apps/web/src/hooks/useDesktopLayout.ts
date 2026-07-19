@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
+import { markLocalWorkspaceWrite } from "../lib/workspaceClock";
+
 export interface WindowLayout {
   x: number;
   y: number;
@@ -68,6 +70,9 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
   const persistLayout = useCallback(
     (next: LayoutMap) => {
       localStorage.setItem(storageKey(campaignId), JSON.stringify(next));
+      // Stamped on every local write so the server sync can tell a snapshot
+      // that's genuinely newer from one that would roll this browser back.
+      markLocalWorkspaceWrite(campaignId);
       return next;
     },
     [campaignId],

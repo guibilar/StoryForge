@@ -1,0 +1,39 @@
+query Note($id: ID!) {
+  note(id: $id) {
+    id
+    campaignId
+    authorId
+    title
+    content
+    visibility
+    recipientIds
+    createdAt
+    updatedAt
+    linkedEntities {
+      id
+      name
+      type
+      category
+      description
+      image
+      color
+      visibility
+    }
+    linkedNotes {
+      id
+      title
+    }
+    backlinks {
+      id
+      title
+    }
+    attachments {
+      id
+      url
+      fileName
+      mimeType
+      sizeBytes
+      createdAt
+    }
+  }
+}

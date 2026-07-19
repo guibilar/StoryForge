@@ -13,6 +13,7 @@ import { useDesktopWindowsController } from "../hooks/useDesktopWindowsControlle
 import {
   CampaignDocument,
   EntitiesDocument,
+  EntityDocument,
   EventsDocument,
   MeDocument,
   SessionsDocument,
@@ -105,6 +106,29 @@ vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
     ];
   }
 
+  // A window restored after a reload fetches its own entity by id.
+  if (args.query === EntityDocument) {
+    return [
+      {
+        data: {
+          entity: {
+            id: "1",
+            name: "Test Entity",
+            type: "Character",
+            category: "CHARACTER",
+            description: "Restored from its window id",
+            image: null,
+            color: null,
+            visibility: "PUBLIC",
+          },
+        },
+        fetching: false,
+        stale: false,
+      },
+      vi.fn(),
+    ];
+  }
+
   if (args.query === EntitiesDocument) {
     return [{ data: { entities: [] }, fetching: false, stale: false }, vi.fn()];
   }
@@ -186,16 +210,25 @@ describe("DesktopBoard dynamic windows", () => {
     expect(screen.getByText("Entity content")).toBeInTheDocument();
   });
 
-  it("persists a dynamic window's position across reload (content isn't, and must be re-supplied by the caller on reopen)", async () => {
+  it("restores a dynamic window, and its position, across a reload", async () => {
     const user = userEvent.setup();
     const { unmount } = renderBoard();
 
     await user.click(screen.getByRole("button", { name: "Open entity" }));
     unmount();
 
-    // The render function/title aren't JSON-serializable, so a fresh mount
-    // starts with no dynamic window registered — nothing to show yet.
+    // The render function isn't serializable, so it's rebuilt from the
+    // window id (see lib/dynamicWindowRegistry) rather than restored —
+    // which is why the content is the real EntityWindow fetched by id, not
+    // the harness's stand-in "Entity content".
     renderBoard();
+
+    expect(
+      await screen.findByText("Restored from its window id"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Test Entity" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Entity content")).not.toBeInTheDocument();
 
     const stored = JSON.parse(

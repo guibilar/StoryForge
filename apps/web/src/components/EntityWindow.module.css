@@ -129,3 +129,63 @@
   margin: 4px 0 0;
   font-size: 12px;
 }
+
+.noteList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.noteRow {
+  border-bottom: 1px solid var(--border);
+}
+
+.noteRow:last-child {
+  border-bottom: none;
+}
+
+.noteButton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+  appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  padding: 7px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.noteButton:hover {
+  background: var(--surface-2);
+}
+
+.noteButton:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.noteTitle {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.notePreview {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.75;
+}

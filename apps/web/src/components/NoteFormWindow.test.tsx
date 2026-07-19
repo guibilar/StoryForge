@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { useMutation, useQuery } from "urql";
@@ -9,7 +9,9 @@ import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   CampaignDocument,
   CreateNoteDocument,
+  EntitiesDocument,
   MeDocument,
+  NotesDocument,
   UpdateNoteDocument,
 } from "../gql/graphql";
 
@@ -46,8 +48,18 @@ const playerMembers = tableMembers.map((member) =>
   member.userId === CURRENT_USER_ID ? { ...member, role: "PLAYER" } : member,
 );
 
+// Targets offered by the [[link]] pickers above the editor.
+const LINKABLE_ENTITIES = [
+  { id: "e-1", name: "Carlos Mendoza", type: "Character" },
+  { id: "e-2", name: "Downtown", type: "Location" },
+];
+
+const LINKABLE_NOTES = [{ id: "note-9", title: "Session 1 recap" }];
+
 function setupMocks({
   members = ownerMembers,
+  entities = LINKABLE_ENTITIES,
+  noteRoots = LINKABLE_NOTES,
   createNote = vi.fn().mockResolvedValue({ data: { createNote: {} } }),
   updateNote = vi.fn().mockResolvedValue({ data: { updateNote: {} } }),
   createFetching = false,
@@ -73,6 +85,14 @@ function setupMocks({
         },
         vi.fn(),
       ];
+    }
+
+    if (args.query === EntitiesDocument) {
+      return [{ data: { entities }, fetching: false, stale: false }, vi.fn()];
+    }
+
+    if (args.query === NotesDocument) {
+      return [{ data: { noteRoots }, fetching: false, stale: false }, vi.fn()];
     }
 
     throw new Error("Unexpected query in test");
@@ -118,6 +138,67 @@ function renderEdit(note: NoteRow, onSaved = vi.fn(), onClose = vi.fn()) {
   );
   return { onSaved, onClose };
 }
+
+describe("NoteFormWindow link pickers", () => {
+  it("inserts an entity [[link]] with the id pinned — the note's only way to relate to an entity", async () => {
+    const { createNote } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Title"), "Ambush");
+    await user.selectOptions(
+      screen.getByLabelText("Insert a link to an entity"),
+      "e-1",
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createNote).toHaveBeenCalledWith({
+      input: expect.objectContaining({
+        content: "[[Carlos Mendoza|entity:e-1]]",
+      }),
+    });
+  });
+
+  it("inserts a note link", async () => {
+    const { createNote } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Title"), "Ambush");
+    await user.selectOptions(
+      screen.getByLabelText("Insert a link to another note"),
+      "note-9",
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createNote).toHaveBeenCalledWith({
+      input: expect.objectContaining({
+        content: "[[Session 1 recap|note:note-9]]",
+      }),
+    });
+  });
+
+  it("does not offer the note being edited as a link target", () => {
+    setupMocks({
+      noteRoots: [
+        { id: "note-1", title: "This note" },
+        { id: "note-9", title: "Session 1 recap" },
+      ],
+    });
+    renderEdit({
+      id: "note-1",
+      authorId: CURRENT_USER_ID,
+      title: "This note",
+      content: "",
+      visibility: "SHARED",
+      recipientIds: [],
+    });
+
+    const picker = screen.getByLabelText("Insert a link to another note");
+    expect(within(picker).queryByText("This note")).not.toBeInTheDocument();
+    expect(within(picker).getByText("Session 1 recap")).toBeInTheDocument();
+  });
+});
 
 describe("NoteFormWindow", () => {
   it("creates a note and calls onSaved/onClose", async () => {

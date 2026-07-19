@@ -1,4 +1,4 @@
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { useState } from "react";
 import { useMutation, useQuery } from "urql";
 import MDEditor from "@uiw/react-md-editor";
@@ -16,14 +16,21 @@ import {
 import {
   CampaignDocument,
   CreateNoteDocument,
+  EntitiesDocument,
   MeDocument,
+  NotesDocument,
   UpdateNoteDocument,
 } from "../gql/graphql";
 import type { NoteVisibility } from "../gql/graphql";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { wikiLinkFor } from "../lib/noteLinks";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./NoteFormWindow.module.css";
+
+// The editor's textarea, reached by id because MDEditor owns the element.
+// Used to insert a link at the caret rather than always appending.
+const CONTENT_TEXTAREA_ID = "note-content";
 
 export interface NoteRow {
   id: string;
@@ -65,6 +72,16 @@ export function NoteFormWindow({
   const [{ data: campaignData }] = useQuery({
     query: CampaignDocument,
     variables: { id: campaignId },
+  });
+  const [{ data: entitiesData }] = useQuery({
+    query: EntitiesDocument,
+    variables: { campaignId },
+  });
+  // Root notes only, matching the Notes window's own list — enough to link
+  // the notes a writer can actually see and name.
+  const [{ data: notesData }] = useQuery({
+    query: NotesDocument,
+    variables: { campaignId },
   });
   const [createState, createNote] = useMutation(CreateNoteDocument);
   const [updateState, updateNote] = useMutation(UpdateNoteDocument);
@@ -109,6 +126,11 @@ export function NoteFormWindow({
   );
   const missingRecipients =
     visibility === "TARGETED" && recipientIds.length === 0;
+  const entities = entitiesData?.entities ?? [];
+  // A note can't link to itself.
+  const linkableNotes = (notesData?.noteRoots ?? []).filter(
+    (note) => note.id !== initialNote?.id,
+  );
 
   function toggleRecipient(userId: string) {
     setRecipientIds((current) =>
@@ -116,6 +138,50 @@ export function NoteFormWindow({
         ? current.filter((id) => id !== userId)
         : [...current, userId],
     );
+  }
+
+  // Relating a note to an entity *is* writing a [[link]] to it: the API
+  // parses the content on save and stores the NoteLink rows the entity's
+  // Notes tab and the viewer's backlinks read back. So the picker writes
+  // the link into the content rather than maintaining a separate field.
+  function insertAtCaret(snippet: string) {
+    const textarea = document.getElementById(
+      CONTENT_TEXTAREA_ID,
+    ) as HTMLTextAreaElement | null;
+
+    if (!textarea) {
+      setContent((current) => (current ? `${current} ${snippet}` : snippet));
+      return;
+    }
+
+    const start = textarea.selectionStart ?? content.length;
+    const end = textarea.selectionEnd ?? start;
+    setContent(content.slice(0, start) + snippet + content.slice(end));
+
+    // Restore the caret after the inserted text once React has re-rendered
+    // the textarea with the new value.
+    requestAnimationFrame(() => {
+      const caret = start + snippet.length;
+      textarea.focus();
+      textarea.setSelectionRange(caret, caret);
+    });
+  }
+
+  function handleInsertEntityLink(event: ChangeEvent<HTMLSelectElement>) {
+    const entity = entities.find((row) => row.id === event.target.value);
+    // Reset so picking the same target twice in a row fires again.
+    event.target.value = "";
+    if (entity) {
+      insertAtCaret(wikiLinkFor("entity", entity.name, entity.id));
+    }
+  }
+
+  function handleInsertNoteLink(event: ChangeEvent<HTMLSelectElement>) {
+    const note = linkableNotes.find((row) => row.id === event.target.value);
+    event.target.value = "";
+    if (note) {
+      insertAtCaret(wikiLinkFor("note", note.title, note.id));
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -181,14 +247,45 @@ export function NoteFormWindow({
           required
         />
       </FormField>
-      <FormField label="Content" htmlFor="note-content">
+      <FormField label="Content" htmlFor={CONTENT_TEXTAREA_ID}>
+        <div className={styles.linkBar}>
+          <Select
+            className={styles.linkSelect}
+            aria-label="Insert a link to an entity"
+            value=""
+            onChange={handleInsertEntityLink}
+          >
+            <option value="">Link entity…</option>
+            {entities.map((entity) => (
+              <option key={entity.id} value={entity.id}>
+                {entity.name}
+              </option>
+            ))}
+          </Select>
+          <Select
+            className={styles.linkSelect}
+            aria-label="Insert a link to another note"
+            value=""
+            onChange={handleInsertNoteLink}
+          >
+            <option value="">Link note…</option>
+            {linkableNotes.map((note) => (
+              <option key={note.id} value={note.id}>
+                {note.title}
+              </option>
+            ))}
+          </Select>
+          <span className={styles.hint}>
+            Inserts a [[link]] — that's what relates this note to an entity.
+          </span>
+        </div>
         <div className={styles.editor}>
           <MDEditor
             value={content}
             onChange={(value) => setContent(value ?? "")}
             height={280}
             preview="live"
-            textareaProps={{ id: "note-content" }}
+            textareaProps={{ id: CONTENT_TEXTAREA_ID }}
           />
         </div>
       </FormField>

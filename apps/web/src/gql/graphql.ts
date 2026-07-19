@@ -436,6 +436,12 @@ export type CreateTerritoryMutation = {
   };
 };
 
+export type DeleteAttachmentMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type DeleteAttachmentMutation = { deleteAttachment: boolean };
+
 export type DeleteEntityMutationVariables = Exact<{
   id: string | number;
 }>;
@@ -526,6 +532,42 @@ export type EntitiesQuery = {
     visibility: EntityVisibility;
     tags: Array<{ id: string; name: string }>;
   }>;
+};
+
+export type EntityQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+export type EntityQuery = {
+  entity: {
+    id: string;
+    name: string;
+    type: string;
+    category: EntityCategory;
+    description: string | null;
+    image: string | null;
+    color: string | null;
+    visibility: EntityVisibility;
+  } | null;
+};
+
+export type EntityNotesQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+export type EntityNotesQuery = {
+  entity: {
+    id: string;
+    backlinks: Array<{
+      id: string;
+      authorId: string;
+      title: string;
+      content: string;
+      visibility: NoteVisibility;
+      recipientIds: Array<string>;
+      updatedAt: string;
+    }>;
+  } | null;
 };
 
 export type EventsQueryVariables = Exact<{
@@ -622,6 +664,44 @@ export type MyWorkspaceStateQuery = {
     layout: string;
     recentEntityIds: string;
     updatedAt: string;
+  } | null;
+};
+
+export type NoteQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+export type NoteQuery = {
+  note: {
+    id: string;
+    campaignId: string;
+    authorId: string;
+    title: string;
+    content: string;
+    visibility: NoteVisibility;
+    recipientIds: Array<string>;
+    createdAt: string;
+    updatedAt: string;
+    linkedEntities: Array<{
+      id: string;
+      name: string;
+      type: string;
+      category: EntityCategory;
+      description: string | null;
+      image: string | null;
+      color: string | null;
+      visibility: EntityVisibility;
+    }>;
+    linkedNotes: Array<{ id: string; title: string }>;
+    backlinks: Array<{ id: string; title: string }>;
+    attachments: Array<{
+      id: string;
+      url: string;
+      fileName: string;
+      mimeType: string;
+      sizeBytes: number;
+      createdAt: string;
+    }>;
   } | null;
 };
 
@@ -918,6 +998,21 @@ export type UploadMapImageMutation = {
     fileName: string;
     width: number;
     height: number;
+  };
+};
+
+export type UploadNoteAttachmentMutationVariables = Exact<{
+  noteId: string | number;
+  file: File;
+}>;
+
+export type UploadNoteAttachmentMutation = {
+  uploadNoteAttachment: {
+    id: string;
+    fileName: string;
+    mimeType: string;
+    sizeBytes: number;
+    url: string;
   };
 };
 
@@ -1927,6 +2022,48 @@ export const CreateTerritoryDocument = {
   CreateTerritoryMutation,
   CreateTerritoryMutationVariables
 >;
+export const DeleteAttachmentDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteAttachment" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteAttachment" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteAttachmentMutation,
+  DeleteAttachmentMutationVariables
+>;
 export const DeleteEntityDocument = {
   kind: "Document",
   definitions: [
@@ -2530,6 +2667,134 @@ export const EntitiesDocument = {
     },
   ],
 } as unknown as DocumentNode<EntitiesQuery, EntitiesQueryVariables>;
+export const EntityDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Entity" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "entity" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "type" } },
+                { kind: "Field", name: { kind: "Name", value: "category" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "image" } },
+                { kind: "Field", name: { kind: "Name", value: "color" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EntityQuery, EntityQueryVariables>;
+export const EntityNotesDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "EntityNotes" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "entity" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "backlinks" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "authorId" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "content" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "visibility" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "recipientIds" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "updatedAt" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EntityNotesQuery, EntityNotesQueryVariables>;
 export const EventsDocument = {
   kind: "Document",
   definitions: [
@@ -2997,6 +3262,137 @@ export const MyWorkspaceStateDocument = {
   MyWorkspaceStateQuery,
   MyWorkspaceStateQueryVariables
 >;
+export const NoteDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Note" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "note" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "campaignId" } },
+                { kind: "Field", name: { kind: "Name", value: "authorId" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "content" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "recipientIds" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "linkedEntities" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "type" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "image" } },
+                      { kind: "Field", name: { kind: "Name", value: "color" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "visibility" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "linkedNotes" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "backlinks" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "attachments" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "url" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "fileName" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "mimeType" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "sizeBytes" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "createdAt" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<NoteQuery, NoteQueryVariables>;
 export const NotesDocument = {
   kind: "Document",
   definitions: [
@@ -4382,4 +4778,78 @@ export const UploadMapImageDocument = {
 } as unknown as DocumentNode<
   UploadMapImageMutation,
   UploadMapImageMutationVariables
+>;
+export const UploadNoteAttachmentDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UploadNoteAttachment" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "noteId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "file" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Upload" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "uploadNoteAttachment" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "noteId" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "noteId" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "file" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "file" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "fileName" } },
+                { kind: "Field", name: { kind: "Name", value: "mimeType" } },
+                { kind: "Field", name: { kind: "Name", value: "sizeBytes" } },
+                { kind: "Field", name: { kind: "Name", value: "url" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UploadNoteAttachmentMutation,
+  UploadNoteAttachmentMutationVariables
 >;

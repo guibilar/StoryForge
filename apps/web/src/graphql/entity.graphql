@@ -1,0 +1,12 @@
+query Entity($id: ID!) {
+  entity(id: $id) {
+    id
+    name
+    type
+    category
+    description
+    image
+    color
+    visibility
+  }
+}

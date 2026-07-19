@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
 
+import { markLocalWorkspaceWrite } from "../lib/workspaceClock";
+
 const MAX_RECENTS = 10;
 
 function storageKey(campaignId: string): string {
@@ -39,6 +41,7 @@ export function useRecentEntities(campaignId: string) {
           ...current.filter((existing) => existing !== id),
         ].slice(0, MAX_RECENTS);
         localStorage.setItem(storageKey(campaignId), JSON.stringify(next));
+        markLocalWorkspaceWrite(campaignId);
         return next;
       });
     },

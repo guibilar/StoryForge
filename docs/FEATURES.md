@@ -144,7 +144,7 @@ tracks what's actually built, not just planned.
       pre-existing free-string `type`, falling back to `OTHER`).
 - [x] Player Character / NPC split (KAN-119) — `isPlayerCharacter: boolean`
       on `Entity` (default `false`), settable only when `category ===
-  CHARACTER` (enforced in both directions: `changeCategory` and
+CHARACTER` (enforced in both directions: `changeCategory` and
       `changeIsPlayerCharacter` cross-validate). `EntityFormWindow` shows
       the toggle only when `CHARACTER` is selected.
 - [x] Player Character owner link (KAN-120) — `Entity.ownerUserId` (nullable,
@@ -339,6 +339,11 @@ tracks what's actually built, not just planned.
 - [ ] Leaflet integration
 - [ ] Markers, territories, regions, districts
 - [ ] Custom overlays / images as maps
+- [x] Marker entity links restricted to LOCATION-category entities
+      (KAN-121) — `MarkerService.requireEntityInCampaign` rejects a
+      non-`LOCATION` `entityId` with `ValidationError`; `EntitySelectField`
+      (`categories` prop) filters the picker client-side to match, so
+      `MarkerFormWindow` only ever offers `LOCATION` entities.
 
 ## Plugin Runtime
 

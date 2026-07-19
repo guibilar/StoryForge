@@ -3,6 +3,7 @@ import { useQuery } from "urql";
 import { FormField, Select } from "@storyforge/ui";
 
 import { EntitiesDocument } from "../gql/graphql";
+import type { EntityCategory } from "../gql/graphql";
 
 export interface EntitySelectFieldProps {
   campaignId: string;
@@ -10,6 +11,13 @@ export interface EntitySelectFieldProps {
   id: string;
   label?: string;
   defaultValue?: string | null;
+  // Restricts the picker to entities in one of these categories (e.g.
+  // Marker->LOCATION, KAN-121; Territory->{ORGANIZATION, LOCATION},
+  // KAN-122). Filtered client-side rather than via EntityFilter.category
+  // (a single value server-side) since this component already loads the
+  // whole campaign up front and a category allowlist is a small, static
+  // set — no need for a second round trip or a list-valued filter arg.
+  categories?: EntityCategory[];
 }
 
 // Picks the world-data Entity a map feature represents (KAN-116). Loads the
@@ -23,6 +31,7 @@ export function EntitySelectField({
   id,
   label = "Entity",
   defaultValue,
+  categories,
 }: EntitySelectFieldProps) {
   const [{ data, fetching }] = useQuery({
     query: EntitiesDocument,
@@ -35,12 +44,15 @@ export function EntitySelectField({
   const groups = useMemo(() => {
     const byType = new Map<string, { id: string; name: string }[]>();
     for (const entity of data?.entities ?? []) {
+      if (categories && !categories.includes(entity.category)) {
+        continue;
+      }
       const list = byType.get(entity.type) ?? [];
       list.push({ id: entity.id, name: entity.name });
       byType.set(entity.type, list);
     }
     return [...byType.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [data]);
+  }, [data, categories]);
 
   return (
     <FormField label={label} htmlFor={id}>

@@ -148,11 +148,14 @@ describe("MarkerService", () => {
   });
 
   describe("entity link", () => {
-    function entityInCampaign(campaignId: string): Entity {
+    function entityInCampaign(
+      campaignId: string,
+      category: EntityCategory = EntityCategory.LOCATION,
+    ): Entity {
       return Entity.create({
         campaignId,
         type: "location",
-        category: EntityCategory.LOCATION,
+        category,
         name: "Old Mill",
       });
     }
@@ -173,6 +176,17 @@ describe("MarkerService", () => {
     it("rejects an entity from a different campaign", async () => {
       vi.mocked(entityRepository.findById).mockResolvedValue(
         entityInCampaign("campaign-2"),
+      );
+
+      await expect(
+        service.createMarker({ ...createDto, entityId: "entity-1" }),
+      ).rejects.toThrow(ValidationError);
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it("rejects an entity that isn't LOCATION-category", async () => {
+      vi.mocked(entityRepository.findById).mockResolvedValue(
+        entityInCampaign("campaign-1", EntityCategory.CHARACTER),
       );
 
       await expect(

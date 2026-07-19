@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import { Plus, Trash2 } from "lucide-react";
-import { Button, FormError, Icon } from "@storyforge/ui";
+import { Check, Plus, Trash2, X } from "lucide-react";
+import { Button, FormError, Icon, IconButton } from "@storyforge/ui";
 
 import {
   CampaignDocument,
@@ -143,6 +143,8 @@ export function NotesWindow() {
 
   return (
     <div className={styles.wrap}>
+      {deleteError ? <FormError>{deleteError}</FormError> : null}
+
       <ul className={styles.list}>
         {notes.map((note) => (
           <li key={note.id} className={styles.row}>
@@ -161,35 +163,35 @@ export function NotesWindow() {
               <span className={styles.preview}>{previewOf(note.content)}</span>
             </button>
             {canModify(note) ? (
-              <div className={styles.actions}>
+              <div
+                className={
+                  confirmingDeleteId === note.id
+                    ? `${styles.actions} ${styles.actionsPinned}`
+                    : styles.actions
+                }
+              >
                 {confirmingDeleteId === note.id ? (
                   <>
-                    <FormError>{deleteError}</FormError>
-                    <Button
-                      type="button"
-                      variant="secondary"
+                    <IconButton
+                      icon={Check}
+                      label={`Confirm delete of ${note.title}`}
+                      variant="danger"
                       disabled={deleteState.fetching}
                       onClick={() => handleDelete(note.id)}
-                    >
-                      Confirm
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
+                    />
+                    <IconButton
+                      icon={X}
+                      label="Cancel delete"
+                      variant="ghost"
                       onClick={() => setConfirmingDeleteId(null)}
-                    >
-                      Cancel
-                    </Button>
+                    />
                   </>
                 ) : (
-                  <Button
-                    type="button"
-                    variant="secondary"
+                  <IconButton
+                    icon={Trash2}
+                    label={`Delete ${note.title}`}
                     onClick={() => setConfirmingDeleteId(note.id)}
-                  >
-                    <Icon icon={Trash2} size={15} aria-hidden="true" />
-                    Delete
-                  </Button>
+                  />
                 )}
               </div>
             ) : null}

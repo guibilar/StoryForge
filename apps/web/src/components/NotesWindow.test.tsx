@@ -203,7 +203,7 @@ describe("NotesWindow", () => {
     expect(
       screen.getByRole("button", { name: "New note" }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /^Delete / })).toHaveLength(2);
   });
 
   it("shows create controls for a Storyteller", () => {
@@ -306,8 +306,8 @@ describe("NotesWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getAllByRole("button", { name: "Delete" })[0]);
-    await user.click(screen.getByRole("button", { name: "Confirm" }));
+    await user.click(screen.getAllByRole("button", { name: /^Delete / })[0]);
+    await user.click(screen.getByRole("button", { name: /^Confirm delete/ }));
 
     expect(deleteNote).toHaveBeenCalledWith({ id: "note-1" });
     expect(reexecuteNotes).toHaveBeenCalledWith({
@@ -336,7 +336,7 @@ describe("NotesWindow", () => {
     setupDesktopWindows();
     renderWindow();
 
-    expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /^Delete / })).toHaveLength(1);
 
     const ownRow = screen.getByText("My journal").closest("button");
     const gmRow = screen.getByText("Party log").closest("button");

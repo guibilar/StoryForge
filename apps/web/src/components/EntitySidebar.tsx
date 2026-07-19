@@ -12,14 +12,13 @@ import {
 } from "lucide-react";
 import { Button, Icon } from "@storyforge/ui";
 
-import { CampaignDocument, EntitiesDocument } from "../gql/graphql";
+import { EntitiesDocument } from "../gql/graphql";
 import type { CampaignRole } from "../gql/graphql";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
 import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { EntityFormWindow } from "./EntityFormWindow";
-import { ForceOpenEntityAction } from "./ForceOpenEntityAction";
 import { NoteFormWindow } from "./NoteFormWindow";
 import type { NoteRow } from "./NoteFormWindow";
 import type { EntitySummary } from "./EntityWindow";
@@ -86,17 +85,8 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
     query: EntitiesDocument,
     variables: { campaignId },
   });
-  // Only fetched for the members list a Storyteller-tier writer needs to
-  // target with "Open for player(s)…" (KAN-133) — the roster itself is
-  // cheap and already fetched the same way by MapsWindow/EntityWindow.
-  const [{ data: campaignData }] = useQuery({
-    query: CampaignDocument,
-    variables: { id: campaignId },
-  });
-
   const isWriter =
     role === "OWNER" || role === "STORYTELLER" || role === "CO_STORYTELLER";
-  const members = campaignData?.campaign?.members ?? [];
   const entities: EntitySummary[] = data?.entities ?? [];
   const groups = groupByType(entities);
 
@@ -196,14 +186,6 @@ export function EntitySidebar({ campaignId, role }: EntitySidebarProps) {
                     >
                       {entity.name}
                     </button>
-                    {isWriter ? (
-                      <ForceOpenEntityAction
-                        campaignId={campaignId}
-                        entityId={entity.id}
-                        members={members}
-                        idPrefix={`sidebar-${entity.id}`}
-                      />
-                    ) : null}
                   </li>
                 ))}
               </ul>

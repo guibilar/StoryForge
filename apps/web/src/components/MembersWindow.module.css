@@ -35,7 +35,48 @@
   font-size: 12px;
 }
 
+/* Hover/focus-revealed row actions — see TimelineWindow.module.css. */
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-1) var(--ease);
+}
+
+.row:hover .actions,
+.actions:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 .addForm {
   border-top: 1px solid var(--border);
   padding-top: 12px;
+}
+
+/* Email and role sit side by side so the disclosure adds one band, not
+   three stacked fields. */
+.addFields {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.addFields > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.addActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
 }

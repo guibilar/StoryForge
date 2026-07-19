@@ -173,7 +173,10 @@ describe("SessionsWindow", () => {
     expect(badges[0]).toHaveTextContent("#2");
     expect(badges[1]).toHaveTextContent("#1");
     expect(screen.getByText("The party arrived in town.")).toBeInTheDocument();
-    expect(screen.getByText("owner@example.com")).toBeInTheDocument();
+    // Attendees render as email local parts to keep the row compact; the
+    // full addresses stay in the title tooltip.
+    expect(screen.getByText("owner")).toBeInTheDocument();
+    expect(screen.getByTitle("owner@example.com")).toBeInTheDocument();
   });
 
   it("shows create/edit/delete controls for an Owner", () => {
@@ -184,8 +187,8 @@ describe("SessionsWindow", () => {
     expect(
       screen.getByRole("button", { name: "Log session" }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /^Edit / })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /^Delete / })).toHaveLength(2);
   });
 
   it("hides write controls for a Player (read-only)", () => {
@@ -198,7 +201,7 @@ describe("SessionsWindow", () => {
       screen.queryByRole("button", { name: "Log session" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Edit" }),
+      screen.queryByRole("button", { name: /^Edit / }),
     ).not.toBeInTheDocument();
   });
 
@@ -229,7 +232,7 @@ describe("SessionsWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    await user.click(screen.getAllByRole("button", { name: /^Edit / })[0]);
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -245,8 +248,8 @@ describe("SessionsWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getAllByRole("button", { name: "Delete" })[0]);
-    await user.click(screen.getByRole("button", { name: "Confirm" }));
+    await user.click(screen.getAllByRole("button", { name: /^Delete / })[0]);
+    await user.click(screen.getByRole("button", { name: /^Confirm delete/ }));
 
     expect(deleteSession).toHaveBeenCalledWith({ id: "sess-2" });
     expect(reexecuteSessions).toHaveBeenCalledWith({

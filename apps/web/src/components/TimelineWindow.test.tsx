@@ -205,8 +205,8 @@ describe("TimelineWindow", () => {
     expect(
       screen.getByRole("button", { name: "New event" }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /^Edit / })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /^Delete / })).toHaveLength(2);
   });
 
   it("hides write controls for a Player (read-only)", () => {
@@ -221,7 +221,7 @@ describe("TimelineWindow", () => {
       screen.queryByRole("button", { name: "New event" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Edit" }),
+      screen.queryByRole("button", { name: /^Edit / }),
     ).not.toBeInTheDocument();
   });
 
@@ -287,7 +287,7 @@ describe("TimelineWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    await user.click(screen.getAllByRole("button", { name: /^Edit / })[0]);
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -303,8 +303,8 @@ describe("TimelineWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getAllByRole("button", { name: "Delete" })[0]);
-    await user.click(screen.getByRole("button", { name: "Confirm" }));
+    await user.click(screen.getAllByRole("button", { name: /^Delete / })[0]);
+    await user.click(screen.getByRole("button", { name: /^Confirm delete/ }));
 
     expect(deleteEvent).toHaveBeenCalledWith({ id: "event-1" });
     expect(reexecuteEvents).toHaveBeenCalledWith({

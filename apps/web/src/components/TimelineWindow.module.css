@@ -95,8 +95,30 @@
   padding: 6px 0;
 }
 
+/* Row actions stay out of the way until the row is pointed at or focused,
+   so a long timeline reads as titles rather than a wall of buttons. They
+   remain in the DOM for screen readers, and a pending delete confirmation
+   (.actionsPinned) never hides mid-interaction. */
 .actions {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-1) var(--ease);
+}
+
+.item:hover .actions,
+.actions:focus-within,
+.actionsPinned {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Touch devices have no hover, so there is nothing to reveal against. */
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }

@@ -17,16 +17,17 @@ export interface ForceOpenEntityActionProps {
   entityId: string;
   members: BroadcastableMember[];
   // Distinguishes this instance's picker id/aria-label when several are
-  // rendered at once (one per row in EntitySidebar's entity list).
+  // rendered at once (one per open entity window).
   idPrefix: string;
 }
 
 // Storyteller-tier "push this entity's window onto a player's screen"
 // trigger (KAN-133 side B). Reuses KAN-131's BroadcastTargetPicker and
-// mirrors MapsWindow's toggle + confirm + success/error message pattern, so
-// it's shared by EntitySidebar (per-entity row) and EntityWindow (the
-// entity detail window's Overview tab) rather than being duplicated in
-// each. Callers are responsible for only rendering this for a
+// mirrors MapsWindow's toggle + confirm + success/error message pattern.
+// Lives in EntityWindow's Overview tab only — it was also rendered per row
+// in EntitySidebar, but the inline picker panel doesn't fit a narrow nav
+// column and duplicated the window control. Callers are responsible for
+// only rendering this for a
 // Storyteller-tier role (OWNER/STORYTELLER/CO_STORYTELLER) — it does not
 // gate itself.
 export function ForceOpenEntityAction({

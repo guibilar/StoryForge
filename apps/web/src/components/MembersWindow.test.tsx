@@ -114,17 +114,19 @@ describe("MembersWindow", () => {
     expect(screen.getByText("player@example.com")).toBeInTheDocument();
   });
 
-  it("shows role selects, remove buttons, and an add-member form for an Owner", () => {
+  it("shows role selects, remove buttons, and an add-member trigger for an Owner", () => {
     setupMocks();
     renderWindow();
 
     expect(
       screen.getByLabelText("Role for owner@example.com"),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Remove" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /^Remove / })).toHaveLength(1);
     expect(
       screen.getByRole("button", { name: "Add member" }),
     ).toBeInTheDocument();
+    // The form itself stays collapsed until the trigger is used.
+    expect(screen.queryByLabelText("Email")).not.toBeInTheDocument();
   });
 
   it("does not show a Remove button for the owner's own row", () => {
@@ -135,7 +137,7 @@ describe("MembersWindow", () => {
     expect(ownerRow).not.toBeNull();
     expect(
       within(ownerRow as HTMLElement).queryByRole("button", {
-        name: "Remove",
+        name: /^Remove /,
       }),
     ).not.toBeInTheDocument();
   });
@@ -152,10 +154,10 @@ describe("MembersWindow", () => {
     setupMocks({ members });
     renderWindow();
 
-    expect(screen.getByText("STORYTELLER")).toBeInTheDocument();
-    expect(screen.getByText("PLAYER")).toBeInTheDocument();
+    expect(screen.getByText("Storyteller")).toBeInTheDocument();
+    expect(screen.getByText("Player")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Remove" }),
+      screen.queryByRole("button", { name: /^Remove / }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Add member" }),
@@ -167,7 +169,7 @@ describe("MembersWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
-    await user.click(screen.getByRole("button", { name: "Remove" }));
+    await user.click(screen.getByRole("button", { name: /^Remove / }));
 
     expect(removeMember).toHaveBeenCalledWith({
       campaignId: "camp-1",
@@ -201,6 +203,7 @@ describe("MembersWindow", () => {
     const user = userEvent.setup();
     renderWindow();
 
+    await user.click(screen.getByRole("button", { name: "Add member" }));
     await user.type(screen.getByLabelText("Email"), "new@example.com");
     await user.selectOptions(screen.getByLabelText("Role"), "STORYTELLER");
     await user.click(screen.getByRole("button", { name: "Add member" }));

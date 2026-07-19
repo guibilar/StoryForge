@@ -1,8 +1,15 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import { Pencil, Plus, Trash2 } from "lucide-react";
-import { Button, FormError, Icon, Input, Select } from "@storyforge/ui";
+import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  Button,
+  FormError,
+  Icon,
+  IconButton,
+  Input,
+  Select,
+} from "@storyforge/ui";
 
 import {
   CampaignDocument,
@@ -17,6 +24,10 @@ import type { EventRow } from "./EventFormWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./TimelineWindow.module.css";
+
+// Events with a long cast would otherwise wrap into several rows of chips
+// and push the rest of the timeline off screen.
+const MAX_VISIBLE_PARTICIPANTS = 3;
 
 export function TimelineWindow() {
   const { id: campaignId } = useParams<{ id: string }>();
@@ -166,70 +177,88 @@ export function TimelineWindow() {
         </Select>
       </div>
 
+      {deleteError ? <FormError>{deleteError}</FormError> : null}
+
       <ol className={styles.timeline}>
-        {visibleEvents.map((event) => (
-          <li key={event.id} className={styles.item}>
-            <div className={styles.body}>
-              <span className={styles.title}>{event.title}</span>
-              <div className={styles.tags}>
-                {event.participants.map((p) => (
-                  <span key={p.id} className={styles.chip}>
-                    {p.name}
-                  </span>
-                ))}
-                {event.session ? (
-                  <span
-                    className={styles.chip}
-                    title={`Logged in Session #${event.session.sessionNumber}`}
-                  >
-                    {`#${event.session.sessionNumber}`}
-                  </span>
-                ) : null}
+        {visibleEvents.map((event) => {
+          const shownParticipants = event.participants.slice(
+            0,
+            MAX_VISIBLE_PARTICIPANTS,
+          );
+          const hiddenParticipants = event.participants.slice(
+            MAX_VISIBLE_PARTICIPANTS,
+          );
+          return (
+            <li key={event.id} className={styles.item}>
+              <div className={styles.body}>
+                <span className={styles.title}>{event.title}</span>
+                <div className={styles.tags}>
+                  {shownParticipants.map((p) => (
+                    <span key={p.id} className={styles.chip}>
+                      {p.name}
+                    </span>
+                  ))}
+                  {hiddenParticipants.length > 0 ? (
+                    <span
+                      className={styles.chip}
+                      title={hiddenParticipants.map((p) => p.name).join(", ")}
+                    >
+                      {`+${hiddenParticipants.length}`}
+                    </span>
+                  ) : null}
+                  {event.session ? (
+                    <span
+                      className={styles.chip}
+                      title={`Logged in Session #${event.session.sessionNumber}`}
+                    >
+                      {`#${event.session.sessionNumber}`}
+                    </span>
+                  ) : null}
+                </div>
               </div>
-            </div>
-            {isWriter ? (
-              <div className={styles.actions}>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => openEditWindow(event)}
+              {isWriter ? (
+                <div
+                  className={
+                    confirmingDeleteId === event.id
+                      ? `${styles.actions} ${styles.actionsPinned}`
+                      : styles.actions
+                  }
                 >
-                  <Icon icon={Pencil} size={15} aria-hidden="true" />
-                  Edit
-                </Button>
-                {confirmingDeleteId === event.id ? (
-                  <>
-                    <FormError>{deleteError}</FormError>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={deleteState.fetching}
-                      onClick={() => handleDelete(event.id)}
-                    >
-                      Confirm
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setConfirmingDeleteId(null)}
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => setConfirmingDeleteId(event.id)}
-                  >
-                    <Icon icon={Trash2} size={15} aria-hidden="true" />
-                    Delete
-                  </Button>
-                )}
-              </div>
-            ) : null}
-          </li>
-        ))}
+                  {confirmingDeleteId === event.id ? (
+                    <>
+                      <IconButton
+                        icon={Check}
+                        label={`Confirm delete of ${event.title}`}
+                        variant="danger"
+                        disabled={deleteState.fetching}
+                        onClick={() => handleDelete(event.id)}
+                      />
+                      <IconButton
+                        icon={X}
+                        label="Cancel delete"
+                        variant="ghost"
+                        onClick={() => setConfirmingDeleteId(null)}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <IconButton
+                        icon={Pencil}
+                        label={`Edit ${event.title}`}
+                        onClick={() => openEditWindow(event)}
+                      />
+                      <IconButton
+                        icon={Trash2}
+                        label={`Delete ${event.title}`}
+                        onClick={() => setConfirmingDeleteId(event.id)}
+                      />
+                    </>
+                  )}
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
         {visibleEvents.length === 0 ? (
           <li className={styles.empty}>No events yet.</li>
         ) : null}

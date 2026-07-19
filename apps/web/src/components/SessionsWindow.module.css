@@ -60,10 +60,17 @@
   opacity: 0.75;
 }
 
+/* A long recap used to set the row height for the whole list; clamp it so
+   every session stays scannable and the full text lives in the edit form. */
 .recap {
   font-size: 12px;
   color: var(--text-h);
   margin: 3px 0 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .empty {
@@ -72,8 +79,27 @@
   padding: 6px 0;
 }
 
+/* Hover/focus-revealed row actions — see TimelineWindow.module.css for the
+   rationale; .actionsPinned keeps a pending delete confirmation visible. */
 .actions {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-1) var(--ease);
+}
+
+.row:hover .actions,
+.actions:focus-within,
+.actionsPinned {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }

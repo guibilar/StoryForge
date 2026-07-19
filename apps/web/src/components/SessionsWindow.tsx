@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "urql";
-import { Pencil, Plus, Trash2 } from "lucide-react";
-import { Button, FormError, Icon } from "@storyforge/ui";
+import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Button, FormError, Icon, IconButton } from "@storyforge/ui";
 
 import {
   CampaignDocument,
@@ -19,6 +19,21 @@ import styles from "./SessionsWindow.module.css";
 
 function formatDate(isoDate: string): string {
   return isoDate.slice(0, 10);
+}
+
+// Full email addresses joined together overflowed the row and buried the
+// recap. Show the local part of the first few, count the rest, and keep the
+// full list in a tooltip.
+const MAX_VISIBLE_ATTENDEES = 3;
+
+function formatAttendees(emails: string[]): string {
+  if (emails.length === 0) {
+    return "No attendees";
+  }
+  const names = emails.map((email) => email.split("@")[0]);
+  const shown = names.slice(0, MAX_VISIBLE_ATTENDEES).join(", ");
+  const hidden = names.length - MAX_VISIBLE_ATTENDEES;
+  return hidden > 0 ? `${shown} +${hidden}` : shown;
 }
 
 export function SessionsWindow() {
@@ -129,64 +144,73 @@ export function SessionsWindow() {
 
   return (
     <div className={styles.wrap}>
+      {deleteError ? <FormError>{deleteError}</FormError> : null}
+
       <ul className={styles.list}>
-        {sessions.map((session) => (
-          <li key={session.id} className={styles.row}>
-            <span className={styles.badge}>#{session.sessionNumber}</span>
-            <div className={styles.body}>
-              <div className={styles.meta}>
-                <span className={styles.date}>{formatDate(session.date)}</span>
-                <span className={styles.attendeeList}>
-                  {session.attendees.map((a) => a.user.email).join(", ")}
-                </span>
-              </div>
-              {session.summary ? (
-                <p className={styles.recap}>{session.summary}</p>
-              ) : null}
-            </div>
-            {isWriter ? (
-              <div className={styles.actions}>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => openEditWindow(session)}
-                >
-                  <Icon icon={Pencil} size={15} aria-hidden="true" />
-                  Edit
-                </Button>
-                {confirmingDeleteId === session.id ? (
-                  <>
-                    <FormError>{deleteError}</FormError>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={deleteState.fetching}
-                      onClick={() => handleDelete(session.id)}
-                    >
-                      Confirm
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setConfirmingDeleteId(null)}
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => setConfirmingDeleteId(session.id)}
+        {sessions.map((session) => {
+          const attendeeEmails = session.attendees.map((a) => a.user.email);
+          return (
+            <li key={session.id} className={styles.row}>
+              <span className={styles.badge}>#{session.sessionNumber}</span>
+              <div className={styles.body}>
+                <div className={styles.meta}>
+                  <span className={styles.date}>
+                    {formatDate(session.date)}
+                  </span>
+                  <span
+                    className={styles.attendeeList}
+                    title={attendeeEmails.join(", ")}
                   >
-                    <Icon icon={Trash2} size={15} aria-hidden="true" />
-                    Delete
-                  </Button>
-                )}
+                    {formatAttendees(attendeeEmails)}
+                  </span>
+                </div>
+                {session.summary ? (
+                  <p className={styles.recap}>{session.summary}</p>
+                ) : null}
               </div>
-            ) : null}
-          </li>
-        ))}
+              {isWriter ? (
+                <div
+                  className={
+                    confirmingDeleteId === session.id
+                      ? `${styles.actions} ${styles.actionsPinned}`
+                      : styles.actions
+                  }
+                >
+                  {confirmingDeleteId === session.id ? (
+                    <>
+                      <IconButton
+                        icon={Check}
+                        label={`Confirm delete of session #${session.sessionNumber}`}
+                        variant="danger"
+                        disabled={deleteState.fetching}
+                        onClick={() => handleDelete(session.id)}
+                      />
+                      <IconButton
+                        icon={X}
+                        label="Cancel delete"
+                        variant="ghost"
+                        onClick={() => setConfirmingDeleteId(null)}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <IconButton
+                        icon={Pencil}
+                        label={`Edit session #${session.sessionNumber}`}
+                        onClick={() => openEditWindow(session)}
+                      />
+                      <IconButton
+                        icon={Trash2}
+                        label={`Delete session #${session.sessionNumber}`}
+                        onClick={() => setConfirmingDeleteId(session.id)}
+                      />
+                    </>
+                  )}
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
         {sessions.length === 0 ? (
           <li className={styles.empty}>No sessions logged yet.</li>
         ) : null}

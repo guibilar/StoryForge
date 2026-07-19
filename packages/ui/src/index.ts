@@ -49,3 +49,9 @@ export type {
 
 export { Icon } from "./components/Icon/Icon";
 export type { IconProps } from "./components/Icon/Icon";
+
+export { IconButton } from "./components/IconButton/IconButton";
+export type {
+  IconButtonProps,
+  IconButtonVariant,
+} from "./components/IconButton/IconButton";

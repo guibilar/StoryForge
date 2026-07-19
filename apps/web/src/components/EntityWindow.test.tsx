@@ -1,16 +1,22 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useQuery } from "urql";
+import { useMutation, useQuery } from "urql";
 
 import { EntityWindow } from "./EntityWindow";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
 import { WindowChromeContext } from "../lib/WindowChromeContext";
-import { EntitiesDocument, RelationshipsDocument } from "../gql/graphql";
+import {
+  CampaignDocument,
+  EntitiesDocument,
+  MeDocument,
+  RelationshipsDocument,
+  UploadEntityImageDocument,
+} from "../gql/graphql";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
-  return { ...actual, useQuery: vi.fn() };
+  return { ...actual, useMutation: vi.fn(), useQuery: vi.fn() };
 });
 
 vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
@@ -19,11 +25,30 @@ vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
   return { ...actual, useDesktopWindows: vi.fn() };
 });
 
+const CURRENT_USER_ID = "user-1";
+
+const ownerMembers = [
+  {
+    userId: CURRENT_USER_ID,
+    role: "OWNER",
+    user: { id: CURRENT_USER_ID, email: "owner@example.com" },
+  },
+];
+
+const playerMembers = [
+  {
+    userId: CURRENT_USER_ID,
+    role: "PLAYER",
+    user: { id: CURRENT_USER_ID, email: "player@example.com" },
+  },
+];
+
 const ENTITY = {
   id: "e-1",
   name: "Carlos Mendoza",
   type: "Character",
   description: "A Tremere regent",
+  image: null as string | null,
   visibility: "PUBLIC" as const,
 };
 
@@ -34,6 +59,7 @@ const ENTITIES = [
     name: "Beatriz Moreau",
     type: "Character",
     description: null,
+    image: null,
     visibility: "PUBLIC" as const,
   },
 ];
@@ -51,12 +77,39 @@ const RELATIONSHIPS = [
 function setupQueries({
   entities = ENTITIES,
   relationships = RELATIONSHIPS,
+  members = ownerMembers,
   entitiesFetching = false,
   relationshipsFetching = false,
   reexecuteEntities = vi.fn(),
   reexecuteRelationships = vi.fn(),
+  uploadEntityImage = vi
+    .fn()
+    .mockResolvedValue({ data: { uploadEntityImage: { id: "e-1" } } }),
+  uploadEntityImageFetching = false,
+  uploadEntityImageError = undefined as
+    { graphQLErrors: unknown[] } | undefined,
 } = {}) {
   vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
+    if (args.query === MeDocument) {
+      return [
+        {
+          data: { me: { id: CURRENT_USER_ID, email: "member@example.com" } },
+          fetching: false,
+          stale: false,
+        },
+        vi.fn(),
+      ];
+    }
+    if (args.query === CampaignDocument) {
+      return [
+        {
+          data: { campaign: { id: "camp-1", name: "Campaign", members } },
+          fetching: false,
+          stale: false,
+        },
+        vi.fn(),
+      ];
+    }
     if (args.query === EntitiesDocument) {
       return [
         { data: { entities }, fetching: entitiesFetching, stale: false },
@@ -76,7 +129,21 @@ function setupQueries({
     throw new Error("Unexpected query in test");
   }) as never);
 
-  return { reexecuteEntities, reexecuteRelationships };
+  vi.mocked(useMutation).mockImplementation(((document: unknown) => {
+    if (document === UploadEntityImageDocument) {
+      return [
+        {
+          fetching: uploadEntityImageFetching,
+          error: uploadEntityImageError,
+          stale: false,
+        },
+        uploadEntityImage,
+      ];
+    }
+    throw new Error("Unexpected mutation in test");
+  }) as never);
+
+  return { reexecuteEntities, reexecuteRelationships, uploadEntityImage };
 }
 
 function setupDesktopWindows() {
@@ -127,6 +194,120 @@ describe("EntityWindow", () => {
     );
 
     expect(screen.getByText("No description yet.")).toBeInTheDocument();
+  });
+
+  it("renders the entity's picture, resolved against the API origin", () => {
+    setupQueries();
+    setupDesktopWindows();
+    render(
+      <EntityWindow
+        entity={{ ...ENTITY, image: "/uploads/e-1/portrait.png" }}
+        campaignId="camp-1"
+      />,
+    );
+
+    const img = screen.getByRole("img", { name: "Carlos Mendoza portrait" });
+    expect(img).toHaveAttribute(
+      "src",
+      "http://localhost:4000/uploads/e-1/portrait.png",
+    );
+  });
+
+  it("shows Upload Picture (no image) for a writer when the entity has no picture", () => {
+    setupQueries();
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    expect(
+      screen.getByRole("button", { name: "Upload Picture" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+
+  it("hides the upload control for a non-writer", () => {
+    setupQueries({ members: playerMembers });
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    expect(
+      screen.queryByRole("button", { name: "Upload Picture" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("uploads the selected file and shows the returned image immediately", async () => {
+    const { uploadEntityImage } = setupQueries({
+      uploadEntityImage: vi.fn().mockResolvedValue({
+        data: {
+          uploadEntityImage: { id: "e-1", image: "/uploads/e-1/new.png" },
+        },
+      }),
+    });
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    const file = new File(["fake-bytes"], "portrait.png", {
+      type: "image/png",
+    });
+    const input = document.querySelector('input[type="file"]');
+    expect(input).toBeTruthy();
+
+    await user.upload(input as HTMLInputElement, file);
+
+    expect(uploadEntityImage).toHaveBeenCalledWith({
+      entityId: "e-1",
+      file,
+    });
+    expect(
+      screen.getByRole("img", { name: "Carlos Mendoza portrait" }),
+    ).toHaveAttribute("src", "http://localhost:4000/uploads/e-1/new.png");
+    expect(
+      screen.getByRole("button", { name: "Replace Picture" }),
+    ).toBeInTheDocument();
+  });
+
+  it("rejects an oversized file client-side without calling uploadEntityImage", async () => {
+    const { uploadEntityImage } = setupQueries();
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    const oversizedFile = new File(
+      [new Uint8Array(6 * 1024 * 1024)],
+      "huge-portrait.png",
+      { type: "image/png" },
+    );
+    const input = document.querySelector('input[type="file"]');
+
+    await user.upload(input as HTMLInputElement, oversizedFile);
+
+    expect(
+      screen.getByText("File size exceeds the maximum limit of 5MB."),
+    ).toBeInTheDocument();
+    expect(uploadEntityImage).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an error when the upload fails, instead of failing silently", async () => {
+    setupQueries({
+      uploadEntityImage: vi.fn().mockResolvedValue({ data: undefined }),
+      uploadEntityImageError: {
+        graphQLErrors: [{ message: "You are not allowed to do that." }],
+      } as never,
+    });
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    const file = new File(["fake-bytes"], "portrait.png", {
+      type: "image/png",
+    });
+    const input = document.querySelector('input[type="file"]');
+
+    await user.upload(input as HTMLInputElement, file);
+
+    expect(
+      screen.getByText("You are not allowed to do that."),
+    ).toBeInTheDocument();
   });
 
   it("shows the Notes tab as a stub", async () => {

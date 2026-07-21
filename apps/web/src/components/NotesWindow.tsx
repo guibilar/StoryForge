@@ -39,7 +39,7 @@ export function NotesWindow() {
   });
 
   const [deleteState, deleteNote] = useMutation(DeleteNoteDocument);
-  const openNoteWindow = useOpenNoteWindow(campaignId);
+  const openNoteWindow = useOpenNoteWindow(campaignId as string);
   const { openAddEditWindow } = useAddEditWindow({
     idPrefix: "note-form",
     width: 420,

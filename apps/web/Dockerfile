@@ -9,9 +9,9 @@ RUN corepack enable
 # ---- Prune the monorepo down to what the web app needs ----
 FROM base AS pruner
 WORKDIR /app
-RUN pnpm add -g turbo
+RUN pnpm add turbo
 COPY . .
-RUN turbo prune web --docker
+RUN pnpm exec turbo prune web --docker
 
 # ---- Install deps and build the static bundle ----
 FROM base AS builder

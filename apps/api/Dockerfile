@@ -16,9 +16,9 @@ RUN corepack enable
 # ---- Prune the monorepo down to what @storyforge/api needs ----
 FROM base AS pruner
 WORKDIR /app
-RUN pnpm add -g turbo
+RUN pnpm add turbo
 COPY . .
-RUN turbo prune @storyforge/api --docker
+RUN pnpm exec turbo prune @storyforge/api --docker
 
 # ---- Install deps and build workspace dependencies ----
 FROM base AS installer

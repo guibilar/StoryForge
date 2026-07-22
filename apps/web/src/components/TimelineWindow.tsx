@@ -40,7 +40,7 @@ export function TimelineWindow() {
   });
   const [{ data: eventsData, fetching, error }, reexecuteEvents] = useQuery({
     query: EventsDocument,
-    variables: { campaignId: campaignId ?? "" },
+    variables: { campaignId: campaignId ?? "", orderBy: { createdAt: "DESC" } },
     pause: !campaignId,
   });
   const [{ data: entitiesData }] = useQuery({

@@ -80,6 +80,7 @@ export function RelationshipFormWindow({
   const [sourceEntityId, setSourceEntityId] = useState(
     initial?.sourceEntityId ?? "",
   );
+
   const [targetEntityId, setTargetEntityId] = useState(
     initial?.targetEntityId ?? "",
   );
@@ -188,6 +189,7 @@ export function RelationshipFormWindow({
             label="Source"
             defaultValue={sourceEntityId}
             required
+            promptSelection
             onChange={setSourceEntityId}
           />
           <EntitySelectField
@@ -197,6 +199,7 @@ export function RelationshipFormWindow({
             label="Target"
             defaultValue={targetEntityId}
             required
+            promptSelection
             onChange={setTargetEntityId}
           />
         </>

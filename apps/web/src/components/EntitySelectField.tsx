@@ -26,6 +26,7 @@ export interface EntitySelectFieldProps {
   // caller observe the current selection (e.g. to look up the selected
   // entity's category for a dependent suggestion, KAN-123) without owning
   // the select's value itself.
+  promptSelection?: boolean;
   onChange?: (entityId: string) => void;
 }
 
@@ -42,6 +43,7 @@ export function EntitySelectField({
   defaultValue,
   categories,
   required,
+  promptSelection,
   onChange,
 }: EntitySelectFieldProps) {
   const [{ data, fetching }] = useQuery({
@@ -80,6 +82,7 @@ export function EntitySelectField({
         {/* Unlinked is a normal state, not a prompt to fix something —
             except when required, where there's no valid "no selection". */}
         {required ? null : <option value="">None</option>}
+        {promptSelection ? <option value="">Select a {label}</option> : null}
         {groups.map(([type, entities]) => (
           <optgroup key={type} label={type}>
             {entities.map((entity) => (

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { genSaltSync, hashSync } from "bcrypt-ts";
 
 import { prisma } from "../src/client";
+import { EntityCategory } from "../src/generated/prisma/client";
 
 const CAMPAIGN_NAME = "The Sunken Spire (seed)";
 const SEED_PASSWORD = "password123";
@@ -81,6 +82,7 @@ async function main(): Promise<void> {
         id: randomUUID(),
         campaignId: campaign.id,
         type: "NPC",
+        category: EntityCategory.CHARACTER,
         name: "Gruk the Orc",
         description: "A dockside enforcer with a soft spot for stray cats.",
         visibility: "PUBLIC",
@@ -91,6 +93,7 @@ async function main(): Promise<void> {
         id: randomUUID(),
         campaignId: campaign.id,
         type: "NPC",
+        category: EntityCategory.CHARACTER,
         name: "Whisper",
         description:
           "A cloaked figure orchestrating the spire's cult from the shadows.",
@@ -102,6 +105,7 @@ async function main(): Promise<void> {
         id: randomUUID(),
         campaignId: campaign.id,
         type: "location",
+        category: EntityCategory.LOCATION,
         name: "Port Blackwater",
         description: "A fog-choked harbor town built on smuggling money.",
         visibility: "PUBLIC",
@@ -112,6 +116,7 @@ async function main(): Promise<void> {
         id: randomUUID(),
         campaignId: campaign.id,
         type: "location",
+        category: EntityCategory.LOCATION,
         name: "The Sunken Spire",
         description: "A half-submerged tower, only reachable at low tide.",
         visibility: "PUBLIC",
@@ -121,6 +126,7 @@ async function main(): Promise<void> {
       data: {
         id: randomUUID(),
         campaignId: campaign.id,
+        category: EntityCategory.ITEM,
         type: "item",
         name: "Amulet of Whispers",
         description: "Warm to the touch. It hums when Whisper is near.",
@@ -134,6 +140,7 @@ async function main(): Promise<void> {
         id: randomUUID(),
         campaignId: campaign.id,
         type: "faction",
+        category: EntityCategory.ORGANIZATION,
         name: "The Tidewatch",
         description:
           "Harbor militia that answers to the harbormaster, and to whoever pays her more.",
@@ -145,6 +152,7 @@ async function main(): Promise<void> {
         id: randomUUID(),
         campaignId: campaign.id,
         type: "creature",
+        category: EntityCategory.OTHER,
         name: "Brineclaw",
         description:
           "The thing that circles the spire at high tide. Nobody has seen all of it at once.",
@@ -156,6 +164,7 @@ async function main(): Promise<void> {
         id: randomUUID(),
         campaignId: campaign.id,
         type: "event",
+        category: EntityCategory.OTHER,
         name: "The Low-Tide Rite",
         description:
           "Whisper's cult only opens the spire on the lowest tide of the month.",

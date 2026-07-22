@@ -16,7 +16,7 @@
     "@storyforge/ui": "workspace:*",
     "@uiw/react-md-editor": "^4.1.1",
     "@xyflow/react": "^12.11.2",
-    "graphql": "^16.11.0",
+    "graphql": "^17.0.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.25.0",
     "react": "^19.2.7",

@@ -16,7 +16,7 @@
     "@storyforge/domain": "workspace:*",
     "bcrypt-ts": "^9.0.1",
     "fastify": "^5.8.5",
-    "graphql": "^16.11.0",
+    "graphql": "^17.0.2",
     "graphql-yoga": "^5.21.2",
     "image-size": "^2.0.2",
     "jsonwebtoken": "^9.0.3",

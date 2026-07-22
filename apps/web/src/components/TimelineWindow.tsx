@@ -215,6 +215,9 @@ export function TimelineWindow() {
                     </span>
                   ) : null}
                 </div>
+                {event.description ? (
+                  <p className={styles.recap}>{event.description}</p>
+                ) : null}
               </div>
               {isWriter ? (
                 <div

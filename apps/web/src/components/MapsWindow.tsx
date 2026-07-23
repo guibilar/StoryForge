@@ -2,8 +2,8 @@ import { useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useSubscription } from "urql";
-import { LandPlot, MapPin } from "lucide-react";
-import { Button, FormError, Icon } from "@storyforge/ui";
+import { FileJson, LandPlot, MapPin } from "lucide-react";
+import { Button, FormError, Icon, IconButton } from "@storyforge/ui";
 
 import {
   CampaignDocument,
@@ -27,6 +27,7 @@ import type { BroadcastTarget } from "../lib/broadcastTarget";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { BroadcastTargetPicker } from "./BroadcastTargetPicker";
 import { MapCanvas } from "./MapCanvas";
+import { MapExportImportModal } from "./MapExportImportModal";
 import type {
   MapDrawMode,
   MapLinkedEntity,
@@ -126,6 +127,9 @@ export function MapsWindow() {
   // View mode by default: during play the map is read, not authored, and
   // clicking a territory shouldn't drop you into its edit form.
   const [editing, setEditing] = useState(false);
+  // Mounted only while open, so its export/import mutations never run (and
+  // never need mocking) unless a writer actually opens it.
+  const [exportImportOpen, setExportImportOpen] = useState(false);
   // What was drawn doesn't make a placement unique — the same spot clicked
   // twice rounds to the same coordinates — so a counter guarantees each open
   // create form gets its own window instead of replacing the previous one.
@@ -535,8 +539,30 @@ export function MapsWindow() {
               <span className={styles.syncSuccess}>Viewport synced.</span>
             ) : null}
           </div>
+          {/* Export/import is a single icon button rather than a row of
+              controls, to keep this already-busy bar from getting more
+              crowded. Geo-only (KAN-136): a custom map image's markers and
+              territories are in pixel coordinates specific to that image, so
+              a portable file export wouldn't mean anything on another map. */}
+          {!mapImage ? (
+            <IconButton
+              icon={FileJson}
+              label="Export or import map data"
+              onClick={() => setExportImportOpen(true)}
+            />
+          ) : null}
           {actionError ? <FormError>{actionError}</FormError> : null}
         </div>
+      ) : null}
+      {exportImportOpen && campaignId ? (
+        <MapExportImportModal
+          campaignId={campaignId}
+          campaignName={campaignData?.campaign?.name ?? "Map"}
+          markers={markers}
+          territories={territories}
+          onClose={() => setExportImportOpen(false)}
+          onImported={refetch}
+        />
       ) : null}
     </div>
   );

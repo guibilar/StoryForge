@@ -5,6 +5,7 @@ import {
   EntityVisibility,
   NotFoundError,
   Relationship,
+  RelationshipEndpoint,
   User,
 } from "@storyforge/domain";
 import { Query } from "./Query";
@@ -405,5 +406,79 @@ describe("relationship visibility derives from its endpoints", () => {
     await expect(
       Query.relationship(undefined, { id: "relationship-1" }, context),
     ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
+  });
+});
+
+describe("a concealed endpoint's own entity visibility no longer gates the row", () => {
+  const concealedTargetRelationship = Relationship.create({
+    campaignId: "campaign-1",
+    sourceEntityId: "entity-1",
+    targetEntityId: "entity-2",
+    type: "BLACKMAILS",
+    concealedEndpoint: RelationshipEndpoint.TARGET,
+  });
+
+  function setup(role: "PLAYER" | "STORYTELLER") {
+    const relationshipService = makeRelationshipService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      CampaignMember.create({
+        campaignId: "campaign-1",
+        userId: authenticatedUser.Id,
+        role,
+      }),
+    );
+    const context = makeContext(
+      relationshipService,
+      campaignMemberService,
+      authenticatedUser,
+      // The concealed side (entity-2) is STORYTELLER-only — under the old
+      // all-or-nothing rule this would drop the whole relationship for a
+      // player; concealment is what's supposed to keep it visible instead.
+      makeEntityService([
+        makeEntity("entity-1", EntityVisibility.PUBLIC),
+        makeEntity("entity-2", EntityVisibility.STORYTELLER),
+      ]),
+    );
+    return { relationshipService, context };
+  }
+
+  it("keeps the relationship visible to a player instead of dropping it", async () => {
+    const { relationshipService, context } = setup("PLAYER");
+    vi.mocked(
+      relationshipService.listRelationshipsByCampaign,
+    ).mockResolvedValue([concealedTargetRelationship]);
+
+    const result = await Query.relationships(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    expect(result).toEqual([concealedTargetRelationship]);
+  });
+
+  it("still hides a relationship whose concealed side is SOURCE but the real target is invisible", async () => {
+    // Concealment only excuses the concealed side's own visibility check —
+    // an *unconcealed* endpoint the viewer can't see still filters the row.
+    const concealedSourceRelationship = Relationship.create({
+      campaignId: "campaign-1",
+      sourceEntityId: "entity-1",
+      targetEntityId: "entity-2",
+      type: "BLACKMAILS",
+      concealedEndpoint: RelationshipEndpoint.SOURCE,
+    });
+    const { relationshipService, context } = setup("PLAYER");
+    vi.mocked(
+      relationshipService.listRelationshipsByCampaign,
+    ).mockResolvedValue([concealedSourceRelationship]);
+
+    const result = await Query.relationships(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    expect(result).toEqual([]);
   });
 });

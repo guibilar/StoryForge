@@ -4,6 +4,7 @@ import {
   EntityVisibility,
   ForbiddenError,
   Relationship,
+  RelationshipEndpoint,
 } from "@storyforge/domain";
 import type { CampaignMember, CampaignRole } from "@storyforge/domain";
 import type { GraphQLContext } from "../../../graphql/context";
@@ -37,14 +38,25 @@ async function visibleEntityIds(
 // endpoint rule (here) are ANDed: marking a relationship PUBLIC never
 // reveals a link into an entity the viewer can't see, and two public
 // endpoints never expose a STORYTELLER/TARGETED relationship between them.
+//
+// A concealed endpoint (KAN-134) is the one deliberate exception: its real
+// id never reaches a non-Storyteller viewer (redacted in resolvers/
+// Relationship.ts), so that side's own entity visibility no longer needs to
+// gate the whole relationship — nothing leaks either way. This is what lets
+// a relationship point at a still-secret, STORYTELLER-only NPC while staying
+// visible (with that one side blanked out) instead of vanishing entirely.
 function passesEndpointRule(
   relationship: Relationship,
   visibleEntities: Set<string>,
 ): boolean {
-  return (
-    visibleEntities.has(relationship.SourceEntityId) &&
-    visibleEntities.has(relationship.TargetEntityId)
-  );
+  const sourceOk =
+    relationship.ConcealedEndpoint === RelationshipEndpoint.SOURCE ||
+    visibleEntities.has(relationship.SourceEntityId);
+  const targetOk =
+    relationship.ConcealedEndpoint === RelationshipEndpoint.TARGET ||
+    visibleEntities.has(relationship.TargetEntityId);
+
+  return sourceOk && targetOk;
 }
 
 function passesOwnVisibility(

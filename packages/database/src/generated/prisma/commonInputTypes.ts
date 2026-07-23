@@ -255,6 +255,25 @@ export type EnumRelationshipVisibilityFilter<$PrismaModel = never> = {
     | $Enums.RelationshipVisibility;
 };
 
+export type EnumRelationshipEndpointNullableFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.RelationshipEndpoint
+    | Prisma.EnumRelationshipEndpointFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.RelationshipEndpoint[]
+    | Prisma.ListEnumRelationshipEndpointFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.RelationshipEndpoint[]
+    | Prisma.ListEnumRelationshipEndpointFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumRelationshipEndpointNullableFilter<$PrismaModel>
+    | $Enums.RelationshipEndpoint
+    | null;
+};
+
 export type EnumRelationshipVisibilityWithAggregatesFilter<
   $PrismaModel = never,
 > = {
@@ -273,6 +292,30 @@ export type EnumRelationshipVisibilityWithAggregatesFilter<
   _count?: Prisma.NestedIntFilter<$PrismaModel>;
   _min?: Prisma.NestedEnumRelationshipVisibilityFilter<$PrismaModel>;
   _max?: Prisma.NestedEnumRelationshipVisibilityFilter<$PrismaModel>;
+};
+
+export type EnumRelationshipEndpointNullableWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.RelationshipEndpoint
+    | Prisma.EnumRelationshipEndpointFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.RelationshipEndpoint[]
+    | Prisma.ListEnumRelationshipEndpointFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.RelationshipEndpoint[]
+    | Prisma.ListEnumRelationshipEndpointFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumRelationshipEndpointNullableWithAggregatesFilter<$PrismaModel>
+    | $Enums.RelationshipEndpoint
+    | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumRelationshipEndpointNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumRelationshipEndpointNullableFilter<$PrismaModel>;
 };
 
 export type EnumNoteVisibilityFilter<$PrismaModel = never> = {
@@ -700,6 +743,26 @@ export type NestedEnumRelationshipVisibilityFilter<$PrismaModel = never> = {
     | $Enums.RelationshipVisibility;
 };
 
+export type NestedEnumRelationshipEndpointNullableFilter<$PrismaModel = never> =
+  {
+    equals?:
+      | $Enums.RelationshipEndpoint
+      | Prisma.EnumRelationshipEndpointFieldRefInput<$PrismaModel>
+      | null;
+    in?:
+      | $Enums.RelationshipEndpoint[]
+      | Prisma.ListEnumRelationshipEndpointFieldRefInput<$PrismaModel>
+      | null;
+    notIn?:
+      | $Enums.RelationshipEndpoint[]
+      | Prisma.ListEnumRelationshipEndpointFieldRefInput<$PrismaModel>
+      | null;
+    not?:
+      | Prisma.NestedEnumRelationshipEndpointNullableFilter<$PrismaModel>
+      | $Enums.RelationshipEndpoint
+      | null;
+  };
+
 export type NestedEnumRelationshipVisibilityWithAggregatesFilter<
   $PrismaModel = never,
 > = {
@@ -718,6 +781,30 @@ export type NestedEnumRelationshipVisibilityWithAggregatesFilter<
   _count?: Prisma.NestedIntFilter<$PrismaModel>;
   _min?: Prisma.NestedEnumRelationshipVisibilityFilter<$PrismaModel>;
   _max?: Prisma.NestedEnumRelationshipVisibilityFilter<$PrismaModel>;
+};
+
+export type NestedEnumRelationshipEndpointNullableWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.RelationshipEndpoint
+    | Prisma.EnumRelationshipEndpointFieldRefInput<$PrismaModel>
+    | null;
+  in?:
+    | $Enums.RelationshipEndpoint[]
+    | Prisma.ListEnumRelationshipEndpointFieldRefInput<$PrismaModel>
+    | null;
+  notIn?:
+    | $Enums.RelationshipEndpoint[]
+    | Prisma.ListEnumRelationshipEndpointFieldRefInput<$PrismaModel>
+    | null;
+  not?:
+    | Prisma.NestedEnumRelationshipEndpointNullableWithAggregatesFilter<$PrismaModel>
+    | $Enums.RelationshipEndpoint
+    | null;
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumRelationshipEndpointNullableFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumRelationshipEndpointNullableFilter<$PrismaModel>;
 };
 
 export type NestedEnumNoteVisibilityFilter<$PrismaModel = never> = {

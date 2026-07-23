@@ -1,6 +1,6 @@
 import type { CampaignRole } from "../campaignMember";
 import type { Relationship } from "../relationship";
-import { RelationshipVisibility } from "../relationship";
+import { RelationshipEndpoint, RelationshipVisibility } from "../relationship";
 import type { UserId } from "../user";
 
 const STORYTELLER_ROLES = new Set<CampaignRole>([
@@ -36,6 +36,23 @@ export function canViewRelationshipVisibility(
         recipient.equals(userId),
       );
   }
+}
+
+/**
+ * Whether a viewer sees the real entity id on one side of a relationship, or
+ * a redacted (null) one (KAN-134). Storyteller-tier roles always see both —
+ * same tier `canViewRelationshipVisibility` treats as seeing everything.
+ */
+export function canSeeRelationshipEndpoint(
+  relationship: Relationship,
+  endpoint: RelationshipEndpoint,
+  role: CampaignRole,
+): boolean {
+  if (STORYTELLER_ROLES.has(role)) {
+    return true;
+  }
+
+  return relationship.ConcealedEndpoint !== endpoint;
 }
 
 /**

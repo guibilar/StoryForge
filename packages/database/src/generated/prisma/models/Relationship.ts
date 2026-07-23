@@ -32,6 +32,7 @@ export type RelationshipMinAggregateOutputType = {
   type: string | null;
   description: string | null;
   visibility: $Enums.RelationshipVisibility | null;
+  concealedEndpoint: $Enums.RelationshipEndpoint | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   deletedAt: Date | null;
@@ -45,6 +46,7 @@ export type RelationshipMaxAggregateOutputType = {
   type: string | null;
   description: string | null;
   visibility: $Enums.RelationshipVisibility | null;
+  concealedEndpoint: $Enums.RelationshipEndpoint | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   deletedAt: Date | null;
@@ -58,6 +60,7 @@ export type RelationshipCountAggregateOutputType = {
   type: number;
   description: number;
   visibility: number;
+  concealedEndpoint: number;
   createdAt: number;
   updatedAt: number;
   deletedAt: number;
@@ -72,6 +75,7 @@ export type RelationshipMinAggregateInputType = {
   type?: true;
   description?: true;
   visibility?: true;
+  concealedEndpoint?: true;
   createdAt?: true;
   updatedAt?: true;
   deletedAt?: true;
@@ -85,6 +89,7 @@ export type RelationshipMaxAggregateInputType = {
   type?: true;
   description?: true;
   visibility?: true;
+  concealedEndpoint?: true;
   createdAt?: true;
   updatedAt?: true;
   deletedAt?: true;
@@ -98,6 +103,7 @@ export type RelationshipCountAggregateInputType = {
   type?: true;
   description?: true;
   visibility?: true;
+  concealedEndpoint?: true;
   createdAt?: true;
   updatedAt?: true;
   deletedAt?: true;
@@ -192,6 +198,7 @@ export type RelationshipGroupByOutputType = {
   type: string;
   description: string | null;
   visibility: $Enums.RelationshipVisibility;
+  concealedEndpoint: $Enums.RelationshipEndpoint | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -226,6 +233,10 @@ export type RelationshipWhereInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFilter<"Relationship">
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.EnumRelationshipEndpointNullableFilter<"Relationship">
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
   deletedAt?:
@@ -253,6 +264,7 @@ export type RelationshipOrderByWithRelationInput = {
   type?: Prisma.SortOrder;
   description?: Prisma.SortOrderInput | Prisma.SortOrder;
   visibility?: Prisma.SortOrder;
+  concealedEndpoint?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -276,6 +288,10 @@ export type RelationshipWhereUniqueInput = Prisma.AtLeast<
     visibility?:
       | Prisma.EnumRelationshipVisibilityFilter<"Relationship">
       | $Enums.RelationshipVisibility;
+    concealedEndpoint?:
+      | Prisma.EnumRelationshipEndpointNullableFilter<"Relationship">
+      | $Enums.RelationshipEndpoint
+      | null;
     createdAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
     deletedAt?:
@@ -305,6 +321,7 @@ export type RelationshipOrderByWithAggregationInput = {
   type?: Prisma.SortOrder;
   description?: Prisma.SortOrderInput | Prisma.SortOrder;
   visibility?: Prisma.SortOrder;
+  concealedEndpoint?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -331,6 +348,10 @@ export type RelationshipScalarWhereWithAggregatesInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityWithAggregatesFilter<"Relationship">
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.EnumRelationshipEndpointNullableWithAggregatesFilter<"Relationship">
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?:
     Prisma.DateTimeWithAggregatesFilter<"Relationship"> | Date | string;
   updatedAt?:
@@ -347,6 +368,7 @@ export type RelationshipCreateInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -364,6 +386,7 @@ export type RelationshipUncheckedCreateInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -377,6 +400,10 @@ export type RelationshipUpdateInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -397,6 +424,10 @@ export type RelationshipUncheckedUpdateInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -412,6 +443,7 @@ export type RelationshipCreateManyInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -424,6 +456,10 @@ export type RelationshipUpdateManyMutationInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -440,6 +476,10 @@ export type RelationshipUncheckedUpdateManyInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -464,6 +504,7 @@ export type RelationshipCountOrderByAggregateInput = {
   type?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   visibility?: Prisma.SortOrder;
+  concealedEndpoint?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrder;
@@ -477,6 +518,7 @@ export type RelationshipMaxOrderByAggregateInput = {
   type?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   visibility?: Prisma.SortOrder;
+  concealedEndpoint?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrder;
@@ -490,6 +532,7 @@ export type RelationshipMinOrderByAggregateInput = {
   type?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   visibility?: Prisma.SortOrder;
+  concealedEndpoint?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   deletedAt?: Prisma.SortOrder;
@@ -798,6 +841,10 @@ export type EnumRelationshipVisibilityFieldUpdateOperationsInput = {
   set?: $Enums.RelationshipVisibility;
 };
 
+export type NullableEnumRelationshipEndpointFieldUpdateOperationsInput = {
+  set?: $Enums.RelationshipEndpoint | null;
+};
+
 export type RelationshipCreateNestedOneWithoutRecipientsInput = {
   create?: Prisma.XOR<
     Prisma.RelationshipCreateWithoutRecipientsInput,
@@ -829,6 +876,7 @@ export type RelationshipCreateWithoutCampaignInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -844,6 +892,7 @@ export type RelationshipUncheckedCreateWithoutCampaignInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -908,6 +957,10 @@ export type RelationshipScalarWhereInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFilter<"Relationship">
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.EnumRelationshipEndpointNullableFilter<"Relationship">
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"Relationship"> | Date | string;
   deletedAt?:
@@ -919,6 +972,7 @@ export type RelationshipCreateWithoutSourceInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -934,6 +988,7 @@ export type RelationshipUncheckedCreateWithoutSourceInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -960,6 +1015,7 @@ export type RelationshipCreateWithoutTargetInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -975,6 +1031,7 @@ export type RelationshipUncheckedCreateWithoutTargetInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1057,6 +1114,7 @@ export type RelationshipCreateWithoutRecipientsInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1073,6 +1131,7 @@ export type RelationshipUncheckedCreateWithoutRecipientsInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1113,6 +1172,10 @@ export type RelationshipUpdateWithoutRecipientsInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1132,6 +1195,10 @@ export type RelationshipUncheckedUpdateWithoutRecipientsInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1145,6 +1212,7 @@ export type RelationshipCreateManyCampaignInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1157,6 +1225,10 @@ export type RelationshipUpdateWithoutCampaignInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1175,6 +1247,10 @@ export type RelationshipUncheckedUpdateWithoutCampaignInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1191,6 +1267,10 @@ export type RelationshipUncheckedUpdateManyWithoutCampaignInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1204,6 +1284,7 @@ export type RelationshipCreateManySourceInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1216,6 +1297,7 @@ export type RelationshipCreateManyTargetInput = {
   type: string;
   description?: string | null;
   visibility?: $Enums.RelationshipVisibility;
+  concealedEndpoint?: $Enums.RelationshipEndpoint | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   deletedAt?: Date | string | null;
@@ -1228,6 +1310,10 @@ export type RelationshipUpdateWithoutSourceInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1246,6 +1332,10 @@ export type RelationshipUncheckedUpdateWithoutSourceInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1262,6 +1352,10 @@ export type RelationshipUncheckedUpdateManyWithoutSourceInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1275,6 +1369,10 @@ export type RelationshipUpdateWithoutTargetInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1293,6 +1391,10 @@ export type RelationshipUncheckedUpdateWithoutTargetInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1309,6 +1411,10 @@ export type RelationshipUncheckedUpdateManyWithoutTargetInput = {
   visibility?:
     | Prisma.EnumRelationshipVisibilityFieldUpdateOperationsInput
     | $Enums.RelationshipVisibility;
+  concealedEndpoint?:
+    | Prisma.NullableEnumRelationshipEndpointFieldUpdateOperationsInput
+    | $Enums.RelationshipEndpoint
+    | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   deletedAt?:
@@ -1365,6 +1471,7 @@ export type RelationshipSelect<
     type?: boolean;
     description?: boolean;
     visibility?: boolean;
+    concealedEndpoint?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
@@ -1389,6 +1496,7 @@ export type RelationshipSelectCreateManyAndReturn<
     type?: boolean;
     description?: boolean;
     visibility?: boolean;
+    concealedEndpoint?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
@@ -1411,6 +1519,7 @@ export type RelationshipSelectUpdateManyAndReturn<
     type?: boolean;
     description?: boolean;
     visibility?: boolean;
+    concealedEndpoint?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     deletedAt?: boolean;
@@ -1429,6 +1538,7 @@ export type RelationshipSelectScalar = {
   type?: boolean;
   description?: boolean;
   visibility?: boolean;
+  concealedEndpoint?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
   deletedAt?: boolean;
@@ -1445,6 +1555,7 @@ export type RelationshipOmit<
   | "type"
   | "description"
   | "visibility"
+  | "concealedEndpoint"
   | "createdAt"
   | "updatedAt"
   | "deletedAt",
@@ -1497,6 +1608,7 @@ export type $RelationshipPayload<
       type: string;
       description: string | null;
       visibility: $Enums.RelationshipVisibility;
+      concealedEndpoint: $Enums.RelationshipEndpoint | null;
       createdAt: Date;
       updatedAt: Date;
       deletedAt: Date | null;
@@ -2154,6 +2266,10 @@ export interface RelationshipFieldRefs {
   readonly visibility: Prisma.FieldRef<
     "Relationship",
     "RelationshipVisibility"
+  >;
+  readonly concealedEndpoint: Prisma.FieldRef<
+    "Relationship",
+    "RelationshipEndpoint"
   >;
   readonly createdAt: Prisma.FieldRef<"Relationship", "DateTime">;
   readonly updatedAt: Prisma.FieldRef<"Relationship", "DateTime">;

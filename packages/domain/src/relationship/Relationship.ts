@@ -1,5 +1,6 @@
 import { ValidationError } from "../shared";
 import type { UserId } from "../user";
+import { RelationshipEndpoint } from "./RelationshipEndpoint";
 import { RelationshipId } from "./RelationshipId";
 import { RelationshipVisibility } from "./RelationshipVisibility";
 
@@ -11,6 +12,7 @@ export interface CreateRelationshipProps {
   description?: string | null;
   visibility?: RelationshipVisibility;
   recipientIds?: UserId[];
+  concealedEndpoint?: RelationshipEndpoint | null;
 }
 
 export interface RehydrateRelationshipProps {
@@ -22,6 +24,7 @@ export interface RehydrateRelationshipProps {
   description: string | null;
   visibility: RelationshipVisibility;
   recipientIds: UserId[];
+  concealedEndpoint: RelationshipEndpoint | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -37,6 +40,7 @@ export class Relationship {
     private descriptionValue: string | null,
     private visibilityValue: RelationshipVisibility,
     private recipientIdsValue: UserId[],
+    private concealedEndpointValue: RelationshipEndpoint | null,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
     private deletedAtValue: Date | null,
@@ -60,6 +64,7 @@ export class Relationship {
       props.description ?? null,
       props.visibility ?? RelationshipVisibility.PUBLIC,
       props.recipientIds ?? [],
+      props.concealedEndpoint ?? null,
       new Date(),
       new Date(),
       null,
@@ -76,6 +81,7 @@ export class Relationship {
       props.description,
       props.visibility,
       props.recipientIds,
+      props.concealedEndpoint,
       props.createdAt,
       props.updatedAt,
       props.deletedAt,
@@ -114,6 +120,10 @@ export class Relationship {
     return [...this.recipientIdsValue];
   }
 
+  get ConcealedEndpoint(): RelationshipEndpoint | null {
+    return this.concealedEndpointValue;
+  }
+
   get CreatedAt(): Date {
     return this.createdAtValue;
   }
@@ -146,6 +156,13 @@ export class Relationship {
   ): void {
     this.recipientIdsValue = this.normalizeRecipients(visibility, recipientIds);
     this.visibilityValue = visibility;
+    this.updatedAtValue = new Date();
+  }
+
+  // `null` reveals both endpoints again — the reveal mechanic is just
+  // setting this back to null, not repointing source/target.
+  changeConcealedEndpoint(endpoint: RelationshipEndpoint | null): void {
+    this.concealedEndpointValue = endpoint;
     this.updatedAtValue = new Date();
   }
 

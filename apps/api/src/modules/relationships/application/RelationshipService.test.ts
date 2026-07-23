@@ -6,6 +6,7 @@ import {
   EntityVisibility,
   NotFoundError,
   Relationship,
+  RelationshipEndpoint,
   RelationshipRepository,
   ValidationError,
 } from "@storyforge/domain";
@@ -109,6 +110,17 @@ describe("RelationshipService", () => {
       );
       expect(repository.create).not.toHaveBeenCalled();
     });
+
+    it("creates with a concealed endpoint", async () => {
+      vi.mocked(repository.existsByEdge).mockResolvedValue(false);
+
+      const relationship = await service.createRelationship({
+        ...createDto,
+        concealedEndpoint: RelationshipEndpoint.TARGET,
+      });
+
+      expect(relationship.ConcealedEndpoint).toBe(RelationshipEndpoint.TARGET);
+    });
   });
 
   describe("updateRelationship", () => {
@@ -133,6 +145,48 @@ describe("RelationshipService", () => {
       expect(updated.Type).toBe("ENEMY");
       expect(updated.Description).toBe("Falling out");
       expect(repository.update).toHaveBeenCalledWith(relationship);
+    });
+
+    it("conceals an endpoint", async () => {
+      const relationship = Relationship.create(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(relationship);
+
+      const updated = await service.updateRelationship({
+        id: relationship.Id.toString(),
+        concealedEndpoint: RelationshipEndpoint.SOURCE,
+      });
+
+      expect(updated.ConcealedEndpoint).toBe(RelationshipEndpoint.SOURCE);
+    });
+
+    it("reveals a previously concealed endpoint by sending null", async () => {
+      const relationship = Relationship.create({
+        ...createDto,
+        concealedEndpoint: RelationshipEndpoint.SOURCE,
+      });
+      vi.mocked(repository.findById).mockResolvedValue(relationship);
+
+      const updated = await service.updateRelationship({
+        id: relationship.Id.toString(),
+        concealedEndpoint: null,
+      });
+
+      expect(updated.ConcealedEndpoint).toBeNull();
+    });
+
+    it("leaves concealedEndpoint unchanged when omitted", async () => {
+      const relationship = Relationship.create({
+        ...createDto,
+        concealedEndpoint: RelationshipEndpoint.TARGET,
+      });
+      vi.mocked(repository.findById).mockResolvedValue(relationship);
+
+      const updated = await service.updateRelationship({
+        id: relationship.Id.toString(),
+        type: "ENEMY",
+      });
+
+      expect(updated.ConcealedEndpoint).toBe(RelationshipEndpoint.TARGET);
     });
   });
 

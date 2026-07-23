@@ -46,6 +46,11 @@ enum RelationshipVisibility {
   TARGETED
 }
 
+enum RelationshipEndpoint {
+  SOURCE
+  TARGET
+}
+
 model Campaign {
   id          String  @id @default(uuid())
   name        String  @unique
@@ -237,7 +242,8 @@ model Relationship {
   type        String
   description String?
 
-  visibility RelationshipVisibility @default(PUBLIC)
+  visibility        RelationshipVisibility @default(PUBLIC)
+  concealedEndpoint RelationshipEndpoint?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

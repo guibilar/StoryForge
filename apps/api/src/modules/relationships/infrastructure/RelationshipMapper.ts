@@ -1,5 +1,6 @@
 import {
   Relationship,
+  RelationshipEndpoint,
   RelationshipId,
   RelationshipVisibility,
   UserId,
@@ -26,6 +27,8 @@ export class RelationshipMapper {
       recipientIds: record.recipients.map((recipient) =>
         UserId.fromString(recipient.userId),
       ),
+      concealedEndpoint:
+        record.concealedEndpoint as RelationshipEndpoint | null,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
       deletedAt: record.deletedAt,
@@ -41,6 +44,7 @@ export class RelationshipMapper {
       type: relationship.Type,
       description: relationship.Description,
       visibility: relationship.Visibility,
+      concealedEndpoint: relationship.ConcealedEndpoint,
       createdAt: relationship.CreatedAt,
       updatedAt: relationship.UpdatedAt,
       deletedAt: relationship.DeletedAt,

@@ -23,7 +23,10 @@ import {
   MeDocument,
   UpdateRelationshipDocument,
 } from "../gql/graphql";
-import type { RelationshipVisibility } from "../gql/graphql";
+import type {
+  RelationshipEndpoint,
+  RelationshipVisibility,
+} from "../gql/graphql";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { suggestRelationshipTypes } from "../lib/relationshipTypeSuggestions";
@@ -32,12 +35,16 @@ import { EntitySelectField } from "./EntitySelectField";
 
 export interface RelationshipRow {
   id: string;
-  sourceEntityId: string;
-  targetEntityId: string;
+  // Null when this side is concealed and the viewer isn't a Storyteller
+  // (KAN-134) — the form is writer-only, so in practice these are only ever
+  // null transiently, never for a session actually rendering this form.
+  sourceEntityId: string | null;
+  targetEntityId: string | null;
   type: string;
   description?: string | null;
   visibility: RelationshipVisibility;
   recipientIds: string[];
+  concealedEndpoint?: RelationshipEndpoint | null;
 }
 
 export interface RelationshipFormWindowProps {
@@ -57,6 +64,19 @@ const VISIBILITY_OPTIONS: Array<{
   { value: "PUBLIC", label: "Public (anyone who sees both entities)" },
   { value: "STORYTELLER", label: "Storytellers only" },
   { value: "TARGETED", label: "Targeted at specific players" },
+];
+
+// "Fully revealed" is represented as null, not a fourth enum value — it's
+// the absence of concealment, not a level of it (KAN-134). Editable in both
+// create and edit mode, unlike source/target: setting this back to "Fully
+// revealed" later *is* the reveal mechanic, no repoint needed.
+const CONCEALMENT_OPTIONS: Array<{
+  value: RelationshipEndpoint | "";
+  label: string;
+}> = [
+  { value: "", label: "Fully revealed" },
+  { value: "SOURCE", label: "Hide source identity" },
+  { value: "TARGET", label: "Hide target identity" },
 ];
 
 function sameIds(a: string[], b: string[]): boolean {
@@ -111,6 +131,8 @@ export function RelationshipFormWindow({
   const [visibility, setVisibility] = useState<RelationshipVisibility>(
     initial?.visibility ?? "PUBLIC",
   );
+  const [concealedEndpoint, setConcealedEndpoint] =
+    useState<RelationshipEndpoint | null>(initial?.concealedEndpoint ?? null);
   const [recipientIds, setRecipientIds] = useState<string[]>(
     initial?.recipientIds ?? [],
   );
@@ -208,6 +230,7 @@ export function RelationshipFormWindow({
           type,
           description: description || null,
           visibility,
+          concealedEndpoint,
           ...(visibility === "TARGETED" ? { recipientIds } : {}),
         },
       });
@@ -229,6 +252,10 @@ export function RelationshipFormWindow({
             visibility,
             ...(visibility === "TARGETED" ? { recipientIds } : {}),
           };
+      const concealedEndpointInput =
+        concealedEndpoint === (mode.item.concealedEndpoint ?? null)
+          ? {}
+          : { concealedEndpoint };
 
       const result = await updateRelationship({
         input: {
@@ -236,6 +263,7 @@ export function RelationshipFormWindow({
           type,
           description: description || null,
           ...visibilityInput,
+          ...concealedEndpointInput,
         },
       });
       if (result.data?.updateRelationship) {
@@ -331,6 +359,23 @@ export function RelationshipFormWindow({
           }
         >
           {VISIBILITY_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+      </FormField>
+      <FormField label="Concealment" htmlFor="relationship-concealment">
+        <Select
+          id="relationship-concealment"
+          value={concealedEndpoint ?? ""}
+          onChange={(event) =>
+            setConcealedEndpoint(
+              (event.target.value || null) as RelationshipEndpoint | null,
+            )
+          }
+        >
+          {CONCEALMENT_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

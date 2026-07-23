@@ -54,3 +54,11 @@ export const RelationshipVisibility = {
 
 export type RelationshipVisibility =
   (typeof RelationshipVisibility)[keyof typeof RelationshipVisibility];
+
+export const RelationshipEndpoint = {
+  SOURCE: "SOURCE",
+  TARGET: "TARGET",
+} as const;
+
+export type RelationshipEndpoint =
+  (typeof RelationshipEndpoint)[keyof typeof RelationshipEndpoint];

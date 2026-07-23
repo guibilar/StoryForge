@@ -4,6 +4,7 @@ import {
   EntityRepository,
   NotFoundError,
   Relationship,
+  RelationshipEndpoint,
   RelationshipId,
   RelationshipRepository,
   RelationshipVisibility,
@@ -19,6 +20,7 @@ export interface CreateRelationshipDto {
   description?: string | null;
   visibility?: RelationshipVisibility;
   recipientIds?: string[];
+  concealedEndpoint?: RelationshipEndpoint | null;
 }
 
 export interface UpdateRelationshipDto {
@@ -27,6 +29,7 @@ export interface UpdateRelationshipDto {
   description?: string | null;
   visibility?: RelationshipVisibility;
   recipientIds?: string[];
+  concealedEndpoint?: RelationshipEndpoint | null;
 }
 
 export class RelationshipService {
@@ -98,6 +101,10 @@ export class RelationshipService {
             : [];
 
       relationship.changeVisibility(visibility, recipientIds);
+    }
+
+    if (dto.concealedEndpoint !== undefined) {
+      relationship.changeConcealedEndpoint(dto.concealedEndpoint);
     }
 
     await this.repository.update(relationship);

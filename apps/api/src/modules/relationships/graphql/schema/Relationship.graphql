@@ -7,14 +7,23 @@ enum RelationshipVisibility {
   TARGETED
 }
 
+enum RelationshipEndpoint {
+  SOURCE
+  TARGET
+}
+
 type Relationship {
   id: ID!
   campaignId: ID!
-  sourceEntityId: ID!
-  targetEntityId: ID!
+  """Null for a non-Storyteller viewer when this side is concealedEndpoint."""
+  sourceEntityId: ID
+  """Null for a non-Storyteller viewer when this side is concealedEndpoint."""
+  targetEntityId: ID
   type: String!
   description: String
   visibility: RelationshipVisibility!
+  """Which side's identity is hidden from non-Storyteller viewers, if any."""
+  concealedEndpoint: RelationshipEndpoint
   recipientIds: [ID!]!
   createdAt: String!
   updatedAt: String!

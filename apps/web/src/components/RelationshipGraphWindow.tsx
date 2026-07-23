@@ -132,17 +132,26 @@ export function RelationshipGraphWindow() {
 
   const edges: Edge[] = useMemo(
     () =>
-      relationships.map((relationship) => {
-        const color = relationshipColors.get(relationship.type);
-        return {
-          id: relationship.id,
-          source: relationship.sourceEntityId,
-          target: relationship.targetEntityId,
-          label: relationship.type,
-          style: { stroke: color },
-          markerEnd: { type: MarkerType.ArrowClosed, color },
-        };
-      }),
+      relationships
+        // A concealed endpoint (KAN-134) comes back null for a non-Storyteller
+        // viewer — there's no node for ReactFlow to draw that edge to, so the
+        // link just doesn't appear here yet. EntityWindow's relationship list
+        // is where it still shows up, as an "Unknown" counterpart.
+        .filter(
+          (relationship) =>
+            relationship.sourceEntityId && relationship.targetEntityId,
+        )
+        .map((relationship) => {
+          const color = relationshipColors.get(relationship.type);
+          return {
+            id: relationship.id,
+            source: relationship.sourceEntityId as string,
+            target: relationship.targetEntityId as string,
+            label: relationship.type,
+            style: { stroke: color },
+            markerEnd: { type: MarkerType.ArrowClosed, color },
+          };
+        }),
     [relationships, relationshipColors],
   );
 

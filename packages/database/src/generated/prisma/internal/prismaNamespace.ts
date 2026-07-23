@@ -2145,6 +2145,7 @@ export const RelationshipScalarFieldEnum = {
   type: "type",
   description: "description",
   visibility: "visibility",
+  concealedEndpoint: "concealedEndpoint",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
   deletedAt: "deletedAt",
@@ -2433,6 +2434,18 @@ export type EnumRelationshipVisibilityFieldRefInput<$PrismaModel> =
  */
 export type ListEnumRelationshipVisibilityFieldRefInput<$PrismaModel> =
   FieldRefInputType<$PrismaModel, "RelationshipVisibility[]">;
+
+/**
+ * Reference to a field of type 'RelationshipEndpoint'
+ */
+export type EnumRelationshipEndpointFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, "RelationshipEndpoint">;
+
+/**
+ * Reference to a field of type 'RelationshipEndpoint[]'
+ */
+export type ListEnumRelationshipEndpointFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, "RelationshipEndpoint[]">;
 
 /**
  * Reference to a field of type 'NoteVisibility'

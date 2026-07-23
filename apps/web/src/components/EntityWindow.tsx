@@ -327,18 +327,38 @@ function RelationshipsTab({
   const entitiesById = new Map(
     (entitiesData?.entities ?? []).map((row) => [row.id, row]),
   );
+
+  // Which side of `relationship` is the counterpart to this entity's own
+  // page. Usually one raw field equals `entity.id` and the other is the
+  // counterpart — but a concealed endpoint (KAN-134) can come back `null`
+  // from the API, and if that happens to be the side that *would* have
+  // matched `entity.id`, neither raw field equals it any more. In that
+  // fallback case the un-redacted field sitting in the other slot is still
+  // the real counterpart, not a sign the counterpart itself is unknown.
+  function counterpartIdFor(relationship: {
+    sourceEntityId: string | null;
+    targetEntityId: string | null;
+  }): string | null {
+    if (relationship.sourceEntityId === entity.id) {
+      return relationship.targetEntityId;
+    }
+    if (relationship.targetEntityId === entity.id) {
+      return relationship.sourceEntityId;
+    }
+    return relationship.sourceEntityId ?? relationship.targetEntityId;
+  }
+
   // The API filters relationships down to those whose endpoints the viewer
-  // can see (relationships/graphql/guards.ts). This drops any that slip
-  // through anyway rather than rendering an "Unknown entity" row, which
-  // used to disclose the type and description of a link into an entity the
-  // viewer was never shown.
+  // can see (relationships/graphql/guards.ts). A `null` counterpart means
+  // it's concealed, not invisible — that row still renders as "Unknown"
+  // below. This only drops the rare case of an id that slipped through with
+  // no matching entity, which used to disclose the type and description of
+  // a link into an entity the viewer was never shown.
   const relationships = (relationshipsData?.relationships ?? []).filter(
-    (relationship) =>
-      entitiesById.has(
-        relationship.sourceEntityId === entity.id
-          ? relationship.targetEntityId
-          : relationship.sourceEntityId,
-      ),
+    (relationship) => {
+      const counterpartId = counterpartIdFor(relationship);
+      return counterpartId === null || entitiesById.has(counterpartId);
+    },
   );
 
   if (relationships.length === 0) {
@@ -365,20 +385,22 @@ function RelationshipsTab({
   return (
     <ul className={styles.relationshipList}>
       {relationships.map((relationship) => {
-        const counterpartId =
-          relationship.sourceEntityId === entity.id
-            ? relationship.targetEntityId
-            : relationship.sourceEntityId;
-        const counterpart = entitiesById.get(counterpartId);
+        const counterpartId = counterpartIdFor(relationship);
+        const counterpart = counterpartId
+          ? entitiesById.get(counterpartId)
+          : null;
 
         return (
           <li key={relationship.id} className={styles.relationshipRow}>
             <button
               type="button"
               className={styles.relationshipName}
-              onClick={() => openCounterpart(counterpartId)}
+              disabled={!counterpartId}
+              onClick={
+                counterpartId ? () => openCounterpart(counterpartId) : undefined
+              }
             >
-              {counterpart?.name}
+              {counterpartId ? counterpart?.name : "Unknown"}
             </button>
             <span className={styles.relationshipType}>{relationship.type}</span>
             {relationship.description ? (

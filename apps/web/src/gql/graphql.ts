@@ -64,6 +64,7 @@ export type CreateNoteInput = {
 
 export type CreateRelationshipInput = {
   campaignId: string | number;
+  concealedEndpoint?: RelationshipEndpoint | null | undefined;
   description?: string | null | undefined;
   recipientIds?: Array<string | number> | null | undefined;
   sourceEntityId: string | number;
@@ -152,6 +153,8 @@ export type RegisterUserInput = {
   password: string;
 };
 
+export type RelationshipEndpoint = "SOURCE" | "TARGET";
+
 export type RelationshipVisibility =
   /** Everyone who can see both endpoint entities. */
   | "PUBLIC"
@@ -217,6 +220,7 @@ export type UpdateNoteInput = {
 };
 
 export type UpdateRelationshipInput = {
+  concealedEndpoint?: RelationshipEndpoint | null | undefined;
   description?: string | null | undefined;
   id: string | number;
   recipientIds?: Array<string | number> | null | undefined;
@@ -405,8 +409,8 @@ export type CreateRelationshipMutationVariables = Exact<{
 export type CreateRelationshipMutation = {
   createRelationship: {
     id: string;
-    sourceEntityId: string;
-    targetEntityId: string;
+    sourceEntityId: string | null;
+    targetEntityId: string | null;
     type: string;
     description: string | null;
     visibility: RelationshipVisibility;
@@ -803,8 +807,8 @@ export type RelationshipsQueryVariables = Exact<{
 export type RelationshipsQuery = {
   relationships: Array<{
     id: string;
-    sourceEntityId: string;
-    targetEntityId: string;
+    sourceEntityId: string | null;
+    targetEntityId: string | null;
     type: string;
     description: string | null;
     visibility: RelationshipVisibility;
@@ -969,8 +973,8 @@ export type UpdateRelationshipMutationVariables = Exact<{
 export type UpdateRelationshipMutation = {
   updateRelationship: {
     id: string;
-    sourceEntityId: string;
-    targetEntityId: string;
+    sourceEntityId: string | null;
+    targetEntityId: string | null;
     type: string;
     description: string | null;
     visibility: RelationshipVisibility;

@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { canViewRelationshipVisibility } from "./RelationshipAccess";
-import { Relationship, RelationshipVisibility } from "../relationship";
+import {
+  canSeeRelationshipEndpoint,
+  canViewRelationshipVisibility,
+} from "./RelationshipAccess";
+import {
+  Relationship,
+  RelationshipEndpoint,
+  RelationshipVisibility,
+} from "../relationship";
 import { UserId } from "../user";
 import type { CampaignRole } from "../campaignMember";
 
@@ -11,6 +18,7 @@ const otherPlayer = UserId.create();
 function makeRelationship(
   visibility: RelationshipVisibility,
   recipientIds: UserId[] = [],
+  concealedEndpoint: RelationshipEndpoint | null = null,
 ): Relationship {
   return Relationship.create({
     campaignId: "campaign-1",
@@ -19,6 +27,7 @@ function makeRelationship(
     type: "Sired by",
     visibility,
     recipientIds,
+    concealedEndpoint,
   });
 }
 
@@ -80,6 +89,79 @@ describe("canViewRelationshipVisibility", () => {
     expect(
       canViewRelationshipVisibility(relationship, otherPlayer, "PLAYER"),
     ).toBe(false);
+  });
+});
+
+describe("canSeeRelationshipEndpoint", () => {
+  it.each(["OWNER", "STORYTELLER", "CO_STORYTELLER"] satisfies CampaignRole[])(
+    "%s sees both endpoints regardless of concealment",
+    (role) => {
+      const relationship = makeRelationship(
+        RelationshipVisibility.PUBLIC,
+        [],
+        RelationshipEndpoint.SOURCE,
+      );
+
+      expect(
+        canSeeRelationshipEndpoint(
+          relationship,
+          RelationshipEndpoint.SOURCE,
+          role,
+        ),
+      ).toBe(true);
+      expect(
+        canSeeRelationshipEndpoint(
+          relationship,
+          RelationshipEndpoint.TARGET,
+          role,
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it.each(["PLAYER", "OBSERVER"] satisfies CampaignRole[])(
+    "%s cannot see the concealed side, but can see the other",
+    (role) => {
+      const relationship = makeRelationship(
+        RelationshipVisibility.PUBLIC,
+        [],
+        RelationshipEndpoint.TARGET,
+      );
+
+      expect(
+        canSeeRelationshipEndpoint(
+          relationship,
+          RelationshipEndpoint.TARGET,
+          role,
+        ),
+      ).toBe(false);
+      expect(
+        canSeeRelationshipEndpoint(
+          relationship,
+          RelationshipEndpoint.SOURCE,
+          role,
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it("sees both sides when nothing is concealed", () => {
+    const relationship = makeRelationship(RelationshipVisibility.PUBLIC);
+
+    expect(
+      canSeeRelationshipEndpoint(
+        relationship,
+        RelationshipEndpoint.SOURCE,
+        "PLAYER",
+      ),
+    ).toBe(true);
+    expect(
+      canSeeRelationshipEndpoint(
+        relationship,
+        RelationshipEndpoint.TARGET,
+        "PLAYER",
+      ),
+    ).toBe(true);
   });
 });
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Relationship } from "./Relationship";
+import { RelationshipEndpoint } from "./RelationshipEndpoint";
 import { RelationshipVisibility } from "./RelationshipVisibility";
 import { RelationshipId } from "./RelationshipId";
 
@@ -22,6 +23,7 @@ describe("Relationship", () => {
     expect(relationship.Description).toBe(validProps.description);
     expect(relationship.DeletedAt).toBeNull();
     expect(relationship.isDeleted()).toBe(false);
+    expect(relationship.ConcealedEndpoint).toBeNull();
   });
 
   it("defaults description to null when omitted", () => {
@@ -49,6 +51,7 @@ describe("Relationship", () => {
       description: null,
       visibility: RelationshipVisibility.PUBLIC,
       recipientIds: [],
+      concealedEndpoint: null,
       createdAt,
       updatedAt,
       deletedAt: null,
@@ -126,5 +129,26 @@ describe("Relationship", () => {
     relationship.delete();
 
     expect(relationship.DeletedAt).toBe(firstDeletedAt);
+  });
+
+  it("creates with a concealed endpoint", () => {
+    const relationship = Relationship.create({
+      ...validProps,
+      concealedEndpoint: RelationshipEndpoint.TARGET,
+    });
+
+    expect(relationship.ConcealedEndpoint).toBe(RelationshipEndpoint.TARGET);
+  });
+
+  it("conceals and reveals an endpoint", () => {
+    const relationship = Relationship.create(validProps);
+    const createdUpdatedAt = relationship.UpdatedAt;
+
+    relationship.changeConcealedEndpoint(RelationshipEndpoint.SOURCE);
+    expect(relationship.ConcealedEndpoint).toBe(RelationshipEndpoint.SOURCE);
+    expect(relationship.UpdatedAt).not.toBe(createdUpdatedAt);
+
+    relationship.changeConcealedEndpoint(null);
+    expect(relationship.ConcealedEndpoint).toBeNull();
   });
 });

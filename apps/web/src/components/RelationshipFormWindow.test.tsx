@@ -138,6 +138,7 @@ describe("RelationshipFormWindow", () => {
         type: "MemberOf",
         description: null,
         visibility: "PUBLIC",
+        concealedEndpoint: null,
       },
     });
     expect(onSaved).toHaveBeenCalledTimes(1);
@@ -246,6 +247,7 @@ describe("RelationshipFormWindow", () => {
         type: "MemberOf",
         description: null,
         visibility: "TARGETED",
+        concealedEndpoint: null,
         recipientIds: ["player-1"],
       },
     });
@@ -263,6 +265,92 @@ describe("RelationshipFormWindow", () => {
     await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(createRelationship).not.toHaveBeenCalled();
+  });
+
+  it("creates a relationship with a concealed endpoint", async () => {
+    const { createRelationship } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.selectOptions(screen.getByLabelText("Source"), "ent-1");
+    await user.selectOptions(screen.getByLabelText("Target"), "ent-2");
+    await user.type(screen.getByLabelText("Type"), "Blackmails");
+    await user.selectOptions(
+      screen.getByLabelText("Concealment"),
+      "Hide target identity",
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createRelationship).toHaveBeenCalledWith({
+      input: {
+        campaignId: "camp-1",
+        sourceEntityId: "ent-1",
+        targetEntityId: "ent-2",
+        type: "Blackmails",
+        description: null,
+        visibility: "PUBLIC",
+        concealedEndpoint: "TARGET",
+      },
+    });
+  });
+
+  it("renders the concealment control in edit mode, and reveals a concealed endpoint", async () => {
+    const { updateRelationship } = setupMocks();
+    const user = userEvent.setup();
+    const relationship: RelationshipRow = {
+      id: "rel-1",
+      sourceEntityId: "ent-1",
+      targetEntityId: "ent-2",
+      type: "Blackmails",
+      description: null,
+      visibility: "PUBLIC",
+      recipientIds: [],
+      concealedEndpoint: "TARGET",
+    };
+    renderEdit(relationship);
+
+    expect(screen.getByLabelText("Concealment")).toHaveValue("TARGET");
+
+    await user.selectOptions(
+      screen.getByLabelText("Concealment"),
+      "Fully revealed",
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(updateRelationship).toHaveBeenCalledWith({
+      input: {
+        id: "rel-1",
+        type: "Blackmails",
+        description: null,
+        concealedEndpoint: null,
+      },
+    });
+  });
+
+  it("omits concealedEndpoint from an update when it's unchanged", async () => {
+    const { updateRelationship } = setupMocks();
+    const user = userEvent.setup();
+    const relationship: RelationshipRow = {
+      id: "rel-1",
+      sourceEntityId: "ent-1",
+      targetEntityId: "ent-2",
+      type: "Blackmails",
+      description: null,
+      visibility: "PUBLIC",
+      recipientIds: [],
+      concealedEndpoint: "SOURCE",
+    };
+    renderEdit(relationship);
+
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(updateRelationship).toHaveBeenCalledWith({
+      input: {
+        id: "rel-1",
+        type: "Blackmails",
+        description: null,
+      },
+    });
   });
 
   it("deletes the relationship from edit mode", async () => {

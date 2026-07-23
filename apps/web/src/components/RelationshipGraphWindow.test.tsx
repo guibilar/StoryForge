@@ -133,7 +133,15 @@ const entities = [
   },
 ];
 
-const relationships = [
+interface RelationshipMock {
+  id: string;
+  // Null when the API redacts a concealed endpoint (KAN-134) for this viewer.
+  sourceEntityId: string | null;
+  targetEntityId: string | null;
+  type: string;
+}
+
+const relationships: RelationshipMock[] = [
   {
     id: "rel-1",
     sourceEntityId: "ent-1",
@@ -397,5 +405,25 @@ describe("RelationshipGraphWindow", () => {
     expect(openWindow).not.toHaveBeenCalledWith(
       expect.objectContaining({ id: "relationship-form:rel-1" }),
     );
+  });
+
+  it("skips a concealed relationship's edge instead of crashing on a null endpoint", () => {
+    setupMocks({
+      relationshipsResult: [
+        {
+          id: "rel-concealed",
+          sourceEntityId: "ent-1",
+          // Redacted by the API for this viewer (KAN-134) — there's no node
+          // to draw this edge to.
+          targetEntityId: null,
+          type: "Blackmails",
+        },
+        ...relationships,
+      ],
+    });
+    setupDesktopWindows();
+
+    expect(() => renderWindow()).not.toThrow();
+    expect(screen.queryByText("Blackmails")).not.toBeInTheDocument();
   });
 });

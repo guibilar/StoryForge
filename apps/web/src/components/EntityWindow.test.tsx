@@ -93,7 +93,16 @@ const ENTITIES = [
   },
 ];
 
-const RELATIONSHIPS = [
+interface RelationshipMock {
+  id: string;
+  // Null when the API redacts a concealed endpoint (KAN-134) for this viewer.
+  sourceEntityId: string | null;
+  targetEntityId: string | null;
+  type: string;
+  description?: string | null;
+}
+
+const RELATIONSHIPS: RelationshipMock[] = [
   {
     id: "rel-1",
     sourceEntityId: "e-1",
@@ -599,6 +608,61 @@ describe("EntityWindow", () => {
     expect(
       screen.getByText("No recorded relationships yet."),
     ).toBeInTheDocument();
+  });
+
+  it("renders a concealed counterpart as Unknown instead of dropping the row", async () => {
+    const user = userEvent.setup();
+    setupQueries({
+      relationships: [
+        {
+          id: "rel-concealed",
+          sourceEntityId: ENTITY.id,
+          // Redacted by the API for a non-Storyteller viewer (KAN-134) —
+          // must still render, not vanish like the "hidden entity" case above.
+          targetEntityId: null,
+          type: "Blackmailed by",
+          description: "Someone has leverage over Carlos.",
+        },
+      ],
+    });
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("tab", { name: "Relationships" }));
+
+    expect(screen.getByRole("button", { name: "Unknown" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Unknown" })).toBeDisabled();
+    expect(screen.getByText("Blackmailed by")).toBeInTheDocument();
+    expect(
+      screen.getByText("Someone has leverage over Carlos."),
+    ).toBeInTheDocument();
+  });
+
+  it("resolves the real counterpart when this entity itself is the concealed side", async () => {
+    // The redacted field no longer equals entity.id once it's null, so the
+    // naive "sourceEntityId === entity.id ? target : source" ternary would
+    // misattribute the counterpart here — this pins the fallback behavior.
+    const user = userEvent.setup();
+    setupQueries({
+      relationships: [
+        {
+          id: "rel-self-concealed",
+          sourceEntityId: null,
+          targetEntityId: "e-2",
+          type: "Blackmails",
+          description: null,
+        },
+      ],
+    });
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("tab", { name: "Relationships" }));
+
+    expect(
+      screen.getByRole("button", { name: "Beatriz Moreau" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
   });
 
   it("opens a note window when a linked note is clicked", async () => {

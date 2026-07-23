@@ -202,6 +202,7 @@ export const RelationshipScalarFieldEnum = {
   type: "type",
   description: "description",
   visibility: "visibility",
+  concealedEndpoint: "concealedEndpoint",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
   deletedAt: "deletedAt",

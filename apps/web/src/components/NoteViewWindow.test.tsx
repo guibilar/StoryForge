@@ -13,6 +13,7 @@ import {
   NoteDocument,
   UploadNoteAttachmentDocument,
 } from "../gql/graphql";
+import { createDesktopWindowsStub } from "../lib/desktopWindowsStub";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
@@ -155,22 +156,9 @@ function setupMocks({
 
 function setupDesktopWindows() {
   const openWindow = vi.fn();
-  vi.mocked(useDesktopWindows).mockReturnValue({
-    layout: {},
-    bringToFront: vi.fn(),
-    toggle: vi.fn(),
-    startDrag: vi.fn(),
-    startResize: vi.fn(),
-    reset: vi.fn(),
-    dynamicWindows: {},
-    openWindow,
-    closeWindow: vi.fn(),
-    recentIds: [],
-    presets: {},
-    savePreset: vi.fn(),
-    applyPreset: vi.fn(),
-    hydrateFromServer: vi.fn(),
-  });
+  vi.mocked(useDesktopWindows).mockReturnValue(
+    createDesktopWindowsStub({ openWindow }),
+  );
   return { openWindow };
 }
 

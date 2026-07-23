@@ -52,6 +52,7 @@
 }
 
 .close,
+.control,
 .refresh {
   appearance: none;
   border: none;
@@ -74,6 +75,7 @@
 }
 
 .close:hover,
+.control:hover,
 .refresh:hover:not(:disabled) {
   background: var(--accent-bg);
   color: var(--text-h);
@@ -85,6 +87,7 @@
 }
 
 .close:focus-visible,
+.control:focus-visible,
 .refresh:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);

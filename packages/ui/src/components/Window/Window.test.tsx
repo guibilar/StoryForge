@@ -30,6 +30,74 @@ describe("Window", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  // The window-manager controls are opt-in: a Window used outside one (a
+  // story, a standalone panel) keeps the close-only title bar.
+  it("renders no minimize or maximize control without their handlers", () => {
+    render(
+      <Window title="NPCs" onClose={vi.fn()}>
+        <p>Body content</p>
+      </Window>,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /minimize/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /maximize/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("calls onMinimize when the minimize control is clicked", async () => {
+    const onMinimize = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Window title="NPCs" onClose={vi.fn()} onMinimize={onMinimize}>
+        <p>Body content</p>
+      </Window>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Minimize NPCs" }));
+
+    expect(onMinimize).toHaveBeenCalledTimes(1);
+  });
+
+  it("labels the maximize control as restore once maximized", async () => {
+    const onMaximize = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Window
+        title="NPCs"
+        onClose={vi.fn()}
+        onMaximize={onMaximize}
+        isMaximized
+      >
+        <p>Body content</p>
+      </Window>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Restore NPCs" }));
+
+    expect(onMaximize).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onTitleBarDoubleClick when the title bar is double-clicked", async () => {
+    const onTitleBarDoubleClick = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Window
+        title="NPCs"
+        onClose={vi.fn()}
+        onTitleBarDoubleClick={onTitleBarDoubleClick}
+      >
+        <p>Body content</p>
+      </Window>,
+    );
+
+    await user.dblClick(screen.getByText("NPCs"));
+
+    expect(onTitleBarDoubleClick).toHaveBeenCalledTimes(1);
+  });
+
   it("forwards pointer down on the title bar for drag handling", () => {
     const onTitleBarPointerDown = vi.fn();
     render(

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -24,7 +24,7 @@ import {
 // up to CampaignDesktopPage so a sibling sidebar can share it) rather than
 // owning it itself — this harness stands in for that owner in isolation.
 // Opening/closing a hidden catalog window is normally done by a sibling
-// (EntitySidebar's World nav), not DesktopBoard itself, so tests that need
+// (the start menu), not DesktopBoard itself, so tests that need
 // to open one drive the shared controller directly via onReady instead of
 // clicking a UI element DesktopBoard doesn't render.
 function Harness({
@@ -40,7 +40,7 @@ function Harness({
   onReady?.(desktopWindows);
   return (
     <DesktopWindowsContext.Provider value={desktopWindows}>
-      <DesktopBoard role={role} />
+      <DesktopBoard campaignId={campaignId} role={role} />
     </DesktopWindowsContext.Provider>
   );
 }
@@ -121,6 +121,25 @@ function mockRect(
   } as DOMRect);
 }
 
+// "Sessions" now appears twice on the desk — once as a desktop icon's label,
+// once as the open window's title — so window-title lookups scope themselves
+// to the window subtree (Window marks it with data-window).
+function windowTitle(name: string): HTMLElement {
+  const match = screen
+    .getAllByText(name, { selector: "span" })
+    .find((el) => el.closest("[data-window]"));
+  if (!match) {
+    throw new Error(`No open window titled ${name}`);
+  }
+  return match;
+}
+
+function hasWindow(name: string): boolean {
+  return screen
+    .queryAllByText(name, { selector: "span" })
+    .some((el) => el.closest("[data-window]"));
+}
+
 beforeEach(() => {
   localStorage.clear();
 });
@@ -133,18 +152,10 @@ describe("DesktopBoard", () => {
       </MemoryRouter>,
     );
 
-    expect(
-      screen.getByText("Members", { selector: "span" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Sessions", { selector: "span" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText("Timeline", { selector: "span" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Notes", { selector: "span" }),
-    ).not.toBeInTheDocument();
+    expect(hasWindow("Members")).toBe(true);
+    expect(hasWindow("Sessions")).toBe(true);
+    expect(hasWindow("Timeline")).toBe(false);
+    expect(hasWindow("Notes")).toBe(false);
   });
 
   it("opens a hidden window via toggle and closes it again", async () => {
@@ -197,13 +208,12 @@ describe("DesktopBoard", () => {
     expect(screen.getByText("No events yet.")).toBeInTheDocument();
   });
 
-  it("reset layout restores the defaults", async () => {
-    const user = userEvent.setup();
+  it("reset layout restores the defaults", () => {
     let windows!: DesktopWindowsApi;
     render(<Harness campaignId="camp-1" onReady={(w) => (windows = w)} />);
 
     act(() => windows.toggle("timeline"));
-    await user.click(screen.getByRole("button", { name: "Reset layout" }));
+    act(() => windows.reset());
 
     expect(screen.queryByText("No events yet.")).not.toBeInTheDocument();
   });
@@ -214,7 +224,7 @@ describe("DesktopBoard", () => {
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
 
-    const sessionsTitle = screen.getByText("Sessions", { selector: "span" });
+    const sessionsTitle = windowTitle("Sessions");
     const windowEl = sessionsTitle.closest("div[style]") as HTMLElement;
     mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
 
@@ -256,7 +266,7 @@ describe("DesktopBoard", () => {
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
 
-    const sessionsTitle = screen.getByText("Sessions", { selector: "span" });
+    const sessionsTitle = windowTitle("Sessions");
     const windowEl = sessionsTitle.closest("div[style]") as HTMLElement;
     mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
 
@@ -302,7 +312,7 @@ describe("DesktopBoard", () => {
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
 
-    const sessionsTitle = screen.getByText("Sessions", { selector: "span" });
+    const sessionsTitle = windowTitle("Sessions");
     const windowEl = sessionsTitle.closest("div[style]") as HTMLElement;
     mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
 
@@ -339,63 +349,6 @@ describe("DesktopBoard", () => {
     act(() => {
       window.dispatchEvent(new PointerEvent("pointerup"));
     });
-  });
-
-  it("saves the current arrangement as a named preset and restores it later", async () => {
-    const user = userEvent.setup();
-    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("My Layout");
-    render(<Harness campaignId="camp-1" />);
-
-    const board = screen.getByTestId("desktop-board");
-    mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
-    const sessionsTitle = screen.getByText("Sessions", { selector: "span" });
-    const windowEl = sessionsTitle.closest("div[style]") as HTMLElement;
-    mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
-
-    // Move Sessions, then save that arrangement as a preset.
-    act(() => {
-      sessionsTitle.dispatchEvent(
-        new PointerEvent("pointerdown", {
-          bubbles: true,
-          clientX: 50,
-          clientY: 50,
-        }),
-      );
-    });
-    act(() => {
-      window.dispatchEvent(
-        new PointerEvent("pointermove", { clientX: 150, clientY: 150 }),
-      );
-    });
-    act(() => {
-      window.dispatchEvent(new PointerEvent("pointerup"));
-    });
-    expect(windowEl.style.left).toBe("128px");
-
-    await user.click(screen.getByRole("button", { name: "Save as preset" }));
-    expect(promptSpy).toHaveBeenCalled();
-
-    // Reset scatters it back to the shipped default position...
-    await user.click(screen.getByRole("button", { name: "Reset layout" }));
-    expect(windowEl.style.left).toBe("754px");
-
-    // ...and loading the saved preset brings it back.
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Load layout preset" }),
-      "My Layout",
-    );
-    expect(windowEl.style.left).toBe("128px");
-  });
-
-  it("does not save a preset when the name prompt is cancelled", async () => {
-    const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue(null);
-    render(<Harness campaignId="camp-1" />);
-
-    await user.click(screen.getByRole("button", { name: "Save as preset" }));
-
-    const select = screen.getByRole("combobox", { name: "Load layout preset" });
-    expect(within(select).getAllByRole("option")).toHaveLength(1);
   });
 
   // Dragging used to push a layout update per pointermove, which re-rendered
@@ -442,7 +395,7 @@ describe("DesktopBoard", () => {
 
     const board = screen.getByTestId("desktop-board");
     mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
-    const sessionsTitle = screen.getByText("Sessions", { selector: "span" });
+    const sessionsTitle = windowTitle("Sessions");
     const windowEl = sessionsTitle.closest("div[style]") as HTMLElement;
     mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
 

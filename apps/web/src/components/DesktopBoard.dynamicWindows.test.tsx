@@ -20,13 +20,14 @@ import {
 } from "../gql/graphql";
 
 // DesktopBoard now reads window state from context (KAN-96 lifted ownership
-// up to CampaignDesktopPage so a sibling sidebar can share it) rather than
-// owning it itself — this harness stands in for that owner in isolation.
+// up to CampaignDesktopPage so the taskbar and start menu can share it)
+// rather than owning it itself — this harness stands in for that owner in
+// isolation.
 function Harness({ campaignId }: { campaignId: string }) {
   const desktopWindows = useDesktopWindowsController(campaignId);
   return (
     <DesktopWindowsContext.Provider value={desktopWindows}>
-      <DesktopBoard role="OWNER" />
+      <DesktopBoard campaignId="camp-1" role="OWNER" />
     </DesktopWindowsContext.Provider>
   );
 }
@@ -37,7 +38,7 @@ function Harness({ campaignId }: { campaignId: string }) {
 // end-to-end without adding a test-only prop to DesktopBoard's public API.
 vi.mock("./SessionsWindow", () => ({
   SessionsWindow: () => {
-    const { openWindow, closeWindow } = useDesktopWindows();
+    const { openWindow, closeWindow, reset } = useDesktopWindows();
     return (
       <div>
         <button
@@ -55,6 +56,9 @@ vi.mock("./SessionsWindow", () => ({
           }
         >
           Open entity
+        </button>
+        <button type="button" onClick={reset}>
+          Reset layout from harness
         </button>
         <button type="button" onClick={() => closeWindow("entity:1")}>
           Close entity from harness
@@ -205,7 +209,9 @@ describe("DesktopBoard dynamic windows", () => {
     renderBoard();
 
     await user.click(screen.getByRole("button", { name: "Open entity" }));
-    await user.click(screen.getByRole("button", { name: "Reset layout" }));
+    await user.click(
+      screen.getByRole("button", { name: "Reset layout from harness" }),
+    );
 
     expect(screen.getByText("Entity content")).toBeInTheDocument();
   });

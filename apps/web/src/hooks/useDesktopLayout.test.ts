@@ -61,25 +61,27 @@ describe("useDesktopLayout", () => {
     expect(localStorage.getItem("storyforge:desktop:camp-1")).toBeNull();
   });
 
-  it("move updates position without persisting until something else does", () => {
+  // What a finished drag/resize gesture calls once on pointerup — the
+  // gesture itself drives the DOM directly and never touches state.
+  it("commitGeometry applies and persists a finished gesture", () => {
     const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
 
-    act(() => result.current.move("npcs", 200, 150));
+    act(() => result.current.commitGeometry("npcs", { x: 200, y: 150 }));
 
     expect(result.current.layout.npcs).toMatchObject({ x: 200, y: 150 });
-    expect(localStorage.getItem("storyforge:desktop:camp-1")).toBeNull();
+    const stored = JSON.parse(
+      localStorage.getItem("storyforge:desktop:camp-1")!,
+    );
+    expect(stored.npcs).toMatchObject({ x: 200, y: 150 });
   });
 
-  it("resize updates size without persisting until something else does", () => {
+  it("commitGeometry ignores an id that is no longer in the layout", () => {
     const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+    const before = result.current.layout;
 
-    act(() => result.current.resize("npcs", 400, 300));
+    act(() => result.current.commitGeometry("gone", { x: 1, y: 1 }));
 
-    expect(result.current.layout.npcs).toMatchObject({
-      width: 400,
-      height: 300,
-    });
-    expect(localStorage.getItem("storyforge:desktop:camp-1")).toBeNull();
+    expect(result.current.layout).toBe(before);
   });
 
   it("persists toggle to localStorage, readable by a fresh hook instance", () => {
@@ -139,7 +141,7 @@ describe("useDesktopLayout", () => {
         height: 200,
       }),
     );
-    act(() => result.current.move("entity:1", 555, 666));
+    act(() => result.current.commitGeometry("entity:1", { x: 555, y: 666 }));
     act(() => result.current.bringToFront("npcs"));
     act(() =>
       result.current.openWindow("entity:1", {
@@ -208,7 +210,7 @@ describe("useDesktopLayout", () => {
   it("savePreset snapshots the current layout under a name", () => {
     const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
 
-    act(() => result.current.move("npcs", 200, 150));
+    act(() => result.current.commitGeometry("npcs", { x: 200, y: 150 }));
     act(() => result.current.savePreset("Session Prep"));
 
     expect(result.current.presets["Session Prep"].npcs).toMatchObject({
@@ -224,9 +226,9 @@ describe("useDesktopLayout", () => {
   it("applyPreset restores a saved arrangement", () => {
     const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
 
-    act(() => result.current.move("npcs", 200, 150));
+    act(() => result.current.commitGeometry("npcs", { x: 200, y: 150 }));
     act(() => result.current.savePreset("Session Prep"));
-    act(() => result.current.move("npcs", 999, 999));
+    act(() => result.current.commitGeometry("npcs", { x: 999, y: 999 }));
     act(() => result.current.applyPreset("Session Prep"));
 
     expect(result.current.layout.npcs).toMatchObject({ x: 200, y: 150 });
@@ -249,7 +251,7 @@ describe("useDesktopLayout", () => {
   it("applyPreset is a no-op for an unknown name", () => {
     const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
 
-    act(() => result.current.move("npcs", 200, 150));
+    act(() => result.current.commitGeometry("npcs", { x: 200, y: 150 }));
     act(() => result.current.applyPreset("Nonexistent"));
 
     expect(result.current.layout.npcs).toMatchObject({ x: 200, y: 150 });
@@ -271,7 +273,7 @@ describe("useDesktopLayout", () => {
   it("hydrateLayout overwrites the layout wholesale and persists it", () => {
     const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
 
-    act(() => result.current.move("npcs", 999, 999));
+    act(() => result.current.commitGeometry("npcs", { x: 999, y: 999 }));
     act(() =>
       result.current.hydrateLayout({
         npcs: { x: 1, y: 2, width: 3, height: 4, hidden: false, z: 5 },
@@ -303,5 +305,213 @@ describe("useDesktopLayout", () => {
       useDesktopLayout("camp-b", DEFAULTS),
     );
     expect(campaignB.current.layout.notes.hidden).toBe(true);
+  });
+
+  describe("minimize", () => {
+    it("rolls a window down to the taskbar without closing it", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.minimize("npcs"));
+
+      expect(result.current.layout.npcs.minimized).toBe(true);
+      expect(result.current.layout.npcs.hidden).toBe(false);
+    });
+
+    it("restoreWindow brings it back and puts it on top", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.minimize("npcs"));
+      act(() => result.current.restoreWindow("npcs"));
+
+      expect(result.current.layout.npcs.minimized).toBe(false);
+      expect(result.current.layout.npcs.z).toBeGreaterThan(
+        result.current.layout.notes.z,
+      );
+    });
+
+    // Reopening from the desktop nav has to show the window, not hand back
+    // an invisible one that's still rolled down.
+    it("toggling a minimized-then-closed window back open un-minimizes it", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.minimize("npcs"));
+      act(() => result.current.toggle("npcs"));
+      act(() => result.current.toggle("npcs"));
+
+      expect(result.current.layout.npcs).toMatchObject({
+        hidden: false,
+        minimized: false,
+      });
+    });
+
+    it("openWindow un-minimizes an existing dynamic window", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+      const geometry = { x: 10, y: 20, width: 300, height: 200 };
+
+      act(() => result.current.openWindow("entity:1", geometry));
+      act(() => result.current.minimize("entity:1"));
+      act(() => result.current.openWindow("entity:1", geometry));
+
+      expect(result.current.layout["entity:1"].minimized).toBe(false);
+    });
+  });
+
+  describe("maximize", () => {
+    const BOARD = { width: 1000, height: 600 };
+
+    it("fills the board and remembers where it came from", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.toggleMaximize("npcs", BOARD));
+
+      expect(result.current.layout.npcs).toMatchObject({
+        x: 0,
+        y: 0,
+        width: 1000,
+        height: 600,
+        maximized: true,
+        restore: {
+          x: DEFAULTS.npcs.x,
+          y: DEFAULTS.npcs.y,
+          width: DEFAULTS.npcs.width,
+          height: DEFAULTS.npcs.height,
+        },
+      });
+    });
+
+    it("un-maximizing returns to the captured geometry", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.toggleMaximize("npcs", BOARD));
+      act(() => result.current.toggleMaximize("npcs", BOARD));
+
+      expect(result.current.layout.npcs).toMatchObject({
+        x: DEFAULTS.npcs.x,
+        y: DEFAULTS.npcs.y,
+        width: DEFAULTS.npcs.width,
+        height: DEFAULTS.npcs.height,
+        maximized: false,
+      });
+    });
+
+    it("survives a reload", () => {
+      const { result, unmount } = renderHook(() =>
+        useDesktopLayout("camp-1", DEFAULTS),
+      );
+      act(() => result.current.toggleMaximize("npcs", BOARD));
+      unmount();
+
+      const { result: fresh } = renderHook(() =>
+        useDesktopLayout("camp-1", DEFAULTS),
+      );
+      expect(fresh.current.layout.npcs.maximized).toBe(true);
+    });
+
+    it("snapWindow sizes a window to the requested half", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.snapWindow("npcs", "right", BOARD));
+
+      expect(result.current.layout.npcs).toMatchObject({
+        x: 500,
+        y: 0,
+        width: 500,
+        height: 600,
+        maximized: false,
+      });
+    });
+
+    // A half-snapped window that gets maximized should fall back to the half
+    // it was occupying, not to wherever it sat before the snap.
+    it("un-maximizing a half-snapped window returns to the half", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.snapWindow("npcs", "left", BOARD));
+      act(() => result.current.toggleMaximize("npcs", BOARD));
+      act(() => result.current.toggleMaximize("npcs", BOARD));
+
+      expect(result.current.layout.npcs).toMatchObject({
+        x: 0,
+        width: 500,
+        height: 600,
+      });
+    });
+  });
+
+  describe("arrange", () => {
+    const BOARD = { width: 1000, height: 600 };
+
+    it("tiles every window that is on the board", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.toggle("notes"));
+      act(() => result.current.arrange("tile", BOARD));
+
+      expect(result.current.layout.npcs.x).not.toBe(
+        result.current.layout.notes.x,
+      );
+      expect(result.current.layout.npcs.width).toBe(
+        result.current.layout.notes.width,
+      );
+    });
+
+    it("leaves closed and minimized windows out of the arrangement", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.arrange("cascade", BOARD));
+
+      // "notes" ships hidden in DEFAULTS, so cascading shouldn't move it.
+      expect(result.current.layout.notes).toMatchObject({
+        x: DEFAULTS.notes.x,
+        y: DEFAULTS.notes.y,
+      });
+    });
+
+    it("clears maximized so the arranged geometry is the real one", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.toggleMaximize("npcs", BOARD));
+      act(() => result.current.arrange("tile", BOARD));
+
+      expect(result.current.layout.npcs.maximized).toBe(false);
+    });
+  });
+
+  describe("showDesktop", () => {
+    it("minimizes everything on the board, then brings it all back", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.showDesktop());
+      expect(result.current.layout.npcs.minimized).toBe(true);
+
+      act(() => result.current.showDesktop());
+      expect(result.current.layout.npcs.minimized).toBe(false);
+    });
+
+    it("does not reopen closed windows", () => {
+      const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+      act(() => result.current.showDesktop());
+      act(() => result.current.showDesktop());
+
+      expect(result.current.layout.notes.hidden).toBe(true);
+    });
+  });
+
+  // Layouts persisted before minimize/maximize existed — and every server
+  // snapshot saved by an older client — have none of the new keys.
+  it("loads a layout persisted without the new window-state fields", () => {
+    localStorage.setItem(
+      "storyforge:desktop:camp-1",
+      JSON.stringify({
+        npcs: { x: 5, y: 6, width: 100, height: 90, hidden: false, z: 4 },
+      }),
+    );
+
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+
+    expect(result.current.layout.npcs).toMatchObject({ x: 5, y: 6 });
+    expect(result.current.layout.npcs.minimized).toBeUndefined();
+    expect(result.current.layout.npcs.maximized).toBeUndefined();
   });
 });

@@ -105,7 +105,7 @@ function OverviewTab({
   const [updateEntityState, updateEntity] = useMutation(UpdateEntityDocument);
   // The entity prop is a snapshot from whenever its window was opened, so a
   // freshly uploaded image/color is tracked locally rather than waiting on
-  // the caller (EntitySidebar's entity list) to refetch and pass a new prop.
+  // the caller (the start menu's entity list) to refetch and pass a new prop.
   const [image, setImage] = useState(entity.image ?? null);
   const [color, setColor] = useState(entity.color ?? null);
   // The same window (keyed by `entity:{id}`) can be reopened with a fresher

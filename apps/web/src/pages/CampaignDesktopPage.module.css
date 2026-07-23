@@ -1,41 +1,22 @@
-.deskMain {
-  max-width: min(1680px, 100%);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.crumb {
-  font-family: var(--heading);
-  font-weight: 500;
-  font-size: 1.35rem;
-  letter-spacing: -0.01em;
-  color: var(--text-h);
-  margin: 0 auto 0 0;
-}
-
-.deskLayout {
+/* Full-bleed shell: the campaign desktop is a workspace, not a document, so
+   it overrides index.css's centered `main` column and owns the viewport.
+   Class over element selector — no !important needed. */
+.shell {
+  position: fixed;
+  inset: 0;
   display: grid;
-  grid-template-columns: 248px 1fr;
-  gap: 20px;
-  align-items: start;
+  grid-template-rows: 1fr var(--taskbar-height);
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--bg);
 }
 
-.sidebarPanel {
-  position: sticky;
-  top: 0;
-  height: 90vh;
-  min-height: 480px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-3);
-  box-sizing: border-box;
-  box-shadow: var(--shadow-sm);
+/* Everything above the taskbar: wallpaper, icons, windows. Positioned so the
+   start menu and the context menu can anchor against it. */
+.desk {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
 }

@@ -102,14 +102,15 @@ tracks what's actually built, not just planned.
 - [x] Frontend: Campaign Desktop shell (KAN-80) — draggable/resizable
       (KAN-88)/closable/reopenable windows on a per-campaign board
       (`DesktopBoard`), layout (position/size/open-state) persisted to
-      `localStorage` per campaign, single-panel tab-switcher fallback below
-      the mobile breakpoint (`MobileDesktop`). Window content is data-driven
+      `localStorage` per campaign, single-panel fallback below the mobile
+      breakpoint (`MobileDesktop`) driven by the same window state. Window content is data-driven
       (`WINDOW_CATALOG`, incl. per-role visibility via `visibleToRoles`) so
       each window can plug in without touching the shell — all six catalog
       entries (Members, Sessions, Timeline, Notes, Relationship Graph, Maps)
       are real, role-aware content; no placeholder windows remain. The
       earlier dock (row of toggle buttons to reopen closed windows) was
-      removed — `EntitySidebar`'s World nav does that job for every window.
+      removed — the shell's start menu, desktop icons and taskbar do that
+      job for every window.
       `Window` itself (KAN-106/110/111) additionally supports a blocking
       loading overlay + refresh button in its title bar and a Tab-cycling
       focus trap with Esc-to-close and focus restore on close.
@@ -119,13 +120,26 @@ tracks what's actually built, not just planned.
       `marker-form:<id>` for a marker edit form) — the mechanism every
       entity/note/session/event/marker/territory/relationship create-or-edit
       window and detail window uses.
-- [x] Entity sidebar navigation (KAN-96) — `EntitySidebar` lists a
-      campaign's entities grouped and collapsible by `type`, plus the World
-      nav (Timeline/Sessions/Notes/Members/Relationship Graph/Maps) as
-      toggle links sharing state with `DesktopBoard` via
-      `DesktopWindowsContext`.
+- [x] Desktop shell: taskbar, start menu, desktop icons, context menu —
+      the campaign workspace is full-viewport, with a `Taskbar` (one button
+      per open window, plus a tray with role, theme control, clock and
+      show-desktop), a `StartMenu` owning navigation (windows, this
+      campaign's entities grouped and collapsible by `type`, recents,
+      create actions, saved layouts, back to dashboard), `DesktopIcons`,
+      and a right-click `DesktopContextMenu` (create, tile, cascade, show
+      desktop, reset layout). Replaces the earlier `EntitySidebar`, which
+      held the entity tree and World nav.
+- [x] Window states — minimize/restore (to and from the taskbar), maximize
+      with restore geometry, drag-to-edge snapping (top = full,
+      left/right = half, with a preview ghost), and tile/cascade
+      arrangement. All of it persists with the rest of the layout, per
+      campaign, and syncs to the server like any other layout change.
+- [x] Theme control — tri-state auto/light/dark in the taskbar tray,
+      writing `[data-theme]` (which `tokens.css` already honoured) and
+      remembered in `localStorage`; canvas-drawn surfaces (the map's tile
+      source, the desktop wallpaper) follow via `useColorScheme`.
 - [x] Entity detail window (KAN-96/97) — `EntityWindow`, opened from the
-      sidebar, the relationship graph, the command palette, or a
+      start menu, the relationship graph, the command palette, or a
       Storyteller's force-open broadcast, all via the shared
       `useOpenEntityWindow` hook. Three tabs: Overview (name/type/
       description/visibility, portrait upload, and — for
@@ -254,7 +268,7 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       via `EntityTag` join), all fields optional
 - [x] Frontend: dedicated NPCs window (KAN-39, `NpcsWindow`/`npcs` catalog
       slot) removed — NPCs are entities like any other, reached through
-      `EntitySidebar`'s Entities list. The generic entity path covers
+      the start menu's Entities list. The generic entity path covers
       create + view, plus two narrow post-creation edits (portrait upload,
       KAN-124/125; map-color override, see below) via dedicated
       single-purpose mutations. There is still no general edit form for an

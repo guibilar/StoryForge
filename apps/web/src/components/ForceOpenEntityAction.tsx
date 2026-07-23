@@ -25,8 +25,8 @@ export interface ForceOpenEntityActionProps {
 // trigger (KAN-133 side B). Reuses KAN-131's BroadcastTargetPicker and
 // mirrors MapsWindow's toggle + confirm + success/error message pattern.
 // Lives in EntityWindow's Overview tab only — it was also rendered per row
-// in EntitySidebar, but the inline picker panel doesn't fit a narrow nav
-// column and duplicated the window control. Callers are responsible for
+// in the old entity sidebar, but the inline picker panel doesn't fit a
+// narrow nav column and duplicated the window control. Callers are responsible for
 // only rendering this for a
 // Storyteller-tier role (OWNER/STORYTELLER/CO_STORYTELLER) — it does not
 // gate itself.

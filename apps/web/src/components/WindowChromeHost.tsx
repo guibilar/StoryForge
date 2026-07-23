@@ -13,6 +13,10 @@ export interface WindowChromeHostProps {
   onPointerDownCapture?: (event: PointerEvent<HTMLDivElement>) => void;
   onTitleBarPointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
   onResizeHandlePointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  onTitleBarDoubleClick?: () => void;
+  isMaximized?: boolean;
   autoFocus?: boolean;
   children: ReactNode;
 }

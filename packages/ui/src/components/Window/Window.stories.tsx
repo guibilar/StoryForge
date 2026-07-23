@@ -39,6 +39,16 @@ export const WithRefresh: Story = {
   },
 };
 
+export const WithWindowControls: Story = {
+  args: {
+    title: "NPCs",
+    onMinimize: fn(),
+    onMaximize: fn(),
+    style: { position: "absolute", left: 0, top: 0, width: 320, height: 260 },
+    children: <p style={{ padding: 12 }}>Window content goes here.</p>,
+  },
+};
+
 export const Loading: Story = {
   args: {
     title: "NPCs",

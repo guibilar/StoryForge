@@ -381,7 +381,7 @@ design system yet — built to exactly what each landed ticket needed
 `Checkbox`/`Select`/`Textarea`/`Tabs`/`CommandPalette`/`Icon` as each
 feature needed them), per KAN-75's DoD ("not a speculative component
 library built ahead of need"). Tables are still unbuilt — every list-shaped
-window (Members, Sessions, Timeline, Notes, the entity sidebar) ships as a
+window (Members, Sessions, Timeline, Notes, the start menu) ships as a
 plain `<ul>` instead, matching current scale; pick a Table up when a
 window's list actually needs it (sorting, pagination, columns).
 
@@ -506,8 +506,10 @@ polish pass that replaced ad hoc unicode glyphs with real icons.
 The `Dock` component (KAN-80 — row of toggle buttons reopening closed
 windows) and the dedicated `npcs` catalog window/`NpcsWindow` were
 removed: NPCs are entities like any other, and reopening a catalog window
-is now handled entirely by `EntitySidebar`'s World nav, which duplicated
-the Dock's job for every window except NPCs.
+is handled by the desktop shell itself (start menu, desktop icons and
+taskbar), which duplicated the Dock's job for every window except NPCs.
+`EntitySidebar` — which took that job over first — was removed in turn
+when the OS-style shell landed; the start menu owns navigation now.
 
 React is a `peerDependency` only (not a devDependency of this package)
 — deliberately, to avoid a second physical React copy under
@@ -764,18 +766,51 @@ auth flow, and the campaign desktop shell are all wired:
     layout plus the recently-opened-entities list additionally syncs to the
     server per user per campaign (`useWorkspaceStateSync`, debounced save,
     server hydration on mount, fails open to localStorage-only on any
-    error). `EntitySidebar`'s World nav (sibling of `DesktopBoard`, sharing
-    state via `DesktopWindowsContext`) lists every catalog entry and toggles
-    visibility; a "Reset layout" button clears storage and restores
-    `DEFAULT_LAYOUT`.
-  - `MobileDesktop` (`src/components/MobileDesktop.tsx`) — the same
-    `WINDOW_CATALOG`, rendered as a single active panel with a tab bar
-    instead of draggable windows. No layout persistence (nothing to
-    persist — just an `activeId` selection).
+    error). Windows also carry real window-manager state: `minimized`
+    (open but rolled down to the taskbar — distinct from `hidden`, which is
+    closed), `maximized`, and the `restore` geometry captured before a
+    maximize/snap. All three are optional fields, so a layout persisted
+    before they existed — in localStorage or in a server workspace snapshot
+    — still loads. Drag-to-edge snapping (top = full, left/right = half),
+    `arrange("tile" | "cascade")` and `showDesktop()` sit on top of the same
+    hook; the geometry rules themselves are pure functions in
+    `src/lib/windowSnap.ts`.
+  - **Desktop shell** (the OS treatment): `CampaignDesktopPage` is
+    full-bleed (`position: fixed; inset: 0`, overriding `index.css`'s
+    centered `main`) and stacks `DesktopWallpaper` (canvas constellation,
+    theme-aware via `useColorScheme`, static under `prefers-reduced-motion`),
+    `DesktopBoard`, `Taskbar` and `StartMenu`.
+    - `Taskbar` — presentational: start button, one button per _open_
+      window (`src/lib/taskbarItems.ts` derives the list and the focused id
+      from the layout's z-order), and a tray with the role chip, the theme
+      control (`useThemePreference` — tri-state auto/light/dark writing
+      `[data-theme]`, applied before first paint from `main.tsx`), a clock
+      and the show-desktop strip.
+    - `StartMenu` — navigation: pinned catalog windows, this campaign's
+      entities grouped/collapsible by type, recently-opened entities, the
+      writer-gated create actions, saved layout presets, and the link back
+      to the dashboard. Its search is a shallow client-side filter over what
+      the menu already shows (ranked with `commandScore.ts`); ⌘K's
+      `AppCommandPalette` remains the deep search across notes and sessions.
+    - `DesktopIcons` — the catalog as desktop shortcuts (single click
+      selects, double-click or Enter opens).
+    - `DesktopContextMenu` — right-click the desk for the create actions,
+      tile/cascade, show desktop and "Reset layout" (which clears storage
+      and restores `DEFAULT_LAYOUT`).
+    - `useQuickCreateWindows` — the one implementation of "New Entity"/"New
+      Note" window opening, shared by the start menu, the context menu and
+      the command palette.
+  - `MobileDesktop` (`src/components/MobileDesktop.tsx`) — one panel at a
+    time instead of draggable windows, but reading the _same_ layout state:
+    the panel is whatever is top of the z-stack, so the shared `Taskbar` and
+    `StartMenu` switch between windows on a phone exactly as they do on a
+    desktop. No separate mobile selection state to keep in sync.
   - `WINDOW_CATALOG` (`src/lib/windowCatalog.ts`) is data-driven —
     `{id, title, render, visibleToRoles?}` entries. There is no dedicated
     `npcs` entry — NPCs are entities like any other, reached via
-    `EntitySidebar`'s Entities list. All six entries are real, role-aware
+    the start menu's Entities list. Each entry also carries the `icon` the
+    desktop icons, taskbar buttons and start-menu tiles all draw. All six
+    entries are real, role-aware
     content today — no `ComingSoonPanel` placeholders remain:
     - `members` (`MembersWindow`) — Owner gets add/remove/change-role with
       mutation errors surfaced in a `FormError` banner; hidden entirely from
@@ -834,7 +869,7 @@ auth flow, and the campaign desktop shell are all wired:
   server workspace-state sync above) surface as their own section so a
   session's frequently-referenced NPCs stay one keystroke away.
 - **Entity detail window** (`EntityWindow.tsx`, KAN-96/97) — opened via
-  `useOpenEntityWindow` (shared by `EntitySidebar`, `RelationshipGraphWindow`'s
+  `useOpenEntityWindow` (shared by `StartMenu`, `RelationshipGraphWindow`'s
   node click, `AppCommandPalette`, and `ForceOpenEntityListener`) as a
   dynamic `entity:<id>` window. Three `@storyforge/ui` `Tabs`: Overview
   (name/type/description/visibility, a portrait upload control, and — for
@@ -879,8 +914,8 @@ target shape (`{allPlayers: Boolean!, userIds: [ID!]!}`) and the same
   not a continuous lock — the player's own panning afterward is left
   alone) on receiving `onForceSyncViewport`.
 - **Force-open entity window** (KAN-132/133) — a Storyteller can push
-  `forceOpenEntityWindow` (from `EntitySidebar`'s per-row
-  `ForceOpenEntityAction` or `EntityWindow`'s Overview tab) to open a
+  `forceOpenEntityWindow` (from `EntityWindow`'s Overview tab, via
+  `ForceOpenEntityAction`) to open a
   specific entity's window on targeted players' screens, bypassing the
   normal `Visibility: PUBLIC` read filter by design (a deliberate,
   documented exception — the Storyteller is explicitly choosing to show
@@ -1365,7 +1400,10 @@ Gotchas learned building this out, worth knowing before adding more:
 — `apps/web/src/router.test.tsx`, page-level tests per page
 (`LoginPage`/`RegisterPage`/`DashboardPage`/`CampaignDesktopPage.test.tsx`),
 component-level tests for the desktop shell (`DesktopBoard.test.tsx`,
-`MobileDesktop.test.tsx`) and every real window/form component
+`Taskbar.test.tsx`, `StartMenu.test.tsx`, `DesktopIcons.test.tsx`,
+`DesktopContextMenu.test.tsx`, `MobileDesktop.test.tsx`; any test mounting
+something that reads `useDesktopWindows` builds its context value with
+`src/lib/desktopWindowsStub.ts` rather than hand-rolling the whole API) and every real window/form component
 (`MapsWindow`/`MapCanvas`/`RelationshipGraphWindow`/`SessionsWindow`/
 `TimelineWindow`/`NotesWindow`/`EntityWindow`/the `*FormWindow` family/
 etc.), and per-component `*.test.tsx` files under

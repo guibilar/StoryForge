@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
-import { RefreshCw, X } from "lucide-react";
+import { Copy, Maximize2, Minus, RefreshCw, X } from "lucide-react";
 
 import { cx } from "../../lib/cx";
 import { useFocusTrap } from "../../lib/focusTrap";
@@ -17,6 +17,16 @@ export interface WindowProps {
   // Shows a refresh button in the title bar (before the close button) when
   // set; omit to leave the title bar as close-only.
   onRefresh?: () => void;
+  // Minimize/maximize controls appear only when their handler is passed, so
+  // a window used outside a window manager (a story, a one-off panel) keeps
+  // the close-only title bar it has always had.
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  // Drives the maximize button's icon and label — restore rather than
+  // maximize once the window already fills the board.
+  isMaximized?: boolean;
+  // Fires on a title-bar double-click, the usual shortcut for maximize.
+  onTitleBarDoubleClick?: () => void;
   // Covers the window in a blocking overlay — the overlay sits above the
   // title bar, body, and resize handle in paint order, so it intercepts
   // pointer events for all of them without each needing its own disabled
@@ -41,6 +51,10 @@ export function Window({
   onResizeHandlePointerDown,
   onPointerDownCapture,
   onRefresh,
+  onMinimize,
+  onMaximize,
+  onTitleBarDoubleClick,
+  isMaximized = false,
   isLoading = false,
   autoFocus = true,
   className,
@@ -55,10 +69,17 @@ export function Window({
       className={cx(styles.window, className)}
       style={style}
       tabIndex={-1}
+      // Marks the window subtree for the desktop shell, which needs to tell
+      // "right-clicked the desk" from "right-clicked inside a window".
+      data-window
       onPointerDownCapture={onPointerDownCapture}
       onKeyDown={handleKeyDown}
     >
-      <div className={styles.titleBar} onPointerDown={onTitleBarPointerDown}>
+      <div
+        className={styles.titleBar}
+        onPointerDown={onTitleBarPointerDown}
+        onDoubleClick={onTitleBarDoubleClick}
+      >
         <span className={styles.title}>{title}</span>
         {onRefresh ? (
           <button
@@ -69,6 +90,30 @@ export function Window({
             disabled={isLoading}
           >
             <Icon icon={RefreshCw} size={14} aria-hidden="true" />
+          </button>
+        ) : null}
+        {onMinimize ? (
+          <button
+            type="button"
+            className={styles.control}
+            aria-label={`Minimize ${title}`}
+            onClick={onMinimize}
+          >
+            <Icon icon={Minus} size={14} aria-hidden="true" />
+          </button>
+        ) : null}
+        {onMaximize ? (
+          <button
+            type="button"
+            className={styles.control}
+            aria-label={`${isMaximized ? "Restore" : "Maximize"} ${title}`}
+            onClick={onMaximize}
+          >
+            <Icon
+              icon={isMaximized ? Copy : Maximize2}
+              size={13}
+              aria-hidden="true"
+            />
           </button>
         ) : null}
         <button

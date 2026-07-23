@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { useAddEditWindow } from "./useAddEditWindow";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { createDesktopWindowsStub } from "../lib/desktopWindowsStub";
 
 vi.mock("../lib/DesktopWindowsContext", async (importOriginal) => {
   const actual =
@@ -17,22 +18,13 @@ interface Item {
 function setupDesktopWindows(dynamicWindows: Record<string, unknown> = {}) {
   const openWindow = vi.fn();
   const closeWindow = vi.fn();
-  vi.mocked(useDesktopWindows).mockReturnValue({
-    layout: {},
-    bringToFront: vi.fn(),
-    toggle: vi.fn(),
-    startDrag: vi.fn(),
-    startResize: vi.fn(),
-    reset: vi.fn(),
-    dynamicWindows: dynamicWindows as never,
-    openWindow,
-    closeWindow,
-    recentIds: [],
-    presets: {},
-    savePreset: vi.fn(),
-    applyPreset: vi.fn(),
-    hydrateFromServer: vi.fn(),
-  });
+  vi.mocked(useDesktopWindows).mockReturnValue(
+    createDesktopWindowsStub({
+      dynamicWindows: dynamicWindows as never,
+      openWindow,
+      closeWindow,
+    }),
+  );
   return { openWindow, closeWindow };
 }
 

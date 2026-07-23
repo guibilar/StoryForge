@@ -1,78 +1,37 @@
-.wrap {
-  display: flex;
-  flex-direction: column;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  padding: var(--space-2) 0;
-}
-
-.presetSelect {
-  appearance: none;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  color: inherit;
-  font: inherit;
-  font-size: 13px;
-  border-radius: var(--radius-sm);
-  padding: 6px 28px 6px 10px;
-  cursor: pointer;
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--text) 50%),
-    linear-gradient(135deg, var(--text) 50%, transparent 50%);
-  background-position:
-    calc(100% - 15px) center,
-    calc(100% - 10px) center;
-  background-size:
-    5px 5px,
-    5px 5px;
-  background-repeat: no-repeat;
-  transition:
-    border-color var(--dur-1) var(--ease),
-    box-shadow var(--dur-1) var(--ease);
-}
-
-.presetSelect:hover {
-  border-color: var(--accent-border);
-}
-
-.presetSelect:focus-visible {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: var(--focus-ring);
-}
-
+/* The desk surface itself: fills everything above the taskbar and lets the
+   wallpaper behind it show through. */
 .board {
   position: relative;
-  height: 90vh;
-  min-height: 480px;
+  height: 100%;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background-color: var(--bg);
-  /* Worktable canvas: a faint dot grid gives windows a surface to sit on
-     and reads as the campaign's tabletop. */
-  background-image: radial-gradient(
-    circle,
-    var(--border-strong) 1px,
-    transparent 1px
-  );
-  background-size: 22px 22px;
-  background-position: -1px -1px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-/* Applied to <Window> only for a brief window right after applying a
-   preset (see DesktopBoard.tsx) — never left on permanently, or it would
-   fight the per-pointermove inline-style updates during drag/resize. */
-.animating {
+/* On for every programmatic geometry change — snap, maximize, tile, cascade,
+   applying a preset — and taken off by DesktopBoard for the duration of a
+   pointer gesture, which sets left/top/width/height directly on the element
+   and would otherwise animate a frame behind the cursor. */
+.animated {
   transition:
-    left 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-    top 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-    width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-    height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    left var(--dur-3) var(--ease),
+    top var(--dur-3) var(--ease),
+    width var(--dur-3) var(--ease),
+    height var(--dur-3) var(--ease),
+    box-shadow var(--dur-2) var(--ease),
+    border-color var(--dur-2) var(--ease);
+}
+
+/* Preview of where a drag-to-edge snap will land, drawn under the window
+   being dragged. */
+.snapGhost {
+  position: absolute;
+  z-index: var(--z-window-base);
+  border: 2px solid var(--accent-border);
+  border-radius: var(--radius-lg);
+  background: var(--accent-bg);
+  pointer-events: none;
+  transition:
+    left var(--dur-2) var(--ease),
+    top var(--dur-2) var(--ease),
+    width var(--dur-2) var(--ease),
+    height var(--dur-2) var(--ease);
 }

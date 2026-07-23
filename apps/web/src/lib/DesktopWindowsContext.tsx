@@ -1,7 +1,8 @@
 import { createContext, useContext } from "react";
 import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
 
-import type { LayoutMap } from "../hooks/useDesktopLayout";
+import type { ArrangeMode, LayoutMap } from "../hooks/useDesktopLayout";
+import type { BoardSize, SnapZone } from "./windowSnap";
 
 export interface OpenWindowRequest {
   id: string;
@@ -19,19 +20,30 @@ export interface DynamicWindowEntry {
 }
 
 // The full "desktop windows" state, owned once by CampaignDesktopPage (via
-// useDesktopWindowsController) and shared with both <DesktopBoard> (which
-// renders windows) and <EntitySidebar> (which opens/toggles them) — they're
-// siblings, not ancestor/descendant, so this has to be a context rather than
-// DesktopBoard-local state.
+// useDesktopWindowsController) and shared with <DesktopBoard> (which renders
+// windows), <Taskbar> and <StartMenu> (which open, raise and minimize them)
+// — they're siblings, not ancestor/descendant, so this has to be a context
+// rather than DesktopBoard-local state.
 export interface DesktopWindowsApi {
   layout: LayoutMap;
   bringToFront: (id: string) => void;
   toggle: (id: string) => void;
+  // Window states the taskbar and window chrome drive. `minimize` is open
+  // but not drawn (distinct from `toggle`, which closes); the board's own
+  // size is passed in for the ones that need it, since only the board knows
+  // how big it currently is.
+  minimize: (id: string) => void;
+  restoreWindow: (id: string) => void;
+  toggleMaximize: (id: string, board: BoardSize) => void;
+  snapWindow: (id: string, zone: SnapZone, board: BoardSize) => void;
+  arrange: (mode: ArrangeMode, board: BoardSize) => void;
+  showDesktop: () => void;
   startDrag: (
     id: string,
     event: ReactPointerEvent,
     boardEl: HTMLElement,
     windowEl: HTMLElement,
+    onSnapZoneChange?: (zone: SnapZone | null) => void,
   ) => void;
   startResize: (
     id: string,
@@ -62,7 +74,7 @@ export const DesktopWindowsContext = createContext<DesktopWindowsApi | null>(
 );
 
 // Lets any component under the provider (DesktopBoard, its catalog window
-// content, or a sibling like EntitySidebar) open a window for an id chosen
+// content, or a sibling like the start menu) open a window for an id chosen
 // at runtime, not just the static windowCatalog entries.
 export function useDesktopWindows(): DesktopWindowsApi {
   const ctx = useContext(DesktopWindowsContext);

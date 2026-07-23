@@ -1,18 +1,39 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { markLocalWorkspaceWrite } from "../lib/workspaceClock";
+import {
+  cascadeGeometry,
+  geometryForZone,
+  restoreGeometry,
+  tileGeometry,
+  zoneForPointer,
+} from "../lib/windowSnap";
+import type { BoardSize, SnapZone, WindowGeometry } from "../lib/windowSnap";
 
 export interface WindowLayout {
   x: number;
   y: number;
   width: number;
   height: number;
+  // Closed. Catalog windows stay in the layout when closed so reopening them
+  // lands where they were; `minimized` below is the different state of being
+  // open but not drawn.
   hidden: boolean;
   z: number;
+  // Open, but rolled down to the taskbar rather than drawn on the board.
+  minimized?: boolean;
+  maximized?: boolean;
+  // Geometry captured before a maximize/snap, so un-maximizing has somewhere
+  // to go back to. All three are optional so a layout persisted before these
+  // states existed — in localStorage or in the server's workspace-state JSON
+  // — still parses, with `undefined` reading as "not minimized/maximized".
+  restore?: WindowGeometry;
 }
 
 export type LayoutMap = Record<string, WindowLayout>;
+
+export type ArrangeMode = "tile" | "cascade";
 
 const MIN_WIDTH = 200;
 const MIN_HEIGHT = 150;
@@ -56,6 +77,21 @@ function maxZ(layout: LayoutMap): number {
   return Math.max(0, ...Object.values(layout).map((w) => w.z));
 }
 
+function geometryOf(window: WindowLayout): WindowGeometry {
+  return {
+    x: window.x,
+    y: window.y,
+    width: window.width,
+    height: window.height,
+  };
+}
+
+// Open and drawn: not closed, not rolled down to the taskbar. The set the
+// arrange commands operate on, and what "show desktop" toggles.
+export function isOnBoard(window: WindowLayout): boolean {
+  return !window.hidden && !window.minimized;
+}
+
 export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
   const [layout, setLayout] = useState<LayoutMap>(() =>
     loadLayout(campaignId, defaults),
@@ -63,6 +99,15 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
   const [presets, setPresets] = useState<Record<string, LayoutMap>>(() =>
     loadPresets(campaignId),
   );
+
+  // Pointer gestures need the current entry (is it maximized? what was its
+  // pre-maximize size?) at the moment the gesture starts, without making
+  // startDrag depend on `layout` — that would rebuild the callback, and every
+  // window's title-bar handler with it, on every drag-end.
+  const layoutRef = useRef(layout);
+  useEffect(() => {
+    layoutRef.current = layout;
+  }, [layout]);
 
   // Writing localStorage inside the setLayout updater (rather than reading a
   // ref afterwards) guarantees the persisted value is the one React actually
@@ -113,7 +158,14 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
         return persistLayout({
           ...current,
           [id]: existing
-            ? { ...existing, hidden: false, z: maxZ(current) + 1 }
+            ? {
+                ...existing,
+                hidden: false,
+                // Re-opening something that was rolled down to the taskbar
+                // should show it, not hand back an invisible window.
+                minimized: false,
+                z: maxZ(current) + 1,
+              }
             : { ...defaults, hidden: false, z: maxZ(current) + 1 },
         });
       });
@@ -122,7 +174,7 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
   );
 
   // Removes a dynamically-opened window entirely, unlike `toggle` which only
-  // hides a static catalog window (so the sidebar nav can still reopen it).
+  // hides a static catalog window (so the desktop nav can still reopen it).
   const closeWindow = useCallback(
     (id: string) => {
       setLayout((current) => {
@@ -143,6 +195,9 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
           [id]: {
             ...current[id],
             hidden: !wasHidden,
+            // Opening a window that was minimized when it was closed brings
+            // it back to the board, not back to the taskbar.
+            minimized: wasHidden ? false : current[id].minimized,
             z: wasHidden ? maxZ(current) + 1 : current[id].z,
           },
         });
@@ -151,28 +206,173 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     [persistLayout],
   );
 
-  const move = useCallback((id: string, x: number, y: number) => {
-    setLayout((current) => ({ ...current, [id]: { ...current[id], x, y } }));
-  }, []);
+  const minimize = useCallback(
+    (id: string) => {
+      setLayout((current) => {
+        const target = current[id];
+        if (!target || target.minimized) {
+          return current;
+        }
+        return persistLayout({
+          ...current,
+          [id]: { ...target, minimized: true },
+        });
+      });
+    },
+    [persistLayout],
+  );
 
-  const resize = useCallback((id: string, width: number, height: number) => {
-    setLayout((current) => ({
-      ...current,
-      [id]: { ...current[id], width, height },
-    }));
-  }, []);
+  const restoreWindow = useCallback(
+    (id: string) => {
+      setLayout((current) => {
+        const target = current[id];
+        if (!target) {
+          return current;
+        }
+        return persistLayout({
+          ...current,
+          [id]: {
+            ...target,
+            minimized: false,
+            hidden: false,
+            z: maxZ(current) + 1,
+          },
+        });
+      });
+    },
+    [persistLayout],
+  );
+
+  const toggleMaximize = useCallback(
+    (id: string, board: BoardSize) => {
+      setLayout((current) => {
+        const target = current[id];
+        if (!target) {
+          return current;
+        }
+
+        if (target.maximized) {
+          const geometry = restoreGeometry(target.restore, board);
+          return persistLayout({
+            ...current,
+            [id]: {
+              ...target,
+              ...geometry,
+              maximized: false,
+              restore: undefined,
+            },
+          });
+        }
+
+        return persistLayout({
+          ...current,
+          [id]: {
+            ...target,
+            ...geometryForZone("max", board),
+            maximized: true,
+            restore: geometryOf(target),
+            z: maxZ(current) + 1,
+          },
+        });
+      });
+    },
+    [persistLayout],
+  );
+
+  // Applies a drag-to-edge snap. Half-snaps aren't a persistent mode the way
+  // maximize is — the window is just moved and resized — but they still
+  // capture `restore`, so maximizing a half-snapped window and un-maximizing
+  // it returns to the half, not to wherever it was before all of this.
+  const snapWindow = useCallback(
+    (id: string, zone: SnapZone, board: BoardSize) => {
+      setLayout((current) => {
+        const target = current[id];
+        if (!target) {
+          return current;
+        }
+        return persistLayout({
+          ...current,
+          [id]: {
+            ...target,
+            ...geometryForZone(zone, board),
+            maximized: zone === "max",
+            restore: target.maximized ? target.restore : geometryOf(target),
+            z: maxZ(current) + 1,
+          },
+        });
+      });
+    },
+    [persistLayout],
+  );
+
+  const arrange = useCallback(
+    (mode: ArrangeMode, board: BoardSize) => {
+      setLayout((current) => {
+        const ids = Object.entries(current)
+          .filter(([, window]) => isOnBoard(window))
+          .sort(([, a], [, b]) => a.z - b.z)
+          .map(([id]) => id);
+        if (ids.length === 0) {
+          return current;
+        }
+
+        const next = { ...current };
+        const base = maxZ(current);
+        ids.forEach((id, index) => {
+          const geometry =
+            mode === "tile"
+              ? tileGeometry(index, ids.length, board)
+              : cascadeGeometry(index, board);
+          next[id] = {
+            ...next[id],
+            ...geometry,
+            maximized: false,
+            restore: undefined,
+            // Cascade only reads as a stack if the stacking order and the
+            // stepping order agree.
+            z: base + 1 + index,
+          };
+        });
+        return persistLayout(next);
+      });
+    },
+    [persistLayout],
+  );
+
+  // Taskbar "show desktop": rolls everything down, or brings everything back
+  // if nothing is on the board. Symmetric rather than remembering which
+  // windows this particular click minimized — after a peek, everything that
+  // was up is minimized, so restoring all of them is the same set.
+  const showDesktop = useCallback(() => {
+    setLayout((current) => {
+      const anyOnBoard = Object.values(current).some(isOnBoard);
+      const next = Object.fromEntries(
+        Object.entries(current).map(([id, window]) => [
+          id,
+          window.hidden ? window : { ...window, minimized: anyOnBoard },
+        ]),
+      );
+      return persistLayout(next);
+    });
+  }, [persistLayout]);
 
   // Applies the geometry a whole drag/resize gesture produced in one update.
-  // Splitting it out from move()/resize() is what lets those gestures cost a
-  // single React render at the end instead of one per pointermove — see
+  // Splitting it out from the state setters is what lets those gestures cost
+  // a single React render at the end instead of one per pointermove — see
   // startDrag for why that matters so much here.
   const commitGeometry = useCallback(
     (
       id: string,
-      geometry: Partial<Pick<WindowLayout, "x" | "y" | "width" | "height">>,
+      geometry: Partial<WindowGeometry>,
+      extra?: Pick<WindowLayout, "maximized" | "restore">,
     ) => {
       setLayout((current) =>
-        persistLayout({ ...current, [id]: { ...current[id], ...geometry } }),
+        current[id]
+          ? persistLayout({
+              ...current,
+              [id]: { ...current[id], ...geometry, ...extra },
+            })
+          : current,
       );
     },
     [persistLayout],
@@ -247,49 +447,94 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
       event: ReactPointerEvent,
       boardEl: HTMLElement,
       windowEl: HTMLElement,
+      // Fires as the pointer arms or disarms an edge zone, so the board can
+      // show a snap preview. The zone itself is applied here on pointerup.
+      onSnapZoneChange?: (zone: SnapZone | null) => void,
     ) => {
       bringToFront(id);
       const boardRect = boardEl.getBoundingClientRect();
+      const board: BoardSize = {
+        width: boardRect.width,
+        height: boardRect.height,
+      };
       const windowRect = windowEl.getBoundingClientRect();
-      const offsetX = event.clientX - windowRect.left;
-      const offsetY = event.clientY - windowRect.top;
+      const startedMaximized = Boolean(layoutRef.current[id]?.maximized);
+      const restore = layoutRef.current[id]?.restore;
+      let offsetX = event.clientX - windowRect.left;
+      let offsetY = event.clientY - windowRect.top;
+      let unmaximized = false;
       let latest: { x: number; y: number } | null = null;
+      let zone: SnapZone | null = null;
 
       // The gesture drives the DOM directly and only commits to React state
-      // on pointerup. Calling move() per pointermove instead re-rendered the
-      // whole board — and with it every open window's content, Leaflet map
-      // and relationship graph included — at pointer-event rate, which is
-      // what made dragging anything feel sluggish once a few windows were up.
+      // on pointerup. Calling a state setter per pointermove instead
+      // re-rendered the whole board — and with it every open window's
+      // content, Leaflet map and relationship graph included — at pointer
+      // event rate, which is what made dragging anything feel sluggish once
+      // a few windows were up.
       function handleMove(moveEvent: PointerEvent) {
+        // Dragging a maximized window pulls it back down to its restored
+        // size under the cursor, the way every real window manager does.
+        if (startedMaximized && !unmaximized) {
+          unmaximized = true;
+          const geometry = restoreGeometry(restore, board);
+          windowEl.style.width = `${geometry.width}px`;
+          windowEl.style.height = `${geometry.height}px`;
+          offsetX = geometry.width / 2;
+          offsetY = Math.min(offsetY, 24);
+        }
+
+        const width = windowEl.offsetWidth;
+        const height = windowEl.offsetHeight;
         const rawX = moveEvent.clientX - boardRect.left - offsetX;
         const rawY = moveEvent.clientY - boardRect.top - offsetY;
-        const x = Math.max(
-          0,
-          Math.min(rawX, boardRect.width - windowRect.width),
-        );
-        const y = Math.max(
-          0,
-          Math.min(rawY, boardRect.height - windowRect.height),
-        );
+        const x = Math.max(0, Math.min(rawX, board.width - width));
+        const y = Math.max(0, Math.min(rawY, board.height - height));
         latest = { x, y };
         windowEl.style.left = `${x}px`;
         windowEl.style.top = `${y}px`;
+
+        const nextZone = zoneForPointer(
+          moveEvent.clientX - boardRect.left,
+          moveEvent.clientY - boardRect.top,
+          board,
+        );
+        if (nextZone !== zone) {
+          zone = nextZone;
+          onSnapZoneChange?.(zone);
+        }
       }
 
       function handleUp() {
         window.removeEventListener("pointermove", handleMove);
         window.removeEventListener("pointerup", handleUp);
+        onSnapZoneChange?.(null);
+
+        if (zone) {
+          snapWindow(id, zone, board);
+          return;
+        }
         // Null when the pointer never moved (a plain title-bar click), where
         // committing would mean a pointless render and localStorage write.
-        if (latest) {
-          commitGeometry(id, latest);
+        if (!latest) {
+          return;
         }
+        if (unmaximized) {
+          const restored = restoreGeometry(restore, board);
+          commitGeometry(
+            id,
+            { ...latest, width: restored.width, height: restored.height },
+            { maximized: false, restore: undefined },
+          );
+          return;
+        }
+        commitGeometry(id, latest);
       }
 
       window.addEventListener("pointermove", handleMove);
       window.addEventListener("pointerup", handleUp);
     },
-    [bringToFront, commitGeometry],
+    [bringToFront, commitGeometry, snapWindow],
   );
 
   const startResize = useCallback(
@@ -331,7 +576,10 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
         window.removeEventListener("pointermove", handleMove);
         window.removeEventListener("pointerup", handleUp);
         if (latest) {
-          commitGeometry(id, latest);
+          // Resizing a maximized window is the user sizing it by hand, so it
+          // stops being maximized rather than keeping a flag that no longer
+          // describes its geometry.
+          commitGeometry(id, latest, { maximized: false, restore: undefined });
         }
       }
 
@@ -345,8 +593,13 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     layout,
     bringToFront,
     toggle,
-    move,
-    resize,
+    minimize,
+    restoreWindow,
+    toggleMaximize,
+    snapWindow,
+    arrange,
+    showDesktop,
+    commitGeometry,
     startDrag,
     startResize,
     reset,

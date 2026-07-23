@@ -4,7 +4,7 @@ import type { EntitySummary } from "../components/EntityWindow";
 
 const DEFAULT_ENTITY_WINDOW = { width: 380, height: 420 };
 
-// Shared by every place that opens an entity:{id} window (EntitySidebar,
+// Shared by every place that opens an entity:{id} window (the start menu,
 // EntityWindow's own Relationships tab, RelationshipGraphWindow's node
 // click) — extracted once a 3rd caller needed the same cascade-offset +
 // render-function logic, per the "don't extract until it's needed twice

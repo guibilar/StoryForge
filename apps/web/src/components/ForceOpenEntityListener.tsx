@@ -11,7 +11,7 @@ export interface ForceOpenEntityListenerProps {
 // KAN-133 side A: listens for a Storyteller's forceOpenEntityWindow
 // broadcast (KAN-132) and opens the entity's window on this client, using
 // the same useOpenEntityWindow every other entity-opening callsite goes
-// through (EntitySidebar, EntityWindow's Relationships tab,
+// through (the start menu, EntityWindow's Relationships tab,
 // RelationshipGraphWindow). Mounted once per campaign inside
 // DesktopWindowsContext.Provider (CampaignDesktopPage, alongside
 // AppCommandPalette) so it's always active regardless of which window

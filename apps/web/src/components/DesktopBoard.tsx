@@ -1,36 +1,37 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { Button } from "@storyforge/ui";
 
 import { visibleWindowCatalog } from "../lib/windowCatalog";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
+import { geometryForZone } from "../lib/windowSnap";
+import type { BoardSize, SnapZone, WindowGeometry } from "../lib/windowSnap";
 import type { CampaignRole } from "../gql/graphql";
+import { DesktopContextMenu } from "./DesktopContextMenu";
+import { DesktopIcons } from "./DesktopIcons";
 import { WindowChromeHost } from "./WindowChromeHost";
 import styles from "./DesktopBoard.module.css";
 
 export interface DesktopBoardProps {
+  campaignId: string;
   role?: CampaignRole;
 }
 
-const APPLY_ANIMATION_MS = 320;
-
-// Renders the shared desktop-windows state (owned by CampaignDesktopPage via
-// useDesktopWindowsController, reached here through DesktopWindowsContext —
-// see that file for why this isn't local state anymore).
-export function DesktopBoard({ role }: DesktopBoardProps) {
+// The desk surface: icons on the wallpaper, the open windows above them, and
+// the right-click menu. Window state itself is owned by CampaignDesktopPage
+// via useDesktopWindowsController and reached here through
+// DesktopWindowsContext — see that file for why it isn't local state.
+export function DesktopBoard({ campaignId, role }: DesktopBoardProps) {
   const boardRef = useRef<HTMLDivElement>(null);
   const {
     layout,
     bringToFront,
     toggle,
+    minimize,
+    toggleMaximize,
     startDrag,
     startResize,
-    reset,
     dynamicWindows,
     closeWindow,
-    presets,
-    savePreset,
-    applyPreset,
   } = useDesktopWindows();
   const catalog = useMemo(() => visibleWindowCatalog(role), [role]);
 
@@ -63,10 +64,6 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
   // starts. A window that mounts on any later render (a toggle, a fresh
   // dynamic openWindow call) genuinely was just opened by a user action, so
   // it should get Window's autoFocus behavior — see useFocusTrap.
-  // Deliberately not reset by reset()/applyPreset(): those reposition
-  // windows that already exist, not open new ones. Scoped to this
-  // component instance (not module state) so navigating to a different
-  // campaign's desktop gets its own honest "first render" again.
   const [hasRenderedOnce, setHasRenderedOnce] = useState(false);
   useEffect(() => {
     // One-shot mount-boundary flag, not state derived from props/other
@@ -75,26 +72,35 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
     setHasRenderedOnce(true);
   }, []);
 
-  // Only applied to window chrome briefly after applying a preset — a
-  // permanent CSS transition on left/top/width/height would fight the
-  // per-pointermove style updates during drag/resize, making them feel
-  // laggy instead of instant.
-  const [animating, setAnimating] = useState(false);
-  const [presetSelection, setPresetSelection] = useState("");
-  const presetNames = Object.keys(presets);
-
-  function handleApplyPreset(name: string) {
-    applyPreset(name);
-    setAnimating(true);
-    setTimeout(() => setAnimating(false), APPLY_ANIMATION_MS);
-  }
-
-  function handleSavePreset() {
-    const name = window.prompt("Name this layout:")?.trim();
-    if (name) {
-      savePreset(name);
+  // Geometry transitions are on by default — that's what makes snapping,
+  // maximizing, tiling and applying a preset animate — and off for exactly
+  // as long as a pointer gesture is driving the DOM directly, where a
+  // transition would make dragging feel like it lags behind the cursor.
+  const [gesturing, setGesturing] = useState(false);
+  useEffect(() => {
+    if (!gesturing) {
+      return;
     }
-  }
+    const end = () => setGesturing(false);
+    window.addEventListener("pointerup", end);
+    return () => window.removeEventListener("pointerup", end);
+  }, [gesturing]);
+
+  const boardSize = useCallback((): BoardSize => {
+    const el = boardRef.current;
+    return { width: el?.clientWidth ?? 0, height: el?.clientHeight ?? 0 };
+  }, []);
+
+  // The preview holds a rect rather than the zone it came from: measuring the
+  // board is a ref read, which belongs in the gesture callback that fires it,
+  // not in render.
+  const [ghost, setGhost] = useState<WindowGeometry | null>(null);
+  const handleSnapZoneChange = useCallback(
+    (zone: SnapZone | null) => {
+      setGhost(zone ? geometryForZone(zone, boardSize()) : null);
+    },
+    [boardSize],
+  );
 
   function renderWindow(
     id: string,
@@ -103,7 +109,10 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
     onClose: () => void,
   ) {
     const windowLayout = layout[id];
-    if (!windowLayout || windowLayout.hidden) {
+    // Minimized windows stay in the layout (and on the taskbar) but leave the
+    // board entirely — unmounting rather than hiding keeps a rolled-down
+    // Leaflet map or relationship graph from re-rendering behind the scenes.
+    if (!windowLayout || windowLayout.hidden || windowLayout.minimized) {
       return null;
     }
 
@@ -112,7 +121,7 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
         key={id}
         title={title}
         autoFocus={hasRenderedOnce}
-        className={animating ? styles.animating : undefined}
+        className={gesturing ? undefined : styles.animated}
         style={{
           left: windowLayout.x,
           top: windowLayout.y,
@@ -121,19 +130,31 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
           zIndex: windowLayout.z,
         }}
         onClose={onClose}
+        onMinimize={() => minimize(id)}
+        onMaximize={() => toggleMaximize(id, boardSize())}
+        onTitleBarDoubleClick={() => toggleMaximize(id, boardSize())}
+        isMaximized={Boolean(windowLayout.maximized)}
         onPointerDownCapture={() => bringToFront(id)}
         onTitleBarPointerDown={(event) => {
           if (!boardRef.current) {
             return;
           }
           const windowEl = event.currentTarget.parentElement as HTMLElement;
-          startDrag(id, event, boardRef.current, windowEl);
+          setGesturing(true);
+          startDrag(
+            id,
+            event,
+            boardRef.current,
+            windowEl,
+            handleSnapZoneChange,
+          );
         }}
         onResizeHandlePointerDown={(event) => {
           if (!boardRef.current) {
             return;
           }
           const windowEl = event.currentTarget.parentElement as HTMLElement;
+          setGesturing(true);
           startResize(id, event, boardRef.current, windowEl);
         }}
       >
@@ -143,53 +164,39 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
   }
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.toolbar}>
-        <select
-          className={styles.presetSelect}
-          aria-label="Load layout preset"
-          value={presetSelection}
-          onChange={(event) => {
-            const name = event.target.value;
-            if (name) {
-              handleApplyPreset(name);
-            }
-            setPresetSelection("");
+    <div className={styles.board} ref={boardRef} data-testid="desktop-board">
+      <DesktopIcons role={role} />
+
+      {catalog.map((entry) =>
+        renderWindow(entry.id, entry.title, catalogContent.get(entry.id), () =>
+          toggle(entry.id),
+        ),
+      )}
+
+      {Object.entries(dynamicWindows).map(([id, dynamicEntry]) =>
+        renderWindow(id, dynamicEntry.title, dynamicContent.get(id), () =>
+          closeWindow(id),
+        ),
+      )}
+
+      {ghost ? (
+        <div
+          className={styles.snapGhost}
+          aria-hidden="true"
+          style={{
+            left: ghost.x,
+            top: ghost.y,
+            width: ghost.width,
+            height: ghost.height,
           }}
-        >
-          <option value="" disabled>
-            Load preset…
-          </option>
-          {presetNames.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-        <Button type="button" variant="ghost" onClick={handleSavePreset}>
-          Save as preset
-        </Button>
-        <Button type="button" variant="ghost" onClick={reset}>
-          Reset layout
-        </Button>
-      </div>
+        />
+      ) : null}
 
-      <div className={styles.board} ref={boardRef} data-testid="desktop-board">
-        {catalog.map((entry) =>
-          renderWindow(
-            entry.id,
-            entry.title,
-            catalogContent.get(entry.id),
-            () => toggle(entry.id),
-          ),
-        )}
-
-        {Object.entries(dynamicWindows).map(([id, dynamicEntry]) =>
-          renderWindow(id, dynamicEntry.title, dynamicContent.get(id), () =>
-            closeWindow(id),
-          ),
-        )}
-      </div>
+      <DesktopContextMenu
+        boardRef={boardRef}
+        campaignId={campaignId}
+        role={role}
+      />
     </div>
   );
 }

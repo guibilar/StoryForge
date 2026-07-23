@@ -83,9 +83,10 @@ function restoreDynamicWindows(
 
 // Single source of truth for "what windows are open on this campaign's
 // desktop" — owned once by CampaignDesktopPage and shared, via
-// DesktopWindowsContext, by both <DesktopBoard> (renders them) and
-// <EntitySidebar> (opens them). Kept out of DesktopBoard itself because a
-// sibling component needs the same state, not just a descendant.
+// DesktopWindowsContext, by <DesktopBoard> (renders them), <Taskbar> and
+// <StartMenu> (open, raise and minimize them). Kept out of DesktopBoard
+// itself because sibling components need the same state, not just
+// descendants.
 export function useDesktopWindowsController(campaignId: string) {
   const layoutApi = useDesktopLayout(campaignId, DEFAULT_LAYOUT);
   const {

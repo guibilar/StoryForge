@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useMutation, useQuery, useSubscription } from "urql";
@@ -157,45 +158,100 @@ describe("CampaignDesktopPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the crumb with campaign name and role, and the desktop board above the breakpoint", () => {
+  it("renders the desktop board and taskbar above the breakpoint", () => {
     mockMatchMedia(false);
     setupMocks();
     renderPage();
 
-    expect(screen.getByText("The Sabbat War · OWNER")).toBeInTheDocument();
     expect(screen.getByTestId("desktop-board")).toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "Open windows" }),
+    ).toBeInTheDocument();
+    // Role moved from the old page header to the taskbar tray. Queried by
+    // title, since MembersWindow's role picker also has an "Owner" option.
+    expect(screen.getByTitle("Your role in this campaign")).toHaveTextContent(
+      "Owner",
+    );
   });
 
-  it("renders the entity sidebar alongside the board above the breakpoint", () => {
+  it("puts every open window on the taskbar", () => {
     mockMatchMedia(false);
     setupMocks();
     renderPage();
 
-    const nav = screen.getByRole("navigation", {
-      name: "Campaign navigation",
-    });
-    expect(nav).toBeInTheDocument();
+    const tasks = screen.getByRole("group", { name: "Open windows" });
+    // DEFAULT_LAYOUT ships Members and Sessions open, the rest closed.
     expect(
-      within(nav).getByRole("button", { name: "Timeline" }),
+      within(tasks).getByRole("button", { name: /Members/ }),
     ).toBeInTheDocument();
-  });
-
-  it("does not render the entity sidebar below the breakpoint", () => {
-    mockMatchMedia(true);
-    setupMocks();
-    renderPage();
-
     expect(
-      screen.queryByRole("navigation", { name: "Campaign navigation" }),
+      within(tasks).getByRole("button", { name: /Sessions/ }),
+    ).toBeInTheDocument();
+    expect(
+      within(tasks).queryByRole("button", { name: /Timeline/ }),
     ).not.toBeInTheDocument();
   });
 
-  it("renders the single-panel mobile fallback below the breakpoint", () => {
+  it("opens the start menu from the taskbar, with the campaign name in it", async () => {
+    const user = userEvent.setup();
+    mockMatchMedia(false);
+    setupMocks();
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: /StoryForge/ }));
+
+    const menu = screen.getByRole("dialog", { name: "Start menu" });
+    expect(
+      within(menu).getByRole("heading", { name: "The Sabbat War" }),
+    ).toBeInTheDocument();
+  });
+
+  it("minimizes the focused window from its taskbar button and restores it", async () => {
+    const user = userEvent.setup();
+    mockMatchMedia(false);
+    setupMocks();
+    renderPage();
+
+    const tasks = screen.getByRole("group", { name: "Open windows" });
+    // Members ships on top of Sessions in DEFAULT_LAYOUT, so it is the
+    // focused window and its button rolls it down rather than raising it.
+    const membersTask = within(tasks).getByRole("button", { name: /Members/ });
+    expect(membersTask).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(membersTask);
+    expect(
+      screen.queryByRole("button", { name: "Close Members" }),
+    ).not.toBeInTheDocument();
+    expect(membersTask).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(membersTask);
+    expect(
+      screen.getByRole("button", { name: "Close Members" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the mobile shell below the breakpoint, sharing the same taskbar", () => {
     mockMatchMedia(true);
     setupMocks();
     renderPage();
 
     expect(screen.queryByTestId("desktop-board")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "Open windows" }),
+    ).toBeInTheDocument();
+    // No desk behind the panel on a phone, so no show-desktop strip.
+    expect(
+      screen.queryByRole("button", { name: "Show desktop" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the top window as the single mobile panel", () => {
+    mockMatchMedia(true);
+    setupMocks();
+    renderPage();
+
+    // Members is the top of the z-stack in DEFAULT_LAYOUT, so that is the
+    // panel a phone shows; the taskbar switches to the others.
     expect(
       screen.getByRole("heading", { name: "Members" }),
     ).toBeInTheDocument();

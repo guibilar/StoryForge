@@ -1,5 +1,14 @@
 import { createElement } from "react";
 import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import {
+  CalendarDays,
+  Clock,
+  Map as MapIcon,
+  Network,
+  StickyNote,
+  Users,
+} from "lucide-react";
 
 import { MapsWindow } from "../components/MapsWindow";
 import { MembersWindow } from "../components/MembersWindow";
@@ -13,6 +22,10 @@ import type { CampaignRole } from "../gql/graphql";
 export interface WindowCatalogEntry {
   id: string;
   title: string;
+  // Drawn wherever this window is offered: desktop icon, taskbar button,
+  // start-menu tile. Lives on the catalog entry so those three surfaces
+  // can't drift apart the way the old sidebar's own WORLD_NAV list did.
+  icon: LucideIcon;
   render: () => ReactNode;
   // When set, the window is hidden from the dock/board for any viewer whose
   // role isn't in this list. Undefined means visible to every campaign member.
@@ -24,6 +37,7 @@ export interface WindowCatalogEntry {
 export const WINDOW_CATALOG: WindowCatalogEntry[] = [
   {
     id: "members",
+    icon: Users,
     title: "Members",
     render: () => createElement(MembersWindow),
     // Owner: full CRUD. Storyteller/Co-Storyteller: read-only. Player
@@ -33,16 +47,19 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
   },
   {
     id: "sessions",
+    icon: CalendarDays,
     title: "Sessions",
     render: () => createElement(SessionsWindow),
   },
   {
     id: "timeline",
+    icon: Clock,
     title: "Timeline",
     render: () => createElement(TimelineWindow),
   },
   {
     id: "notes",
+    icon: StickyNote,
     title: "Notes",
     render: () => createElement(NotesWindow),
     // Visible to every member since KAN-63: the API filters what each role
@@ -50,12 +67,14 @@ export const WINDOW_CATALOG: WindowCatalogEntry[] = [
   },
   {
     id: "relationships",
+    icon: Network,
     title: "Relationship Graph",
     render: () => createElement(RelationshipGraphWindow),
     // View-only for v1 (no create/edit UI), so every role can see it.
   },
   {
     id: "maps",
+    icon: MapIcon,
     title: "Maps",
     render: () => createElement(MapsWindow),
     // Markers/territories/the custom map image (KAN-51/52) have no

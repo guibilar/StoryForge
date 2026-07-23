@@ -23,6 +23,7 @@ import {
   UploadMapImageDocument,
 } from "../gql/graphql";
 import type { MapCanvasProps } from "./MapCanvas";
+import { createDesktopWindowsStub } from "../lib/desktopWindowsStub";
 
 // MapCanvas has its own dedicated tests (real Leaflet rendering); here we
 // only need to verify MapsWindow wires data/callbacks into it correctly, so
@@ -398,22 +399,9 @@ function setupMocks({
 
 function setupDesktopWindows() {
   const openWindow = vi.fn();
-  vi.mocked(useDesktopWindows).mockReturnValue({
-    layout: {},
-    bringToFront: vi.fn(),
-    toggle: vi.fn(),
-    startDrag: vi.fn(),
-    startResize: vi.fn(),
-    reset: vi.fn(),
-    dynamicWindows: {},
-    openWindow,
-    closeWindow: vi.fn(),
-    recentIds: [],
-    presets: {},
-    savePreset: vi.fn(),
-    applyPreset: vi.fn(),
-    hydrateFromServer: vi.fn(),
-  });
+  vi.mocked(useDesktopWindows).mockReturnValue(
+    createDesktopWindowsStub({ openWindow }),
+  );
   return { openWindow };
 }
 

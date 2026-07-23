@@ -575,7 +575,12 @@ export function RelationshipGraphWindow() {
 
   useEffect(() => {
     setNodes((current) =>
-      current.map((node) => {
+      current.map((node): GraphNode => {
+        // Cluster anchors are invisible points at the centre of a hull, with
+        // no data of their own — there is nothing on them to dim or focus.
+        if (node.type === "clusterAnchor") {
+          return node;
+        }
         const dimmed = neighbourIds ? !neighbourIds.has(node.id) : false;
         const focused = node.id === hoveredId;
         if (node.data.dimmed === dimmed && node.data.focused === focused) {

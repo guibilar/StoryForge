@@ -10,12 +10,9 @@ import {
 } from "../gql/graphql";
 import type { CampaignRole } from "../gql/graphql";
 import { useDesktopWindows } from "../lib/DesktopWindowsContext";
-import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
+import { useQuickCreateWindows } from "../hooks/useQuickCreateWindows";
 import { scoreMatch } from "../lib/commandScore";
-import { EntityFormWindow } from "./EntityFormWindow";
-import { NoteFormWindow } from "./NoteFormWindow";
-import type { NoteRow } from "./NoteFormWindow";
 import type { EntitySummary } from "./EntityWindow";
 
 export interface AppCommandPaletteProps {
@@ -65,18 +62,8 @@ export function AppCommandPalette({
   campaignId,
   role,
 }: AppCommandPaletteProps) {
-  const { layout, toggle, recentIds } = useDesktopWindows();
+  const { toggle, recentIds } = useDesktopWindows();
   const openEntityWindow = useOpenEntityWindow(campaignId);
-  const { openAddEditWindow: openEntityFormWindow } = useAddEditWindow({
-    idPrefix: "entity-form",
-    width: 380,
-    height: 460,
-  });
-  const { openAddEditWindow: openNoteFormWindow } = useAddEditWindow({
-    idPrefix: "note-form",
-    width: 420,
-    height: 520,
-  });
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -107,6 +94,13 @@ export function AppCommandPalette({
 
   const isWriter =
     role === "OWNER" || role === "STORYTELLER" || role === "CO_STORYTELLER";
+  // Same window ids and the same post-create behavior as the start menu and
+  // the desktop's context menu — see useQuickCreateWindows.
+  const { openCreateEntityWindow, openCreateNoteWindow } =
+    useQuickCreateWindows(campaignId, {
+      onEntityCreated: () =>
+        reexecuteEntities({ requestPolicy: "network-only" }),
+    });
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -240,35 +234,6 @@ export function AppCommandPalette({
       })),
     },
   ].filter((section) => section.items.length > 0);
-
-  function openCreateEntityWindow() {
-    openEntityFormWindow<EntitySummary>(
-      { mode: "create" },
-      "New Entity",
-      (close) => (
-        <EntityFormWindow
-          campaignId={campaignId}
-          onCreated={() => reexecuteEntities({ requestPolicy: "network-only" })}
-          onClose={close}
-        />
-      ),
-    );
-  }
-
-  function openCreateNoteWindow() {
-    openNoteFormWindow<NoteRow>({ mode: "create" }, "New Note", (close) => (
-      <NoteFormWindow
-        campaignId={campaignId}
-        mode={{ mode: "create" }}
-        onSaved={() => {
-          if (layout.notes?.hidden) {
-            toggle("notes");
-          }
-        }}
-        onClose={close}
-      />
-    ));
-  }
 
   function handleCommit(id: string) {
     const separatorIndex = id.indexOf(":");

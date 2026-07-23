@@ -11,6 +11,7 @@ import {
   NotesDocument,
   SessionsDocument,
 } from "../gql/graphql";
+import { createDesktopWindowsStub } from "../lib/desktopWindowsStub";
 
 vi.mock("urql", async (importOriginal) => {
   const actual = await importOriginal<typeof import("urql")>();
@@ -94,22 +95,14 @@ function setupDesktopWindows({
 } = {}) {
   const toggle = vi.fn();
   const openWindow = vi.fn();
-  vi.mocked(useDesktopWindows).mockReturnValue({
-    layout: layout as never,
-    bringToFront: vi.fn(),
-    toggle,
-    startDrag: vi.fn(),
-    startResize: vi.fn(),
-    reset: vi.fn(),
-    dynamicWindows: {},
-    openWindow,
-    closeWindow: vi.fn(),
-    recentIds,
-    presets: {},
-    savePreset: vi.fn(),
-    applyPreset: vi.fn(),
-    hydrateFromServer: vi.fn(),
-  });
+  vi.mocked(useDesktopWindows).mockReturnValue(
+    createDesktopWindowsStub({
+      layout: layout as never,
+      toggle,
+      openWindow,
+      recentIds,
+    }),
+  );
   return { toggle, openWindow };
 }
 

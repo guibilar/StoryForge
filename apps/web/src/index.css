@@ -1,4 +1,8 @@
 :root {
+  /* Shell metric, not a design token: the campaign desktop's taskbar height,
+     which both the bar and the board above it size themselves against. */
+  --taskbar-height: 48px;
+
   font: 16px/1.55 var(--sans);
   letter-spacing: 0.01em;
   color: var(--text);

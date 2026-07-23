@@ -1,0 +1,264 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--taskbar-height);
+  padding: 0 var(--space-2);
+  /* Frosted over the wallpaper rather than a flat fill, so the desktop keeps
+     reading as a surface the bar sits on top of. */
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  backdrop-filter: saturate(160%) blur(20px);
+  -webkit-backdrop-filter: saturate(160%) blur(20px);
+  border-top: 1px solid var(--border);
+}
+
+.start {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  height: 34px;
+  padding: 0 12px 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.start:hover,
+.start[aria-expanded="true"] {
+  background: var(--accent-bg);
+}
+
+.start[aria-expanded="true"] {
+  border-color: var(--accent-border);
+}
+
+.start:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.sigil {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: var(--accent-grad);
+  color: var(--accent-contrast);
+  font-family: var(--heading);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.divider {
+  flex: none;
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+}
+
+.tasks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.task {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  max-width: 172px;
+  height: 34px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+
+.taskLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task:hover {
+  background: color-mix(in srgb, var(--surface) 65%, transparent);
+  color: var(--text-h);
+}
+
+.task:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Underline length encodes window state: a wide accent bar for the focused
+   window, a short dim stub for one that's minimized. */
+.task::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 6px;
+  height: 2px;
+  border-radius: 2px;
+  transform: translateX(-50%);
+  background: var(--text);
+  opacity: 0.45;
+  transition:
+    width var(--dur-2) var(--ease),
+    opacity var(--dur-2) var(--ease),
+    background-color var(--dur-2) var(--ease);
+}
+
+.task[data-state="active"] {
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  color: var(--text-h);
+}
+
+.task[data-state="active"]::after {
+  width: 18px;
+  opacity: 1;
+  background: var(--accent);
+}
+
+.task[data-state="minimized"] {
+  color: var(--text);
+}
+
+.task[data-state="minimized"]::after {
+  opacity: 0.3;
+}
+
+.tray {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+.roleChip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.trayButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+
+.trayButton:hover {
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+
+.trayButton:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  height: 34px;
+  padding: 0 8px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-h);
+}
+
+.clockTime {
+  font-size: 12.5px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.clockDate {
+  font-size: 9.5px;
+  line-height: 1.15;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* The thin strip at the far end, same as every desktop's "show desktop". */
+.peek {
+  flex: none;
+  width: 10px;
+  height: 34px;
+  margin-left: 2px;
+  padding: 0;
+  border: none;
+  border-left: 1px solid var(--border);
+  background: none;
+  cursor: pointer;
+}
+
+.peek:hover {
+  background: var(--accent-bg);
+}
+
+.peek:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (max-width: 768px) {
+  .startLabel,
+  .taskLabel,
+  .clockDate {
+    display: none;
+  }
+
+  .task {
+    max-width: none;
+  }
+}

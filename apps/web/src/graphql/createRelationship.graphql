@@ -5,5 +5,7 @@ mutation CreateRelationship($input: CreateRelationshipInput!) {
     targetEntityId
     type
     description
+    visibility
+    recipientIds
   }
 }

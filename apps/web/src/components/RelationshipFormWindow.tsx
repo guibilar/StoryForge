@@ -4,21 +4,26 @@ import { useMutation, useQuery } from "urql";
 import { Trash2 } from "lucide-react";
 import {
   Button,
+  Checkbox,
   Form,
   FormActions,
   FormError,
   FormField,
   Icon,
   Input,
+  Select,
   Textarea,
 } from "@storyforge/ui";
 
 import {
+  CampaignDocument,
   CreateRelationshipDocument,
   DeleteRelationshipDocument,
   EntitiesDocument,
+  MeDocument,
   UpdateRelationshipDocument,
 } from "../gql/graphql";
+import type { RelationshipVisibility } from "../gql/graphql";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { suggestRelationshipTypes } from "../lib/relationshipTypeSuggestions";
@@ -31,6 +36,8 @@ export interface RelationshipRow {
   targetEntityId: string;
   type: string;
   description?: string | null;
+  visibility: RelationshipVisibility;
+  recipientIds: string[];
 }
 
 export interface RelationshipFormWindowProps {
@@ -38,6 +45,22 @@ export interface RelationshipFormWindowProps {
   mode: AddEditMode<RelationshipRow>;
   onSaved: () => void;
   onClose: () => void;
+}
+
+// Only Storytellers reach this form (createRelationship/updateRelationship
+// are writer-only — KAN-41), so every level is authorable; unlike a note's
+// visibility select there's no role to filter the options against.
+const VISIBILITY_OPTIONS: Array<{
+  value: RelationshipVisibility;
+  label: string;
+}> = [
+  { value: "PUBLIC", label: "Public (anyone who sees both entities)" },
+  { value: "STORYTELLER", label: "Storytellers only" },
+  { value: "TARGETED", label: "Targeted at specific players" },
+];
+
+function sameIds(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((id) => b.includes(id));
 }
 
 function entityLabel(
@@ -85,11 +108,42 @@ export function RelationshipFormWindow({
     initial?.targetEntityId ?? "",
   );
 
+  const [visibility, setVisibility] = useState<RelationshipVisibility>(
+    initial?.visibility ?? "PUBLIC",
+  );
+  const [recipientIds, setRecipientIds] = useState<string[]>(
+    initial?.recipientIds ?? [],
+  );
+
   const [{ data: entitiesData }] = useQuery({
     query: EntitiesDocument,
     variables: { campaignId },
     pause: !campaignId,
   });
+
+  const [{ data: meData }] = useQuery({ query: MeDocument });
+  const [{ data: campaignData }] = useQuery({
+    query: CampaignDocument,
+    variables: { id: campaignId },
+    pause: !campaignId,
+  });
+
+  const currentUserId = meData?.me?.id;
+  // Target anyone in the campaign other than yourself — you already see the
+  // edge you're authoring.
+  const recipientOptions = (campaignData?.campaign?.members ?? []).filter(
+    (member) => member.userId !== currentUserId,
+  );
+  const missingRecipients =
+    visibility === "TARGETED" && recipientIds.length === 0;
+
+  function toggleRecipient(userId: string) {
+    setRecipientIds((current) =>
+      current.includes(userId)
+        ? current.filter((id) => id !== userId)
+        : [...current, userId],
+    );
+  }
 
   const suggestions = useMemo(() => {
     const entities = entitiesData?.entities ?? [];
@@ -131,6 +185,11 @@ export function RelationshipFormWindow({
       return;
     }
 
+    if (missingRecipients) {
+      setValidationError("Select at least one recipient.");
+      return;
+    }
+
     if (mode.mode === "create") {
       if (!sourceEntityId || !targetEntityId) {
         setValidationError("Source and target entities are required.");
@@ -148,6 +207,8 @@ export function RelationshipFormWindow({
           targetEntityId,
           type,
           description: description || null,
+          visibility,
+          ...(visibility === "TARGETED" ? { recipientIds } : {}),
         },
       });
       if (result.data?.createRelationship) {
@@ -155,11 +216,26 @@ export function RelationshipFormWindow({
         onClose();
       }
     } else {
+      // Only send visibility/recipients when they changed, mirroring
+      // NoteFormWindow — the service keeps existing recipients on an
+      // unchanged level and drops them when the level moves.
+      const visibilityUnchanged =
+        visibility === mode.item.visibility &&
+        (visibility !== "TARGETED" ||
+          sameIds(recipientIds, mode.item.recipientIds));
+      const visibilityInput = visibilityUnchanged
+        ? {}
+        : {
+            visibility,
+            ...(visibility === "TARGETED" ? { recipientIds } : {}),
+          };
+
       const result = await updateRelationship({
         input: {
           id: mode.item.id,
           type,
           description: description || null,
+          ...visibilityInput,
         },
       });
       if (result.data?.updateRelationship) {
@@ -246,6 +322,38 @@ export function RelationshipFormWindow({
           rows={3}
         />
       </FormField>
+      <FormField label="Visibility" htmlFor="relationship-visibility">
+        <Select
+          id="relationship-visibility"
+          value={visibility}
+          onChange={(event) =>
+            setVisibility(event.target.value as RelationshipVisibility)
+          }
+        >
+          {VISIBILITY_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+      </FormField>
+      {visibility === "TARGETED" ? (
+        <FormField label="Recipients" htmlFor="relationship-recipients">
+          <div id="relationship-recipients">
+            {recipientOptions.map((member) => (
+              <Checkbox
+                key={member.userId}
+                label={member.user.email}
+                checked={recipientIds.includes(member.userId)}
+                onChange={() => toggleRecipient(member.userId)}
+              />
+            ))}
+            {recipientOptions.length === 0 ? (
+              <span>No other members to target.</span>
+            ) : null}
+          </div>
+        </FormField>
+      ) : null}
       <FormActions>
         {mode.mode === "edit" ? (
           <Button
@@ -263,7 +371,9 @@ export function RelationshipFormWindow({
         </Button>
         <Button
           type="submit"
-          disabled={createState.fetching || updateState.fetching}
+          disabled={
+            createState.fetching || updateState.fetching || missingRecipients
+          }
         >
           Save
         </Button>

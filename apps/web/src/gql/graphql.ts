@@ -65,9 +65,11 @@ export type CreateNoteInput = {
 export type CreateRelationshipInput = {
   campaignId: string | number;
   description?: string | null | undefined;
+  recipientIds?: Array<string | number> | null | undefined;
   sourceEntityId: string | number;
   targetEntityId: string | number;
   type: string;
+  visibility?: RelationshipVisibility | null | undefined;
 };
 
 export type CreateSessionInput = {
@@ -150,6 +152,14 @@ export type RegisterUserInput = {
   password: string;
 };
 
+export type RelationshipVisibility =
+  /** Everyone who can see both endpoint entities. */
+  | "PUBLIC"
+  /** The Storyteller side only, however public the endpoints are. */
+  | "STORYTELLER"
+  /** The Storyteller side plus the players named in recipientIds. */
+  | "TARGETED";
+
 export type SaveWorkspaceStateInput = {
   campaignId: string | number;
   layout: string;
@@ -209,7 +219,9 @@ export type UpdateNoteInput = {
 export type UpdateRelationshipInput = {
   description?: string | null | undefined;
   id: string | number;
+  recipientIds?: Array<string | number> | null | undefined;
   type?: string | null | undefined;
+  visibility?: RelationshipVisibility | null | undefined;
 };
 
 export type UpdateSessionInput = {
@@ -397,6 +409,8 @@ export type CreateRelationshipMutation = {
     targetEntityId: string;
     type: string;
     description: string | null;
+    visibility: RelationshipVisibility;
+    recipientIds: Array<string>;
   };
 };
 
@@ -793,6 +807,8 @@ export type RelationshipsQuery = {
     targetEntityId: string;
     type: string;
     description: string | null;
+    visibility: RelationshipVisibility;
+    recipientIds: Array<string>;
   }>;
 };
 
@@ -957,6 +973,8 @@ export type UpdateRelationshipMutation = {
     targetEntityId: string;
     type: string;
     description: string | null;
+    visibility: RelationshipVisibility;
+    recipientIds: Array<string>;
   };
 };
 
@@ -1861,6 +1879,11 @@ export const CreateRelationshipDocument = {
                 },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "recipientIds" },
+                },
               ],
             },
           },
@@ -3795,6 +3818,11 @@ export const RelationshipsDocument = {
                 },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "recipientIds" },
+                },
               ],
             },
           },
@@ -4544,6 +4572,11 @@ export const UpdateRelationshipDocument = {
                 },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "recipientIds" },
+                },
               ],
             },
           },

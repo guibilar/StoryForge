@@ -5,5 +5,7 @@ mutation UpdateRelationship($input: UpdateRelationshipInput!) {
     targetEntityId
     type
     description
+    visibility
+    recipientIds
   }
 }

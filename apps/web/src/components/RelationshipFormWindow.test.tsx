@@ -7,8 +7,10 @@ import { RelationshipFormWindow } from "./RelationshipFormWindow";
 import type { RelationshipRow } from "./RelationshipFormWindow";
 import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
+  CampaignDocument,
   CreateRelationshipDocument,
   DeleteRelationshipDocument,
+  MeDocument,
   UpdateRelationshipDocument,
 } from "../gql/graphql";
 
@@ -23,6 +25,15 @@ const entities = [
   { id: "ent-3", name: "The Rack", type: "District", category: "LOCATION" },
 ];
 
+const members = [
+  { userId: "me", role: "OWNER", user: { id: "me", email: "gm@example.com" } },
+  {
+    userId: "player-1",
+    role: "PLAYER",
+    user: { id: "player-1", email: "player1@example.com" },
+  },
+];
+
 function setupMocks({
   createRelationship = vi
     .fn()
@@ -35,10 +46,24 @@ function setupMocks({
     .mockResolvedValue({ data: { deleteRelationship: true } }),
   createFetching = false,
 } = {}) {
-  vi.mocked(useQuery).mockReturnValue([
-    { data: { entities }, fetching: false, stale: false },
-    vi.fn(),
-  ] as never);
+  vi.mocked(useQuery).mockImplementation(((args: { query: unknown }) => {
+    if (args.query === MeDocument) {
+      return [
+        {
+          data: { me: { id: "me", email: "gm@example.com" } },
+          fetching: false,
+        },
+        vi.fn(),
+      ];
+    }
+    if (args.query === CampaignDocument) {
+      return [
+        { data: { campaign: { id: "camp-1", members } }, fetching: false },
+        vi.fn(),
+      ];
+    }
+    return [{ data: { entities }, fetching: false, stale: false }, vi.fn()];
+  }) as never);
 
   vi.mocked(useMutation).mockImplementation(((document: unknown) => {
     if (document === CreateRelationshipDocument) {
@@ -112,6 +137,7 @@ describe("RelationshipFormWindow", () => {
         targetEntityId: "ent-2",
         type: "MemberOf",
         description: null,
+        visibility: "PUBLIC",
       },
     });
     expect(onSaved).toHaveBeenCalledTimes(1);
@@ -176,6 +202,8 @@ describe("RelationshipFormWindow", () => {
       targetEntityId: "ent-2",
       type: "MemberOf",
       description: "Sworn in.",
+      visibility: "PUBLIC",
+      recipientIds: [],
     };
     renderEdit(relationship);
 
@@ -197,6 +225,46 @@ describe("RelationshipFormWindow", () => {
     });
   });
 
+  it("targets a relationship at a specific player", async () => {
+    const { createRelationship } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.selectOptions(screen.getByLabelText("Source"), "ent-1");
+    await user.selectOptions(screen.getByLabelText("Target"), "ent-2");
+    await user.type(screen.getByLabelText("Type"), "MemberOf");
+    await user.selectOptions(screen.getByLabelText("Visibility"), "TARGETED");
+    // Recipients checkboxes only appear for TARGETED; self is excluded.
+    await user.click(screen.getByLabelText("player1@example.com"));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createRelationship).toHaveBeenCalledWith({
+      input: {
+        campaignId: "camp-1",
+        sourceEntityId: "ent-1",
+        targetEntityId: "ent-2",
+        type: "MemberOf",
+        description: null,
+        visibility: "TARGETED",
+        recipientIds: ["player-1"],
+      },
+    });
+  });
+
+  it("blocks saving a targeted relationship with no recipients", async () => {
+    const { createRelationship } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.selectOptions(screen.getByLabelText("Source"), "ent-1");
+    await user.selectOptions(screen.getByLabelText("Target"), "ent-2");
+    await user.type(screen.getByLabelText("Type"), "MemberOf");
+    await user.selectOptions(screen.getByLabelText("Visibility"), "TARGETED");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createRelationship).not.toHaveBeenCalled();
+  });
+
   it("deletes the relationship from edit mode", async () => {
     const { deleteRelationship } = setupMocks();
     const user = userEvent.setup();
@@ -206,6 +274,8 @@ describe("RelationshipFormWindow", () => {
       targetEntityId: "ent-2",
       type: "MemberOf",
       description: null,
+      visibility: "PUBLIC",
+      recipientIds: [],
     };
     const { onSaved, onClose } = renderEdit(relationship);
 

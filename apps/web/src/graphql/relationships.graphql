@@ -5,5 +5,7 @@ query Relationships($campaignId: ID!, $entityId: ID) {
     targetEntityId
     type
     description
+    visibility
+    recipientIds
   }
 }

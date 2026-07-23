@@ -1,0 +1,33 @@
+.layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Under the edges and nodes: a cluster describes where things ended up, it
+     isn't a surface anyone interacts with. */
+  z-index: -1;
+  pointer-events: none;
+}
+
+.canvas {
+  overflow: visible;
+}
+
+.hull {
+  fill-opacity: 0.06;
+  stroke-opacity: 0.45;
+  stroke-width: 1.5;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+}
+
+.label {
+  fill: var(--text-h);
+  font-family: var(--heading);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}

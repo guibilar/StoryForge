@@ -96,11 +96,41 @@
 }
 
 .relationshipRow {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
+}
+
+/* Parked in the row's top-right rather than inline, so it doesn't push the
+   counterpart's name around or compete with it for the first thing read. */
+.relationshipEdit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--text);
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease);
+}
+
+/* Revealed on hover or keyboard focus — always-on pencils would turn a
+   reference list into a toolbar. :focus-visible keeps it reachable by tab. */
+.relationshipRow:hover .relationshipEdit,
+.relationshipEdit:focus-visible {
+  opacity: 1;
+}
+
+.relationshipEdit:hover {
+  background: var(--surface-2);
+  color: var(--text-h);
 }
 
 .relationshipName {

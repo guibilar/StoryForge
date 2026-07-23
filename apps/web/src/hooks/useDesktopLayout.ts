@@ -80,12 +80,21 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
 
   const bringToFront = useCallback(
     (id: string) => {
-      setLayout((current) =>
-        persistLayout({
+      setLayout((current) => {
+        // Every pointerdown anywhere inside a window calls this — typing in a
+        // field, clicking a list row, starting a drag. Returning `current`
+        // unchanged when the window is already on top lets React bail out of
+        // the re-render entirely and skips a synchronous JSON.stringify of
+        // the whole layout into localStorage on each of those interactions.
+        const target = current[id];
+        if (!target || target.z === maxZ(current)) {
+          return current;
+        }
+        return persistLayout({
           ...current,
-          [id]: { ...current[id], z: maxZ(current) + 1 },
-        }),
-      );
+          [id]: { ...target, z: maxZ(current) + 1 },
+        });
+      });
     },
     [persistLayout],
   );
@@ -153,9 +162,21 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     }));
   }, []);
 
-  const persist = useCallback(() => {
-    setLayout((current) => persistLayout(current));
-  }, [persistLayout]);
+  // Applies the geometry a whole drag/resize gesture produced in one update.
+  // Splitting it out from move()/resize() is what lets those gestures cost a
+  // single React render at the end instead of one per pointermove — see
+  // startDrag for why that matters so much here.
+  const commitGeometry = useCallback(
+    (
+      id: string,
+      geometry: Partial<Pick<WindowLayout, "x" | "y" | "width" | "height">>,
+    ) => {
+      setLayout((current) =>
+        persistLayout({ ...current, [id]: { ...current[id], ...geometry } }),
+      );
+    },
+    [persistLayout],
+  );
 
   // "Reset layout" only resets the static catalog windows (the ones present
   // in `defaults`) back to their shipped positions — any dynamically-opened
@@ -232,7 +253,13 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
       const windowRect = windowEl.getBoundingClientRect();
       const offsetX = event.clientX - windowRect.left;
       const offsetY = event.clientY - windowRect.top;
+      let latest: { x: number; y: number } | null = null;
 
+      // The gesture drives the DOM directly and only commits to React state
+      // on pointerup. Calling move() per pointermove instead re-rendered the
+      // whole board — and with it every open window's content, Leaflet map
+      // and relationship graph included — at pointer-event rate, which is
+      // what made dragging anything feel sluggish once a few windows were up.
       function handleMove(moveEvent: PointerEvent) {
         const rawX = moveEvent.clientX - boardRect.left - offsetX;
         const rawY = moveEvent.clientY - boardRect.top - offsetY;
@@ -244,19 +271,25 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
           0,
           Math.min(rawY, boardRect.height - windowRect.height),
         );
-        move(id, x, y);
+        latest = { x, y };
+        windowEl.style.left = `${x}px`;
+        windowEl.style.top = `${y}px`;
       }
 
       function handleUp() {
         window.removeEventListener("pointermove", handleMove);
         window.removeEventListener("pointerup", handleUp);
-        persist();
+        // Null when the pointer never moved (a plain title-bar click), where
+        // committing would mean a pointless render and localStorage write.
+        if (latest) {
+          commitGeometry(id, latest);
+        }
       }
 
       window.addEventListener("pointermove", handleMove);
       window.addEventListener("pointerup", handleUp);
     },
-    [bringToFront, move, persist],
+    [bringToFront, commitGeometry],
   );
 
   const startResize = useCallback(
@@ -273,7 +306,11 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
       const startY = event.clientY;
       const startWidth = windowRect.width;
       const startHeight = windowRect.height;
+      let latest: { width: number; height: number } | null = null;
 
+      // Same DOM-first approach as startDrag, and it matters even more here:
+      // a resize changes each window's content layout, so a state update per
+      // pointermove made every open window re-flow on every frame.
       function handleMove(moveEvent: PointerEvent) {
         const rawWidth = startWidth + (moveEvent.clientX - startX);
         const rawHeight = startHeight + (moveEvent.clientY - startY);
@@ -285,19 +322,23 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
           MIN_HEIGHT,
           Math.min(rawHeight, boardRect.bottom - windowRect.top),
         );
-        resize(id, width, height);
+        latest = { width, height };
+        windowEl.style.width = `${width}px`;
+        windowEl.style.height = `${height}px`;
       }
 
       function handleUp() {
         window.removeEventListener("pointermove", handleMove);
         window.removeEventListener("pointerup", handleUp);
-        persist();
+        if (latest) {
+          commitGeometry(id, latest);
+        }
       }
 
       window.addEventListener("pointermove", handleMove);
       window.addEventListener("pointerup", handleUp);
     },
-    [bringToFront, resize, persist],
+    [bringToFront, commitGeometry],
   );
 
   return {

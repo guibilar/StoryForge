@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useQuery } from "urql";
@@ -120,6 +121,7 @@ const entities = [
     name: "Goblin",
     description: null,
     type: "NPC",
+    category: "CHARACTER",
     visibility: "PUBLIC",
     tags: [],
   },
@@ -128,8 +130,71 @@ const entities = [
     name: "Thornwood",
     description: null,
     type: "LOCATION",
+    category: "LOCATION",
     visibility: "PUBLIC",
     tags: [],
+  },
+];
+
+// A faction with two character members, plus a location that merely sits
+// inside it — the case that must not be swept into the cluster.
+const factionEntities = [
+  {
+    id: "org-1",
+    name: "The Camarilla",
+    description: null,
+    type: "sect",
+    category: "ORGANIZATION",
+    visibility: "PUBLIC",
+    tags: [],
+  },
+  {
+    id: "ent-3",
+    name: "Sable",
+    description: null,
+    type: "NPC",
+    category: "CHARACTER",
+    visibility: "PUBLIC",
+    tags: [],
+  },
+  {
+    id: "ent-4",
+    name: "Wren",
+    description: null,
+    type: "NPC",
+    category: "CHARACTER",
+    visibility: "PUBLIC",
+    tags: [],
+  },
+  ...entities,
+];
+
+const factionRelationships = [
+  {
+    id: "rel-m1",
+    sourceEntityId: "ent-1",
+    targetEntityId: "org-1",
+    type: "MemberOf",
+  },
+  {
+    id: "rel-m2",
+    sourceEntityId: "ent-3",
+    targetEntityId: "org-1",
+    type: "MemberOf",
+  },
+  {
+    id: "rel-loc",
+    sourceEntityId: "ent-2",
+    targetEntityId: "org-1",
+    type: "LocatedAt",
+  },
+  // A person who merely works out of the chapterhouse. Same category pair as
+  // a real membership, so only the type tells them apart.
+  {
+    id: "rel-loc2",
+    sourceEntityId: "ent-4",
+    targetEntityId: "org-1",
+    type: "LocatedAt",
   },
 ];
 
@@ -138,6 +203,7 @@ interface RelationshipMock {
   // Null when the API redacts a concealed endpoint (KAN-134) for this viewer.
   sourceEntityId: string | null;
   targetEntityId: string | null;
+  concealedEndpoint?: "SOURCE" | "TARGET" | null;
   type: string;
 }
 
@@ -291,8 +357,10 @@ describe("RelationshipGraphWindow", () => {
     setupDesktopWindows();
     renderWindow();
 
-    expect(screen.getByText("Goblin (NPC)")).toBeInTheDocument();
-    expect(screen.getByText("Thornwood (LOCATION)")).toBeInTheDocument();
+    expect(screen.getByText("Goblin")).toBeInTheDocument();
+    expect(screen.getByText("NPC")).toBeInTheDocument();
+    expect(screen.getByText("Thornwood")).toBeInTheDocument();
+    expect(screen.getByText("LOCATION")).toBeInTheDocument();
   });
 
   it("renders an edge label per relationship type", async () => {
@@ -323,7 +391,7 @@ describe("RelationshipGraphWindow", () => {
     const { openWindow } = setupDesktopWindows();
     renderWindow();
 
-    fireEvent.click(screen.getByText("Goblin (NPC)"));
+    fireEvent.click(screen.getByText("Goblin"));
 
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({ id: "entity:ent-1", title: "Goblin" }),
@@ -407,15 +475,262 @@ describe("RelationshipGraphWindow", () => {
     );
   });
 
-  it("skips a concealed relationship's edge instead of crashing on a null endpoint", () => {
+  // KAN-134: the API redacts the concealed side's id but keeps the row — the
+  // graph stands an "Unknown" node in for it, matching how EntityWindow's
+  // relationship list names the same hidden counterpart.
+  it("renders a concealed endpoint as an Unknown placeholder node", async () => {
     setupMocks({
       relationshipsResult: [
         {
           id: "rel-concealed",
           sourceEntityId: "ent-1",
-          // Redacted by the API for this viewer (KAN-134) — there's no node
-          // to draw this edge to.
           targetEntityId: null,
+          concealedEndpoint: "TARGET",
+          type: "Blackmails",
+        },
+        ...relationships,
+      ],
+    });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(screen.getByText("Unknown")).toBeInTheDocument();
+    expect(screen.getByText("Concealed")).toBeInTheDocument();
+    expect(await screen.findByText("Blackmails")).toBeInTheDocument();
+  });
+
+  it("gives each concealed endpoint its own placeholder", () => {
+    setupMocks({
+      relationshipsResult: [
+        {
+          id: "rel-a",
+          sourceEntityId: null,
+          targetEntityId: "ent-1",
+          concealedEndpoint: "SOURCE",
+          type: "Blackmails",
+        },
+        {
+          id: "rel-b",
+          sourceEntityId: null,
+          targetEntityId: "ent-2",
+          concealedEndpoint: "SOURCE",
+          type: "Serves",
+        },
+      ],
+    });
+    setupDesktopWindows();
+    renderWindow();
+
+    // Sharing one node between them would assert the two hidden parties are
+    // the same person — precisely the secret being kept.
+    expect(screen.getAllByText("Unknown")).toHaveLength(2);
+  });
+
+  it("does not open a window when a placeholder node is clicked", () => {
+    setupMocks({
+      relationshipsResult: [
+        {
+          id: "rel-concealed",
+          sourceEntityId: "ent-1",
+          targetEntityId: null,
+          concealedEndpoint: "TARGET",
+          type: "Blackmails",
+        },
+      ],
+    });
+    const { openWindow } = setupDesktopWindows();
+    renderWindow();
+
+    fireEvent.click(screen.getByText("Unknown"));
+
+    expect(openWindow).not.toHaveBeenCalled();
+  });
+
+  describe("grouping", () => {
+    async function groupByFaction() {
+      const user = userEvent.setup();
+      await user.selectOptions(
+        screen.getByRole("combobox", { name: /group by/i }),
+        "Faction / Affiliation",
+      );
+      return user;
+    }
+
+    it("replaces the organization's node with a labelled cluster", async () => {
+      setupMocks({
+        entitiesResult: factionEntities,
+        relationshipsResult: factionRelationships,
+      });
+      setupDesktopWindows();
+      renderWindow();
+
+      // Present as an ordinary node until grouping is switched on.
+      expect(screen.getByText("The Camarilla")).toBeInTheDocument();
+      expect(screen.getByText("sect")).toBeInTheDocument();
+
+      await groupByFaction();
+
+      // Now it's the boundary, not a node: the name survives as the hull's
+      // label (and again in the cluster list), but its type caption goes with
+      // the node it replaced.
+      expect(screen.getAllByText("The Camarilla").length).toBeGreaterThan(0);
+      expect(screen.queryByText("sect")).not.toBeInTheDocument();
+    });
+
+    it("lists each cluster with its member count", async () => {
+      setupMocks({
+        entitiesResult: factionEntities,
+        relationshipsResult: factionRelationships,
+      });
+      setupDesktopWindows();
+      renderWindow();
+      await groupByFaction();
+
+      const row = screen.getByRole("checkbox", { name: /The Camarilla/ });
+      expect(row).toBeChecked();
+      expect(screen.getByText("2")).toBeInTheDocument();
+    });
+
+    it("hides a cluster's members when it is unticked", async () => {
+      setupMocks({
+        entitiesResult: factionEntities,
+        relationshipsResult: factionRelationships,
+      });
+      setupDesktopWindows();
+      renderWindow();
+      const user = await groupByFaction();
+
+      expect(screen.getByText("Goblin")).toBeInTheDocument();
+
+      await user.click(screen.getByRole("checkbox", { name: /The Camarilla/ }));
+
+      expect(screen.queryByText("Goblin")).not.toBeInTheDocument();
+      expect(screen.queryByText("Sable")).not.toBeInTheDocument();
+    });
+
+    it("drops membership edges, which the hull already expresses", async () => {
+      setupMocks({
+        entitiesResult: factionEntities,
+        relationshipsResult: factionRelationships,
+      });
+      setupDesktopWindows();
+      renderWindow();
+
+      // Edge labels are buttons; "MemberOf" also names an affiliation
+      // checkbox in the cluster panel, which is not an edge.
+      expect(
+        await screen.findAllByRole("button", { name: "MemberOf" }),
+      ).toHaveLength(2);
+
+      await groupByFaction();
+
+      expect(
+        screen.queryAllByRole("button", { name: "MemberOf" }),
+      ).toHaveLength(0);
+    });
+
+    // The heart of it: LocatedAt joins a character to an organization without
+    // making them part of it, and only the type string tells the two apart —
+    // the category pair is identical to a real membership.
+    it("does not treat LocatedAt as belonging to the faction", async () => {
+      setupMocks({
+        entitiesResult: factionEntities,
+        relationshipsResult: factionRelationships,
+      });
+      setupDesktopWindows();
+      renderWindow();
+      await groupByFaction();
+
+      // Goblin and Sable are members; Wren only works out of the building.
+      expect(screen.getByText("2")).toBeInTheDocument();
+      expect(screen.getByText("Wren")).toBeInTheDocument();
+      expect(screen.getByText("Thornwood")).toBeInTheDocument();
+    });
+
+    it("lets the Storyteller choose which types mean affiliation", async () => {
+      setupMocks({
+        entitiesResult: factionEntities,
+        relationshipsResult: factionRelationships,
+      });
+      setupDesktopWindows();
+      renderWindow();
+      const user = await groupByFaction();
+
+      // MemberOf is the app's own suggestion for CHARACTER|ORGANIZATION, so it
+      // starts ticked; LocatedAt is offered but off.
+      expect(screen.getByRole("checkbox", { name: "MemberOf" })).toBeChecked();
+      expect(
+        screen.getByRole("checkbox", { name: "LocatedAt" }),
+      ).not.toBeChecked();
+
+      await user.click(screen.getByRole("checkbox", { name: "LocatedAt" }));
+
+      // Wren now counts as affiliated too.
+      expect(screen.getByText("3")).toBeInTheDocument();
+    });
+
+    it("dissolves the cluster when no type counts as affiliation", async () => {
+      setupMocks({
+        entitiesResult: factionEntities,
+        relationshipsResult: factionRelationships,
+      });
+      setupDesktopWindows();
+      renderWindow();
+      const user = await groupByFaction();
+
+      await user.click(screen.getByRole("checkbox", { name: "MemberOf" }));
+
+      // Nothing affiliates anyone, so the organization comes back as an
+      // ordinary node — type caption and all.
+      expect(screen.getByText("sect")).toBeInTheDocument();
+    });
+  });
+
+  // Two entities can hold several relationships at once. Every built-in edge
+  // type routes them along the identical curve, stacking the lines and
+  // overprinting the labels into an unreadable smear ("E[ RESENTS ]Y").
+  it("fans parallel relationships apart instead of stacking them", async () => {
+    setupMocks({
+      relationshipsResult: [
+        {
+          id: "rel-a",
+          sourceEntityId: "ent-1",
+          targetEntityId: "ent-2",
+          type: "Enemy",
+        },
+        {
+          // Reversed direction, same pair of nodes on screen.
+          id: "rel-b",
+          sourceEntityId: "ent-2",
+          targetEntityId: "ent-1",
+          type: "Resents",
+        },
+      ],
+    });
+    setupDesktopWindows();
+    renderWindow();
+
+    // Both survive as their own labelled edge rather than one overprinting
+    // the other. The bow that separates them geometrically is unit-tested on
+    // parallelEdgeOffsets — jsdom measures every node to the same rect, so
+    // rendered coordinates here would be identical no matter what.
+    expect(await screen.findByRole("button", { name: "Enemy" })).toBeVisible();
+    expect(
+      await screen.findByRole("button", { name: "Resents" }),
+    ).toBeVisible();
+  });
+
+  it("still drops an edge whose null endpoint isn't explained by concealment", () => {
+    setupMocks({
+      relationshipsResult: [
+        {
+          id: "rel-orphan",
+          sourceEntityId: "ent-1",
+          // No concealedEndpoint to account for the null: this points at an
+          // entity the viewer was never shown, so it stays off the graph
+          // rather than advertising its type through a placeholder.
+          targetEntityId: null,
+          concealedEndpoint: null,
           type: "Blackmails",
         },
         ...relationships,
@@ -425,5 +740,6 @@ describe("RelationshipGraphWindow", () => {
 
     expect(() => renderWindow()).not.toThrow();
     expect(screen.queryByText("Blackmails")).not.toBeInTheDocument();
+    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
   });
 });

@@ -48,6 +48,19 @@ describe("useDesktopLayout", () => {
     );
   });
 
+  // Fires on every pointerdown inside a window, so the already-on-top case
+  // has to be free: no new layout object (React bails out of the re-render)
+  // and no JSON.stringify of the whole layout into localStorage.
+  it("bringToFront is a no-op when the window is already on top", () => {
+    const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
+    const before = result.current.layout;
+
+    act(() => result.current.bringToFront("npcs"));
+
+    expect(result.current.layout).toBe(before);
+    expect(localStorage.getItem("storyforge:desktop:camp-1")).toBeNull();
+  });
+
   it("move updates position without persisting until something else does", () => {
     const { result } = renderHook(() => useDesktopLayout("camp-1", DEFAULTS));
 

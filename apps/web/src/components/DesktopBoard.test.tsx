@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -395,5 +396,92 @@ describe("DesktopBoard", () => {
 
     const select = screen.getByRole("combobox", { name: "Load layout preset" });
     expect(within(select).getAllByRole("option")).toHaveLength(1);
+  });
+
+  // Dragging used to push a layout update per pointermove, which re-rendered
+  // every open window's content — the Leaflet map and relationship graph
+  // included — at pointer-event rate. The gesture now drives the DOM directly
+  // and commits once on pointerup.
+  it("does not re-render other windows' content while a window is dragged", () => {
+    let renders = 0;
+    function CountingContent() {
+      // Counted in a bodyless effect (runs after every commit) rather than
+      // during render, which react-hooks/globals rightly rejects.
+      useEffect(() => {
+        renders += 1;
+      });
+      return <p>counted</p>;
+    }
+
+    let windows: DesktopWindowsApi | undefined;
+    // onReady runs on every Harness render, so this counts layout-state
+    // updates independently of whether memoisation absorbs them downstream.
+    let stateUpdates = 0;
+    render(
+      <Harness
+        campaignId="camp-1"
+        onReady={(api) => {
+          windows = api;
+          stateUpdates += 1;
+        }}
+      />,
+    );
+
+    act(() =>
+      windows!.openWindow({
+        id: "entity:counted",
+        title: "Counted",
+        render: () => <CountingContent />,
+        x: 10,
+        y: 10,
+        width: 200,
+        height: 200,
+      }),
+    );
+    expect(screen.getByText("counted")).toBeInTheDocument();
+
+    const board = screen.getByTestId("desktop-board");
+    mockRect(board, { left: 0, top: 0, width: 1000, height: 800 });
+    const sessionsTitle = screen.getByText("Sessions", { selector: "span" });
+    const windowEl = sessionsTitle.closest("div[style]") as HTMLElement;
+    mockRect(windowEl, { left: 28, top: 24, width: 310, height: 280 });
+
+    act(() => {
+      sessionsTitle.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          clientX: 50,
+          clientY: 50,
+        }),
+      );
+    });
+
+    const rendersAtDragStart = renders;
+    const updatesAtDragStart = stateUpdates;
+    for (let step = 0; step < 10; step += 1) {
+      act(() => {
+        window.dispatchEvent(
+          new PointerEvent("pointermove", {
+            clientX: 150 + step,
+            clientY: 150 + step,
+          }),
+        );
+      });
+    }
+
+    expect(windowEl.style.left).toBe("137px");
+    // Ten pointermoves, zero layout-state updates: the gesture moved the DOM
+    // node itself rather than round-tripping through React each frame.
+    expect(stateUpdates).toBe(updatesAtDragStart);
+    expect(renders).toBe(rendersAtDragStart);
+
+    act(() => {
+      window.dispatchEvent(new PointerEvent("pointerup"));
+    });
+
+    // One commit at the end, and the memoised content element means the other
+    // window's body is reused rather than rebuilt even for that.
+    expect(stateUpdates).toBe(updatesAtDragStart + 1);
+    expect(renders).toBe(rendersAtDragStart);
   });
 });

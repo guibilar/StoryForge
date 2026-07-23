@@ -1,0 +1,39 @@
+/* EdgeLabelRenderer puts these in a shared overlay with pointer-events off,
+   so a clickable label has to turn them back on for itself. */
+.label {
+  position: absolute;
+  pointer-events: all;
+  appearance: none;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-h);
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    opacity var(--dur-2) var(--ease),
+    box-shadow var(--dur-2) var(--ease);
+}
+
+.label:disabled {
+  cursor: default;
+}
+
+.label:hover:not(:disabled) {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Matches the edge's own dimming while a different node is hovered. */
+.faded {
+  opacity: 0.15;
+}
+
+.active {
+  box-shadow: var(--shadow-sm);
+}

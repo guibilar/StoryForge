@@ -809,6 +809,7 @@ export type RelationshipsQuery = {
     id: string;
     sourceEntityId: string | null;
     targetEntityId: string | null;
+    concealedEndpoint: RelationshipEndpoint | null;
     type: string;
     description: string | null;
     visibility: RelationshipVisibility;
@@ -3819,6 +3820,10 @@ export const RelationshipsDocument = {
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "targetEntityId" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "concealedEndpoint" },
                 },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },

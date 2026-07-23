@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Button } from "@storyforge/ui";
 
@@ -32,7 +32,29 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
     savePreset,
     applyPreset,
   } = useDesktopWindows();
-  const catalog = visibleWindowCatalog(role);
+  const catalog = useMemo(() => visibleWindowCatalog(role), [role]);
+
+  // Each window's content element is built once and reused across renders, so
+  // a board-level state change (bringing a window to front, applying a
+  // preset, opening something else) reconciles the chrome but hits React's
+  // same-element bailout for everything inside it. Calling entry.render()
+  // inline instead handed every window a brand-new element tree every time
+  // the board re-rendered, re-rendering the Leaflet map, the relationship
+  // graph and every list along with it.
+  const catalogContent = useMemo(
+    () => new Map(catalog.map((entry) => [entry.id, entry.render()])),
+    [catalog],
+  );
+  const dynamicContent = useMemo(
+    () =>
+      new Map(
+        Object.entries(dynamicWindows).map(([id, entry]) => [
+          id,
+          entry.render(),
+        ]),
+      ),
+    [dynamicWindows],
+  );
 
   // False only during this DesktopBoard instance's very first render.
   // Windows that are already visible then are just part of the
@@ -154,13 +176,16 @@ export function DesktopBoard({ role }: DesktopBoardProps) {
 
       <div className={styles.board} ref={boardRef} data-testid="desktop-board">
         {catalog.map((entry) =>
-          renderWindow(entry.id, entry.title, entry.render(), () =>
-            toggle(entry.id),
+          renderWindow(
+            entry.id,
+            entry.title,
+            catalogContent.get(entry.id),
+            () => toggle(entry.id),
           ),
         )}
 
         {Object.entries(dynamicWindows).map(([id, dynamicEntry]) =>
-          renderWindow(id, dynamicEntry.title, dynamicEntry.render(), () =>
+          renderWindow(id, dynamicEntry.title, dynamicContent.get(id), () =>
             closeWindow(id),
           ),
         )}

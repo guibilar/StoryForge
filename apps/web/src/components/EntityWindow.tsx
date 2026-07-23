@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useMutation, useQuery } from "urql";
-import { ImagePlus, Palette, Plus, RotateCcw } from "lucide-react";
+import { ImagePlus, Palette, Pencil, Plus, RotateCcw } from "lucide-react";
 import { Button, FormError, Icon, Tabs } from "@storyforge/ui";
 import type { TabItem } from "@storyforge/ui";
 
@@ -25,6 +25,8 @@ import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { ForceOpenEntityAction } from "./ForceOpenEntityAction";
 import { NoteFormWindow } from "./NoteFormWindow";
 import type { NoteRow } from "./NoteFormWindow";
+import { RelationshipFormWindow } from "./RelationshipFormWindow";
+import type { RelationshipRow } from "./RelationshipFormWindow";
 import styles from "./EntityWindow.module.css";
 
 // Mirrors LocalImageStore's MAX_BYTES (apps/api/src/modules/entities/infrastructure/LocalImageStore.ts)
@@ -291,7 +293,19 @@ function RelationshipsTab({
   entity: EntitySummary;
 }) {
   const openEntityWindow = useOpenEntityWindow(campaignId);
+  // Same window geometry the graph uses for this form, so editing from either
+  // place lands on the same `relationship-form:{id}` window.
+  const { openAddEditWindow: openRelationshipWindow } = useAddEditWindow({
+    idPrefix: "relationship-form",
+    width: 380,
+    height: 480,
+  });
 
+  const [{ data: meData }] = useQuery({ query: MeDocument });
+  const [{ data: campaignData }] = useQuery({
+    query: CampaignDocument,
+    variables: { id: campaignId },
+  });
   const [
     { data: entitiesData, fetching: entitiesFetching },
     reexecuteEntities,
@@ -307,10 +321,43 @@ function RelationshipsTab({
     variables: { campaignId, entityId: entity.id },
   });
 
-  useWindowChromeSync(entitiesFetching || relationshipsFetching, () => {
+  function refetchRelationships() {
     reexecuteEntities({ requestPolicy: "network-only" });
     reexecuteRelationships({ requestPolicy: "network-only" });
-  });
+  }
+
+  useWindowChromeSync(
+    entitiesFetching || relationshipsFetching,
+    refetchRelationships,
+  );
+
+  const currentUserId = meData?.me?.id;
+  const myRole = (campaignData?.campaign?.members ?? []).find(
+    (member) => member.userId === currentUserId,
+  )?.role;
+  const isWriter =
+    myRole === "OWNER" ||
+    myRole === "STORYTELLER" ||
+    myRole === "CO_STORYTELLER";
+
+  // Until now the only way to edit or delete a relationship was clicking its
+  // edge in the graph — a 1.4px line that faction grouping can legitimately
+  // hide (a MemberOf edge is absorbed into its hull), leaving the relationship
+  // with no reachable delete at all. The entity's own list is the stable path.
+  function openEditRelationshipWindow(relationship: RelationshipRow) {
+    openRelationshipWindow<RelationshipRow>(
+      { mode: "edit", item: relationship },
+      `Edit: ${relationship.type}`,
+      (close) => (
+        <RelationshipFormWindow
+          campaignId={campaignId}
+          mode={{ mode: "edit", item: relationship }}
+          onSaved={refetchRelationships}
+          onClose={close}
+        />
+      ),
+    );
+  }
 
   if (entitiesFetching || relationshipsFetching) {
     return <p className={styles.empty}>Loading relationships…</p>;
@@ -328,34 +375,63 @@ function RelationshipsTab({
     (entitiesData?.entities ?? []).map((row) => [row.id, row]),
   );
 
-  // Which side of `relationship` is the counterpart to this entity's own
-  // page. Usually one raw field equals `entity.id` and the other is the
-  // counterpart — but a concealed endpoint (KAN-134) can come back `null`
-  // from the API, and if that happens to be the side that *would* have
-  // matched `entity.id`, neither raw field equals it any more. In that
-  // fallback case the un-redacted field sitting in the other slot is still
-  // the real counterpart, not a sign the counterpart itself is unknown.
-  function counterpartIdFor(relationship: {
+  type RelationshipEndpoints = {
     sourceEntityId: string | null;
     targetEntityId: string | null;
-  }): string | null {
+    concealedEndpoint?: string | null;
+  };
+
+  // True when it's *this* entity's own participation that the Storyteller
+  // concealed, rather than the counterpart's. The API redacts by blanking the
+  // concealed side's id, so the tell is that neither raw field matches
+  // entity.id any more — had the counterpart been the concealed one, this
+  // entity's id would still be sitting in the field that matches.
+  //
+  // Storytellers never reach this: canSeeRelationshipEndpoint returns their
+  // real ids un-redacted, so the row resolves normally for them.
+  function concealsThisEntity(relationship: RelationshipEndpoints): boolean {
+    return (
+      Boolean(relationship.concealedEndpoint) &&
+      relationship.sourceEntityId !== entity.id &&
+      relationship.targetEntityId !== entity.id
+    );
+  }
+
+  // Which side of `relationship` is the counterpart to this entity's own
+  // page: whichever raw field isn't this entity. A concealed counterpart
+  // (KAN-134) comes back null and renders as "Unknown" below. Rows where our
+  // own side is the concealed one never get here — they're filtered out — and
+  // null is the safe answer if one ever did.
+  function counterpartIdFor(
+    relationship: RelationshipEndpoints,
+  ): string | null {
     if (relationship.sourceEntityId === entity.id) {
       return relationship.targetEntityId;
     }
     if (relationship.targetEntityId === entity.id) {
       return relationship.sourceEntityId;
     }
-    return relationship.sourceEntityId ?? relationship.targetEntityId;
+    return null;
   }
 
   // The API filters relationships down to those whose endpoints the viewer
   // can see (relationships/graphql/guards.ts). A `null` counterpart means
   // it's concealed, not invisible — that row still renders as "Unknown"
-  // below. This only drops the rare case of an id that slipped through with
-  // no matching entity, which used to disclose the type and description of
-  // a link into an entity the viewer was never shown.
+  // below. Two things do get dropped here:
+  //
+  //  - a relationship concealing *this* entity's own side. The redaction hides
+  //    who the other party is dealing with, so listing it on that party's own
+  //    page ("Beatriz Moreau — Blackmails" on the blackmailer's window) hands
+  //    back the exact fact being kept. It stays visible from the other
+  //    endpoint, and on the graph, as an Unknown counterpart.
+  //  - an id that slipped through with no matching entity, which used to
+  //    disclose the type and description of a link into an entity the viewer
+  //    was never shown.
   const relationships = (relationshipsData?.relationships ?? []).filter(
     (relationship) => {
+      if (concealsThisEntity(relationship)) {
+        return false;
+      }
       const counterpartId = counterpartIdFor(relationship);
       return counterpartId === null || entitiesById.has(counterpartId);
     },
@@ -392,6 +468,16 @@ function RelationshipsTab({
 
         return (
           <li key={relationship.id} className={styles.relationshipRow}>
+            {isWriter ? (
+              <button
+                type="button"
+                className={styles.relationshipEdit}
+                aria-label={`Edit relationship: ${relationship.type}`}
+                onClick={() => openEditRelationshipWindow(relationship)}
+              >
+                <Icon icon={Pencil} size={13} aria-hidden="true" />
+              </button>
+            ) : null}
             <button
               type="button"
               className={styles.relationshipName}

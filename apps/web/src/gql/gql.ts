@@ -56,7 +56,7 @@ type Documents = {
   "subscription OnEntityWindowForceOpened($campaignId: ID!) {\n  entityWindowForceOpened(campaignId: $campaignId) {\n    id\n    campaignId\n    type\n    category\n    name\n    description\n    image\n    color\n    visibility\n  }\n}": typeof types.OnEntityWindowForceOpenedDocument;
   "subscription OnForceSyncViewport($campaignId: ID!) {\n  forceSyncViewport(campaignId: $campaignId) {\n    campaignId\n    center {\n      lat\n      lng\n    }\n    zoom\n    broadcasterId\n  }\n}": typeof types.OnForceSyncViewportDocument;
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.RegisterDocument;
-  "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}": typeof types.RelationshipsDocument;
+  "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    concealedEndpoint\n    type\n    description\n    visibility\n    recipientIds\n  }\n}": typeof types.RelationshipsDocument;
   "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}": typeof types.RemoveCampaignMemberDocument;
   "mutation SaveWorkspaceState($input: SaveWorkspaceStateInput!) {\n  saveWorkspaceState(input: $input) {\n    id\n    updatedAt\n  }\n}": typeof types.SaveWorkspaceStateDocument;
   "query Sessions($campaignId: ID!) {\n  sessions(campaignId: $campaignId) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.SessionsDocument;
@@ -157,7 +157,7 @@ const documents: Documents = {
     types.OnForceSyncViewportDocument,
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}":
     types.RegisterDocument,
-  "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}":
+  "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    concealedEndpoint\n    type\n    description\n    visibility\n    recipientIds\n  }\n}":
     types.RelationshipsDocument,
   "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}":
     types.RemoveCampaignMemberDocument,
@@ -463,8 +463,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}",
-): (typeof documents)["query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}"];
+  source: "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    concealedEndpoint\n    type\n    description\n    visibility\n    recipientIds\n  }\n}",
+): (typeof documents)["query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    concealedEndpoint\n    type\n    description\n    visibility\n    recipientIds\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

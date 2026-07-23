@@ -1,0 +1,162 @@
+.node {
+  --avatar-size: 64px;
+  width: 156px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition:
+    opacity var(--dur-2) var(--ease),
+    transform var(--dur-2) var(--ease);
+}
+
+.node:hover {
+  transform: translateY(-2px);
+}
+
+/* Hovering a node fades everything it isn't connected to, which is the only
+   thing that makes a dense campaign graph readable without filtering. */
+.dimmed {
+  opacity: 0.22;
+}
+
+.avatar {
+  position: relative;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  border-radius: 50%;
+  border: 2px solid var(--node-color, var(--accent));
+  background: var(--surface-2);
+  box-shadow:
+    0 0 0 5px
+      color-mix(in srgb, var(--node-color, var(--accent)) 18%, transparent),
+    var(--shadow-sm);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.node:hover .avatar,
+.focused .avatar {
+  box-shadow:
+    0 0 0 6px
+      color-mix(in srgb, var(--node-color, var(--accent)) 34%, transparent),
+    var(--shadow-md);
+}
+
+/* A concealed endpoint isn't a real entity, so it doesn't get an entity's
+   affordances: nothing to open, no type colour to claim, and a dashed rim
+   that reads as unresolved rather than as a node whose portrait failed. */
+.concealed {
+  cursor: default;
+}
+
+.concealed:hover {
+  transform: none;
+}
+
+.concealed .avatar {
+  border-style: dashed;
+  border-color: var(--border-strong);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.concealed:hover .avatar,
+.concealed.focused .avatar {
+  box-shadow: none;
+}
+
+.concealed .initials {
+  color: var(--text);
+}
+
+.concealed .name {
+  font-style: italic;
+  color: var(--text);
+}
+
+.portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Initials rather than a blank disc: an entity with no portrait uploaded is
+   still identifiable when the graph is zoomed out past readable labels. */
+.initials {
+  font-family: var(--heading);
+  font-size: calc(var(--avatar-size) * 0.34);
+  font-weight: 600;
+  color: var(--text-h);
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.name {
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+  text-align: center;
+  line-height: 1.25;
+  /* Labels sit over edge lines, so they need their own backing to stay
+     legible without boxing every node in an opaque rectangle. */
+  text-shadow:
+    0 0 4px var(--bg),
+    0 0 8px var(--bg);
+  overflow-wrap: anywhere;
+}
+
+.type {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-shadow: 0 0 5px var(--bg);
+}
+
+/* Nothing to see: it exists purely to give a cluster's own relationships a
+   point to attach to now that its organization is drawn as the hull. */
+.anchor {
+  width: 0;
+  height: 0;
+}
+
+/* The handles only exist so edges have somewhere to attach; showing React
+   Flow's default dots would put eight grey pips around every portrait. */
+.handle {
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.handleTop {
+  top: 0;
+  left: 50%;
+}
+
+.handleBottom {
+  top: var(--avatar-size);
+  left: 50%;
+}
+
+.handleLeft {
+  top: calc(var(--avatar-size) / 2);
+  left: calc(50% - var(--avatar-size) / 2);
+}
+
+.handleRight {
+  top: calc(var(--avatar-size) / 2);
+  left: calc(50% + var(--avatar-size) / 2);
+}

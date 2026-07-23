@@ -3,6 +3,7 @@ query Relationships($campaignId: ID!, $entityId: ID) {
     id
     sourceEntityId
     targetEntityId
+    concealedEndpoint
     type
     description
     visibility

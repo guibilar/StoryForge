@@ -638,17 +638,89 @@ describe("EntityWindow", () => {
     ).toBeInTheDocument();
   });
 
-  it("resolves the real counterpart when this entity itself is the concealed side", async () => {
-    // The redacted field no longer equals entity.id once it's null, so the
-    // naive "sourceEntityId === entity.id ? target : source" ternary would
-    // misattribute the counterpart here — this pins the fallback behavior.
+  // This page used to resolve the counterpart here and name them, which handed
+  // back exactly what concealing this side was hiding: open the blackmailer's
+  // window and it told you who they blackmail. It bit only when the concealed
+  // entity was itself visible to the viewer, which is why it survived — the
+  // documented case (concealing a STORYTELLER-only NPC) has no window a player
+  // can open.
+  it("drops a relationship that conceals this entity's own side", async () => {
     const user = userEvent.setup();
     setupQueries({
       relationships: [
         {
           id: "rel-self-concealed",
+          // Our own id, redacted by the API for a non-Storyteller viewer.
           sourceEntityId: null,
           targetEntityId: "e-2",
+          concealedEndpoint: "SOURCE",
+          type: "Blackmails",
+          description: null,
+        },
+      ],
+    });
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("tab", { name: "Relationships" }));
+
+    expect(
+      screen.queryByRole("button", { name: "Beatriz Moreau" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Blackmails")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("No recorded relationships yet."),
+    ).toBeInTheDocument();
+  });
+
+  // Deleting a relationship used to be reachable only by clicking its edge in
+  // the graph, which faction grouping can legitimately hide — a MemberOf edge
+  // is absorbed into its hull, leaving no way to delete it at all. The edit
+  // window this opens is where Delete lives.
+  it("opens the relationship form from the list for a writer", async () => {
+    const user = userEvent.setup();
+    setupQueries();
+    const { openWindow } = setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("tab", { name: "Relationships" }));
+    await user.click(
+      screen.getByRole("button", { name: "Edit relationship: Sire" }),
+    );
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "relationship-form:rel-1",
+        title: "Edit: Sire",
+      }),
+    );
+  });
+
+  it("offers no relationship editing to a player", async () => {
+    const user = userEvent.setup();
+    setupQueries({ members: playerMembers });
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("tab", { name: "Relationships" }));
+
+    expect(
+      screen.queryByRole("button", { name: /Edit relationship/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  // A Storyteller's copy is never redacted (canSeeRelationshipEndpoint returns
+  // their real ids), so the rule above can't hide a row from the person who
+  // wrote it.
+  it("keeps the row for a Storyteller, whose endpoints are never redacted", async () => {
+    const user = userEvent.setup();
+    setupQueries({
+      relationships: [
+        {
+          id: "rel-self-concealed",
+          sourceEntityId: ENTITY.id,
+          targetEntityId: "e-2",
+          concealedEndpoint: "SOURCE",
           type: "Blackmails",
           description: null,
         },
@@ -662,7 +734,6 @@ describe("EntityWindow", () => {
     expect(
       screen.getByRole("button", { name: "Beatriz Moreau" }),
     ).toBeInTheDocument();
-    expect(screen.queryByText("Unknown")).not.toBeInTheDocument();
   });
 
   it("opens a note window when a linked note is clicked", async () => {

@@ -578,7 +578,6 @@ describe("EntityWindow", () => {
       relationships: [
         {
           id: "rel-hidden",
-          campaignId: "camp-1",
           sourceEntityId: ENTITY.id,
           // Not present in the (visibility-filtered) entities list.
           targetEntityId: "entity-hidden",

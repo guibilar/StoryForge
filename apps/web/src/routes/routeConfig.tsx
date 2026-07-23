@@ -8,6 +8,10 @@ import { CampaignDesktopPage } from "../pages/CampaignDesktopPage";
 
 export const routes: RouteObject[] = [
   {
+    path: "/",
+    element: <LoginPage />,
+  },
+  {
     path: "/login",
     element: <LoginPage />,
   },

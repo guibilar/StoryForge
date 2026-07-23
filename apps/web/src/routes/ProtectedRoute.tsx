@@ -4,7 +4,10 @@ import { useQuery } from "urql";
 import { MeDocument } from "../gql/graphql";
 
 export function ProtectedRoute() {
-  const [{ data, fetching }] = useQuery({ query: MeDocument });
+  const [{ data, fetching }] = useQuery({
+    query: MeDocument,
+    requestPolicy: "network-only",
+  });
 
   if (fetching) {
     return null;

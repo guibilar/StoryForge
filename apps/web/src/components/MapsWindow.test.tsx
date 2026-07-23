@@ -10,6 +10,8 @@ import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { WindowChromeContext } from "../lib/WindowChromeContext";
 import {
   CampaignDocument,
+  CreateMarkerDocument,
+  CreateTerritoryDocument,
   DeleteMapImageDocument,
   DeleteMarkerDocument,
   ForceSyncViewportDocument,
@@ -338,6 +340,21 @@ function setupMocks({
           stale: false,
         },
         forceSyncViewport,
+      ];
+    }
+
+    // Only exercised once the export/import modal (KAN-136) is opened.
+    if (document === CreateMarkerDocument) {
+      return [
+        { fetching: false, error: undefined, stale: false },
+        vi.fn().mockResolvedValue({ data: { createMarker: { id: "m" } } }),
+      ];
+    }
+
+    if (document === CreateTerritoryDocument) {
+      return [
+        { fetching: false, error: undefined, stale: false },
+        vi.fn().mockResolvedValue({ data: { createTerritory: { id: "t" } } }),
       ];
     }
 
@@ -851,6 +868,53 @@ describe("MapsWindow", () => {
     expect(
       screen.queryByRole("button", { name: "Upload Map Image" }),
     ).not.toBeInTheDocument();
+  });
+
+  describe("KAN-136 map data export/import", () => {
+    it("shows the export/import trigger for a writer on the geographic tile layer", () => {
+      setupMocks({ mapImage: null });
+      setupDesktopWindows();
+      renderWindow();
+
+      expect(
+        screen.getByRole("button", { name: "Export or import map data" }),
+      ).toBeInTheDocument();
+    });
+
+    it("hides the export/import trigger on a campaign with a custom map image", () => {
+      setupMocks({ mapImage: imageMap });
+      setupDesktopWindows();
+      renderWindow();
+
+      expect(
+        screen.queryByRole("button", { name: "Export or import map data" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("hides the export/import trigger for a Player (read-only)", () => {
+      setupMocks({ members: playerMembers, mapImage: null });
+      setupDesktopWindows();
+      renderWindow();
+
+      expect(
+        screen.queryByRole("button", { name: "Export or import map data" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("opens the export/import modal from the trigger button", async () => {
+      setupMocks({ mapImage: null });
+      setupDesktopWindows();
+      const user = userEvent.setup();
+      renderWindow();
+
+      await user.click(
+        screen.getByRole("button", { name: "Export or import map data" }),
+      );
+
+      expect(
+        screen.getByRole("heading", { name: "Export / import map data" }),
+      ).toBeInTheDocument();
+    });
   });
 
   it("uploads the selected file and refetches the map image", async () => {

@@ -1,0 +1,29 @@
+.description {
+  color: var(--text);
+  font-size: 14px;
+  margin: 0 0 20px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.section h3 {
+  margin: 0 0 4px;
+}
+
+.hint {
+  color: var(--text);
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+
+.summary {
+  color: var(--text);
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+
+.hiddenFileInput {
+  display: none;
+}

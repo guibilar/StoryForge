@@ -693,6 +693,13 @@ export type NoteQuery = {
       visibility: EntityVisibility;
     }>;
     linkedNotes: Array<{ id: string; title: string }>;
+    children: Array<{
+      id: string;
+      authorId: string;
+      title: string;
+      content: string;
+      visibility: NoteVisibility;
+    }>;
     backlinks: Array<{ id: string; title: string }>;
     attachments: Array<{
       id: string;
@@ -3356,6 +3363,29 @@ export const NoteDocument = {
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "title" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "children" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "authorId" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "content" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "visibility" },
+                      },
                     ],
                   },
                 },

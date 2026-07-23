@@ -4,12 +4,16 @@ input CreateRelationshipInput {
   targetEntityId: ID!
   type: String!
   description: String
+  visibility: RelationshipVisibility
+  recipientIds: [ID!]
 }
 
 input UpdateRelationshipInput {
   id: ID!
   type: String
   description: String
+  visibility: RelationshipVisibility
+  recipientIds: [ID!]
 }
 
 extend type Mutation {

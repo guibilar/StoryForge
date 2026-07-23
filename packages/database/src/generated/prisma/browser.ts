@@ -82,6 +82,11 @@ export type NoteRecipient = Prisma.NoteRecipientModel;
  */
 export type NoteLink = Prisma.NoteLinkModel;
 /**
+ * Model RelationshipRecipient
+ *
+ */
+export type RelationshipRecipient = Prisma.RelationshipRecipientModel;
+/**
  * Model Attachment
  *
  */

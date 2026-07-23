@@ -67,6 +67,7 @@ export const ModelName = {
   Note: "Note",
   NoteRecipient: "NoteRecipient",
   NoteLink: "NoteLink",
+  RelationshipRecipient: "RelationshipRecipient",
   Attachment: "Attachment",
   CampaignMember: "CampaignMember",
   WorkspaceState: "WorkspaceState",
@@ -200,6 +201,7 @@ export const RelationshipScalarFieldEnum = {
   targetEntityId: "targetEntityId",
   type: "type",
   description: "description",
+  visibility: "visibility",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
   deletedAt: "deletedAt",
@@ -255,6 +257,16 @@ export const NoteLinkScalarFieldEnum = {
 
 export type NoteLinkScalarFieldEnum =
   (typeof NoteLinkScalarFieldEnum)[keyof typeof NoteLinkScalarFieldEnum];
+
+export const RelationshipRecipientScalarFieldEnum = {
+  id: "id",
+  relationshipId: "relationshipId",
+  userId: "userId",
+  createdAt: "createdAt",
+} as const;
+
+export type RelationshipRecipientScalarFieldEnum =
+  (typeof RelationshipRecipientScalarFieldEnum)[keyof typeof RelationshipRecipientScalarFieldEnum];
 
 export const AttachmentScalarFieldEnum = {
   id: "id",

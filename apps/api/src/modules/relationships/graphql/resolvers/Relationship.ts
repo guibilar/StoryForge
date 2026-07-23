@@ -9,6 +9,9 @@ export const Relationship = {
     relationship.TargetEntityId,
   type: (relationship: DomainRelationship) => relationship.Type,
   description: (relationship: DomainRelationship) => relationship.Description,
+  visibility: (relationship: DomainRelationship) => relationship.Visibility,
+  recipientIds: (relationship: DomainRelationship) =>
+    relationship.RecipientIds.map((userId) => userId.toString()),
   createdAt: (relationship: DomainRelationship) =>
     relationship.CreatedAt.toISOString(),
   updatedAt: (relationship: DomainRelationship) =>

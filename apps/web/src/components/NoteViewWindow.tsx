@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useMutation, useQuery } from "urql";
-import { Paperclip, Pencil, Trash2 } from "lucide-react";
+import { Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button, FormError, Icon, IconButton } from "@storyforge/ui";
 
 import {
@@ -103,6 +103,10 @@ export function NoteViewWindow({ noteId, campaignId }: NoteViewWindowProps) {
     note &&
     (isWriter || (myRole === "PLAYER" && note.authorId === currentUserId)),
   );
+  // Filing a sub-note only needs *view* rights on the parent (the API's
+  // requireViewableParent), so a player can annotate a Storyteller's shared
+  // note without being able to edit it. Their sub-note defaults to PRIVATE.
+  const canAddSubNote = isWriter || myRole === "PLAYER";
 
   function openEditWindow() {
     if (!note) {
@@ -123,6 +127,32 @@ export function NoteViewWindow({ noteId, campaignId }: NoteViewWindowProps) {
         <NoteFormWindow
           campaignId={campaignId}
           mode={{ mode: "edit", item: row }}
+          onSaved={refetch}
+          onClose={close}
+        />
+      ),
+    );
+  }
+
+  function openCreateSubNoteWindow() {
+    if (!note) {
+      return;
+    }
+    const seed = {
+      mode: "create" as const,
+      key: `child-${note.id}`,
+      initial: {
+        parentNoteId: note.id,
+        visibility: isWriter ? ("SHARED" as const) : ("PRIVATE" as const),
+      },
+    };
+    openAddEditWindow<NoteRow>(
+      seed,
+      `New note under: ${note.title}`,
+      (close) => (
+        <NoteFormWindow
+          campaignId={campaignId}
+          mode={seed}
           onSaved={refetch}
           onClose={close}
         />
@@ -249,6 +279,38 @@ export function NoteViewWindow({ noteId, campaignId }: NoteViewWindowProps) {
           </div>
         </section>
       ) : null}
+
+      <section className={styles.section}>
+        <h3 className={styles.sectionLabel}>
+          Sub-notes · {note.children.length}
+        </h3>
+        {note.children.length === 0 ? (
+          <p className={styles.empty}>No sub-notes.</p>
+        ) : (
+          <div className={styles.chips}>
+            {note.children.map((child) => (
+              <button
+                key={child.id}
+                type="button"
+                className={styles.chip}
+                onClick={() => openNoteWindow(child.id, child.title)}
+              >
+                {child.title}
+              </button>
+            ))}
+          </div>
+        )}
+        {canAddSubNote ? (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={openCreateSubNoteWindow}
+          >
+            <Icon icon={Plus} size={15} aria-hidden="true" />
+            Add sub-note
+          </Button>
+        ) : null}
+      </section>
 
       {note.backlinks.length > 0 ? (
         <section className={styles.section}>

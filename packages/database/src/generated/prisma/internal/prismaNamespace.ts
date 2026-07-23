@@ -424,6 +424,7 @@ export const ModelName = {
   Note: "Note",
   NoteRecipient: "NoteRecipient",
   NoteLink: "NoteLink",
+  RelationshipRecipient: "RelationshipRecipient",
   Attachment: "Attachment",
   CampaignMember: "CampaignMember",
   WorkspaceState: "WorkspaceState",
@@ -465,6 +466,7 @@ export type TypeMap<
       | "note"
       | "noteRecipient"
       | "noteLink"
+      | "relationshipRecipient"
       | "attachment"
       | "campaignMember"
       | "workspaceState"
@@ -1462,6 +1464,82 @@ export type TypeMap<
         };
       };
     };
+    RelationshipRecipient: {
+      payload: Prisma.$RelationshipRecipientPayload<ExtArgs>;
+      fields: Prisma.RelationshipRecipientFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.RelationshipRecipientFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.RelationshipRecipientFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload>;
+        };
+        findFirst: {
+          args: Prisma.RelationshipRecipientFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.RelationshipRecipientFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload>;
+        };
+        findMany: {
+          args: Prisma.RelationshipRecipientFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload>[];
+        };
+        create: {
+          args: Prisma.RelationshipRecipientCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload>;
+        };
+        createMany: {
+          args: Prisma.RelationshipRecipientCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.RelationshipRecipientCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload>[];
+        };
+        delete: {
+          args: Prisma.RelationshipRecipientDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload>;
+        };
+        update: {
+          args: Prisma.RelationshipRecipientUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload>;
+        };
+        deleteMany: {
+          args: Prisma.RelationshipRecipientDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.RelationshipRecipientUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.RelationshipRecipientUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload>[];
+        };
+        upsert: {
+          args: Prisma.RelationshipRecipientUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RelationshipRecipientPayload>;
+        };
+        aggregate: {
+          args: Prisma.RelationshipRecipientAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRelationshipRecipient>;
+        };
+        groupBy: {
+          args: Prisma.RelationshipRecipientGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.RelationshipRecipientGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.RelationshipRecipientCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.RelationshipRecipientCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
     Attachment: {
       payload: Prisma.$AttachmentPayload<ExtArgs>;
       fields: Prisma.AttachmentFieldRefs;
@@ -2066,6 +2144,7 @@ export const RelationshipScalarFieldEnum = {
   targetEntityId: "targetEntityId",
   type: "type",
   description: "description",
+  visibility: "visibility",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
   deletedAt: "deletedAt",
@@ -2121,6 +2200,16 @@ export const NoteLinkScalarFieldEnum = {
 
 export type NoteLinkScalarFieldEnum =
   (typeof NoteLinkScalarFieldEnum)[keyof typeof NoteLinkScalarFieldEnum];
+
+export const RelationshipRecipientScalarFieldEnum = {
+  id: "id",
+  relationshipId: "relationshipId",
+  userId: "userId",
+  createdAt: "createdAt",
+} as const;
+
+export type RelationshipRecipientScalarFieldEnum =
+  (typeof RelationshipRecipientScalarFieldEnum)[keyof typeof RelationshipRecipientScalarFieldEnum];
 
 export const AttachmentScalarFieldEnum = {
   id: "id",
@@ -2334,6 +2423,18 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<
 >;
 
 /**
+ * Reference to a field of type 'RelationshipVisibility'
+ */
+export type EnumRelationshipVisibilityFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, "RelationshipVisibility">;
+
+/**
+ * Reference to a field of type 'RelationshipVisibility[]'
+ */
+export type ListEnumRelationshipVisibilityFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, "RelationshipVisibility[]">;
+
+/**
  * Reference to a field of type 'NoteVisibility'
  */
 export type EnumNoteVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<
@@ -2526,6 +2627,7 @@ export type GlobalOmitConfig = {
   note?: Prisma.NoteOmit;
   noteRecipient?: Prisma.NoteRecipientOmit;
   noteLink?: Prisma.NoteLinkOmit;
+  relationshipRecipient?: Prisma.RelationshipRecipientOmit;
   attachment?: Prisma.AttachmentOmit;
   campaignMember?: Prisma.CampaignMemberOmit;
   workspaceState?: Prisma.WorkspaceStateOmit;

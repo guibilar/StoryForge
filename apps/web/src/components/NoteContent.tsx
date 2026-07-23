@@ -10,8 +10,10 @@ export interface NoteContentProps {
   // The links the API resolved for this note — what a `[[reference]]` is
   // matched against. See lib/noteLinks.ts.
   targets: WikiLinkTargets;
-  onOpenEntity: (entityId: string) => void;
-  onOpenNote: (noteId: string) => void;
+  // Omitted by the editor's own preview pane, where a [[link]] should look
+  // like a link but not navigate anywhere mid-edit.
+  onOpenEntity?: (entityId: string) => void;
+  onOpenNote?: (noteId: string) => void;
 }
 
 // Read-only rendering of a note's markdown, with `[[wiki links]]` turned
@@ -45,9 +47,9 @@ export function NoteContent({
     event.stopPropagation();
 
     if (target.kind === "entity") {
-      onOpenEntity(target.id);
+      onOpenEntity?.(target.id);
     } else if (target.kind === "note") {
-      onOpenNote(target.id);
+      onOpenNote?.(target.id);
     }
   }
 

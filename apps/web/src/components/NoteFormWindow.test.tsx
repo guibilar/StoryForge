@@ -127,6 +127,22 @@ function renderCreate(onSaved = vi.fn(), onClose = vi.fn()) {
   return { onSaved, onClose };
 }
 
+function renderCreateWithSeed(
+  initial: Partial<NoteRow>,
+  onSaved = vi.fn(),
+  onClose = vi.fn(),
+) {
+  render(
+    <NoteFormWindow
+      campaignId="camp-1"
+      mode={{ mode: "create", key: "seeded", initial }}
+      onSaved={onSaved}
+      onClose={onClose}
+    />,
+  );
+  return { onSaved, onClose };
+}
+
 function renderEdit(note: NoteRow, onSaved = vi.fn(), onClose = vi.fn()) {
   render(
     <NoteFormWindow
@@ -138,6 +154,104 @@ function renderEdit(note: NoteRow, onSaved = vi.fn(), onClose = vi.fn()) {
   );
   return { onSaved, onClose };
 }
+
+describe("NoteFormWindow editor", () => {
+  it("offers a [[link]] toolbar button alongside the markdown basics", () => {
+    setupMocks();
+    renderCreate();
+
+    expect(
+      screen.getByRole("button", { name: "Insert a [[link]]" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Add bold text/)).toBeInTheDocument();
+    // Trimmed from the stock toolbar: images are attachments on the view
+    // window, so a markdown image button would promise an upload path that
+    // doesn't exist here.
+    expect(screen.queryByLabelText(/image/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/table/i)).not.toBeInTheDocument();
+  });
+
+  it("wraps the caret in brackets when the [[link]] button is used", async () => {
+    const { createNote } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Title"), "Ambush");
+    await user.click(screen.getByRole("button", { name: "Insert a [[link]]" }));
+
+    const textarea = screen.getByLabelText("Content") as HTMLTextAreaElement;
+    expect(textarea.value).toBe("[[]]");
+    // Caret parked between the brackets, ready for the target's name.
+    expect(textarea.selectionStart).toBe(2);
+    expect(textarea.selectionEnd).toBe(2);
+
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(createNote).toHaveBeenCalledWith({
+      input: expect.objectContaining({ content: "[[]]" }),
+    });
+  });
+
+  it("hints the [[ ]] syntax in the empty editor", () => {
+    setupMocks();
+    renderCreate();
+
+    expect(
+      screen.getByPlaceholderText(
+        "Write your note… use [[ ]] to link an entity or another note.",
+      ),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("NoteFormWindow create seeds", () => {
+  it("files the note under the seeded parent", async () => {
+    const { createNote } = setupMocks();
+    const user = userEvent.setup();
+    renderCreateWithSeed({ parentNoteId: "note-1", visibility: "PRIVATE" });
+
+    await user.type(screen.getByLabelText("Title"), "My theory");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createNote).toHaveBeenCalledWith({
+      input: expect.objectContaining({
+        parentNoteId: "note-1",
+        visibility: "PRIVATE",
+      }),
+    });
+  });
+
+  it("starts a note seeded from an entity with the [[link]] already written", async () => {
+    const { createNote } = setupMocks();
+    const user = userEvent.setup();
+    renderCreateWithSeed({
+      content: "[[Carlos Mendoza|entity:e-1]]\n\n",
+      visibility: "PRIVATE",
+    });
+
+    await user.type(screen.getByLabelText("Title"), "What I saw");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createNote).toHaveBeenCalledWith({
+      input: expect.objectContaining({
+        content: "[[Carlos Mendoza|entity:e-1]]\n\n",
+        visibility: "PRIVATE",
+      }),
+    });
+  });
+
+  it("omits parentNoteId entirely for an unseeded create", async () => {
+    const { createNote } = setupMocks();
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("Title"), "Loose note");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(createNote.mock.calls[0][0].input).not.toHaveProperty(
+      "parentNoteId",
+    );
+  });
+});
 
 describe("NoteFormWindow link pickers", () => {
   it("inserts an entity [[link]] with the id pinned — the note's only way to relate to an entity", async () => {

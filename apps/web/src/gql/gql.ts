@@ -25,7 +25,7 @@ type Documents = {
   "mutation CreateEvent($input: CreateEventInput!) {\n  createEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.CreateEventDocument;
   "mutation CreateMarker($input: CreateMarkerInput!) {\n  createMarker(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}": typeof types.CreateMarkerDocument;
   "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.CreateNoteDocument;
-  "mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}": typeof types.CreateRelationshipDocument;
+  "mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}": typeof types.CreateRelationshipDocument;
   "mutation CreateSession($input: CreateSessionInput!) {\n  createSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.CreateSessionDocument;
   "mutation CreateTerritory($input: CreateTerritoryInput!) {\n  createTerritory(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}": typeof types.CreateTerritoryDocument;
   "mutation DeleteAttachment($id: ID!) {\n  deleteAttachment(id: $id)\n}": typeof types.DeleteAttachmentDocument;
@@ -51,12 +51,12 @@ type Documents = {
   "query Markers($campaignId: ID!) {\n  markers(campaignId: $campaignId) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}": typeof types.MarkersDocument;
   "query Me {\n  me {\n    id\n    email\n  }\n}": typeof types.MeDocument;
   "query MyWorkspaceState($campaignId: ID!) {\n  myWorkspaceState(campaignId: $campaignId) {\n    id\n    layout\n    recentEntityIds\n    updatedAt\n  }\n}": typeof types.MyWorkspaceStateDocument;
-  "query Note($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}": typeof types.NoteDocument;
+  "query Note($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    children {\n      id\n      authorId\n      title\n      content\n      visibility\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}": typeof types.NoteDocument;
   "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n  }\n}": typeof types.NotesDocument;
   "subscription OnEntityWindowForceOpened($campaignId: ID!) {\n  entityWindowForceOpened(campaignId: $campaignId) {\n    id\n    campaignId\n    type\n    category\n    name\n    description\n    image\n    color\n    visibility\n  }\n}": typeof types.OnEntityWindowForceOpenedDocument;
   "subscription OnForceSyncViewport($campaignId: ID!) {\n  forceSyncViewport(campaignId: $campaignId) {\n    campaignId\n    center {\n      lat\n      lng\n    }\n    zoom\n    broadcasterId\n  }\n}": typeof types.OnForceSyncViewportDocument;
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.RegisterDocument;
-  "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}": typeof types.RelationshipsDocument;
+  "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}": typeof types.RelationshipsDocument;
   "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}": typeof types.RemoveCampaignMemberDocument;
   "mutation SaveWorkspaceState($input: SaveWorkspaceStateInput!) {\n  saveWorkspaceState(input: $input) {\n    id\n    updatedAt\n  }\n}": typeof types.SaveWorkspaceStateDocument;
   "query Sessions($campaignId: ID!) {\n  sessions(campaignId: $campaignId) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.SessionsDocument;
@@ -67,7 +67,7 @@ type Documents = {
   "mutation UpdateEvent($input: UpdateEventInput!) {\n  updateEvent(input: $input) {\n    id\n    campaignId\n    title\n    description\n    occurredAt\n    sessionId\n    session {\n      id\n      sessionNumber\n    }\n    participants {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateEventDocument;
   "mutation UpdateMarker($input: UpdateMarkerInput!) {\n  updateMarker(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    lat\n    lng\n    description\n  }\n}": typeof types.UpdateMarkerDocument;
   "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateNoteDocument;
-  "mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}": typeof types.UpdateRelationshipDocument;
+  "mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}": typeof types.UpdateRelationshipDocument;
   "mutation UpdateSession($input: UpdateSessionInput!) {\n  updateSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}": typeof types.UpdateSessionDocument;
   "mutation UpdateTerritory($input: UpdateTerritoryInput!) {\n  updateTerritory(input: $input) {\n    id\n    entityId\n    entity {\n      id\n      name\n      type\n      description\n      visibility\n    }\n    name\n    type\n    geometry\n    description\n  }\n}": typeof types.UpdateTerritoryDocument;
   "mutation UploadEntityImage($entityId: ID!, $file: Upload!) {\n  uploadEntityImage(entityId: $entityId, file: $file) {\n    id\n    image\n  }\n}": typeof types.UploadEntityImageDocument;
@@ -97,7 +97,7 @@ const documents: Documents = {
     types.CreateMarkerDocument,
   "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
     types.CreateNoteDocument,
-  "mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}":
+  "mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}":
     types.CreateRelationshipDocument,
   "mutation CreateSession($input: CreateSessionInput!) {\n  createSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}":
     types.CreateSessionDocument,
@@ -147,7 +147,7 @@ const documents: Documents = {
   "query Me {\n  me {\n    id\n    email\n  }\n}": types.MeDocument,
   "query MyWorkspaceState($campaignId: ID!) {\n  myWorkspaceState(campaignId: $campaignId) {\n    id\n    layout\n    recentEntityIds\n    updatedAt\n  }\n}":
     types.MyWorkspaceStateDocument,
-  "query Note($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}":
+  "query Note($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    children {\n      id\n      authorId\n      title\n      content\n      visibility\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}":
     types.NoteDocument,
   "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n  }\n}":
     types.NotesDocument,
@@ -157,7 +157,7 @@ const documents: Documents = {
     types.OnForceSyncViewportDocument,
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}":
     types.RegisterDocument,
-  "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}":
+  "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}":
     types.RelationshipsDocument,
   "mutation RemoveCampaignMember($campaignId: ID!, $userId: ID!) {\n  removeCampaignMember(campaignId: $campaignId, userId: $userId)\n}":
     types.RemoveCampaignMemberDocument,
@@ -179,7 +179,7 @@ const documents: Documents = {
     types.UpdateMarkerDocument,
   "mutation UpdateNote($input: UpdateNoteInput!) {\n  updateNote(input: $input) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
     types.UpdateNoteDocument,
-  "mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}":
+  "mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}":
     types.UpdateRelationshipDocument,
   "mutation UpdateSession($input: UpdateSessionInput!) {\n  updateSession(input: $input) {\n    id\n    sessionNumber\n    date\n    summary\n    attendees {\n      userId\n      user {\n        id\n        email\n      }\n    }\n  }\n}":
     types.UpdateSessionDocument,
@@ -277,8 +277,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}",
-): (typeof documents)["mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}"];
+  source: "mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}",
+): (typeof documents)["mutation CreateRelationship($input: CreateRelationshipInput!) {\n  createRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -433,8 +433,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "query Note($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}",
-): (typeof documents)["query Note($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}"];
+  source: "query Note($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    children {\n      id\n      authorId\n      title\n      content\n      visibility\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}",
+): (typeof documents)["query Note($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    children {\n      id\n      authorId\n      title\n      content\n      visibility\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -463,8 +463,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}",
-): (typeof documents)["query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}"];
+  source: "query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}",
+): (typeof documents)["query Relationships($campaignId: ID!, $entityId: ID) {\n  relationships(campaignId: $campaignId, entityId: $entityId) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -529,8 +529,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}",
-): (typeof documents)["mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n  }\n}"];
+  source: "mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}",
+): (typeof documents)["mutation UpdateRelationship($input: UpdateRelationshipInput!) {\n  updateRelationship(input: $input) {\n    id\n    sourceEntityId\n    targetEntityId\n    type\n    description\n    visibility\n    recipientIds\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

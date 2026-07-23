@@ -15,6 +15,7 @@ export class PrismaRelationshipRepository implements RelationshipRepository {
         id: id.toString(),
         deletedAt: null,
       },
+      include: { recipients: true },
     });
 
     if (!record) {
@@ -30,6 +31,7 @@ export class PrismaRelationshipRepository implements RelationshipRepository {
         campaignId,
         deletedAt: null,
       },
+      include: { recipients: true },
       orderBy: {
         createdAt: "asc",
       },
@@ -48,6 +50,7 @@ export class PrismaRelationshipRepository implements RelationshipRepository {
         OR: [{ sourceEntityId: entityId }, { targetEntityId: entityId }],
         deletedAt: null,
       },
+      include: { recipients: true },
       orderBy: {
         createdAt: "asc",
       },
@@ -78,7 +81,12 @@ export class PrismaRelationshipRepository implements RelationshipRepository {
   async create(relationship: Relationship): Promise<void> {
     try {
       await prisma.relationship.create({
-        data: RelationshipMapper.toPersistence(relationship),
+        data: {
+          ...RelationshipMapper.toPersistence(relationship),
+          recipients: {
+            create: RelationshipMapper.toRecipientCreates(relationship),
+          },
+        },
       });
     } catch (error) {
       if (
@@ -98,7 +106,15 @@ export class PrismaRelationshipRepository implements RelationshipRepository {
       where: {
         id: relationship.Id.toString(),
       },
-      data: RelationshipMapper.toPersistence(relationship),
+      // Recipients are replaced wholesale on every update, matching
+      // PrismaNoteRepository: the domain object holds the full list.
+      data: {
+        ...RelationshipMapper.toPersistence(relationship),
+        recipients: {
+          deleteMany: {},
+          create: RelationshipMapper.toRecipientCreates(relationship),
+        },
+      },
     });
   }
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Relationship } from "./Relationship";
+import { RelationshipVisibility } from "./RelationshipVisibility";
 import { RelationshipId } from "./RelationshipId";
 
 const validProps = {
@@ -46,6 +47,8 @@ describe("Relationship", () => {
       targetEntityId: validProps.targetEntityId,
       type: validProps.type,
       description: null,
+      visibility: RelationshipVisibility.PUBLIC,
+      recipientIds: [],
       createdAt,
       updatedAt,
       deletedAt: null,

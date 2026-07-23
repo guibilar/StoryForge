@@ -240,6 +240,41 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntFilter<$PrismaModel>;
 };
 
+export type EnumRelationshipVisibilityFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.RelationshipVisibility
+    | Prisma.EnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.RelationshipVisibility[]
+    | Prisma.ListEnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.RelationshipVisibility[]
+    | Prisma.ListEnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumRelationshipVisibilityFilter<$PrismaModel>
+    | $Enums.RelationshipVisibility;
+};
+
+export type EnumRelationshipVisibilityWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.RelationshipVisibility
+    | Prisma.EnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.RelationshipVisibility[]
+    | Prisma.ListEnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.RelationshipVisibility[]
+    | Prisma.ListEnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumRelationshipVisibilityWithAggregatesFilter<$PrismaModel>
+    | $Enums.RelationshipVisibility;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumRelationshipVisibilityFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumRelationshipVisibilityFilter<$PrismaModel>;
+};
+
 export type EnumNoteVisibilityFilter<$PrismaModel = never> = {
   equals?:
     | $Enums.NoteVisibility
@@ -648,6 +683,41 @@ export type NestedFloatFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>;
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>;
   not?: Prisma.NestedFloatFilter<$PrismaModel> | number;
+};
+
+export type NestedEnumRelationshipVisibilityFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.RelationshipVisibility
+    | Prisma.EnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.RelationshipVisibility[]
+    | Prisma.ListEnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.RelationshipVisibility[]
+    | Prisma.ListEnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumRelationshipVisibilityFilter<$PrismaModel>
+    | $Enums.RelationshipVisibility;
+};
+
+export type NestedEnumRelationshipVisibilityWithAggregatesFilter<
+  $PrismaModel = never,
+> = {
+  equals?:
+    | $Enums.RelationshipVisibility
+    | Prisma.EnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.RelationshipVisibility[]
+    | Prisma.ListEnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.RelationshipVisibility[]
+    | Prisma.ListEnumRelationshipVisibilityFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumRelationshipVisibilityWithAggregatesFilter<$PrismaModel>
+    | $Enums.RelationshipVisibility;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumRelationshipVisibilityFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumRelationshipVisibilityFilter<$PrismaModel>;
 };
 
 export type NestedEnumNoteVisibilityFilter<$PrismaModel = never> = {

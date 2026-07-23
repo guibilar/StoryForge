@@ -76,6 +76,13 @@ const NOTE = {
     },
   ],
   linkedNotes: [] as { id: string; title: string }[],
+  children: [] as {
+    id: string;
+    authorId: string;
+    title: string;
+    content: string;
+    visibility: string;
+  }[],
   backlinks: [{ id: "note-2", title: "Session 4 recap" }],
   attachments: [
     {
@@ -314,6 +321,77 @@ describe("NoteViewWindow", () => {
     expect(
       screen.getByRole("heading", { name: "Ambush at the docks" }),
     ).toBeInTheDocument();
+  });
+
+  it("lets a player file a sub-note under a note they can only read", async () => {
+    setupMocks({
+      members: playerMembers,
+      note: { ...NOTE, authorId: "someone-else" },
+    });
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    // They can't edit it...
+    expect(
+      screen.queryByRole("button", { name: "Edit note" }),
+    ).not.toBeInTheDocument();
+    // ...but they can annotate it, which the API allows on view rights.
+    await user.click(screen.getByRole("button", { name: "Add sub-note" }));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "note-form:new:child-note-1",
+        title: "New note under: Ambush at the docks",
+      }),
+    );
+  });
+
+  it("lists existing sub-notes and opens one when clicked", async () => {
+    setupMocks({
+      note: {
+        ...NOTE,
+        children: [
+          {
+            id: "note-3",
+            authorId: CURRENT_USER_ID,
+            title: "My theory about the docks",
+            content: "private thoughts",
+            visibility: "PRIVATE",
+          },
+        ],
+      },
+    });
+    const { openWindow } = setupDesktopWindows();
+    const user = userEvent.setup();
+    renderWindow();
+
+    await user.click(
+      screen.getByRole("button", { name: "My theory about the docks" }),
+    );
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "note:note-3" }),
+    );
+  });
+
+  it("hides the sub-note action from an Observer", () => {
+    setupMocks({
+      members: [
+        {
+          userId: CURRENT_USER_ID,
+          role: "OBSERVER",
+          user: { id: CURRENT_USER_ID, email: "observer@example.com" },
+        },
+      ],
+      note: { ...NOTE, authorId: "someone-else" },
+    });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(
+      screen.queryByRole("button", { name: "Add sub-note" }),
+    ).not.toBeInTheDocument();
   });
 
   it("lets a player manage their own note", () => {

@@ -23,6 +23,13 @@ query Note($id: ID!) {
       id
       title
     }
+    children {
+      id
+      authorId
+      title
+      content
+      visibility
+    }
     backlinks {
       id
       title

@@ -189,3 +189,10 @@
   color: var(--text);
   opacity: 0.75;
 }
+
+.notesTab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}

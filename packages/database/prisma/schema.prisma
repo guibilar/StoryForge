@@ -40,6 +40,12 @@ enum NoteVisibility {
   TARGETED
 }
 
+enum RelationshipVisibility {
+  PUBLIC
+  STORYTELLER
+  TARGETED
+}
+
 model Campaign {
   id          String  @id @default(uuid())
   name        String  @unique
@@ -231,9 +237,13 @@ model Relationship {
   type        String
   description String?
 
+  visibility RelationshipVisibility @default(PUBLIC)
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+
+  recipients RelationshipRecipient[]
 
   // Actual uniqueness is a partial index excluding soft-deleted rows
   // (see migration 20260715120000_partial_unique_soft_delete) — Prisma's
@@ -252,12 +262,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  campaignMemberships CampaignMember[]
-  notes               Note[]
-  sessionAttendances  SessionAttendee[]
-  noteRecipiencies    NoteRecipient[]
-  workspaceStates     WorkspaceState[]
-  ownedEntities       Entity[]
+  campaignMemberships      CampaignMember[]
+  notes                    Note[]
+  sessionAttendances       SessionAttendee[]
+  noteRecipiencies         NoteRecipient[]
+  relationshipRecipiencies RelationshipRecipient[]
+  workspaceStates          WorkspaceState[]
+  ownedEntities            Entity[]
 }
 
 model Note {
@@ -322,6 +333,21 @@ model NoteLink {
   @@index([noteId])
   @@index([targetEntityId])
   @@index([targetNoteId])
+}
+
+model RelationshipRecipient {
+  id             String @id @default(uuid())
+  relationshipId String
+  userId         String
+
+  relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([relationshipId, userId])
+  @@index([relationshipId])
+  @@index([userId])
 }
 
 model Attachment {

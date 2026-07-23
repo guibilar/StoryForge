@@ -33,3 +33,19 @@
 .linkSelect {
   max-width: 180px;
 }
+
+/* The form fills its window so the editor can take whatever height is left
+   over once the other fields have had theirs. */
+.form {
+  height: 100%;
+}
+
+.contentField {
+  flex: 1;
+  min-height: 180px;
+}
+
+.contentField .editor {
+  flex: 1;
+  min-height: 0;
+}

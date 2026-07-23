@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   CampaignMember,
+  Entity,
+  EntityVisibility,
   NotFoundError,
   Relationship,
   User,
@@ -9,6 +11,7 @@ import { Query } from "./Query";
 import type { GraphQLContext } from "../../../../graphql/context";
 import type { RelationshipService } from "../../application/RelationshipService";
 import type { CampaignMemberService } from "../../../campaignMembers/application/CampaignMemberService";
+import type { EntityService } from "../../../entities/application/EntityService";
 
 function makeRelationshipService(): RelationshipService {
   return {
@@ -25,14 +28,49 @@ function makeCampaignMemberService(): CampaignMemberService {
   return { getMembership: vi.fn() } as unknown as CampaignMemberService;
 }
 
+// A relationship inherits visibility from the entities it connects, so the
+// resolver needs the campaign's entity roster to decide what a player sees.
+function makeEntityService(
+  entities: Entity[] = defaultEntities(),
+): EntityService {
+  return {
+    listEntities: vi.fn().mockResolvedValue(entities),
+  } as unknown as EntityService;
+}
+
+function makeEntity(id: string, visibility: EntityVisibility): Entity {
+  const entity = Entity.create({
+    campaignId: "campaign-1",
+    type: "Character",
+    category: "CHARACTER",
+    name: `Entity ${id}`,
+    visibility,
+  });
+  // The fixtures below are keyed by the ids the Relationship fixtures use.
+  Object.defineProperty(entity, "Id", {
+    value: { toString: () => id },
+    configurable: true,
+  });
+  return entity;
+}
+
+function defaultEntities(): Entity[] {
+  return [
+    makeEntity("entity-1", EntityVisibility.PUBLIC),
+    makeEntity("entity-2", EntityVisibility.PUBLIC),
+  ];
+}
+
 function makeContext(
   relationshipService: RelationshipService,
   campaignMemberService: CampaignMemberService,
   currentUser: User | null,
+  entityService: EntityService = makeEntityService(),
 ): GraphQLContext {
   return {
     relationshipService,
     campaignMemberService,
+    entityService,
     currentUser,
   } as GraphQLContext;
 }
@@ -234,5 +272,138 @@ describe("relationships Query.relationships", () => {
       relationshipService.listRelationshipsByCampaign,
     ).not.toHaveBeenCalled();
     expect(result).toEqual([relationship]);
+  });
+});
+
+describe("relationship visibility derives from its endpoints", () => {
+  const hiddenEndpointEntities = [
+    makeEntity("entity-1", EntityVisibility.PUBLIC),
+    makeEntity("entity-2", EntityVisibility.STORYTELLER),
+  ];
+
+  function setup(
+    role: "PLAYER" | "OBSERVER" | "STORYTELLER",
+    entities: Entity[],
+  ) {
+    const relationshipService = makeRelationshipService();
+    const campaignMemberService = makeCampaignMemberService();
+    vi.mocked(campaignMemberService.getMembership).mockResolvedValue(
+      CampaignMember.create({
+        campaignId: "campaign-1",
+        userId: authenticatedUser.Id,
+        role,
+      }),
+    );
+    const context = makeContext(
+      relationshipService,
+      campaignMemberService,
+      authenticatedUser,
+      makeEntityService(entities),
+    );
+    return { relationshipService, context };
+  }
+
+  it("hides a relationship whose other end a player cannot see", async () => {
+    const { relationshipService, context } = setup(
+      "PLAYER",
+      hiddenEndpointEntities,
+    );
+    vi.mocked(
+      relationshipService.listRelationshipsByCampaign,
+    ).mockResolvedValue([relationship]);
+
+    const result = await Query.relationships(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    // The type and (spoiler-carrying) description must not reach a player
+    // who was never shown the entity on the other end.
+    expect(result).toEqual([]);
+  });
+
+  it("hides it from an observer too", async () => {
+    const { relationshipService, context } = setup(
+      "OBSERVER",
+      hiddenEndpointEntities,
+    );
+    vi.mocked(
+      relationshipService.listRelationshipsByCampaign,
+    ).mockResolvedValue([relationship]);
+
+    const result = await Query.relationships(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  it("keeps a relationship between two entities the player can see", async () => {
+    const { relationshipService, context } = setup("PLAYER", defaultEntities());
+    vi.mocked(
+      relationshipService.listRelationshipsByCampaign,
+    ).mockResolvedValue([relationship]);
+
+    const result = await Query.relationships(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    expect(result).toEqual([relationship]);
+  });
+
+  it("still shows a Storyteller every relationship, without a roster lookup", async () => {
+    const { relationshipService, context } = setup(
+      "STORYTELLER",
+      hiddenEndpointEntities,
+    );
+    vi.mocked(
+      relationshipService.listRelationshipsByCampaign,
+    ).mockResolvedValue([relationship]);
+
+    const result = await Query.relationships(
+      undefined,
+      { campaignId: "campaign-1" },
+      context,
+    );
+
+    expect(result).toEqual([relationship]);
+    expect(context.entityService.listEntities).not.toHaveBeenCalled();
+  });
+
+  it("applies the same rule to the entity-scoped list", async () => {
+    const { relationshipService, context } = setup(
+      "PLAYER",
+      hiddenEndpointEntities,
+    );
+    vi.mocked(relationshipService.listRelationshipsByEntity).mockResolvedValue([
+      relationship,
+    ]);
+
+    const result = await Query.relationships(
+      undefined,
+      { campaignId: "campaign-1", entityId: "entity-1" },
+      context,
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  it("rejects fetching a hidden relationship by id", async () => {
+    const { relationshipService, context } = setup(
+      "PLAYER",
+      hiddenEndpointEntities,
+    );
+    vi.mocked(relationshipService.getRelationship).mockResolvedValue(
+      relationship,
+    );
+
+    await expect(
+      Query.relationship(undefined, { id: "relationship-1" }, context),
+    ).rejects.toMatchObject({ extensions: { code: "FORBIDDEN" } });
   });
 });

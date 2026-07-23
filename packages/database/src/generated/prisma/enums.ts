@@ -45,3 +45,12 @@ export const NoteVisibility = {
 
 export type NoteVisibility =
   (typeof NoteVisibility)[keyof typeof NoteVisibility];
+
+export const RelationshipVisibility = {
+  PUBLIC: "PUBLIC",
+  STORYTELLER: "STORYTELLER",
+  TARGETED: "TARGETED",
+} as const;
+
+export type RelationshipVisibility =
+  (typeof RelationshipVisibility)[keyof typeof RelationshipVisibility];

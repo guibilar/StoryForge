@@ -1,5 +1,7 @@
 import { ValidationError } from "../shared";
+import type { UserId } from "../user";
 import { RelationshipId } from "./RelationshipId";
+import { RelationshipVisibility } from "./RelationshipVisibility";
 
 export interface CreateRelationshipProps {
   campaignId: string;
@@ -7,6 +9,8 @@ export interface CreateRelationshipProps {
   targetEntityId: string;
   type: string;
   description?: string | null;
+  visibility?: RelationshipVisibility;
+  recipientIds?: UserId[];
 }
 
 export interface RehydrateRelationshipProps {
@@ -16,6 +20,8 @@ export interface RehydrateRelationshipProps {
   targetEntityId: string;
   type: string;
   description: string | null;
+  visibility: RelationshipVisibility;
+  recipientIds: UserId[];
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -29,6 +35,8 @@ export class Relationship {
     private readonly targetEntityIdValue: string,
     private typeValue: string,
     private descriptionValue: string | null,
+    private visibilityValue: RelationshipVisibility,
+    private recipientIdsValue: UserId[],
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
     private deletedAtValue: Date | null,
@@ -36,6 +44,10 @@ export class Relationship {
     this.validateNoSelfRelationship(sourceEntityIdValue, targetEntityIdValue);
     this.validateType(typeValue);
     this.validateDescription(descriptionValue);
+    this.recipientIdsValue = this.normalizeRecipients(
+      visibilityValue,
+      recipientIdsValue,
+    );
   }
 
   static create(props: CreateRelationshipProps): Relationship {
@@ -46,6 +58,8 @@ export class Relationship {
       props.targetEntityId,
       props.type,
       props.description ?? null,
+      props.visibility ?? RelationshipVisibility.PUBLIC,
+      props.recipientIds ?? [],
       new Date(),
       new Date(),
       null,
@@ -60,6 +74,8 @@ export class Relationship {
       props.targetEntityId,
       props.type,
       props.description,
+      props.visibility,
+      props.recipientIds,
       props.createdAt,
       props.updatedAt,
       props.deletedAt,
@@ -90,6 +106,14 @@ export class Relationship {
     return this.descriptionValue;
   }
 
+  get Visibility(): RelationshipVisibility {
+    return this.visibilityValue;
+  }
+
+  get RecipientIds(): UserId[] {
+    return [...this.recipientIdsValue];
+  }
+
   get CreatedAt(): Date {
     return this.createdAtValue;
   }
@@ -113,6 +137,15 @@ export class Relationship {
     this.validateDescription(description);
 
     this.descriptionValue = description;
+    this.updatedAtValue = new Date();
+  }
+
+  changeVisibility(
+    visibility: RelationshipVisibility,
+    recipientIds: UserId[] = [],
+  ): void {
+    this.recipientIdsValue = this.normalizeRecipients(visibility, recipientIds);
+    this.visibilityValue = visibility;
     this.updatedAtValue = new Date();
   }
 
@@ -155,6 +188,30 @@ export class Relationship {
     if (trimmed.length > 100) {
       throw new ValidationError("Relationship type is too long.");
     }
+  }
+
+  // Mirrors Note.normalizeRecipients: recipients are meaningless outside
+  // TARGETED, and a TARGETED relationship nobody can see is a mistake, not
+  // a stricter secret.
+  private normalizeRecipients(
+    visibility: RelationshipVisibility,
+    recipientIds: UserId[],
+  ): UserId[] {
+    const deduped = [
+      ...new Map(recipientIds.map((id) => [id.toString(), id])).values(),
+    ];
+
+    if (visibility === RelationshipVisibility.TARGETED) {
+      if (deduped.length === 0) {
+        throw new ValidationError(
+          "A targeted relationship needs at least one recipient.",
+        );
+      }
+
+      return deduped;
+    }
+
+    return [];
   }
 
   private validateDescription(description: string | null): void {

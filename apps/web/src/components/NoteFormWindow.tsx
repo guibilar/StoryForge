@@ -1,7 +1,7 @@
 import type { ChangeEvent, FormEvent } from "react";
 import { useState } from "react";
 import { useMutation, useQuery } from "urql";
-import MDEditor from "@uiw/react-md-editor";
+import MDEditor, { commands, MarkdownUtil } from "@uiw/react-md-editor";
 import {
   Button,
   Checkbox,
@@ -26,15 +26,77 @@ import type {
   EntityVisibility,
   NoteVisibility,
 } from "../gql/graphql";
+import { useColorScheme } from "../hooks/useColorScheme";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { wikiLinkFor } from "../lib/noteLinks";
+import { NoteContent } from "./NoteContent";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import styles from "./NoteFormWindow.module.css";
 
 // The editor's textarea, reached by id because MDEditor owns the element.
 // Used to insert a link at the caret rather than always appending.
 const CONTENT_TEXTAREA_ID = "note-content";
+
+// Wraps the selection (or just drops the caret) inside [[ ]] — the syntax
+// that both links a note and relates it to an entity. The dropdowns above
+// the editor insert a specific target; this is for typing one by name.
+const WIKI_LINK_PREFIX = "[[";
+const WIKI_LINK_SUFFIX = "]]";
+
+const wikiLinkCommand: commands.ICommand = {
+  name: "wikiLink",
+  keyCommand: "wikiLink",
+  prefix: WIKI_LINK_PREFIX,
+  suffix: WIKI_LINK_SUFFIX,
+  buttonProps: {
+    "aria-label": "Insert a [[link]]",
+    title: "Insert a [[link]]",
+  },
+  icon: (
+    <span style={{ fontSize: 12, fontWeight: 700, lineHeight: 1 }}>[[ ]]</span>
+  ),
+  // Same selectWord/executeCommand dance the built-in bold and link
+  // commands use — it is what leaves the caret between the brackets (or
+  // wraps the current word) instead of after them.
+  execute: (state, api) => {
+    const range = MarkdownUtil.selectWord({
+      text: state.text,
+      selection: state.selection,
+      prefix: WIKI_LINK_PREFIX,
+      suffix: WIKI_LINK_SUFFIX,
+    });
+    const selected = api.setSelectionRange(range);
+    MarkdownUtil.executeCommand({
+      api,
+      selectedText: selected.selectedText,
+      selection: state.selection,
+      prefix: WIKI_LINK_PREFIX,
+      suffix: WIKI_LINK_SUFFIX,
+    });
+  },
+};
+
+// Trimmed from the stock GitHub-flavoured toolbar: no table/image/issue/
+// comment (a note's images are attachments on the view window, not markdown
+// URLs) and only the heading levels a campaign note actually uses.
+const TOOLBAR_COMMANDS: commands.ICommand[] = [
+  commands.bold,
+  commands.italic,
+  commands.strikethrough,
+  commands.divider,
+  commands.title2,
+  commands.title3,
+  commands.quote,
+  commands.divider,
+  commands.unorderedListCommand,
+  commands.orderedListCommand,
+  commands.checkedListCommand,
+  commands.divider,
+  commands.link,
+  wikiLinkCommand,
+  commands.code,
+];
 
 export interface NoteRow {
   id: string;
@@ -55,6 +117,9 @@ export interface NoteRow {
   }>;
   linkedNotes?: Array<{ id: string; title: string }>;
   backlinks?: Array<{ id: string; title: string }>;
+  // Set when the note is filed under another note. Only ever supplied as a
+  // create-mode seed — re-parenting an existing note is moveNote's job.
+  parentNoteId?: string | null;
 }
 
 export interface NoteFormWindowProps {
@@ -84,6 +149,7 @@ export function NoteFormWindow({
   onSaved,
   onClose,
 }: NoteFormWindowProps) {
+  const colorScheme = useColorScheme();
   const [{ data: meData }] = useQuery({ query: MeDocument });
   const [{ data: campaignData }] = useQuery({
     query: CampaignDocument,
@@ -107,9 +173,17 @@ export function NoteFormWindow({
   useWindowChromeSync(createState.fetching || updateState.fetching);
 
   const initialNote = mode.mode === "edit" ? mode.item : null;
-  const [content, setContent] = useState(initialNote?.content ?? "");
+  // Create-mode seeds from a context that already knows part of the answer:
+  // an entity's Notes tab pre-links the entity, a note's sub-note button
+  // pre-sets the parent, and both pick the visibility the author's role
+  // should default to (players default to PRIVATE — see openCreateWindow in
+  // EntityWindow/NoteViewWindow).
+  const seed = mode.mode === "create" ? mode.initial : undefined;
+  const [content, setContent] = useState(
+    initialNote?.content ?? seed?.content ?? "",
+  );
   const [visibility, setVisibility] = useState<NoteVisibility>(
-    initialNote?.visibility ?? "SHARED",
+    initialNote?.visibility ?? seed?.visibility ?? "SHARED",
   );
   const [recipientIds, setRecipientIds] = useState<string[]>(
     initialNote?.recipientIds ?? [],
@@ -147,6 +221,10 @@ export function NoteFormWindow({
   const linkableNotes = (notesData?.noteRoots ?? []).filter(
     (note) => note.id !== initialNote?.id,
   );
+  // What the preview pane resolves [[references]] against. The server does
+  // the real resolution on save; this mirrors its rules against the same
+  // campaign lists so the preview doesn't promise a link that won't stick.
+  const linkTargets = { entities, notes: linkableNotes };
 
   function toggleRecipient(userId: string) {
     setRecipientIds((current) =>
@@ -231,7 +309,13 @@ export function NoteFormWindow({
 
     if (mode.mode === "create") {
       const result = await createNote({
-        input: { campaignId, title, content, ...visibilityInput },
+        input: {
+          campaignId,
+          title,
+          content,
+          ...(seed?.parentNoteId ? { parentNoteId: seed.parentNoteId } : {}),
+          ...visibilityInput,
+        },
       });
       if (result.data?.createNote) {
         onSaved();
@@ -253,17 +337,21 @@ export function NoteFormWindow({
   );
 
   return (
-    <Form onSubmit={handleSubmit}>
+    <Form onSubmit={handleSubmit} className={styles.form}>
       <FormError>{formError}</FormError>
       <FormField label="Title" htmlFor="note-title">
         <Input
           id="note-title"
           name="title"
-          defaultValue={initialNote?.title ?? ""}
+          defaultValue={initialNote?.title ?? seed?.title ?? ""}
           required
         />
       </FormField>
-      <FormField label="Content" htmlFor={CONTENT_TEXTAREA_ID}>
+      <FormField
+        label="Content"
+        htmlFor={CONTENT_TEXTAREA_ID}
+        className={styles.contentField}
+      >
         <div className={styles.linkBar}>
           <Select
             className={styles.linkSelect}
@@ -299,9 +387,31 @@ export function NoteFormWindow({
           <MDEditor
             value={content}
             onChange={(value) => setContent(value ?? "")}
-            height={280}
-            preview="live"
-            textareaProps={{ id: CONTENT_TEXTAREA_ID }}
+            // Fills the field, which flexes to fill the window — a note
+            // window the user drags taller gets a taller editor.
+            height="100%"
+            // Not "live": at this window's width a split pane leaves two
+            // unusably narrow columns. The toolbar's toggle still reaches
+            // the preview when it's wanted.
+            preview="edit"
+            data-color-mode={colorScheme}
+            commands={TOOLBAR_COMMANDS}
+            extraCommands={[commands.codeEdit, commands.codePreview]}
+            components={{
+              // The stock preview renders [[Foo]] as literal text. Reusing
+              // NoteContent keeps what you see here identical to the note
+              // window, resolved against the same campaign lists the link
+              // pickers above already loaded.
+              preview: (source) => (
+                <NoteContent content={source} targets={linkTargets} />
+              ),
+            }}
+            textareaProps={{
+              id: CONTENT_TEXTAREA_ID,
+              placeholder:
+                "Write your note… use [[ ]] to link an entity or another note.",
+              spellCheck: true,
+            }}
           />
         </div>
       </FormField>

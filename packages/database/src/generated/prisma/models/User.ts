@@ -189,6 +189,7 @@ export type UserWhereInput = {
   notes?: Prisma.NoteListRelationFilter;
   sessionAttendances?: Prisma.SessionAttendeeListRelationFilter;
   noteRecipiencies?: Prisma.NoteRecipientListRelationFilter;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientListRelationFilter;
   workspaceStates?: Prisma.WorkspaceStateListRelationFilter;
   ownedEntities?: Prisma.EntityListRelationFilter;
 };
@@ -203,6 +204,7 @@ export type UserOrderByWithRelationInput = {
   notes?: Prisma.NoteOrderByRelationAggregateInput;
   sessionAttendances?: Prisma.SessionAttendeeOrderByRelationAggregateInput;
   noteRecipiencies?: Prisma.NoteRecipientOrderByRelationAggregateInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientOrderByRelationAggregateInput;
   workspaceStates?: Prisma.WorkspaceStateOrderByRelationAggregateInput;
   ownedEntities?: Prisma.EntityOrderByRelationAggregateInput;
 };
@@ -221,6 +223,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     notes?: Prisma.NoteListRelationFilter;
     sessionAttendances?: Prisma.SessionAttendeeListRelationFilter;
     noteRecipiencies?: Prisma.NoteRecipientListRelationFilter;
+    relationshipRecipiencies?: Prisma.RelationshipRecipientListRelationFilter;
     workspaceStates?: Prisma.WorkspaceStateListRelationFilter;
     ownedEntities?: Prisma.EntityListRelationFilter;
   },
@@ -263,6 +266,7 @@ export type UserCreateInput = {
   notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
@@ -277,6 +281,7 @@ export type UserUncheckedCreateInput = {
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
@@ -291,6 +296,7 @@ export type UserUpdateInput = {
   notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
@@ -305,6 +311,7 @@ export type UserUncheckedUpdateInput = {
   notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
@@ -473,6 +480,32 @@ export type UserUpdateOneRequiredWithoutNoteRecipienciesNestedInput = {
   >;
 };
 
+export type UserCreateNestedOneWithoutRelationshipRecipienciesInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutRelationshipRecipienciesInput,
+    Prisma.UserUncheckedCreateWithoutRelationshipRecipienciesInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRelationshipRecipienciesInput;
+  connect?: Prisma.UserWhereUniqueInput;
+};
+
+export type UserUpdateOneRequiredWithoutRelationshipRecipienciesNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutRelationshipRecipienciesInput,
+    Prisma.UserUncheckedCreateWithoutRelationshipRecipienciesInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRelationshipRecipienciesInput;
+  upsert?: Prisma.UserUpsertWithoutRelationshipRecipienciesInput;
+  connect?: Prisma.UserWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.UserUpdateToOneWithWhereWithoutRelationshipRecipienciesInput,
+      Prisma.UserUpdateWithoutRelationshipRecipienciesInput
+    >,
+    Prisma.UserUncheckedUpdateWithoutRelationshipRecipienciesInput
+  >;
+};
+
 export type UserCreateNestedOneWithoutCampaignMembershipsInput = {
   create?: Prisma.XOR<
     Prisma.UserCreateWithoutCampaignMembershipsInput,
@@ -535,6 +568,7 @@ export type UserCreateWithoutOwnedEntitiesInput = {
   notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
 };
 
@@ -548,6 +582,7 @@ export type UserUncheckedCreateWithoutOwnedEntitiesInput = {
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
 };
 
@@ -589,6 +624,7 @@ export type UserUpdateWithoutOwnedEntitiesInput = {
   notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
 };
 
@@ -602,6 +638,7 @@ export type UserUncheckedUpdateWithoutOwnedEntitiesInput = {
   notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
 };
 
@@ -614,6 +651,7 @@ export type UserCreateWithoutSessionAttendancesInput = {
   campaignMemberships?: Prisma.CampaignMemberCreateNestedManyWithoutUserInput;
   notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
@@ -627,6 +665,7 @@ export type UserUncheckedCreateWithoutSessionAttendancesInput = {
   campaignMemberships?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutUserInput;
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
@@ -668,6 +707,7 @@ export type UserUpdateWithoutSessionAttendancesInput = {
   campaignMemberships?: Prisma.CampaignMemberUpdateManyWithoutUserNestedInput;
   notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
@@ -681,6 +721,7 @@ export type UserUncheckedUpdateWithoutSessionAttendancesInput = {
   campaignMemberships?: Prisma.CampaignMemberUncheckedUpdateManyWithoutUserNestedInput;
   notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
@@ -694,6 +735,7 @@ export type UserCreateWithoutNotesInput = {
   campaignMemberships?: Prisma.CampaignMemberCreateNestedManyWithoutUserInput;
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
@@ -707,6 +749,7 @@ export type UserUncheckedCreateWithoutNotesInput = {
   campaignMemberships?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutUserInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
@@ -748,6 +791,7 @@ export type UserUpdateWithoutNotesInput = {
   campaignMemberships?: Prisma.CampaignMemberUpdateManyWithoutUserNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
@@ -761,6 +805,7 @@ export type UserUncheckedUpdateWithoutNotesInput = {
   campaignMemberships?: Prisma.CampaignMemberUncheckedUpdateManyWithoutUserNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
@@ -774,6 +819,7 @@ export type UserCreateWithoutNoteRecipienciesInput = {
   campaignMemberships?: Prisma.CampaignMemberCreateNestedManyWithoutUserInput;
   notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
@@ -787,6 +833,7 @@ export type UserUncheckedCreateWithoutNoteRecipienciesInput = {
   campaignMemberships?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutUserInput;
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
@@ -828,6 +875,7 @@ export type UserUpdateWithoutNoteRecipienciesInput = {
   campaignMemberships?: Prisma.CampaignMemberUpdateManyWithoutUserNestedInput;
   notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
@@ -841,6 +889,91 @@ export type UserUncheckedUpdateWithoutNoteRecipienciesInput = {
   campaignMemberships?: Prisma.CampaignMemberUncheckedUpdateManyWithoutUserNestedInput;
   notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedUpdateManyWithoutUserNestedInput;
+  workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
+};
+
+export type UserCreateWithoutRelationshipRecipienciesInput = {
+  id?: string;
+  email: string;
+  password: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  campaignMemberships?: Prisma.CampaignMemberCreateNestedManyWithoutUserInput;
+  notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
+  sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
+  noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
+  workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
+};
+
+export type UserUncheckedCreateWithoutRelationshipRecipienciesInput = {
+  id?: string;
+  email: string;
+  password: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  campaignMemberships?: Prisma.CampaignMemberUncheckedCreateNestedManyWithoutUserInput;
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
+  sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
+  noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
+  workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
+  ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
+};
+
+export type UserCreateOrConnectWithoutRelationshipRecipienciesInput = {
+  where: Prisma.UserWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutRelationshipRecipienciesInput,
+    Prisma.UserUncheckedCreateWithoutRelationshipRecipienciesInput
+  >;
+};
+
+export type UserUpsertWithoutRelationshipRecipienciesInput = {
+  update: Prisma.XOR<
+    Prisma.UserUpdateWithoutRelationshipRecipienciesInput,
+    Prisma.UserUncheckedUpdateWithoutRelationshipRecipienciesInput
+  >;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutRelationshipRecipienciesInput,
+    Prisma.UserUncheckedCreateWithoutRelationshipRecipienciesInput
+  >;
+  where?: Prisma.UserWhereInput;
+};
+
+export type UserUpdateToOneWithWhereWithoutRelationshipRecipienciesInput = {
+  where?: Prisma.UserWhereInput;
+  data: Prisma.XOR<
+    Prisma.UserUpdateWithoutRelationshipRecipienciesInput,
+    Prisma.UserUncheckedUpdateWithoutRelationshipRecipienciesInput
+  >;
+};
+
+export type UserUpdateWithoutRelationshipRecipienciesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  password?: Prisma.StringFieldUpdateOperationsInput | string;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  campaignMemberships?: Prisma.CampaignMemberUpdateManyWithoutUserNestedInput;
+  notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
+  sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
+  noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
+  workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
+  ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutRelationshipRecipienciesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  password?: Prisma.StringFieldUpdateOperationsInput | string;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  campaignMemberships?: Prisma.CampaignMemberUncheckedUpdateManyWithoutUserNestedInput;
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
+  sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
+  noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
@@ -854,6 +987,7 @@ export type UserCreateWithoutCampaignMembershipsInput = {
   notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
@@ -867,6 +1001,7 @@ export type UserUncheckedCreateWithoutCampaignMembershipsInput = {
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedCreateNestedManyWithoutUserInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
@@ -908,6 +1043,7 @@ export type UserUpdateWithoutCampaignMembershipsInput = {
   notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
@@ -921,6 +1057,7 @@ export type UserUncheckedUpdateWithoutCampaignMembershipsInput = {
   notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedUpdateManyWithoutUserNestedInput;
   workspaceStates?: Prisma.WorkspaceStateUncheckedUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
@@ -935,6 +1072,7 @@ export type UserCreateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityCreateNestedManyWithoutOwnerInput;
 };
 
@@ -948,6 +1086,7 @@ export type UserUncheckedCreateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedCreateNestedManyWithoutUserInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedCreateNestedManyWithoutUserInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedCreateNestedManyWithoutUserInput;
   ownedEntities?: Prisma.EntityUncheckedCreateNestedManyWithoutOwnerInput;
 };
 
@@ -989,6 +1128,7 @@ export type UserUpdateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUpdateManyWithoutOwnerNestedInput;
 };
 
@@ -1002,6 +1142,7 @@ export type UserUncheckedUpdateWithoutWorkspaceStatesInput = {
   notes?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput;
   sessionAttendances?: Prisma.SessionAttendeeUncheckedUpdateManyWithoutUserNestedInput;
   noteRecipiencies?: Prisma.NoteRecipientUncheckedUpdateManyWithoutUserNestedInput;
+  relationshipRecipiencies?: Prisma.RelationshipRecipientUncheckedUpdateManyWithoutUserNestedInput;
   ownedEntities?: Prisma.EntityUncheckedUpdateManyWithoutOwnerNestedInput;
 };
 
@@ -1014,6 +1155,7 @@ export type UserCountOutputType = {
   notes: number;
   sessionAttendances: number;
   noteRecipiencies: number;
+  relationshipRecipiencies: number;
   workspaceStates: number;
   ownedEntities: number;
 };
@@ -1027,6 +1169,8 @@ export type UserCountOutputTypeSelect<
   notes?: boolean | UserCountOutputTypeCountNotesArgs;
   sessionAttendances?: boolean | UserCountOutputTypeCountSessionAttendancesArgs;
   noteRecipiencies?: boolean | UserCountOutputTypeCountNoteRecipienciesArgs;
+  relationshipRecipiencies?:
+    boolean | UserCountOutputTypeCountRelationshipRecipienciesArgs;
   workspaceStates?: boolean | UserCountOutputTypeCountWorkspaceStatesArgs;
   ownedEntities?: boolean | UserCountOutputTypeCountOwnedEntitiesArgs;
 };
@@ -1087,6 +1231,16 @@ export type UserCountOutputTypeCountNoteRecipienciesArgs<
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountRelationshipRecipienciesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.RelationshipRecipientWhereInput;
+};
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountWorkspaceStatesArgs<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -1119,6 +1273,8 @@ export type UserSelect<
     notes?: boolean | Prisma.User$notesArgs<ExtArgs>;
     sessionAttendances?: boolean | Prisma.User$sessionAttendancesArgs<ExtArgs>;
     noteRecipiencies?: boolean | Prisma.User$noteRecipienciesArgs<ExtArgs>;
+    relationshipRecipiencies?:
+      boolean | Prisma.User$relationshipRecipienciesArgs<ExtArgs>;
     workspaceStates?: boolean | Prisma.User$workspaceStatesArgs<ExtArgs>;
     ownedEntities?: boolean | Prisma.User$ownedEntitiesArgs<ExtArgs>;
     _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
@@ -1177,6 +1333,8 @@ export type UserInclude<
   notes?: boolean | Prisma.User$notesArgs<ExtArgs>;
   sessionAttendances?: boolean | Prisma.User$sessionAttendancesArgs<ExtArgs>;
   noteRecipiencies?: boolean | Prisma.User$noteRecipienciesArgs<ExtArgs>;
+  relationshipRecipiencies?:
+    boolean | Prisma.User$relationshipRecipienciesArgs<ExtArgs>;
   workspaceStates?: boolean | Prisma.User$workspaceStatesArgs<ExtArgs>;
   ownedEntities?: boolean | Prisma.User$ownedEntitiesArgs<ExtArgs>;
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
@@ -1200,6 +1358,7 @@ export type $UserPayload<
     notes: Prisma.$NotePayload<ExtArgs>[];
     sessionAttendances: Prisma.$SessionAttendeePayload<ExtArgs>[];
     noteRecipiencies: Prisma.$NoteRecipientPayload<ExtArgs>[];
+    relationshipRecipiencies: Prisma.$RelationshipRecipientPayload<ExtArgs>[];
     workspaceStates: Prisma.$WorkspaceStatePayload<ExtArgs>[];
     ownedEntities: Prisma.$EntityPayload<ExtArgs>[];
   };
@@ -1802,6 +1961,19 @@ export interface Prisma__UserClient<
   ): Prisma.PrismaPromise<
     | runtime.Types.Result.GetResult<
         Prisma.$NoteRecipientPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  relationshipRecipiencies<
+    T extends Prisma.User$relationshipRecipienciesArgs<ExtArgs> = {},
+  >(
+    args?: Prisma.Subset<T, Prisma.User$relationshipRecipienciesArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$RelationshipRecipientPayload<ExtArgs>,
         T,
         "findMany",
         GlobalOmitOptions
@@ -2431,6 +2603,37 @@ export type User$noteRecipienciesArgs<
   skip?: number;
   distinct?:
     Prisma.NoteRecipientScalarFieldEnum | Prisma.NoteRecipientScalarFieldEnum[];
+};
+
+/**
+ * User.relationshipRecipiencies
+ */
+export type User$relationshipRecipienciesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the RelationshipRecipient
+   */
+  select?: Prisma.RelationshipRecipientSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the RelationshipRecipient
+   */
+  omit?: Prisma.RelationshipRecipientOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RelationshipRecipientInclude<ExtArgs> | null;
+  where?: Prisma.RelationshipRecipientWhereInput;
+  orderBy?:
+    | Prisma.RelationshipRecipientOrderByWithRelationInput
+    | Prisma.RelationshipRecipientOrderByWithRelationInput[];
+  cursor?: Prisma.RelationshipRecipientWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?:
+    | Prisma.RelationshipRecipientScalarFieldEnum
+    | Prisma.RelationshipRecipientScalarFieldEnum[];
 };
 
 /**

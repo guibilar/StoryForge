@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useMutation, useQuery } from "urql";
-import { ImagePlus, Palette, RotateCcw } from "lucide-react";
+import { ImagePlus, Palette, Plus, RotateCcw } from "lucide-react";
 import { Button, FormError, Icon, Tabs } from "@storyforge/ui";
 import type { TabItem } from "@storyforge/ui";
 
@@ -15,12 +15,16 @@ import {
   UploadEntityImageDocument,
 } from "../gql/graphql";
 import type { EntityCategory, EntityVisibility } from "../gql/graphql";
+import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { useOpenNoteWindow } from "../hooks/useOpenNoteWindow";
 import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
+import { wikiLinkFor } from "../lib/noteLinks";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { ForceOpenEntityAction } from "./ForceOpenEntityAction";
+import { NoteFormWindow } from "./NoteFormWindow";
+import type { NoteRow } from "./NoteFormWindow";
 import styles from "./EntityWindow.module.css";
 
 // Mirrors LocalImageStore's MAX_BYTES (apps/api/src/modules/entities/infrastructure/LocalImageStore.ts)
@@ -323,7 +327,19 @@ function RelationshipsTab({
   const entitiesById = new Map(
     (entitiesData?.entities ?? []).map((row) => [row.id, row]),
   );
-  const relationships = relationshipsData?.relationships ?? [];
+  // The API filters relationships down to those whose endpoints the viewer
+  // can see (relationships/graphql/guards.ts). This drops any that slip
+  // through anyway rather than rendering an "Unknown entity" row, which
+  // used to disclose the type and description of a link into an entity the
+  // viewer was never shown.
+  const relationships = (relationshipsData?.relationships ?? []).filter(
+    (relationship) =>
+      entitiesById.has(
+        relationship.sourceEntityId === entity.id
+          ? relationship.targetEntityId
+          : relationship.sourceEntityId,
+      ),
+  );
 
   if (relationships.length === 0) {
     return <p className={styles.empty}>No recorded relationships yet.</p>;
@@ -361,9 +377,8 @@ function RelationshipsTab({
               type="button"
               className={styles.relationshipName}
               onClick={() => openCounterpart(counterpartId)}
-              disabled={!counterpart}
             >
-              {counterpart?.name ?? "Unknown entity"}
+              {counterpart?.name}
             </button>
             <span className={styles.relationshipType}>{relationship.type}</span>
             {relationship.description ? (
@@ -390,15 +405,74 @@ function NotesTab({
   entity: EntitySummary;
 }) {
   const openNoteWindow = useOpenNoteWindow(campaignId);
+  const { openAddEditWindow } = useAddEditWindow({
+    idPrefix: "note-form",
+    width: 420,
+    height: 520,
+  });
 
+  const [{ data: meData }] = useQuery({ query: MeDocument });
+  const [{ data: campaignData }] = useQuery({
+    query: CampaignDocument,
+    variables: { id: campaignId },
+  });
   const [{ data, fetching, error }, reexecute] = useQuery({
     query: EntityNotesDocument,
     variables: { id: entity.id },
   });
 
-  useWindowChromeSync(fetching, () =>
-    reexecute({ requestPolicy: "network-only" }),
-  );
+  function refetch() {
+    reexecute({ requestPolicy: "network-only" });
+  }
+
+  useWindowChromeSync(fetching, refetch);
+
+  const currentUserId = meData?.me?.id;
+  const members = campaignData?.campaign?.members ?? [];
+  const myRole = members.find(
+    (member) => member.userId === currentUserId,
+  )?.role;
+  const isWriter =
+    myRole === "OWNER" ||
+    myRole === "STORYTELLER" ||
+    myRole === "CO_STORYTELLER";
+  // Players may author notes about an entity too (CREATE_NOTE is in their
+  // role's permission set) — theirs just default to PRIVATE, which the API
+  // reads as "the author and the Storyteller side", not the whole table.
+  const canCreate = isWriter || myRole === "PLAYER";
+
+  function openCreateWindow() {
+    openAddEditWindow<NoteRow>(
+      {
+        mode: "create",
+        // Keyed by entity so a note started about one entity isn't
+        // discarded by starting another about a second.
+        key: `entity-${entity.id}`,
+        initial: {
+          // The link *is* the association — seeding it is what puts the new
+          // note in this tab the moment it's saved.
+          content: `${wikiLinkFor("entity", entity.name, entity.id)}\n\n`,
+          visibility: isWriter ? "SHARED" : "PRIVATE",
+        },
+      },
+      `New note · ${entity.name}`,
+      (close) => (
+        <NoteFormWindow
+          campaignId={campaignId}
+          mode={{
+            mode: "create",
+            key: `entity-${entity.id}`,
+            initial: {
+              content: `${wikiLinkFor("entity", entity.name, entity.id)}\n\n`,
+              visibility: isWriter ? "SHARED" : "PRIVATE",
+            },
+          }}
+          onSaved={refetch}
+          onClose={close}
+        />
+      ),
+    );
+  }
 
   if (fetching) {
     return <p className={styles.empty}>Loading notes…</p>;
@@ -414,31 +488,38 @@ function NotesTab({
 
   const notes = data?.entity?.backlinks ?? [];
 
-  if (notes.length === 0) {
-    return (
-      <p className={styles.empty}>
-        No notes mention {entity.name} yet. Link one with [[{entity.name}]].
-      </p>
-    );
-  }
-
   return (
-    <ul className={styles.noteList}>
-      {notes.map((note) => (
-        <li key={note.id} className={styles.noteRow}>
-          <button
-            type="button"
-            className={styles.noteButton}
-            onClick={() => openNoteWindow(note.id, note.title)}
-          >
-            <span className={styles.noteTitle}>{note.title}</span>
-            <span className={styles.notePreview}>
-              {notePreview(note.content)}
-            </span>
-          </button>
-        </li>
-      ))}
-    </ul>
+    <div className={styles.notesTab}>
+      {notes.length === 0 ? (
+        <p className={styles.empty}>
+          No notes mention {entity.name} yet. Link one with [[{entity.name}]].
+        </p>
+      ) : (
+        <ul className={styles.noteList}>
+          {notes.map((note) => (
+            <li key={note.id} className={styles.noteRow}>
+              <button
+                type="button"
+                className={styles.noteButton}
+                onClick={() => openNoteWindow(note.id, note.title)}
+              >
+                <span className={styles.noteTitle}>{note.title}</span>
+                <span className={styles.notePreview}>
+                  {notePreview(note.content)}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {canCreate ? (
+        <Button type="button" variant="secondary" onClick={openCreateWindow}>
+          <Icon icon={Plus} size={15} aria-hidden="true" />
+          New note
+        </Button>
+      ) : null}
+    </div>
   );
 }
 

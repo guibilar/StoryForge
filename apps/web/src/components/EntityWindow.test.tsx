@@ -526,6 +526,82 @@ describe("EntityWindow", () => {
     ).toBeInTheDocument();
   });
 
+  it("lets a player add a note about the entity, defaulting it to private", async () => {
+    const user = userEvent.setup();
+    setupQueries({
+      members: [
+        {
+          userId: CURRENT_USER_ID,
+          role: "PLAYER",
+          user: { id: CURRENT_USER_ID, email: "player@example.com" },
+        },
+      ],
+    });
+    const { openWindow } = setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("tab", { name: "Notes" }));
+    await user.click(screen.getByRole("button", { name: "New note" }));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: `note-form:new:entity-${ENTITY.id}`,
+        title: `New note · ${ENTITY.name}`,
+      }),
+    );
+  });
+
+  it("hides the note create action from an Observer", async () => {
+    const user = userEvent.setup();
+    setupQueries({
+      members: [
+        {
+          userId: CURRENT_USER_ID,
+          role: "OBSERVER",
+          user: { id: CURRENT_USER_ID, email: "observer@example.com" },
+        },
+      ],
+    });
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("tab", { name: "Notes" }));
+
+    expect(
+      screen.queryByRole("button", { name: "New note" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not render a relationship whose counterpart the viewer cannot see", async () => {
+    const user = userEvent.setup();
+    setupQueries({
+      relationships: [
+        {
+          id: "rel-hidden",
+          campaignId: "camp-1",
+          sourceEntityId: ENTITY.id,
+          // Not present in the (visibility-filtered) entities list.
+          targetEntityId: "entity-hidden",
+          type: "Sired by",
+          description: "A spoiler the player must not read.",
+        },
+      ],
+    });
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    await user.click(screen.getByRole("tab", { name: "Relationships" }));
+
+    expect(
+      screen.queryByText("A spoiler the player must not read."),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Sired by")).not.toBeInTheDocument();
+    expect(screen.queryByText("Unknown entity")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("No recorded relationships yet."),
+    ).toBeInTheDocument();
+  });
+
   it("opens a note window when a linked note is clicked", async () => {
     const user = userEvent.setup();
     setupQueries({

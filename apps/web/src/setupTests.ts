@@ -1,3 +1,4 @@
+import { afterEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 // Node 22+ ships an experimental global `localStorage` gated behind
@@ -36,6 +37,12 @@ Object.defineProperty(globalThis, "localStorage", {
   value: new MemoryStorage(),
   configurable: true,
   writable: true,
+});
+
+// Without this, a write in one test (e.g. reporting a map viewport) leaks
+// into every later test in the same file via the shared MemoryStorage above.
+afterEach(() => {
+  localStorage.clear();
 });
 
 // jsdom implements no ResizeObserver. MapCanvas uses one to keep Leaflet's

@@ -18,6 +18,7 @@ import {
   UploadMapImageDocument,
 } from "../gql/graphql";
 import { useAddEditWindow } from "../hooks/useAddEditWindow";
+import { useMapViewport } from "../hooks/useMapViewport";
 import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { resolveUploadUrl } from "../lib/apiOrigin";
 import { formatGraphQLError } from "../lib/graphqlError";
@@ -114,6 +115,10 @@ export function MapsWindow() {
   // onViewportChange (KAN-130) and, for a Storyteller, what a "sync view"
   // broadcast actually sends.
   const [liveViewport, setLiveViewport] = useState<MapViewport | null>(null);
+  // Last center/zoom this browser left the map at (KAN-134) — restored on
+  // open so the map doesn't snap back to DEFAULT_CENTER/DEFAULT_ZOOM every
+  // time the window is closed and reopened.
+  const { savedViewport, recordViewport } = useMapViewport(campaignId ?? "");
   const [broadcastTarget, setBroadcastTarget] =
     useState<BroadcastTarget>(ALL_PLAYERS_TARGET);
   const [syncSent, setSyncSent] = useState(false);
@@ -220,6 +225,14 @@ export function MapsWindow() {
     if (result.data?.forceSyncViewport) {
       setSyncSent(true);
     }
+  }
+
+  // Fires on every settled pan/zoom (KAN-130's MapViewportWatcher) — recorded
+  // alongside liveViewport so the *next* open of this window restores here,
+  // not just the "sync view to players" broadcast.
+  function handleViewportChange(next: MapViewport) {
+    setLiveViewport(next);
+    recordViewport(next);
   }
 
   function handleEditingChange(next: boolean) {
@@ -448,8 +461,8 @@ export function MapsWindow() {
           onTerritoryClick={
             isWriter && editing ? openEditTerritoryWindow : undefined
           }
-          onViewportChange={setLiveViewport}
-          viewport={inboundViewport}
+          onViewportChange={handleViewportChange}
+          viewport={inboundViewport ?? savedViewport}
         />
       </div>
       {isWriter ? (

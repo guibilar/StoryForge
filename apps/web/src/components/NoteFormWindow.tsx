@@ -21,7 +21,11 @@ import {
   NotesDocument,
   UpdateNoteDocument,
 } from "../gql/graphql";
-import type { NoteVisibility } from "../gql/graphql";
+import type {
+  EntityCategory,
+  EntityVisibility,
+  NoteVisibility,
+} from "../gql/graphql";
 import type { AddEditMode } from "../hooks/useAddEditWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { wikiLinkFor } from "../lib/noteLinks";
@@ -39,6 +43,18 @@ export interface NoteRow {
   content: string;
   visibility: NoteVisibility;
   recipientIds: string[];
+  linkedEntities?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    category: EntityCategory;
+    description: string | null;
+    image: string | null;
+    color: string | null;
+    visibility: EntityVisibility;
+  }>;
+  linkedNotes?: Array<{ id: string; title: string }>;
+  backlinks?: Array<{ id: string; title: string }>;
 }
 
 export interface NoteFormWindowProps {

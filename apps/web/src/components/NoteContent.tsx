@@ -38,8 +38,11 @@ export function NoteContent({
     }
 
     // Wiki links are navigation inside the desktop, never a page load, so
-    // they never reach the browser even when unresolved.
+    // they never reach the browser even when unresolved. stopPropagation so a
+    // preview rendered inside a clickable row opens the link's target, not the
+    // row's own note.
     event.preventDefault();
+    event.stopPropagation();
 
     if (target.kind === "entity") {
       onOpenEntity(target.id);

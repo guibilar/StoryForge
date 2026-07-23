@@ -720,6 +720,18 @@ export type NotesQuery = {
     recipientIds: Array<string>;
     createdAt: string;
     updatedAt: string;
+    linkedEntities: Array<{
+      id: string;
+      name: string;
+      type: string;
+      category: EntityCategory;
+      description: string | null;
+      image: string | null;
+      color: string | null;
+      visibility: EntityVisibility;
+    }>;
+    linkedNotes: Array<{ id: string; title: string }>;
+    backlinks: Array<{ id: string; title: string }>;
   }>;
 };
 
@@ -3444,6 +3456,54 @@ export const NotesDocument = {
                 },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
                 { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "linkedEntities" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "type" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "image" } },
+                      { kind: "Field", name: { kind: "Name", value: "color" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "visibility" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "linkedNotes" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "backlinks" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
+                    ],
+                  },
+                },
               ],
             },
           },

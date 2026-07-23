@@ -12,16 +12,13 @@ import {
 } from "../gql/graphql";
 import { useAddEditWindow } from "../hooks/useAddEditWindow";
 import { useOpenNoteWindow } from "../hooks/useOpenNoteWindow";
+import { useOpenEntityWindow } from "../hooks/useOpenEntityWindow";
 import { formatGraphQLError } from "../lib/graphqlError";
 import { useWindowChromeSync } from "../lib/WindowChromeContext";
 import { NoteFormWindow } from "./NoteFormWindow";
 import type { NoteRow } from "./NoteFormWindow";
 import styles from "./NotesWindow.module.css";
-
-function previewOf(content: string): string {
-  const flat = content.replace(/\s+/g, " ").trim();
-  return flat.length > 120 ? `${flat.slice(0, 120)}…` : flat;
-}
+import { NoteContent } from "./NoteContent";
 
 export function NotesWindow() {
   const { id: campaignId } = useParams<{ id: string }>();
@@ -40,6 +37,7 @@ export function NotesWindow() {
 
   const [deleteState, deleteNote] = useMutation(DeleteNoteDocument);
   const openNoteWindow = useOpenNoteWindow(campaignId as string);
+  const openEntityWindow = useOpenEntityWindow(campaignId as string);
   const { openAddEditWindow } = useAddEditWindow({
     idPrefix: "note-form",
     width: 420,
@@ -131,6 +129,31 @@ export function NotesWindow() {
     }
   }
 
+  function openLinkedEntity(note: NoteRow, entityId: string) {
+    const entity = note.linkedEntities?.find((row) => row.id === entityId);
+    if (!entity) {
+      return;
+    }
+    openEntityWindow({
+      id: entity.id,
+      name: entity.name,
+      type: entity.type,
+      category: entity.category,
+      description: entity.description,
+      image: entity.image,
+      color: entity.color,
+      visibility: entity.visibility,
+    });
+  }
+
+  function openLinkedNote(note: NoteRow, targetId: string) {
+    const target = [
+      ...(note?.linkedNotes ?? []),
+      ...(note?.backlinks ?? []),
+    ].find((row) => row.id === targetId);
+    openNoteWindow(targetId, target?.title ?? "Note");
+  }
+
   useWindowChromeSync(fetching, refetch);
 
   if (fetching) {
@@ -150,17 +173,29 @@ export function NotesWindow() {
       <ul className={styles.list}>
         {notes.map((note) => (
           <li key={note.id} className={styles.row}>
-            <button
-              type="button"
-              className={styles.info}
-              onClick={() => openNoteWindow(note.id, note.title)}
-            >
-              <span className={styles.titleLine}>
-                <span className={styles.title}>{note.title}</span>
-                {visibilityBadge(note)}
-              </span>
-              <span className={styles.preview}>{previewOf(note.content)}</span>
-            </button>
+            <div className={styles.info}>
+              <button
+                type="button"
+                className={styles.titleButton}
+                onClick={() => openNoteWindow(note.id, note.title)}
+              >
+                <span className={styles.titleLine}>
+                  <span className={styles.title}>{note.title}</span>
+                  {visibilityBadge(note)}
+                </span>
+              </button>
+              <div className={styles.preview}>
+                <NoteContent
+                  content={note.content}
+                  targets={{
+                    entities: note.linkedEntities ?? [],
+                    notes: note.linkedNotes ?? [],
+                  }}
+                  onOpenEntity={(entityId) => openLinkedEntity(note, entityId)}
+                  onOpenNote={(targetId) => openLinkedNote(note, targetId)}
+                />
+              </div>
+            </div>
             {canModify(note) ? (
               <div
                 className={

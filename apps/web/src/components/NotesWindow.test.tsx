@@ -183,16 +183,51 @@ function renderWindow() {
 }
 
 describe("NotesWindow", () => {
-  it("lists notes with title and a truncated preview", () => {
+  it("lists notes with title and a rendered preview", () => {
     setupMocks();
     setupDesktopWindows();
     renderWindow();
 
     expect(screen.getByText("Session 1 recap")).toBeInTheDocument();
     expect(screen.getByText("House rules")).toBeInTheDocument();
-    expect(
-      screen.getByText("The party met **Goblin King** and fled the mines."),
-    ).toBeInTheDocument();
+    // Preview renders the note's markdown, so `**Goblin King**` is emphasized
+    // rather than shown with its literal asterisks.
+    expect(screen.getByText("Goblin King").tagName).toBe("STRONG");
+    expect(screen.getByText("No resting inside dungeons.")).toBeInTheDocument();
+  });
+
+  it("opens the target entity when a preview reference is clicked", async () => {
+    const goblin = {
+      id: "entity-1",
+      name: "Goblin King",
+      type: "NPC",
+      category: "CHARACTER",
+      description: null,
+      image: null,
+      color: null,
+      visibility: "SHARED",
+    };
+    const linkedNote = {
+      id: "note-1",
+      authorId: CURRENT_USER_ID,
+      title: "Session 1 recap",
+      content: "The [[Goblin King|entity:entity-1]] returns.",
+      visibility: "SHARED",
+      recipientIds: [],
+      linkedEntities: [goblin],
+      linkedNotes: [],
+      backlinks: [],
+    };
+    setupMocks({ noteRoots: [linkedNote] });
+    const { openWindow } = setupDesktopWindows();
+    renderWindow();
+
+    await userEvent.click(screen.getByText("Goblin King"));
+
+    expect(openWindow).toHaveBeenCalledTimes(1);
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Goblin King" }),
+    );
   });
 
   it("shows create controls for an Owner", () => {

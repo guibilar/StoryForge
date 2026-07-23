@@ -9,5 +9,23 @@ query Notes($campaignId: ID!) {
     recipientIds
     createdAt
     updatedAt
+    linkedEntities {
+      id
+      name
+      type
+      category
+      description
+      image
+      color
+      visibility
+    }
+    linkedNotes {
+      id
+      title
+    }
+    backlinks {
+      id
+      title
+    }
   }
 }

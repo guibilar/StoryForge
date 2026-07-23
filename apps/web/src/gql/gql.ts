@@ -52,7 +52,7 @@ type Documents = {
   "query Me {\n  me {\n    id\n    email\n  }\n}": typeof types.MeDocument;
   "query MyWorkspaceState($campaignId: ID!) {\n  myWorkspaceState(campaignId: $campaignId) {\n    id\n    layout\n    recentEntityIds\n    updatedAt\n  }\n}": typeof types.MyWorkspaceStateDocument;
   "query Note($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}": typeof types.NoteDocument;
-  "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}": typeof types.NotesDocument;
+  "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n  }\n}": typeof types.NotesDocument;
   "subscription OnEntityWindowForceOpened($campaignId: ID!) {\n  entityWindowForceOpened(campaignId: $campaignId) {\n    id\n    campaignId\n    type\n    category\n    name\n    description\n    image\n    color\n    visibility\n  }\n}": typeof types.OnEntityWindowForceOpenedDocument;
   "subscription OnForceSyncViewport($campaignId: ID!) {\n  forceSyncViewport(campaignId: $campaignId) {\n    campaignId\n    center {\n      lat\n      lng\n    }\n    zoom\n    broadcasterId\n  }\n}": typeof types.OnForceSyncViewportDocument;
   "mutation Register($input: RegisterUserInput!) {\n  registerUser(input: $input) {\n    user {\n      id\n      email\n    }\n  }\n}": typeof types.RegisterDocument;
@@ -149,7 +149,7 @@ const documents: Documents = {
     types.MyWorkspaceStateDocument,
   "query Note($id: ID!) {\n  note(id: $id) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n    attachments {\n      id\n      url\n      fileName\n      mimeType\n      sizeBytes\n      createdAt\n    }\n  }\n}":
     types.NoteDocument,
-  "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}":
+  "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n  }\n}":
     types.NotesDocument,
   "subscription OnEntityWindowForceOpened($campaignId: ID!) {\n  entityWindowForceOpened(campaignId: $campaignId) {\n    id\n    campaignId\n    type\n    category\n    name\n    description\n    image\n    color\n    visibility\n  }\n}":
     types.OnEntityWindowForceOpenedDocument,
@@ -439,8 +439,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}",
-): (typeof documents)["query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n  }\n}"];
+  source: "query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n  }\n}",
+): (typeof documents)["query Notes($campaignId: ID!) {\n  noteRoots(campaignId: $campaignId) {\n    id\n    campaignId\n    authorId\n    title\n    content\n    visibility\n    recipientIds\n    createdAt\n    updatedAt\n    linkedEntities {\n      id\n      name\n      type\n      category\n      description\n      image\n      color\n      visibility\n    }\n    linkedNotes {\n      id\n      title\n    }\n    backlinks {\n      id\n      title\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

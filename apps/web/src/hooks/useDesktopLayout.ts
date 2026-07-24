@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { markLocalWorkspaceWrite } from "../lib/workspaceClock";
@@ -589,25 +589,54 @@ export function useDesktopLayout(campaignId: string, defaults: LayoutMap) {
     [bringToFront, commitGeometry],
   );
 
-  return {
-    layout,
-    bringToFront,
-    toggle,
-    minimize,
-    restoreWindow,
-    toggleMaximize,
-    snapWindow,
-    arrange,
-    showDesktop,
-    commitGeometry,
-    startDrag,
-    startResize,
-    reset,
-    openWindow,
-    closeWindow,
-    presets,
-    savePreset,
-    applyPreset,
-    hydrateLayout,
-  };
+  // Every field here is already individually stable (layout/presets are
+  // useState values, the rest are useCallback'd) — memoizing the wrapper
+  // object means a consumer that only cares about e.g. `layout` doesn't
+  // re-render just because this hook's caller re-rendered for an unrelated
+  // reason. See WindowChromeHost.tsx for the same pattern and why it matters:
+  // an unmemoized context value forces every consumer to re-render.
+  return useMemo(
+    () => ({
+      layout,
+      bringToFront,
+      toggle,
+      minimize,
+      restoreWindow,
+      toggleMaximize,
+      snapWindow,
+      arrange,
+      showDesktop,
+      commitGeometry,
+      startDrag,
+      startResize,
+      reset,
+      openWindow,
+      closeWindow,
+      presets,
+      savePreset,
+      applyPreset,
+      hydrateLayout,
+    }),
+    [
+      layout,
+      bringToFront,
+      toggle,
+      minimize,
+      restoreWindow,
+      toggleMaximize,
+      snapWindow,
+      arrange,
+      showDesktop,
+      commitGeometry,
+      startDrag,
+      startResize,
+      reset,
+      openWindow,
+      closeWindow,
+      presets,
+      savePreset,
+      applyPreset,
+      hydrateLayout,
+    ],
+  );
 }

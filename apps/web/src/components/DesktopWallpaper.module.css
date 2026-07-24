@@ -6,4 +6,9 @@
   height: 100%;
   /* Purely decorative and behind everything on the desk. */
   z-index: -1;
+  /* Promotes this canvas to its own compositor layer so the chrome above it
+     (taskbar/modals/palette, all backdrop-filter: blur) isn't forced to
+     recompute against a repainting main-thread layer every animation frame —
+     without this the blur recompute was visible as chrome flicker. */
+  will-change: transform;
 }

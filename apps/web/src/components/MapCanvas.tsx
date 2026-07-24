@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import L from "leaflet";
 import type { GeoJsonObject } from "geojson";
@@ -214,8 +214,19 @@ function resolveFeatureColor(entity: MapLinkedEntity | null | undefined) {
 // Leaflet's default marker is a fixed-colour PNG sprite, so tinting it means
 // drawing our own. A teardrop path keeps the familiar pin silhouette and
 // anchors at the point rather than the centre.
+//
+// Cached per color rather than built fresh on every call: react-leaflet
+// replaces a Marker's DOM node whenever its `icon` prop changes reference,
+// so a new L.DivIcon on every render was tearing down and rebuilding every
+// marker's element on every MapCanvas re-render — including mid-click,
+// which silently swallowed the click and never opened the popup.
+const pinIconCache = new Map<string, L.DivIcon>();
 function pinIcon(color: string): L.DivIcon {
-  return L.divIcon({
+  const cached = pinIconCache.get(color);
+  if (cached) {
+    return cached;
+  }
+  const icon = L.divIcon({
     className: "",
     html: `<svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 21.9 12.5 41 12.5 41S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="${color}" stroke="#ffffff" stroke-width="1.5"/>
@@ -228,6 +239,8 @@ function pinIcon(color: string): L.DivIcon {
     // label would sit at the pin's tip instead of above its head.
     tooltipAnchor: [0, -34],
   });
+  pinIconCache.set(color, icon);
+  return icon;
 }
 
 // A browser double-click fires click, click, dblclick — so the point the user
@@ -712,7 +725,7 @@ function boundsFor(image: MapImageOverlay): LatLngBoundsExpression {
 // rendered as Leaflet layers on top (KAN-51). Domain/GraphQL fetching and
 // mutation wiring live in MapsWindow, not here — this stays a presentational
 // primitive other surfaces (e.g. an entity's "show on map" link) can reuse.
-export function MapCanvas({
+function MapCanvasImpl({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
   onViewportChange,
@@ -962,3 +975,9 @@ export function MapCanvas({
     </div>
   );
 }
+
+// Memoized so MapsWindow re-rendering for unrelated reasons (settled
+// pan/zoom, local UI state, live queries) doesn't cascade into rebuilding
+// this whole map — see the pinIconCache comment above for why an
+// unnecessary re-render here was breaking marker clicks outright.
+export const MapCanvas = memo(MapCanvasImpl);

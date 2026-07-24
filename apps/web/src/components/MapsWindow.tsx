@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useSubscription } from "urql";
@@ -195,9 +195,13 @@ export function MapsWindow() {
     return shapes;
   }, [territories]);
   const mapImage = mapImageData?.mapImage ?? null;
-  const imageOverlay = mapImage
-    ? { ...mapImage, url: resolveUploadUrl(mapImage.url) }
-    : null;
+  // Memoized — MapCanvas is memo()'d, and a fresh object here on every
+  // render (even when mapImage hasn't changed) would defeat that.
+  const imageOverlay = useMemo(
+    () =>
+      mapImage ? { ...mapImage, url: resolveUploadUrl(mapImage.url) } : null,
+    [mapImage],
+  );
 
   // Derived directly from the subscription result rather than mirrored into
   // its own state: applies every incoming force-sync event to this client's
@@ -233,38 +237,45 @@ export function MapsWindow() {
 
   // Fires on every settled pan/zoom (KAN-130's MapViewportWatcher) — recorded
   // alongside liveViewport so the *next* open of this window restores here,
-  // not just the "sync view to players" broadcast.
-  function handleViewportChange(next: MapViewport) {
-    setLiveViewport(next);
-    recordViewport(next);
-  }
+  // not just the "sync view to players" broadcast. useCallback so this
+  // firing doesn't itself hand memo()'d MapCanvas a new prop reference.
+  const handleViewportChange = useCallback(
+    (next: MapViewport) => {
+      setLiveViewport(next);
+      recordViewport(next);
+    },
+    [recordViewport],
+  );
 
-  function handleEditingChange(next: boolean) {
+  const handleEditingChange = useCallback((next: boolean) => {
     setEditing(next);
     if (!next) {
       // Leaving edit mode with a tool still armed would leave the map in a
       // crosshair state with no visible way to cancel.
       setDrawMode("none");
     }
-  }
+  }, []);
 
-  function handleOpenEntity(entity: MapLinkedEntity) {
-    openEntityWindow({
-      id: entity.id,
-      name: entity.name,
-      type: entity.type,
-      category: entity.category as never,
-      description: entity.description,
-      image: entity.image,
-      color: entity.color,
-      visibility: entity.visibility as never,
-    });
-  }
+  const handleOpenEntity = useCallback(
+    (entity: MapLinkedEntity) => {
+      openEntityWindow({
+        id: entity.id,
+        name: entity.name,
+        type: entity.type,
+        category: entity.category as never,
+        description: entity.description,
+        image: entity.image,
+        color: entity.color,
+        visibility: entity.visibility as never,
+      });
+    },
+    [openEntityWindow],
+  );
 
-  function refetch() {
+  const refetch = useCallback(() => {
     reexecuteMarkers({ requestPolicy: "network-only" });
     reexecuteTerritories({ requestPolicy: "network-only" });
-  }
+  }, [reexecuteMarkers, reexecuteTerritories]);
 
   function openFilePicker() {
     fileInputRef.current?.click();
@@ -297,130 +308,151 @@ export function MapsWindow() {
     }
   }
 
-  function openCreateMarkerWindow(position?: MapPosition) {
-    if (!campaignId) {
-      return;
-    }
-    // Leaflet reports full float precision; six decimals is ~0.1m of
-    // geographic accuracy and still sub-pixel on a custom map image, so it
-    // reads as a coordinate rather than a wall of digits in the form.
-    const initial = position
-      ? {
-          lat: roundCoordinate(position.lat),
-          lng: roundCoordinate(position.lng),
-        }
-      : undefined;
-    // Two placements in a row must not land on the same window id, or the
-    // second silently replaces the first along with anything typed into it.
-    // The coordinates are in the id for readability; the counter is what
-    // actually makes it unique when the same spot is clicked twice.
-    const key = initial
-      ? `${++placementCountRef.current}@${initial.lat},${initial.lng}`
-      : undefined;
+  const openCreateMarkerWindow = useCallback(
+    (position?: MapPosition) => {
+      if (!campaignId) {
+        return;
+      }
+      // Leaflet reports full float precision; six decimals is ~0.1m of
+      // geographic accuracy and still sub-pixel on a custom map image, so it
+      // reads as a coordinate rather than a wall of digits in the form.
+      const initial = position
+        ? {
+            lat: roundCoordinate(position.lat),
+            lng: roundCoordinate(position.lng),
+          }
+        : undefined;
+      // Two placements in a row must not land on the same window id, or the
+      // second silently replaces the first along with anything typed into
+      // it. The coordinates are in the id for readability; the counter is
+      // what actually makes it unique when the same spot is clicked twice.
+      const key = initial
+        ? `${++placementCountRef.current}@${initial.lat},${initial.lng}`
+        : undefined;
 
-    openMarkerWindow<MarkerRow>(
-      { mode: "create", initial, key },
-      "New Marker",
-      (close) => (
-        <MarkerFormWindow
-          campaignId={campaignId}
-          mode={{ mode: "create", initial }}
-          onSaved={refetch}
-          onClose={close}
-        />
-      ),
-    );
-  }
+      openMarkerWindow<MarkerRow>(
+        { mode: "create", initial, key },
+        "New Marker",
+        (close) => (
+          <MarkerFormWindow
+            campaignId={campaignId}
+            mode={{ mode: "create", initial }}
+            onSaved={refetch}
+            onClose={close}
+          />
+        ),
+      );
+    },
+    [campaignId, openMarkerWindow, refetch],
+  );
 
   // Placing a point is a one-shot gesture: disarm first so a stray second
   // click doesn't open a second form behind the one just opened.
-  function handlePlaceMarker(position: MapPosition) {
-    setDrawMode("none");
-    openCreateMarkerWindow(position);
-  }
+  const handlePlaceMarker = useCallback(
+    (position: MapPosition) => {
+      setDrawMode("none");
+      openCreateMarkerWindow(position);
+    },
+    [openCreateMarkerWindow],
+  );
 
-  function openEditMarkerWindow(marker: MapMarkerPoint) {
-    if (!campaignId) {
-      return;
-    }
-    const row = markers.find((m) => m.id === marker.id);
-    if (!row) {
-      return;
-    }
-    openMarkerWindow<MarkerRow>(
-      { mode: "edit", item: row },
-      `Edit: ${row.name}`,
-      (close) => (
-        <MarkerFormWindow
-          campaignId={campaignId}
-          mode={{ mode: "edit", item: row }}
-          onSaved={refetch}
-          onClose={close}
-        />
-      ),
-    );
-  }
+  const openEditMarkerWindow = useCallback(
+    (marker: MapMarkerPoint) => {
+      if (!campaignId) {
+        return;
+      }
+      const row = markers.find((m) => m.id === marker.id);
+      if (!row) {
+        return;
+      }
+      openMarkerWindow<MarkerRow>(
+        { mode: "edit", item: row },
+        `Edit: ${row.name}`,
+        (close) => (
+          <MarkerFormWindow
+            campaignId={campaignId}
+            mode={{ mode: "edit", item: row }}
+            onSaved={refetch}
+            onClose={close}
+          />
+        ),
+      );
+    },
+    [campaignId, markers, openMarkerWindow, refetch],
+  );
 
-  async function handleDeleteMarker(marker: MapMarkerPoint) {
-    const result = await deleteMarker({ id: marker.id });
-    if (result.data?.deleteMarker) {
-      refetch();
-    }
-  }
+  const handleDeleteMarker = useCallback(
+    async (marker: MapMarkerPoint) => {
+      const result = await deleteMarker({ id: marker.id });
+      if (result.data?.deleteMarker) {
+        refetch();
+      }
+    },
+    [deleteMarker, refetch],
+  );
 
-  function openCreateTerritoryWindow(geometry?: Record<string, unknown>) {
-    if (!campaignId) {
-      return;
-    }
-    // Geometry crosses the wire — and lives in the form field — as a JSON
-    // string, not an object; MapsWindow does the inverse parse when reading
-    // territories back for the canvas.
-    const initial = geometry
-      ? { geometry: JSON.stringify(geometry, null, 2) }
-      : undefined;
-    const key = initial ? `${++placementCountRef.current}` : undefined;
+  const openCreateTerritoryWindow = useCallback(
+    (geometry?: Record<string, unknown>) => {
+      if (!campaignId) {
+        return;
+      }
+      // Geometry crosses the wire — and lives in the form field — as a JSON
+      // string, not an object; MapsWindow does the inverse parse when
+      // reading territories back for the canvas.
+      const initial = geometry
+        ? { geometry: JSON.stringify(geometry, null, 2) }
+        : undefined;
+      const key = initial ? `${++placementCountRef.current}` : undefined;
 
-    openTerritoryWindow<TerritoryRow>(
-      { mode: "create", initial, key },
-      "New Territory",
-      (close) => (
-        <TerritoryFormWindow
-          campaignId={campaignId}
-          mode={{ mode: "create", initial }}
-          onSaved={refetch}
-          onClose={close}
-        />
-      ),
-    );
-  }
+      openTerritoryWindow<TerritoryRow>(
+        { mode: "create", initial, key },
+        "New Territory",
+        (close) => (
+          <TerritoryFormWindow
+            campaignId={campaignId}
+            mode={{ mode: "create", initial }}
+            onSaved={refetch}
+            onClose={close}
+          />
+        ),
+      );
+    },
+    [campaignId, openTerritoryWindow, refetch],
+  );
 
   // Finishing a shape is a one-shot gesture, same as placing a marker.
-  function handleCompleteTerritory(geometry: Record<string, unknown>) {
-    setDrawMode("none");
-    openCreateTerritoryWindow(geometry);
-  }
+  const handleCompleteTerritory = useCallback(
+    (geometry: Record<string, unknown>) => {
+      setDrawMode("none");
+      openCreateTerritoryWindow(geometry);
+    },
+    [openCreateTerritoryWindow],
+  );
 
-  function openEditTerritoryWindow(territory: MapTerritoryShape) {
-    if (!campaignId) {
-      return;
-    }
-    const row = territories.find((t) => t.id === territory.id);
-    if (!row) {
-      return;
-    }
-    openTerritoryWindow<TerritoryRow>(
-      { mode: "edit", item: row },
-      `Edit: ${row.name}`,
-      (close) => (
-        <TerritoryFormWindow
-          campaignId={campaignId}
-          mode={{ mode: "edit", item: row }}
-          onSaved={refetch}
-          onClose={close}
-        />
-      ),
-    );
-  }
+  const openEditTerritoryWindow = useCallback(
+    (territory: MapTerritoryShape) => {
+      if (!campaignId) {
+        return;
+      }
+      const row = territories.find((t) => t.id === territory.id);
+      if (!row) {
+        return;
+      }
+      openTerritoryWindow<TerritoryRow>(
+        { mode: "edit", item: row },
+        `Edit: ${row.name}`,
+        (close) => (
+          <TerritoryFormWindow
+            campaignId={campaignId}
+            mode={{ mode: "edit", item: row }}
+            onSaved={refetch}
+            onClose={close}
+          />
+        ),
+      );
+    },
+    [campaignId, territories, openTerritoryWindow, refetch],
+  );
 
   const fetching = markersFetching || territoriesFetching;
   useWindowChromeSync(fetching, refetch);

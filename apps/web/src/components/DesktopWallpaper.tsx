@@ -15,6 +15,12 @@ const DENSITY_DIVISOR = 26_000;
 const MIN_STARS = 24;
 const MAX_STARS = 64;
 const DRIFT = 0.09;
+// Repainting at the display's native rate (often 60Hz+) forces every
+// backdrop-filter: blur() surface above this canvas (taskbar, modals, the
+// command palette) to resample it that often too — a heavy compositor path
+// that showed up as visible chrome flicker. The drift is meant to read as
+// "slow" anyway, so capping the redraw rate costs nothing visually.
+const FRAME_INTERVAL_MS = 1000 / 20;
 
 // The desk's backdrop: a slow constellation of linked points — the campaign's
 // own relationship graph, abstracted. Canvas rather than SVG or a stack of
@@ -50,6 +56,7 @@ export function DesktopWallpaper() {
     let width = 0;
     let height = 0;
     let frame = 0;
+    let lastTick = 0;
 
     function size() {
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -108,7 +115,13 @@ export function DesktopWallpaper() {
       context!.globalAlpha = 1;
     }
 
-    function tick() {
+    function tick(now: number) {
+      frame = requestAnimationFrame(tick);
+      if (now - lastTick < FRAME_INTERVAL_MS) {
+        return;
+      }
+      lastTick = now;
+
       for (const star of stars) {
         star.x += star.vx;
         star.y += star.vy;
@@ -118,7 +131,6 @@ export function DesktopWallpaper() {
         if (star.y > height + 20) star.y = -20;
       }
       draw();
-      frame = requestAnimationFrame(tick);
     }
 
     function handleResize() {

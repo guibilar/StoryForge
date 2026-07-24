@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { useDesktopLayout } from "./useDesktopLayout";
@@ -175,12 +175,28 @@ export function useDesktopWindowsController(campaignId: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignId]);
 
-  return {
-    ...layoutApi,
-    dynamicWindows,
-    openWindow,
-    closeWindow,
-    recentIds,
-    hydrateFromServer,
-  };
+  // layoutApi is itself memoized (see useDesktopLayout) so its identity only
+  // changes when one of its fields actually does — feeding it through
+  // useMemo here means DesktopWindowsContext consumers (DesktopBoard,
+  // Taskbar, StartMenu, AppCommandPalette) don't re-render every time
+  // CampaignDesktopPage re-renders for a reason that has nothing to do with
+  // windows, same fix as WindowChromeHost.tsx applies to WindowChromeContext.
+  return useMemo(
+    () => ({
+      ...layoutApi,
+      dynamicWindows,
+      openWindow,
+      closeWindow,
+      recentIds,
+      hydrateFromServer,
+    }),
+    [
+      layoutApi,
+      dynamicWindows,
+      openWindow,
+      closeWindow,
+      recentIds,
+      hydrateFromServer,
+    ],
+  );
 }

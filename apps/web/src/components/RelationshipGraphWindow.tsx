@@ -336,7 +336,10 @@ export function RelationshipGraphWindow() {
       }
     }
     for (const entity of entities) {
-      if (hiddenCategories.has(entity.category)) {
+      // Unlike hiddenCategories (a personal, per-browser filter), this is the
+      // Owner/Storyteller's persisted call on the entity itself — not a
+      // toggle this window offers, so there's no corresponding checkbox.
+      if (hiddenCategories.has(entity.category) || entity.hiddenFromGraph) {
         ids.add(entity.id);
       }
     }

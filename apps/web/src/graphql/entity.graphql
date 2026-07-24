@@ -8,5 +8,6 @@ query Entity($id: ID!) {
     image
     color
     visibility
+    hiddenFromGraph
   }
 }

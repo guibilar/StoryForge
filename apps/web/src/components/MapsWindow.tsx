@@ -267,6 +267,7 @@ export function MapsWindow() {
         image: entity.image,
         color: entity.color,
         visibility: entity.visibility as never,
+        hiddenFromGraph: entity.hiddenFromGraph,
       });
     },
     [openEntityWindow],

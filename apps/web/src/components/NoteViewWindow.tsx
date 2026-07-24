@@ -174,6 +174,7 @@ export function NoteViewWindow({ noteId, campaignId }: NoteViewWindowProps) {
       image: entity.image,
       color: entity.color,
       visibility: entity.visibility,
+      hiddenFromGraph: entity.hiddenFromGraph,
     });
   }
 

@@ -13,6 +13,7 @@ export const Entity = {
   color: (entity: DomainEntity) => entity.Color,
   visibility: (entity: DomainEntity) => entity.Visibility,
   isPlayerCharacter: (entity: DomainEntity) => entity.IsPlayerCharacter,
+  hiddenFromGraph: (entity: DomainEntity) => entity.HiddenFromGraph,
   ownerUserId: (entity: DomainEntity) => entity.OwnerUserId,
   ownerMember: (
     entity: DomainEntity,

@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useMutation, useQuery } from "urql";
 import { ImagePlus, Palette, Pencil, Plus, RotateCcw } from "lucide-react";
-import { Button, FormError, Icon, Tabs } from "@storyforge/ui";
+import { Button, Checkbox, FormError, Icon, Tabs } from "@storyforge/ui";
 import type { TabItem } from "@storyforge/ui";
 
 import {
@@ -48,6 +48,7 @@ export interface EntitySummary {
   image?: string | null;
   color?: string | null;
   visibility: EntityVisibility;
+  hiddenFromGraph: boolean;
 }
 
 export interface EntityWindowProps {
@@ -108,6 +109,9 @@ function OverviewTab({
   // the caller (the start menu's entity list) to refetch and pass a new prop.
   const [image, setImage] = useState(entity.image ?? null);
   const [color, setColor] = useState(entity.color ?? null);
+  const [hiddenFromGraph, setHiddenFromGraph] = useState(
+    entity.hiddenFromGraph,
+  );
   // The same window (keyed by `entity:{id}`) can be reopened with a fresher
   // entity prop without unmounting — useDesktopWindowsController overwrites
   // the render function but React reconciles it onto the existing instance,
@@ -122,6 +126,7 @@ function OverviewTab({
     setPrevEntity(entity);
     setImage(entity.image ?? null);
     setColor(entity.color ?? null);
+    setHiddenFromGraph(entity.hiddenFromGraph);
   }
   const [validationError, setValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -182,6 +187,19 @@ function OverviewTab({
     });
     if (result.data?.updateEntity) {
       setColor(result.data.updateEntity.color ?? null);
+    }
+  }
+
+  async function handleHiddenFromGraphChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const next = event.target.checked;
+    setHiddenFromGraph(next);
+    const result = await updateEntity({
+      input: { id: entity.id, hiddenFromGraph: next },
+    });
+    if (result.data?.updateEntity) {
+      setHiddenFromGraph(result.data.updateEntity.hiddenFromGraph);
     }
   }
 
@@ -268,6 +286,18 @@ function OverviewTab({
               ) : null}
             </div>
           ) : null}
+          {entity.category === "CHARACTER" ? (
+            <p className={styles.empty}>
+              Characters always appear in the relationship graph.
+            </p>
+          ) : (
+            <Checkbox
+              label="Hide from relationship graph"
+              checked={hiddenFromGraph}
+              disabled={updateEntityState.fetching}
+              onChange={handleHiddenFromGraphChange}
+            />
+          )}
           {actionError ? <FormError>{actionError}</FormError> : null}
         </div>
       ) : null}
@@ -455,6 +485,7 @@ function RelationshipsTab({
       image: counterpart.image,
       color: counterpart.color,
       visibility: counterpart.visibility,
+      hiddenFromGraph: counterpart.hiddenFromGraph,
     });
   }
 

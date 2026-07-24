@@ -59,6 +59,7 @@ describe("Entity", () => {
       color: null,
       visibility: EntityVisibility.STORYTELLER,
       isPlayerCharacter: false,
+      hiddenFromGraph: false,
       ownerUserId: null,
       createdAt,
       updatedAt,
@@ -281,6 +282,70 @@ describe("Entity", () => {
     expect(() => entity.changeColor("not-a-color")).toThrow(
       "Entity color must be a 6-digit hex code, e.g. #4287f5.",
     );
+  });
+
+  it("defaults hiddenFromGraph to false for a CHARACTER entity", () => {
+    const entity = Entity.create(validProps);
+
+    expect(entity.HiddenFromGraph).toBe(false);
+  });
+
+  it("defaults hiddenFromGraph to true for a non-CHARACTER entity", () => {
+    const entity = Entity.create({
+      ...validProps,
+      category: EntityCategory.ITEM,
+    });
+
+    expect(entity.HiddenFromGraph).toBe(true);
+  });
+
+  it("honours an explicit hiddenFromGraph on create", () => {
+    const entity = Entity.create({
+      ...validProps,
+      category: EntityCategory.ITEM,
+      hiddenFromGraph: false,
+    });
+
+    expect(entity.HiddenFromGraph).toBe(false);
+  });
+
+  it("rejects creating a hidden CHARACTER entity", () => {
+    expect(() =>
+      Entity.create({ ...validProps, hiddenFromGraph: true }),
+    ).toThrow("Character entities always appear in the relationship graph.");
+  });
+
+  it("changes hiddenFromGraph on a non-CHARACTER entity", () => {
+    const entity = Entity.create({
+      ...validProps,
+      category: EntityCategory.ITEM,
+    });
+
+    entity.changeHiddenFromGraph(false);
+    expect(entity.HiddenFromGraph).toBe(false);
+
+    entity.changeHiddenFromGraph(true);
+    expect(entity.HiddenFromGraph).toBe(true);
+  });
+
+  it("rejects hiding a CHARACTER entity from the graph", () => {
+    const entity = Entity.create(validProps);
+
+    expect(() => entity.changeHiddenFromGraph(true)).toThrow(
+      "Character entities always appear in the relationship graph.",
+    );
+  });
+
+  it("un-hides an entity when its category changes to CHARACTER", () => {
+    const entity = Entity.create({
+      ...validProps,
+      category: EntityCategory.ITEM,
+    });
+    expect(entity.HiddenFromGraph).toBe(true);
+
+    entity.changeCategory(EntityCategory.CHARACTER);
+
+    expect(entity.HiddenFromGraph).toBe(false);
   });
 
   it("soft-deletes and restores", () => {

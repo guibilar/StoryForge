@@ -6,6 +6,7 @@ mutation UpdateEntity($input: UpdateEntityInput!) {
     image
     color
     visibility
+    hiddenFromGraph
     tags {
       id
       name

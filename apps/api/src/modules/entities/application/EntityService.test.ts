@@ -250,6 +250,53 @@ describe("EntityService", () => {
       ).rejects.toThrow(ValidationError);
     });
 
+    it("hides and un-hides a non-CHARACTER entity from the graph", async () => {
+      const entity = Entity.create({
+        ...createDto,
+        category: EntityCategory.ITEM,
+        hiddenFromGraph: false,
+      });
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      const hidden = await service.updateEntity({
+        id: entity.Id.toString(),
+        hiddenFromGraph: true,
+      });
+      expect(hidden.HiddenFromGraph).toBe(true);
+
+      const shown = await service.updateEntity({
+        id: entity.Id.toString(),
+        hiddenFromGraph: false,
+      });
+      expect(shown.HiddenFromGraph).toBe(false);
+    });
+
+    it("rejects hiding a CHARACTER entity from the graph", async () => {
+      const entity = Entity.create(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      await expect(
+        service.updateEntity({
+          id: entity.Id.toString(),
+          hiddenFromGraph: true,
+        }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("accepts hiddenFromGraph true when demoting out of CHARACTER in the same call", async () => {
+      const entity = Entity.create(createDto);
+      vi.mocked(repository.findById).mockResolvedValue(entity);
+
+      const updated = await service.updateEntity({
+        id: entity.Id.toString(),
+        category: EntityCategory.ITEM,
+        hiddenFromGraph: true,
+      });
+
+      expect(updated.Category).toBe(EntityCategory.ITEM);
+      expect(updated.HiddenFromGraph).toBe(true);
+    });
+
     it("links an owner already a member of the entity's campaign", async () => {
       const entity = Entity.create({ ...createDto, isPlayerCharacter: true });
       vi.mocked(repository.findById).mockResolvedValue(entity);

@@ -18,6 +18,7 @@ query Notes($campaignId: ID!) {
       image
       color
       visibility
+      hiddenFromGraph
     }
     linkedNotes {
       id

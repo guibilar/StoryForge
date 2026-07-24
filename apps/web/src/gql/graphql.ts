@@ -185,6 +185,7 @@ export type UpdateEntityInput = {
   category?: EntityCategory | null | undefined;
   color?: string | null | undefined;
   description?: string | null | undefined;
+  hiddenFromGraph?: boolean | null | undefined;
   icon?: string | null | undefined;
   id: string | number;
   image?: string | null | undefined;
@@ -545,6 +546,7 @@ export type EntitiesQuery = {
     type: string;
     category: EntityCategory;
     isPlayerCharacter: boolean;
+    hiddenFromGraph: boolean;
     image: string | null;
     color: string | null;
     visibility: EntityVisibility;
@@ -566,6 +568,7 @@ export type EntityQuery = {
     image: string | null;
     color: string | null;
     visibility: EntityVisibility;
+    hiddenFromGraph: boolean;
   } | null;
 };
 
@@ -664,6 +667,7 @@ export type MarkersQuery = {
       image: string | null;
       color: string | null;
       visibility: EntityVisibility;
+      hiddenFromGraph: boolean;
     } | null;
   }>;
 };
@@ -709,6 +713,7 @@ export type NoteQuery = {
       image: string | null;
       color: string | null;
       visibility: EntityVisibility;
+      hiddenFromGraph: boolean;
     }>;
     linkedNotes: Array<{ id: string; title: string }>;
     children: Array<{
@@ -754,6 +759,7 @@ export type NotesQuery = {
       image: string | null;
       color: string | null;
       visibility: EntityVisibility;
+      hiddenFromGraph: boolean;
     }>;
     linkedNotes: Array<{ id: string; title: string }>;
     backlinks: Array<{ id: string; title: string }>;
@@ -775,6 +781,7 @@ export type OnEntityWindowForceOpenedSubscription = {
     image: string | null;
     color: string | null;
     visibility: EntityVisibility;
+    hiddenFromGraph: boolean;
   };
 };
 
@@ -867,6 +874,7 @@ export type TerritoriesQuery = {
       image: string | null;
       color: string | null;
       visibility: EntityVisibility;
+      hiddenFromGraph: boolean;
     } | null;
   }>;
 };
@@ -904,6 +912,7 @@ export type UpdateEntityMutation = {
     image: string | null;
     color: string | null;
     visibility: EntityVisibility;
+    hiddenFromGraph: boolean;
     tags: Array<{ id: string; name: string }>;
   };
 };
@@ -2692,6 +2701,10 @@ export const EntitiesDocument = {
                   kind: "Field",
                   name: { kind: "Name", value: "isPlayerCharacter" },
                 },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "hiddenFromGraph" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "image" } },
                 { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
@@ -2758,6 +2771,10 @@ export const EntityDocument = {
                 { kind: "Field", name: { kind: "Name", value: "image" } },
                 { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "hiddenFromGraph" },
+                },
               ],
             },
           },
@@ -3211,6 +3228,10 @@ export const MarkersDocument = {
                         kind: "Field",
                         name: { kind: "Name", value: "visibility" },
                       },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "hiddenFromGraph" },
+                      },
                     ],
                   },
                 },
@@ -3380,6 +3401,10 @@ export const NoteDocument = {
                         kind: "Field",
                         name: { kind: "Name", value: "visibility" },
                       },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "hiddenFromGraph" },
+                      },
                     ],
                   },
                 },
@@ -3537,6 +3562,10 @@ export const NotesDocument = {
                         kind: "Field",
                         name: { kind: "Name", value: "visibility" },
                       },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "hiddenFromGraph" },
+                      },
                     ],
                   },
                 },
@@ -3618,6 +3647,10 @@ export const OnEntityWindowForceOpenedDocument = {
                 { kind: "Field", name: { kind: "Name", value: "image" } },
                 { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "hiddenFromGraph" },
+                },
               ],
             },
           },
@@ -4107,6 +4140,10 @@ export const TerritoriesDocument = {
                         kind: "Field",
                         name: { kind: "Name", value: "visibility" },
                       },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "hiddenFromGraph" },
+                      },
                     ],
                   },
                 },
@@ -4282,6 +4319,10 @@ export const UpdateEntityDocument = {
                 { kind: "Field", name: { kind: "Name", value: "image" } },
                 { kind: "Field", name: { kind: "Name", value: "color" } },
                 { kind: "Field", name: { kind: "Name", value: "visibility" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "hiddenFromGraph" },
+                },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "tags" },

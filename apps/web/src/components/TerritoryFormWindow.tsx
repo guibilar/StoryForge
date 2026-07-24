@@ -41,6 +41,7 @@ export interface TerritoryRow {
     image?: string | null;
     color?: string | null;
     visibility: string;
+    hiddenFromGraph: boolean;
   } | null;
   name: string;
   type: string;

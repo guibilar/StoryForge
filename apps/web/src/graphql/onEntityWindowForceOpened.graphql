@@ -9,5 +9,6 @@ subscription OnEntityWindowForceOpened($campaignId: ID!) {
     image
     color
     visibility
+    hiddenFromGraph
   }
 }

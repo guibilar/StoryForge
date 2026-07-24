@@ -114,6 +114,7 @@ export interface NoteRow {
     image: string | null;
     color: string | null;
     visibility: EntityVisibility;
+    hiddenFromGraph: boolean;
   }>;
   linkedNotes?: Array<{ id: string; title: string }>;
   backlinks?: Array<{ id: string; title: string }>;

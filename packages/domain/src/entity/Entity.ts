@@ -19,6 +19,11 @@ export interface CreateEntityProps {
   color?: string | null;
   visibility: EntityVisibility;
   isPlayerCharacter?: boolean;
+  // Whether the entity is excluded from the relationship graph. Defaults to
+  // hidden for everything except CHARACTER, so a campaign's graph starts
+  // decluttered of items/locations/etc. rather than showing every entity —
+  // see validateHiddenFromGraph for why CHARACTER can't opt into this.
+  hiddenFromGraph?: boolean;
   // References a User (a campaign's members are identified by
   // (campaignId, userId), not a synthetic CampaignMember id — see
   // CampaignMemberMapper/the CampaignMember GraphQL resolver, which
@@ -40,6 +45,7 @@ export interface RehydrateEntityProps {
   color: string | null;
   visibility: EntityVisibility;
   isPlayerCharacter: boolean;
+  hiddenFromGraph: boolean;
   ownerUserId: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -59,6 +65,7 @@ export class Entity {
     private colorValue: string | null,
     private visibilityValue: EntityVisibility,
     private isPlayerCharacterValue: boolean,
+    private hiddenFromGraphValue: boolean,
     private ownerUserIdValue: string | null,
     private readonly createdAtValue: Date,
     private updatedAtValue: Date,
@@ -69,6 +76,7 @@ export class Entity {
     this.validateType(typeValue);
     this.validateCategory(categoryValue);
     this.validateIsPlayerCharacter(isPlayerCharacterValue, categoryValue);
+    this.validateHiddenFromGraph(hiddenFromGraphValue, categoryValue);
     this.validateOwnerUserId(ownerUserIdValue, isPlayerCharacterValue);
     this.validateColor(colorValue);
   }
@@ -86,6 +94,7 @@ export class Entity {
       props.color ?? null,
       props.visibility,
       props.isPlayerCharacter ?? false,
+      props.hiddenFromGraph ?? props.category !== EntityCategory.CHARACTER,
       props.ownerUserId ?? null,
       new Date(),
       new Date(),
@@ -106,6 +115,7 @@ export class Entity {
       props.color,
       props.visibility,
       props.isPlayerCharacter,
+      props.hiddenFromGraph,
       props.ownerUserId,
       props.createdAt,
       props.updatedAt,
@@ -157,6 +167,10 @@ export class Entity {
     return this.isPlayerCharacterValue;
   }
 
+  get HiddenFromGraph(): boolean {
+    return this.hiddenFromGraphValue;
+  }
+
   get OwnerUserId(): string | null {
     return this.ownerUserIdValue;
   }
@@ -198,6 +212,13 @@ export class Entity {
     this.validateCategory(category);
     this.validateIsPlayerCharacter(this.isPlayerCharacterValue, category);
 
+    // A CHARACTER can never be hidden from the graph — promoting into the
+    // category must clear a hidden flag carried over from before, the same
+    // way demoting out of CHARACTER clears the owner below.
+    if (category === EntityCategory.CHARACTER) {
+      this.hiddenFromGraphValue = false;
+    }
+
     this.categoryValue = category;
     this.updatedAtValue = new Date();
   }
@@ -224,6 +245,13 @@ export class Entity {
     this.validateOwnerUserId(ownerUserId, this.isPlayerCharacterValue);
 
     this.ownerUserIdValue = ownerUserId;
+    this.updatedAtValue = new Date();
+  }
+
+  changeHiddenFromGraph(hidden: boolean): void {
+    this.validateHiddenFromGraph(hidden, this.categoryValue);
+
+    this.hiddenFromGraphValue = hidden;
     this.updatedAtValue = new Date();
   }
 
@@ -311,6 +339,17 @@ export class Entity {
     if (isPlayerCharacter && category !== EntityCategory.CHARACTER) {
       throw new ValidationError(
         "Only a CHARACTER-category entity can be marked as a Player Character.",
+      );
+    }
+  }
+
+  private validateHiddenFromGraph(
+    hidden: boolean,
+    category: EntityCategory,
+  ): void {
+    if (hidden && category === EntityCategory.CHARACTER) {
+      throw new ValidationError(
+        "Character entities always appear in the relationship graph.",
       );
     }
   }

@@ -24,6 +24,7 @@ type Entity {
   color: String
   visibility: EntityVisibility!
   isPlayerCharacter: Boolean!
+  hiddenFromGraph: Boolean!
   ownerUserId: ID
   ownerMember: CampaignMember
   createdAt: String!

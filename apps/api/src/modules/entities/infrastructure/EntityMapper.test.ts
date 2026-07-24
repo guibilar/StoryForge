@@ -17,6 +17,7 @@ describe("EntityMapper", () => {
       color: "#4287f5",
       visibility: "PRIVATE",
       isPlayerCharacter: true,
+      hiddenFromGraph: false,
       ownerUserId: "33333333-3333-3333-3333-333333333333",
       createdAt: new Date("2024-01-01T00:00:00Z"),
       updatedAt: new Date("2024-02-01T00:00:00Z"),
@@ -36,6 +37,7 @@ describe("EntityMapper", () => {
     expect(entity.Color).toBe(record.color);
     expect(entity.Visibility).toBe(EntityVisibility.PRIVATE);
     expect(entity.IsPlayerCharacter).toBe(true);
+    expect(entity.HiddenFromGraph).toBe(false);
     expect(entity.OwnerUserId).toBe(record.ownerUserId);
     expect(entity.CreatedAt).toEqual(record.createdAt);
     expect(entity.UpdatedAt).toEqual(record.updatedAt);
@@ -68,6 +70,7 @@ describe("EntityMapper", () => {
       color: entity.Color,
       visibility: entity.Visibility,
       isPlayerCharacter: entity.IsPlayerCharacter,
+      hiddenFromGraph: entity.HiddenFromGraph,
       ownerUserId: entity.OwnerUserId,
       createdAt: entity.CreatedAt,
       updatedAt: entity.UpdatedAt,

@@ -357,6 +357,9 @@ async function main(): Promise<void> {
           name: def.name,
           description: def.description,
           visibility: def.visibility,
+          // Mirrors packages/domain's Entity default: CHARACTER always
+          // shows on the relationship graph, everything else starts hidden.
+          hiddenFromGraph: def.category !== EntityCategory.CHARACTER,
         },
       }),
     ),

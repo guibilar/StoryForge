@@ -111,6 +111,7 @@ export const EntityScalarFieldEnum = {
   type: "type",
   category: "category",
   isPlayerCharacter: "isPlayerCharacter",
+  hiddenFromGraph: "hiddenFromGraph",
   name: "name",
   description: "description",
   icon: "icon",

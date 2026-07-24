@@ -31,6 +31,7 @@ export type EntityMinAggregateOutputType = {
   type: string | null;
   category: $Enums.EntityCategory | null;
   isPlayerCharacter: boolean | null;
+  hiddenFromGraph: boolean | null;
   name: string | null;
   description: string | null;
   icon: string | null;
@@ -49,6 +50,7 @@ export type EntityMaxAggregateOutputType = {
   type: string | null;
   category: $Enums.EntityCategory | null;
   isPlayerCharacter: boolean | null;
+  hiddenFromGraph: boolean | null;
   name: string | null;
   description: string | null;
   icon: string | null;
@@ -67,6 +69,7 @@ export type EntityCountAggregateOutputType = {
   type: number;
   category: number;
   isPlayerCharacter: number;
+  hiddenFromGraph: number;
   name: number;
   description: number;
   icon: number;
@@ -86,6 +89,7 @@ export type EntityMinAggregateInputType = {
   type?: true;
   category?: true;
   isPlayerCharacter?: true;
+  hiddenFromGraph?: true;
   name?: true;
   description?: true;
   icon?: true;
@@ -104,6 +108,7 @@ export type EntityMaxAggregateInputType = {
   type?: true;
   category?: true;
   isPlayerCharacter?: true;
+  hiddenFromGraph?: true;
   name?: true;
   description?: true;
   icon?: true;
@@ -122,6 +127,7 @@ export type EntityCountAggregateInputType = {
   type?: true;
   category?: true;
   isPlayerCharacter?: true;
+  hiddenFromGraph?: true;
   name?: true;
   description?: true;
   icon?: true;
@@ -220,6 +226,7 @@ export type EntityGroupByOutputType = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter: boolean;
+  hiddenFromGraph: boolean;
   name: string;
   description: string | null;
   icon: string | null;
@@ -257,6 +264,7 @@ export type EntityWhereInput = {
   type?: Prisma.StringFilter<"Entity"> | string;
   category?: Prisma.EnumEntityCategoryFilter<"Entity"> | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFilter<"Entity"> | boolean;
+  hiddenFromGraph?: Prisma.BoolFilter<"Entity"> | boolean;
   name?: Prisma.StringFilter<"Entity"> | string;
   description?: Prisma.StringNullableFilter<"Entity"> | string | null;
   icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
@@ -290,6 +298,7 @@ export type EntityOrderByWithRelationInput = {
   type?: Prisma.SortOrder;
   category?: Prisma.SortOrder;
   isPlayerCharacter?: Prisma.SortOrder;
+  hiddenFromGraph?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrderInput | Prisma.SortOrder;
   icon?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -322,6 +331,7 @@ export type EntityWhereUniqueInput = Prisma.AtLeast<
     category?:
       Prisma.EnumEntityCategoryFilter<"Entity"> | $Enums.EntityCategory;
     isPlayerCharacter?: Prisma.BoolFilter<"Entity"> | boolean;
+    hiddenFromGraph?: Prisma.BoolFilter<"Entity"> | boolean;
     name?: Prisma.StringFilter<"Entity"> | string;
     description?: Prisma.StringNullableFilter<"Entity"> | string | null;
     icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
@@ -357,6 +367,7 @@ export type EntityOrderByWithAggregationInput = {
   type?: Prisma.SortOrder;
   category?: Prisma.SortOrder;
   isPlayerCharacter?: Prisma.SortOrder;
+  hiddenFromGraph?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrderInput | Prisma.SortOrder;
   icon?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -388,6 +399,7 @@ export type EntityScalarWhereWithAggregatesInput = {
     | Prisma.EnumEntityCategoryWithAggregatesFilter<"Entity">
     | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolWithAggregatesFilter<"Entity"> | boolean;
+  hiddenFromGraph?: Prisma.BoolWithAggregatesFilter<"Entity"> | boolean;
   name?: Prisma.StringWithAggregatesFilter<"Entity"> | string;
   description?:
     Prisma.StringNullableWithAggregatesFilter<"Entity"> | string | null;
@@ -410,6 +422,7 @@ export type EntityCreateInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -437,6 +450,7 @@ export type EntityUncheckedCreateInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -461,6 +475,7 @@ export type EntityUpdateInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -491,6 +506,7 @@ export type EntityUncheckedUpdateInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -518,6 +534,7 @@ export type EntityCreateManyInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -535,6 +552,7 @@ export type EntityUpdateManyMutationInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -556,6 +574,7 @@ export type EntityUncheckedUpdateManyInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -586,6 +605,7 @@ export type EntityCountOrderByAggregateInput = {
   type?: Prisma.SortOrder;
   category?: Prisma.SortOrder;
   isPlayerCharacter?: Prisma.SortOrder;
+  hiddenFromGraph?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
@@ -604,6 +624,7 @@ export type EntityMaxOrderByAggregateInput = {
   type?: Prisma.SortOrder;
   category?: Prisma.SortOrder;
   isPlayerCharacter?: Prisma.SortOrder;
+  hiddenFromGraph?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
@@ -622,6 +643,7 @@ export type EntityMinOrderByAggregateInput = {
   type?: Prisma.SortOrder;
   category?: Prisma.SortOrder;
   isPlayerCharacter?: Prisma.SortOrder;
+  hiddenFromGraph?: Prisma.SortOrder;
   name?: Prisma.SortOrder;
   description?: Prisma.SortOrder;
   icon?: Prisma.SortOrder;
@@ -1020,6 +1042,7 @@ export type EntityCreateWithoutCampaignInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1045,6 +1068,7 @@ export type EntityUncheckedCreateWithoutCampaignInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1116,6 +1140,7 @@ export type EntityScalarWhereInput = {
   type?: Prisma.StringFilter<"Entity"> | string;
   category?: Prisma.EnumEntityCategoryFilter<"Entity"> | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFilter<"Entity"> | boolean;
+  hiddenFromGraph?: Prisma.BoolFilter<"Entity"> | boolean;
   name?: Prisma.StringFilter<"Entity"> | string;
   description?: Prisma.StringNullableFilter<"Entity"> | string | null;
   icon?: Prisma.StringNullableFilter<"Entity"> | string | null;
@@ -1132,6 +1157,7 @@ export type EntityCreateWithoutEventParticipationsInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1158,6 +1184,7 @@ export type EntityUncheckedCreateWithoutEventParticipationsInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1209,6 +1236,7 @@ export type EntityUpdateWithoutEventParticipationsInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1238,6 +1266,7 @@ export type EntityUncheckedUpdateWithoutEventParticipationsInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1262,6 +1291,7 @@ export type EntityCreateWithoutTagsInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1288,6 +1318,7 @@ export type EntityUncheckedCreateWithoutTagsInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1339,6 +1370,7 @@ export type EntityUpdateWithoutTagsInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1368,6 +1400,7 @@ export type EntityUncheckedUpdateWithoutTagsInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1392,6 +1425,7 @@ export type EntityCreateWithoutRelationshipsAsSourceInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1418,6 +1452,7 @@ export type EntityUncheckedCreateWithoutRelationshipsAsSourceInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1448,6 +1483,7 @@ export type EntityCreateWithoutRelationshipsAsTargetInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1474,6 +1510,7 @@ export type EntityUncheckedCreateWithoutRelationshipsAsTargetInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1525,6 +1562,7 @@ export type EntityUpdateWithoutRelationshipsAsSourceInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1554,6 +1592,7 @@ export type EntityUncheckedUpdateWithoutRelationshipsAsSourceInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1599,6 +1638,7 @@ export type EntityUpdateWithoutRelationshipsAsTargetInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1628,6 +1668,7 @@ export type EntityUncheckedUpdateWithoutRelationshipsAsTargetInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1652,6 +1693,7 @@ export type EntityCreateWithoutOwnerInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1677,6 +1719,7 @@ export type EntityUncheckedCreateWithoutOwnerInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1741,6 +1784,7 @@ export type EntityCreateWithoutBacklinksInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1767,6 +1811,7 @@ export type EntityUncheckedCreateWithoutBacklinksInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1818,6 +1863,7 @@ export type EntityUpdateWithoutBacklinksInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1847,6 +1893,7 @@ export type EntityUncheckedUpdateWithoutBacklinksInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1871,6 +1918,7 @@ export type EntityCreateWithoutMarkersInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1897,6 +1945,7 @@ export type EntityUncheckedCreateWithoutMarkersInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -1948,6 +1997,7 @@ export type EntityUpdateWithoutMarkersInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -1977,6 +2027,7 @@ export type EntityUncheckedUpdateWithoutMarkersInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2001,6 +2052,7 @@ export type EntityCreateWithoutTerritoriesInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -2027,6 +2079,7 @@ export type EntityUncheckedCreateWithoutTerritoriesInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -2078,6 +2131,7 @@ export type EntityUpdateWithoutTerritoriesInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2107,6 +2161,7 @@ export type EntityUncheckedUpdateWithoutTerritoriesInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2132,6 +2187,7 @@ export type EntityCreateManyCampaignInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -2149,6 +2205,7 @@ export type EntityUpdateWithoutCampaignInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2177,6 +2234,7 @@ export type EntityUncheckedUpdateWithoutCampaignInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2204,6 +2262,7 @@ export type EntityUncheckedUpdateManyWithoutCampaignInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2223,6 +2282,7 @@ export type EntityCreateManyOwnerInput = {
   type: string;
   category: $Enums.EntityCategory;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name: string;
   description?: string | null;
   icon?: string | null;
@@ -2240,6 +2300,7 @@ export type EntityUpdateWithoutOwnerInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2268,6 +2329,7 @@ export type EntityUncheckedUpdateWithoutOwnerInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2295,6 +2357,7 @@ export type EntityUncheckedUpdateManyWithoutOwnerInput = {
   category?:
     Prisma.EnumEntityCategoryFieldUpdateOperationsInput | $Enums.EntityCategory;
   isPlayerCharacter?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+  hiddenFromGraph?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   name?: Prisma.StringFieldUpdateOperationsInput | string;
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2432,6 +2495,7 @@ export type EntitySelect<
     type?: boolean;
     category?: boolean;
     isPlayerCharacter?: boolean;
+    hiddenFromGraph?: boolean;
     name?: boolean;
     description?: boolean;
     icon?: boolean;
@@ -2469,6 +2533,7 @@ export type EntitySelectCreateManyAndReturn<
     type?: boolean;
     category?: boolean;
     isPlayerCharacter?: boolean;
+    hiddenFromGraph?: boolean;
     name?: boolean;
     description?: boolean;
     icon?: boolean;
@@ -2495,6 +2560,7 @@ export type EntitySelectUpdateManyAndReturn<
     type?: boolean;
     category?: boolean;
     isPlayerCharacter?: boolean;
+    hiddenFromGraph?: boolean;
     name?: boolean;
     description?: boolean;
     icon?: boolean;
@@ -2517,6 +2583,7 @@ export type EntitySelectScalar = {
   type?: boolean;
   category?: boolean;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   name?: boolean;
   description?: boolean;
   icon?: boolean;
@@ -2538,6 +2605,7 @@ export type EntityOmit<
   | "type"
   | "category"
   | "isPlayerCharacter"
+  | "hiddenFromGraph"
   | "name"
   | "description"
   | "icon"
@@ -2606,6 +2674,7 @@ export type $EntityPayload<
       type: string;
       category: $Enums.EntityCategory;
       isPlayerCharacter: boolean;
+      hiddenFromGraph: boolean;
       name: string;
       description: string | null;
       icon: string | null;
@@ -3317,6 +3386,7 @@ export interface EntityFieldRefs {
   readonly type: Prisma.FieldRef<"Entity", "String">;
   readonly category: Prisma.FieldRef<"Entity", "EntityCategory">;
   readonly isPlayerCharacter: Prisma.FieldRef<"Entity", "Boolean">;
+  readonly hiddenFromGraph: Prisma.FieldRef<"Entity", "Boolean">;
   readonly name: Prisma.FieldRef<"Entity", "String">;
   readonly description: Prisma.FieldRef<"Entity", "String">;
   readonly icon: Prisma.FieldRef<"Entity", "String">;

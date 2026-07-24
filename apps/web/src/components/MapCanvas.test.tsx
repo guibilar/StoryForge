@@ -758,6 +758,7 @@ describe("MapCanvas", () => {
               type,
               category: "LOCATION",
               visibility: "PUBLIC",
+              hiddenFromGraph: false,
             }
           : null,
       };
@@ -819,6 +820,7 @@ describe("MapCanvas", () => {
                 type: "city",
                 category: "LOCATION",
                 visibility: "PUBLIC",
+                hiddenFromGraph: false,
               },
             },
           ]}
@@ -842,6 +844,7 @@ describe("MapCanvas", () => {
                 category: "LOCATION",
                 color: "#ff00ff",
                 visibility: "PUBLIC",
+                hiddenFromGraph: false,
               },
             },
           ]}
@@ -871,6 +874,7 @@ describe("MapCanvas", () => {
       type: "city",
       category: "LOCATION",
       visibility: "PUBLIC",
+      hiddenFromGraph: false,
     };
 
     it("hides the edit toolbar's draw tools until editing is turned on", async () => {
@@ -988,6 +992,7 @@ describe("MapCanvas", () => {
                 type: "city",
                 category: "LOCATION",
                 visibility: "PUBLIC",
+                hiddenFromGraph: false,
               },
             },
           ]}

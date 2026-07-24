@@ -22,6 +22,7 @@ input UpdateEntityInput {
   color: String
   visibility: EntityVisibility
   isPlayerCharacter: Boolean
+  hiddenFromGraph: Boolean
   ownerUserId: ID
 }
 scalar Upload 

@@ -23,6 +23,7 @@ export interface CreateEntityDto {
   color?: string | null;
   visibility: EntityVisibility;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   ownerUserId?: string | null;
 }
 
@@ -36,6 +37,7 @@ export interface UpdateEntityDto {
   color?: string | null;
   visibility?: EntityVisibility;
   isPlayerCharacter?: boolean;
+  hiddenFromGraph?: boolean;
   ownerUserId?: string | null;
 }
 
@@ -114,6 +116,14 @@ export class EntityService {
     } else {
       applyIsPlayerCharacter();
       applyCategory();
+    }
+
+    // Category is fully settled by this point in both branches above, so an
+    // explicit hiddenFromGraph is validated against the *new* category —
+    // e.g. category CHARACTER->ITEM + hiddenFromGraph true in the same call
+    // is accepted, since demotion already happened before this runs.
+    if (dto.hiddenFromGraph !== undefined) {
+      entity.changeHiddenFromGraph(dto.hiddenFromGraph);
     }
 
     // Applied last, once category/isPlayerCharacter have settled: linking a

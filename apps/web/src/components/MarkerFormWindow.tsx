@@ -35,6 +35,7 @@ export interface MarkerRow {
     image?: string | null;
     color?: string | null;
     visibility: string;
+    hiddenFromGraph: boolean;
   } | null;
   name: string;
   lat: number;

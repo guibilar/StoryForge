@@ -67,6 +67,7 @@ const ENTITY = {
   image: null as string | null,
   color: null as string | null,
   visibility: "PUBLIC" as const,
+  hiddenFromGraph: false,
 };
 
 const LOCATION_ENTITY = {
@@ -78,6 +79,7 @@ const LOCATION_ENTITY = {
   image: null as string | null,
   color: null as string | null,
   visibility: "PUBLIC" as const,
+  hiddenFromGraph: true,
 };
 
 const ENTITIES = [
@@ -91,6 +93,7 @@ const ENTITIES = [
     image: null,
     color: null,
     visibility: "PUBLIC" as const,
+    hiddenFromGraph: false,
   },
 ];
 
@@ -452,6 +455,54 @@ describe("EntityWindow", () => {
     expect(
       screen.getByRole("button", { name: "Set Map Color" }),
     ).toBeInTheDocument();
+  });
+
+  it("shows the hide-from-graph checkbox for a writer on a non-CHARACTER entity", () => {
+    setupQueries();
+    setupDesktopWindows();
+    render(<EntityWindow entity={LOCATION_ENTITY} campaignId="camp-1" />);
+
+    expect(screen.getByLabelText("Hide from relationship graph")).toBeChecked();
+  });
+
+  it("hides the checkbox and shows a note instead for a CHARACTER entity", () => {
+    setupQueries();
+    setupDesktopWindows();
+    render(<EntityWindow entity={ENTITY} campaignId="camp-1" />);
+
+    expect(
+      screen.queryByLabelText("Hide from relationship graph"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Characters always appear in the relationship graph."),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the hide-from-graph checkbox for a non-writer", () => {
+    setupQueries({ members: playerMembers });
+    setupDesktopWindows();
+    render(<EntityWindow entity={LOCATION_ENTITY} campaignId="camp-1" />);
+
+    expect(
+      screen.queryByLabelText("Hide from relationship graph"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("toggles hiddenFromGraph and calls updateEntity", async () => {
+    const { updateEntity } = setupQueries();
+    setupDesktopWindows();
+    const user = userEvent.setup();
+    render(<EntityWindow entity={LOCATION_ENTITY} campaignId="camp-1" />);
+
+    const checkbox = screen.getByLabelText("Hide from relationship graph");
+    expect(checkbox).toBeChecked();
+
+    await user.click(checkbox);
+
+    expect(updateEntity).toHaveBeenCalledWith({
+      input: { id: "e-3", hiddenFromGraph: false },
+    });
+    expect(checkbox).not.toBeChecked();
   });
 
   it("resyncs local image/color state when the same window is reopened with fresher entity data", () => {

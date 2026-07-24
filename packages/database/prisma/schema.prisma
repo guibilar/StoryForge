@@ -90,6 +90,10 @@ model Entity {
   type              String
   category          EntityCategory
   isPlayerCharacter Boolean        @default(false)
+  // Excluded from the relationship graph. CHARACTER entities can never be
+  // true here (enforced in packages/domain's Entity) — everything else
+  // defaults to hidden so a campaign's graph starts decluttered.
+  hiddenFromGraph   Boolean        @default(true)
   name              String
   description       String?
   icon              String?

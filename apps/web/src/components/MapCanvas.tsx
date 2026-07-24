@@ -60,6 +60,7 @@ export interface MapLinkedEntity {
   // back to colorForEntityType(type) when unset (see resolveFeatureColor).
   color?: string | null;
   visibility: string;
+  hiddenFromGraph: boolean;
 }
 
 export interface MapMarkerPoint {

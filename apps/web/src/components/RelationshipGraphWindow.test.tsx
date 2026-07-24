@@ -124,6 +124,7 @@ const entities = [
     type: "NPC",
     category: "CHARACTER",
     visibility: "PUBLIC",
+    hiddenFromGraph: false,
     tags: [],
   },
   {
@@ -133,6 +134,7 @@ const entities = [
     type: "LOCATION",
     category: "LOCATION",
     visibility: "PUBLIC",
+    hiddenFromGraph: false,
     tags: [],
   },
 ];
@@ -147,6 +149,7 @@ const factionEntities = [
     type: "sect",
     category: "ORGANIZATION",
     visibility: "PUBLIC",
+    hiddenFromGraph: false,
     tags: [],
   },
   {
@@ -156,6 +159,7 @@ const factionEntities = [
     type: "NPC",
     category: "CHARACTER",
     visibility: "PUBLIC",
+    hiddenFromGraph: false,
     tags: [],
   },
   {
@@ -165,6 +169,7 @@ const factionEntities = [
     type: "NPC",
     category: "CHARACTER",
     visibility: "PUBLIC",
+    hiddenFromGraph: false,
     tags: [],
   },
   ...entities,
@@ -353,6 +358,17 @@ describe("RelationshipGraphWindow", () => {
     // badge specifically.
     const thornwoodNode = screen.getByTestId("rf__node-ent-2");
     expect(within(thornwoodNode).getByText("LOCATION")).toBeInTheDocument();
+  });
+
+  it("omits an entity flagged hiddenFromGraph, without needing the entity-type filter", () => {
+    setupMocks({
+      entitiesResult: [entities[0], { ...entities[1], hiddenFromGraph: true }],
+    });
+    setupDesktopWindows();
+    renderWindow();
+
+    expect(screen.getByText("Goblin")).toBeInTheDocument();
+    expect(screen.queryByText("Thornwood")).not.toBeInTheDocument();
   });
 
   it("renders an edge label per relationship type", async () => {

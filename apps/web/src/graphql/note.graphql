@@ -18,6 +18,7 @@ query Note($id: ID!) {
       image
       color
       visibility
+      hiddenFromGraph
     }
     linkedNotes {
       id

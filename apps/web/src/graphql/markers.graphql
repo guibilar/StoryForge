@@ -11,6 +11,7 @@ query Markers($campaignId: ID!) {
       image
       color
       visibility
+      hiddenFromGraph
     }
     name
     lat

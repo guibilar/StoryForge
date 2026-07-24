@@ -573,11 +573,16 @@ function MapDrawLayer({
   onDrawModeChange,
   onPlaceMarker,
   onCompleteTerritory,
+  onVertexCountChange,
 }: {
   drawMode: MapDrawMode;
   onDrawModeChange?: (mode: MapDrawMode) => void;
   onPlaceMarker?: (position: MapPosition) => void;
   onCompleteTerritory?: (geometry: Record<string, unknown>) => void;
+  // Reports the in-progress ring's length after every place/undo/remove/
+  // clear so the caller can show a live point count without owning the ring
+  // itself (see setRing below — this fires for free, no extra state-sync).
+  onVertexCountChange?: (count: number) => void;
 }) {
   // The ref is the source of truth and the state only drives rendering:
   // Leaflet fires both `click`s of a double-click before `dblclick`, so
@@ -585,10 +590,14 @@ function MapDrawLayer({
   const verticesRef = useRef<MapPosition[]>([]);
   const [vertices, setVertices] = useState<MapPosition[]>([]);
 
-  function setRing(ring: MapPosition[]) {
-    verticesRef.current = ring;
-    setVertices(ring);
-  }
+  const setRing = useCallback(
+    (ring: MapPosition[]) => {
+      verticesRef.current = ring;
+      setVertices(ring);
+      onVertexCountChange?.(ring.length);
+    },
+    [onVertexCountChange],
+  );
 
   function finishTerritory() {
     const ring = distinctVertices(verticesRef.current);
@@ -662,7 +671,7 @@ function MapDrawLayer({
     // cursor, and Leaflet's container isn't focusable by default.
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [drawMode, onDrawModeChange]);
+  }, [drawMode, onDrawModeChange, setRing]);
 
   // Leaving territory mode by any other route (toolbar toggle, a mode switch)
   // must not strand a half-drawn ring for the next time it's armed.
@@ -670,7 +679,7 @@ function MapDrawLayer({
     if (drawMode !== "territory" && verticesRef.current.length > 0) {
       setRing([]);
     }
-  }, [drawMode]);
+  }, [drawMode, setRing]);
 
   if (drawMode !== "territory" || vertices.length === 0) {
     return null;
@@ -695,19 +704,24 @@ function MapDrawLayer({
           key={`${vertex.lat},${vertex.lng},${index}`}
           center={vertex}
           radius={index === 0 ? 7 : 5}
-          eventHandlers={
-            // Clicking the first vertex closes the ring. Propagation has to
-            // stop here or the map's own click handler appends a duplicate
-            // of that first point before the ring is built.
-            index === 0
-              ? {
-                  click: (event) => {
-                    L.DomEvent.stopPropagation(event);
-                    finishTerritory();
-                  },
-                }
-              : undefined
-          }
+          pathOptions={{
+            className: index === 0 ? styles.vertexStart : styles.vertexPoint,
+          }}
+          eventHandlers={{
+            // Clicking the first vertex closes the ring; clicking any other
+            // vertex removes just that point instead — the fix for a
+            // mistake buried mid-sequence, without redrawing everything
+            // placed after it. Propagation has to stop either way or the
+            // map's own click handler appends a duplicate point underneath.
+            click: (event) => {
+              L.DomEvent.stopPropagation(event);
+              if (index === 0) {
+                finishTerritory();
+                return;
+              }
+              setRing(verticesRef.current.filter((_, i) => i !== index));
+            },
+          }}
         />
       ))}
     </>
@@ -762,6 +776,11 @@ function MapCanvasImpl({
   const [showTerritoryNames, setShowTerritoryNames] = useState(true);
   const [showMarkers, setShowMarkers] = useState(true);
   const [showMarkerNames, setShowMarkerNames] = useState(true);
+  // Live count of the in-progress territory ring, for the drawing hint below
+  // — owned here rather than by MapDrawLayer's caller so it resets for free
+  // whenever drawMode leaves "territory" (MapDrawLayer's own strand-clear
+  // effect already routes through setRing, which reports 0).
+  const [territoryVertexCount, setTerritoryVertexCount] = useState(0);
 
   const drawing = drawMode !== "none";
   // Draw tools exist only while editing — the toggle is what reveals them.
@@ -848,6 +867,16 @@ function MapCanvasImpl({
           </Button>
         ) : null}
       </div>
+      {drawMode === "territory" ? (
+        <p className={styles.drawHint} role="status">
+          Click to add a point &middot; click a point to remove it &middot;
+          click the first (larger) point or double-click to finish &middot;
+          Backspace undoes the last point &middot; Esc cancels
+          {territoryVertexCount > 0
+            ? ` — ${territoryVertexCount} point${territoryVertexCount === 1 ? "" : "s"} placed`
+            : null}
+        </p>
+      ) : null}
       <MapContainer
         // Leaflet's `crs` is fixed at map creation and can't be swapped on a
         // live instance — keying on the image overlay's presence/identity
@@ -867,6 +896,7 @@ function MapCanvasImpl({
           onDrawModeChange={onDrawModeChange}
           onPlaceMarker={onPlaceMarker}
           onCompleteTerritory={onCompleteTerritory}
+          onVertexCountChange={setTerritoryVertexCount}
         />
         {imageOverlay ? (
           <ImageOverlay

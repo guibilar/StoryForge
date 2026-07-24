@@ -496,6 +496,39 @@ describe("MapCanvas", () => {
       expect(ring[0]).toEqual(ring[3]);
     });
 
+    it("removes a single mid-sequence vertex when it is clicked, without closing the ring", () => {
+      const onCompleteTerritory = vi.fn();
+      const { container } = render(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={onCompleteTerritory}
+        />,
+      );
+
+      drawTerritory(container, [
+        [100, 80],
+        [200, 80],
+        [200, 180],
+      ]);
+
+      // Four path elements: the connecting polyline plus the three vertex
+      // circles (0, 1, 2). Click the second vertex (index 1), a mistake
+      // buried mid-sequence rather than the last point.
+      const before = container.querySelectorAll<SVGElement>(
+        "path.leaflet-interactive",
+      );
+      expect(before).toHaveLength(4);
+      fireEvent.click(before[2]!);
+
+      expect(onCompleteTerritory).not.toHaveBeenCalled();
+      // Ring drops to two vertices (0 and 2) — one fewer circle, ring not
+      // closed, drawing stays live for more points.
+      expect(
+        container.querySelectorAll("path.leaflet-interactive"),
+      ).toHaveLength(3);
+    });
+
     it("clears a half-drawn ring on Escape", () => {
       const onDrawModeChange = vi.fn();
       const onCompleteTerritory = vi.fn();
@@ -592,6 +625,40 @@ describe("MapCanvas", () => {
       expect(
         container.querySelectorAll("path.leaflet-interactive"),
       ).toHaveLength(3);
+    });
+
+    it("shows a drawing hint with a live point count only while drawing a territory", () => {
+      const { container, rerender } = render(
+        <MapCanvas
+          drawMode="none"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={vi.fn()}
+        />,
+      );
+
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
+      rerender(
+        <MapCanvas
+          drawMode="territory"
+          onDrawModeChange={vi.fn()}
+          onCompleteTerritory={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByRole("status")).toHaveTextContent(
+        /click to add a point/i,
+      );
+      expect(screen.getByRole("status")).not.toHaveTextContent(
+        /point.*placed/i,
+      );
+
+      drawTerritory(container, [
+        [100, 80],
+        [200, 80],
+      ]);
+
+      expect(screen.getByRole("status")).toHaveTextContent("2 points placed");
     });
 
     it("undoes the last vertex on Backspace", () => {

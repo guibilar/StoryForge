@@ -148,3 +148,76 @@
   display: flex;
   gap: 0.5rem;
 }
+
+/* Bottom-center over the map, clear of the toolbar (top-right) and Leaflet's
+   zoom control (top-left) — same z-index reasoning as .toolbar. */
+.drawHint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  margin: 0;
+  padding: 6px 12px;
+  max-width: calc(100% - 16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.8rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Vertex markers while drawing a territory (see MapDrawLayer). Leaflet's own
+   `stroke`/`fill` are SVG presentation attributes, which lose to any CSS
+   class rule regardless of source order, so this cleanly replaces the
+   default blue without fighting inline styles. */
+.vertexStart,
+.vertexPoint {
+  stroke: var(--accent);
+  fill: var(--accent);
+  cursor: pointer;
+}
+
+/* The first vertex closes the ring on click; every other vertex removes
+   itself on click. Different hover tints hint at the different outcome. */
+.vertexStart:hover {
+  fill: var(--accent-strong);
+}
+
+.vertexPoint:hover {
+  stroke: var(--danger);
+  fill: var(--danger);
+}
+
+/* Leaflet's popup chrome (marker/territory click popups) is otherwise
+   unthemed — stock white background/border/shadow regardless of app theme.
+   :global is required to reach these; Leaflet renders them as plain,
+   unscoped DOM classes, not through this module. The permanent name-label
+   tooltips (.territoryLabel/.markerLabel above) are unaffected — they
+   already go transparent instead of using this chrome at all. */
+:global(.leaflet-popup-content-wrapper) {
+  background: var(--surface);
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+:global(.leaflet-popup-tip) {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  /* The shadow lives on the wrapper only — the tip is a rotated square, and
+     a box-shadow on it would show on the wrong edges. */
+  box-shadow: none;
+}
+
+:global(.leaflet-popup-close-button) {
+  color: var(--text);
+}
+
+:global(.leaflet-popup-close-button:hover) {
+  color: var(--text-h);
+}

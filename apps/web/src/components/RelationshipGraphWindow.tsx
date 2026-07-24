@@ -85,6 +85,16 @@ const GROUP_OPTIONS: Array<{ value: GroupMode; label: string }> = [
   { value: "tag", label: "Tag" },
 ];
 
+// Fixed enum order, so the filter list doesn't reshuffle as entities are
+// added, renamed, or deleted.
+const CATEGORY_ORDER = [
+  "CHARACTER",
+  "LOCATION",
+  "ORGANIZATION",
+  "ITEM",
+  "OTHER",
+];
+
 // The layout works in centre-of-portrait coordinates; ReactFlow positions a
 // node by its top-left corner. Converting here keeps the spacing the layout
 // computed from being skewed by portraits of different sizes.
@@ -150,6 +160,12 @@ export function RelationshipGraphWindow() {
   );
   const [showInterGroup, setShowInterGroup] = useState(true);
   const [showIntraGroup, setShowIntraGroup] = useState(true);
+  // Unticking a category drops its entities from the graph the same way an
+  // unticked cluster does — folded into hiddenEntityIds below rather than
+  // filtered separately, so links to a hidden entity disappear too.
+  const [hiddenCategories, setHiddenCategories] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
 
   const [{ data: meData }] = useQuery({ query: MeDocument });
   const [{ data: campaignData }] = useQuery({
@@ -319,8 +335,26 @@ export function RelationshipGraphWindow() {
         ids.add(group.entityId);
       }
     }
+    for (const entity of entities) {
+      if (hiddenCategories.has(entity.category)) {
+        ids.add(entity.id);
+      }
+    }
     return ids;
-  }, [groups, hiddenGroupIds]);
+  }, [groups, hiddenGroupIds, entities, hiddenCategories]);
+
+  // Which categories the campaign actually has, in fixed enum order, each
+  // with a count — so the panel only lists filters that do something and
+  // doesn't reshuffle as entities change.
+  const categoryOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entity of entities) {
+      counts.set(entity.category, (counts.get(entity.category) ?? 0) + 1);
+    }
+    return CATEGORY_ORDER.filter((category) => counts.has(category)).map(
+      (category) => ({ category, count: counts.get(category) ?? 0 }),
+    );
+  }, [entities]);
 
   // Absorbed organization -> the cluster that replaced it, so its own
   // relationships can re-route to that hull's anchor point.
@@ -769,6 +803,35 @@ export function RelationshipGraphWindow() {
           <Controls showInteractive={false} position="bottom-right" />
           <GraphClusterLayer clusters={clusters} />
         </ReactFlow>
+
+        {categoryOptions.length > 1 ? (
+          <div className={styles.filterPanel}>
+            <p className={styles.panelHeading}>Entity Types</p>
+            <ul className={styles.clusterList}>
+              {categoryOptions.map(({ category, count }) => (
+                <li key={category}>
+                  <label className={styles.clusterRow}>
+                    <input
+                      type="checkbox"
+                      checked={!hiddenCategories.has(category)}
+                      onChange={() =>
+                        setHiddenCategories((current) => {
+                          const next = new Set(current);
+                          if (!next.delete(category)) {
+                            next.add(category);
+                          }
+                          return next;
+                        })
+                      }
+                    />
+                    <span className={styles.clusterName}>{category}</span>
+                    <span className={styles.clusterCount}>{count}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <div className={styles.toolbar}>
           <label className={styles.field}>

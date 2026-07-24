@@ -71,6 +71,22 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* Top-left, mirroring the toolbar's top-right corner, so it stays clear of
+   the cluster panel which owns bottom-left. */
+.filterPanel {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 5;
+  width: 170px;
+  padding: 10px 12px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-sm);
+}
+
 .panelHeading {
   margin: 0 0 6px;
   font-size: 11px;

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -348,7 +348,11 @@ describe("RelationshipGraphWindow", () => {
     expect(screen.getByText("Goblin")).toBeInTheDocument();
     expect(screen.getByText("NPC")).toBeInTheDocument();
     expect(screen.getByText("Thornwood")).toBeInTheDocument();
-    expect(screen.getByText("LOCATION")).toBeInTheDocument();
+    // "LOCATION" also names Thornwood's category, which the entity-type
+    // filter panel lists too — scope to the node so this checks its type
+    // badge specifically.
+    const thornwoodNode = screen.getByTestId("rf__node-ent-2");
+    expect(within(thornwoodNode).getByText("LOCATION")).toBeInTheDocument();
   });
 
   it("renders an edge label per relationship type", async () => {
@@ -653,8 +657,13 @@ describe("RelationshipGraphWindow", () => {
 
       await user.click(screen.getByRole("checkbox", { name: "LocatedAt" }));
 
-      // Wren now counts as affiliated too.
-      expect(screen.getByText("3")).toBeInTheDocument();
+      // Wren now counts as affiliated too. Scoped to the Clusters panel:
+      // the entity-type filter panel also shows a "3" (three CHARACTERs).
+      const clustersPanel = screen.getByText("Clusters").parentElement;
+      expect(clustersPanel).not.toBeNull();
+      expect(
+        within(clustersPanel as HTMLElement).getByText("3"),
+      ).toBeInTheDocument();
     });
 
     it("dissolves the cluster when no type counts as affiliation", async () => {

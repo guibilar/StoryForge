@@ -45,8 +45,8 @@ packages/
                NoteLink, Attachment, Session, Event aggregates + the
                role-based permission matrix + shared errors
   ui/          Shared React components (Button, Checkbox, CommandPalette,
-               Form, Icon, Input, Link, Modal, Select, Tabs, Textarea,
-               Window) consumed by apps/web — thin scope, see
+               Form, Icon, IconButton, Input, Link, Modal, Select, Tabs,
+               Textarea, Window) consumed by apps/web — thin scope, see
                AGENTS.md "packages/ui"
 
 docs/
@@ -114,10 +114,14 @@ rest.
 API-first, well past early stage on the core (plugin system not started yet). Implemented
 full-stack (domain → service → Prisma repository → GraphQL): `User` (auth), `Campaign`,
 `CampaignMember`, `Entity` (incl. image upload and a per-entity map color override),
-`Tag`, `Relationship`, `Note` (incl. nesting, wiki-style `NoteLink`s, and
-shared/private/targeted-handout visibility), `Attachment`, `Session`, `Event` (incl.
-many-to-many participants via `EventParticipant`), and Markers/Territories/a custom map
-image for the Leaflet-based Maps feature. Every campaign-scoped resolver is guarded by a
+`Tag`, `Relationship` (incl. public/Storyteller-only/targeted visibility and per-endpoint
+concealment, so an edge can point at a still-secret entity while staying visible with
+that side redacted), `Note` (incl. nesting, wiki-style `NoteLink`s rendered as clickable
+links client-side, and shared/private/targeted-handout visibility), `Attachment`,
+`Session`, `Event` (incl. many-to-many participants via `EventParticipant`), and
+Markers/Territories/a custom map image (plus JSON export/import of a geo campaign's
+markers and territories) for the Leaflet-based Maps feature. Every campaign-scoped
+resolver is guarded by a
 role-based permission system (five roles — Owner, Storyteller, Co-Storyteller, Player,
 Observer — mapped to actions in `packages/domain/src/permission`, including a
 `BROADCAST_TO_PLAYERS` action gating Storyteller-only real-time pushes; Players/Observers

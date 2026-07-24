@@ -11,9 +11,11 @@ tracks what's actually built, not just planned.
       GraphQL client (`urql`), `ProtectedRoute`
 - [x] `packages/ui` (KAN-75, KAN-80) — shared component package: `Button`,
       `Checkbox`, `CommandPalette`, `Form`/`FormField`/`FormActions`/`Label`/
-      `FormError`, `Icon` (wraps `lucide-react`), `Input`, `Link`, `Modal`,
+      `FormError`, `Icon` (wraps `lucide-react`), `IconButton` (square
+      icon-only button for dense list rows), `Input`, `Link`, `Modal`,
       `Select`, `Tabs`, `Textarea`, `Window` (incl. a loading overlay,
-      refresh button, and Tab-cycling focus trap); CSS Modules on a
+      refresh button, maximize/minimize, and Tab-cycling focus trap); CSS
+      Modules on a
       theme-ready token system (`[data-theme]` palettes). Thin scope —
       exactly what each landed ticket needed, not a full design system yet
       (no tables). No build step (source consumed directly by Vite).
@@ -39,14 +41,19 @@ tracks what's actually built, not just planned.
       so Prisma repository integration tests run for real, not mocked)
 - [x] Husky hooks — pre-commit runs `pnpm test:unit` then `pnpm lint-staged`
       (KAN-24; no Postgres needed to commit)
-- [x] Test suite — 1381 tests via Vitest: 302 `packages/domain` (entities,
-      value objects, permission matrix, tags, relationships, notes, note
-      links, sessions, events, markers/territories/map image, workspace
-      state) + 573 `apps/api` (application services w/ mocked repos, Prisma
-      mappers, GraphQL resolvers, and Prisma repository integration tests
-      against a real Postgres) + 426 `apps/web` + 80 `packages/ui`
-      (component/page-level). See AGENTS.md "Testing" section for layout
-      and gotchas.
+- [x] Test suite — ~1704 tests via Vitest: 323 `packages/domain` (entities,
+      value objects, permission matrix, tags, relationships incl.
+      visibility/concealment, notes, note links, sessions, events,
+      markers/territories/map image, workspace state) + 686 `apps/api`
+      (application services w/ mocked repos, Prisma mappers, GraphQL
+      resolvers, and Prisma repository integration tests against a real
+      Postgres) + 606 `apps/web` (2 currently failing — see below) + 89
+      `packages/ui` (component/page-level). See AGENTS.md "Testing" section
+      for layout and gotchas.
+      Known-broken: `RelationshipGraphWindow.test.tsx` has 2 failing
+      assertions (an affiliation-count lookup now matches more than one DOM
+      node) introduced by the relationship-graph clustering rework below —
+      not a flake, reproduces every run.
 
 ## Authentication & Campaigns
 
@@ -303,15 +310,52 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       the Campaign Desktop's `relationships` catalog slot, built on
       `@xyflow/react` (the current maintained package — `reactflow` was
       renamed upstream). Fetches `entities(campaignId)` and
-      `relationships(campaignId)`, maps them to nodes/edges with a
-      deterministic circular layout (no dagre dependency), colors nodes by
-      `Entity.type` and edges by `Relationship.type` from a fixed validated
-      8-hue categorical palette (assigned in first-seen order since both
-      `type` fields are open-ended free strings, not enums) — the type name
-      is always shown as a text label too so color is never the only cue.
-      Pan/zoom via React Flow defaults; clicking a node opens that entity's
-      window. Visible to every campaign role (no `visibleToRoles`
-      restriction).
+      `relationships(campaignId)`, colors nodes by `Entity.type` and edges by
+      `Relationship.type` from a fixed validated 8-hue categorical palette
+      (assigned in first-seen order since both `type` fields are open-ended
+      free strings, not enums) — the type name is always shown as a text
+      label too so color is never the only cue. Pan/zoom via React Flow
+      defaults; clicking a node opens that entity's window. Visible to every
+      campaign role (no `visibleToRoles` restriction).
+- [x] Graph layouts and grouping — a toolbar over the graph offers 4 layout
+      kinds (`src/lib/graphLayout.ts`'s `layoutGraph`): `force` (default,
+      a synchronous Fruchterman-Reingold force-directed layout, 400
+      iterations, seeded jitter for determinism across re-renders), `type`
+      (nodes clustered onto sub-circles by group), `circle` (the original
+      deterministic layout), and `grid`; `parallelEdgeOffsets` bows apart
+      multiple edges between the same two entities. Independently, a group
+      mode (`src/lib/graphGroups.ts`'s `deriveGroups`) buckets nodes by
+      `none`/`type`/`category`/`tag`, or `faction` (CHARACTER entities
+      clustered under an ORGANIZATION entity they hold a
+      relationship-type-filtered "affiliation" link to — filterable via
+      checkboxes since `Relationship.type` is free text, not an enum) — all
+      derived from existing data, no new model. Groups render as a
+      convex-hull backdrop per cluster (`src/lib/graphHull.ts`'s
+      Andrew's-monotone-chain hull + smoothed SVG path, `GraphClusterLayer`
+      rendered inside React Flow's `ViewportPortal` so it pans/zooms with
+      the graph).
+- [x] Relationship visibility and endpoint concealment (KAN-134) —
+      `RelationshipVisibility` (`PUBLIC`/`STORYTELLER`/`TARGETED`, mirroring
+      `NoteVisibility`) plus an independent `concealedEndpoint`
+      (`SOURCE`/`TARGET`/`null`) that redacts one side's entity id from
+      non-Storyteller viewers while keeping the edge itself visible — the
+      redaction happens in the `sourceEntityId`/`targetEntityId` field
+      resolvers (`apps/api/.../relationships/graphql/resolvers/Relationship.ts`),
+      never in the domain object, which always carries both real ids.
+      `RelationshipRecipient` join table (mirrors `NoteRecipient`) backs
+      `TARGETED`; `canViewRelationshipVisibility`/`canSeeRelationshipEndpoint`/
+      `canAuthorRelationshipVisibility`
+      (`packages/domain/src/permission/RelationshipAccess.ts`) implement the
+      rule as **two ANDed halves**: the relationship's own visibility level,
+      and — separately, in the API layer since it needs the entity roster —
+      an endpoint-visibility check (seeing an edge requires seeing both
+      entities it connects, unless that side is the concealed one). A
+      relationship can therefore point at a still-secret, `STORYTELLER`-only
+      NPC and stay visible with that one side blanked out, instead of
+      vanishing entirely. `RelationshipFormWindow` (writer-only) edits
+      visibility/recipients/concealed-endpoint the same way
+      `NoteFormWindow` edits note visibility, only sending changed fields on
+      update.
 - [x] Relationship create/edit/delete UI (KAN-123) — `RelationshipFormWindow`
       (`useAddEditWindow`, same shape as `MarkerFormWindow`/
       `TerritoryFormWindow`), opened from `RelationshipGraphWindow`'s
@@ -385,11 +429,20 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       `apps/api/src/modules/noteLinks/` (Prisma repo/mapper + resolvers
       extending the `Note`/`Entity` types, mirroring how `attachments` extends
       `Note` from outside the `notes` module). `NoteFormWindow` edits/renders
-      note content as markdown (`@uiw/react-md-editor`), but `[[Label]]`
-      wiki-link syntax inside that markdown is not specially parsed into
-      clickable links client-side yet — `Note.linkedEntities`/`linkedNotes`/
-      `backlinks`/`Entity.backlinks` are resolved server-side and queryable,
-      just not consumed by the frontend yet.
+      note content as markdown (`@uiw/react-md-editor`), and `[[Label]]` /
+      `[[Label|entity:<id>]]` / `[[Label|note:<id>]]` wiki-link syntax is now
+      rendered as clickable links client-side too: `src/lib/noteLinks.ts`'s
+      `toMarkdownWithWikiLinks` rewrites `[[...]]` into ordinary markdown
+      links pointing at `#sf-link:entity:<id>` / `#sf-link:note:<id>` /
+      `#sf-link:unresolved` fragment hrefs (an ordinary-link rewrite rather
+      than a custom URL scheme, since markdown sanitizers strip unknown
+      schemes) using the same resolution order as the server-side
+      `NoteLinkResolver` (explicit `|kind:<id>` wins, then a same-named
+      entity, then a matching note title); unresolved links still render,
+      dimmed, rather than disappearing. `NoteContent.tsx` is the shared
+      renderer (`NotesWindow`, `NoteViewWindow`, and `NoteFormWindow`'s own
+      preview pane all use it, so the editor preview matches the saved
+      view).
 - [x] Nested notes (KAN-46) — self-referential `Note.parentNoteId`
       (`schema.prisma`, `onDelete: Cascade`); domain `Note.ParentNoteId` +
       `moveTo(parentId)` (rejects a note becoming its own direct parent — the
@@ -482,6 +535,19 @@ CHARACTER` (enforced in both directions: `changeCategory` and
       (`forceSyncViewport`); the target's map snaps to it once as a
       one-shot jump, not a continuous lock. See Collaboration below for the
       shared real-time transport this is built on.
+- [x] Geo map data export/import (KAN-136) — `MapExportImportModal`, opened
+      via a single `IconButton` in `MapsWindow`'s actions bar, shown only
+      when the campaign has no custom map image (`!mapImage`) since a
+      custom image's markers/territories use pixel coordinates specific to
+      that image and wouldn't carry meaning elsewhere. Exports the
+      campaign's markers and territories (never the map image itself) as a
+      JSON file (`{format: "storyforge.geo-map-export", version: 1,
+    exportedAt, campaignName, markers, territories}`), downloaded as
+      `<campaign-name>-map.json`. Import is additive-only (existing items
+      are never changed or removed), tolerant of malformed entries (drops
+      bad rows individually rather than rejecting the whole file), and
+      replays them through the existing `createMarker`/`createTerritory`
+      mutations sequentially — no new GraphQL surface was added for this.
 
 ## Plugin Runtime
 
@@ -548,16 +614,17 @@ CHARACTER` (enforced in both directions: `changeCategory` and
 
 ## Cross-cutting gaps (not tied to a single area)
 
-- [x] Frontend unit/component tests — `apps/web` (426 tests: Vitest +
-      Testing Library, `router.test.tsx`, page tests, every real window/
-      form component) and `packages/ui` (80 tests: per-component, incl.
-      `Window`)
+- [x] Frontend unit/component tests — `apps/web` (606 tests, 2 currently
+      failing in `RelationshipGraphWindow.test.tsx`: Vitest + Testing
+      Library, `router.test.tsx`, page tests, every real window/form
+      component) and `packages/ui` (89 tests: per-component, incl.
+      `Window`, `IconButton`)
 - [ ] Frontend end-to-end tests (real browser against a real backend) — see KAN-87
 - [ ] `packages/core` — purpose undefined, decide before adding files
 - [ ] `packages/shared` — empty, needed once a 2nd backend module or frontend utilities appear
 - [x] `packages/ui` — thin scope built (KAN-75, KAN-80, and every ticket
       since that needed a new primitive): Button, Checkbox, CommandPalette,
-      Form/FormActions, Icon, Input, Link, Modal, Select, Tabs, Textarea,
-      Window. Tables and general layout primitives still not started — pick
-      up alongside the ticket that needs them
+      Form/FormActions, Icon, IconButton, Input, Link, Modal, Select, Tabs,
+      Textarea, Window. Tables and general layout primitives still not
+      started — pick up alongside the ticket that needs them
 - [ ] Repository implementations currently live in `apps/api/src/modules/entities/infrastructure` instead of `packages/database` — documented deviation from target architecture in AGENTS.md

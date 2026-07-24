@@ -47,9 +47,9 @@ packages/
     plugin-sdk/             empty — not started
     shared/                 empty — not started
     ui/                     shared React components (Button, Checkbox,
-                             CommandPalette, Form, Icon, Input, Link, Modal,
-                             Select, Tabs, Textarea, Window) + Storybook —
-                             see packages/ui
+                             CommandPalette, Form, Icon, IconButton, Input,
+                             Link, Modal, Select, Tabs, Textarea, Window)
+                             + Storybook — see packages/ui
     vtm-plugin/             empty — not started (Vampire plugin placeholder)
 
 docs/
@@ -199,9 +199,17 @@ Currently contains:
   `attachToEntity`/`detachFromEntity` — the `Tag`↔`Entity` join is managed
   through this repository rather than its own domain object, since
   `EntityTag` is a plain link with no behavior of its own).
-- `relationship/` (KAN-40/41) — the `Relationship` aggregate (directed
-  entity→entity edge, validated free-string `type`, soft delete, blocks
-  self-relationships), `RelationshipId`, `RelationshipRepository`.
+- `relationship/` (KAN-40/41, visibility/concealment KAN-134) — the
+  `Relationship` aggregate (directed entity→entity edge, validated
+  free-string `type`, soft delete, blocks self-relationships), plus
+  `RelationshipVisibility` (`PUBLIC`/`STORYTELLER`/`TARGETED`, mirroring
+  `NoteVisibility`) with `RecipientIds` (normalized/deduped, required
+  non-empty when `TARGETED`) and an independent `ConcealedEndpoint`
+  (`SOURCE`/`TARGET`/`null`) that a Storyteller can set to hide one side's
+  entity id from non-Storyteller viewers while keeping the edge itself
+  visible — the domain object always carries both real ids; redaction
+  happens at the API layer (see apps/api below). `RelationshipId`,
+  `RelationshipRepository`.
 - `note/` (KAN-43/46) — the `Note` aggregate (`campaignId`/`authorId`,
   title/content, soft delete, `ParentNoteId` + `moveTo` for nesting),
   `NoteId`, `NoteRepository`.
@@ -232,8 +240,14 @@ Currently contains:
   `MANAGE_CAMPAIGN_SETTINGS`, `BROADCAST_TO_PLAYERS` — the last one gates
   the Storyteller-only real-time push features, see the apps/web "Real-time"
   subsection below), plus `canViewVisibility`/`filterByVisibility` for the
-  Player/Observer read path. Framework-free — consumed by the apps/api
-  guards.
+  Player/Observer read path. `RelationshipAccess.ts` (KAN-134) adds the
+  Relationship-specific rules on top: `canViewRelationshipVisibility`
+  (the relationship's own `PUBLIC`/`STORYTELLER`/`TARGETED` level),
+  `canSeeRelationshipEndpoint` (whether a given `SOURCE`/`TARGET` side is
+  redacted for this viewer), and `canAuthorRelationshipVisibility`
+  (currently always true — only writers author relationships at all, this
+  is the seam for if that ever changes). Framework-free — consumed by the
+  apps/api guards.
 - `shared/errors/` — `DomainError` (abstract base), `NotFoundError`,
   `ValidationError`, `AuthenticationError`, `ForbiddenError`.
 
@@ -373,7 +387,7 @@ Core depends only on interfaces.
 
 ---
 
-## packages/ui (KAN-75/KAN-31/KAN-80 — thin scope: Button, Checkbox, CommandPalette, Form, Icon, Input, Link, Modal, Select, Tabs, Textarea, Window; plus Storybook)
+## packages/ui (KAN-75/KAN-31/KAN-80 — thin scope: Button, Checkbox, CommandPalette, Form, Icon, IconButton, Input, Link, Modal, Select, Tabs, Textarea, Window; plus Storybook)
 
 `@storyforge/ui`, consumed by `apps/web` today. Deliberately not a full
 design system yet — built to exactly what each landed ticket needed
@@ -423,6 +437,13 @@ from `src/index.ts`):
   Callers import the icon component itself from `lucide-react` (a direct
   dependency of both this package and `apps/web`) rather than this package
   re-exporting one per icon.
+- `IconButton` — square icon-only button (`icon: LucideIcon`, `label:
+string` doubling as `aria-label`/`title` since it's the only accessible
+  name, `variant?: "secondary" | "ghost" | "danger"`). For dense rows
+  (list-item edit/delete, confirm/cancel) where a full-width labelled
+  `Button` would dominate — e.g. `TimelineWindow`/`SessionsWindow`/
+  `NotesWindow`/`MembersWindow`'s row actions and `MapsWindow`'s
+  export/import trigger.
 - `Input` — native `<input>` props + `invalid?: boolean` (sets `aria-invalid` + error styling).
 - `Textarea`, `Select` — same shape as `Input` (native props + CSS Modules
   styling, no extra behavior).
@@ -824,17 +845,33 @@ auth flow, and the campaign desktop shell are all wired:
       (`SHARED` notes to everyone, `PRIVATE` to the author, `TARGETED`
       handouts to their named recipients) rather than the window hiding
       itself. Players can author their own notes (`requireCampaignMember`,
-      not writer-gated, KAN-90).
+      not writer-gated, KAN-90). `[[Label]]` / `[[Label|entity:<id>]]` /
+      `[[Label|note:<id>]]` wiki-link syntax renders as clickable links:
+      `src/lib/noteLinks.ts`'s `toMarkdownWithWikiLinks` rewrites `[[...]]`
+      into ordinary markdown links pointing at `#sf-link:entity:<id>` /
+      `#sf-link:note:<id>` / `#sf-link:unresolved` fragment hrefs (chosen
+      over a custom URL scheme since markdown sanitizers strip unknown
+      schemes), using the same resolution order as the server-side
+      `NoteLinkResolver` (explicit `|kind:<id>` wins, then a same-named
+      entity, then a matching note title); an unresolved link still renders,
+      dimmed, rather than disappearing. `NoteContent.tsx` is the one
+      renderer shared by `NotesWindow`, `NoteViewWindow`, and
+      `NoteFormWindow`'s own preview pane, so what a note's author sees
+      while editing matches what every reader sees.
     - `relationships` (`RelationshipGraphWindow`) — a `@xyflow/react`
       node-link diagram of `entities(campaignId)`/`relationships(campaignId)`,
       colored by `type` via `src/lib/categoryColor.ts`'s fixed 8-hue
       categorical palette (first-seen order, since `Entity.type`/
       `Relationship.type` are open free strings, not enums). No
-      `visibleToRoles` restriction — every campaign role sees the graph.
+      `visibleToRoles` restriction — every campaign role sees the graph
+      (subject to the KAN-134 per-relationship visibility rules below).
       Writers (checked client-side the same way `MapsWindow` derives
       `isWriter`) get an "Add Relationship" button and can click an edge to
       edit or delete it via `RelationshipFormWindow` (`useAddEditWindow`,
-      same shape as `MarkerFormWindow`/`TerritoryFormWindow`). Source/target
+      same shape as `MarkerFormWindow`/`TerritoryFormWindow`), which also
+      edits the relationship's `visibility`/`recipientIds`/
+      `concealedEndpoint` (mirrors how `NoteFormWindow` edits note
+      visibility — only changed fields are sent on update). Source/target
       entity pickers are unrestricted by category (unlike Marker/Territory,
       KAN-121/122 — a Relationship connects any two entities) and only
       settable at creation, since `UpdateRelationshipInput` has no
@@ -844,6 +881,33 @@ auth flow, and the campaign desktop shell are all wired:
       stays a free string end to end — a hint, not a constraint, so a
       future plugin (e.g. VTM's Sire/Childe/Ghoul) can still define its own
       values with no core change.
+      A toolbar over the graph offers 4 layout kinds
+      (`src/lib/graphLayout.ts`'s `layoutGraph` — `force`, the default, a
+      synchronous Fruchterman-Reingold force-directed layout with seeded
+      jitter for determinism across re-renders; `type`; the original
+      deterministic `circle`; and `grid`) and a group mode
+      (`src/lib/graphGroups.ts`'s `deriveGroups` — `none`/`type`/`category`/
+      `tag`, or `faction`, which clusters `CHARACTER` entities under an
+      `ORGANIZATION` entity via a checkbox-filtered set of
+      "affiliation" relationship types, since `Relationship.type` is free
+      text). Groups render as a convex-hull backdrop per cluster
+      (`src/lib/graphHull.ts` + `GraphClusterLayer`, rendered inside React
+      Flow's `ViewportPortal` so it pans/zooms with the graph).
+      `RelationshipVisibility`/endpoint-concealment (KAN-134) —
+      `Relationship` carries `visibility` (`PUBLIC`/`STORYTELLER`/
+      `TARGETED`, mirroring `Note`) and an independent `concealedEndpoint`
+      (`SOURCE`/`TARGET`/`null`) that redacts one side's entity id from
+      non-Storyteller viewers while keeping the edge itself visible — seeing
+      an edge normally requires seeing both entities it connects, but a
+      concealed side is exempted from that check, so a relationship can
+      point at a still-secret `STORYTELLER`-only NPC and stay visible with
+      that one side blanked out. The redaction happens in the
+      `sourceEntityId`/`targetEntityId` GraphQL field resolvers
+      (`apps/api/src/modules/relationships/graphql/resolvers/Relationship.ts`)
+      — the domain object always carries both real ids; `RelationshipRecipient`
+      (mirrors `NoteRecipient`) backs `TARGETED`. See
+      `packages/domain/src/permission/RelationshipAccess.ts` above for the
+      rule implementation.
     - `maps` (`MapsWindow`) — `MapCanvas` (`react-leaflet`) rendering a
       campaign's Markers/Territories and, optionally, a custom uploaded map
       image (`CRS.Simple`) instead of the geographic tile layer. Writers get
@@ -854,7 +918,16 @@ auth flow, and the campaign desktop shell are all wired:
       or outline color is the linked entity's own `color` when set, falling
       back to a hash-of-`type` color otherwise (`MapCanvas`'s
       `resolveFeatureColor`). Also hosts the Storyteller-only live-viewport
-      force-sync control — see the real-time section below.
+      force-sync control — see the real-time section below. A single
+      `IconButton` in the actions bar (shown only when the campaign has no
+      custom map image, since that mode's coordinates are pixel-space and
+      not portable) opens `MapExportImportModal` (KAN-136): exports the
+      campaign's markers/territories as a JSON file
+      (`{format: "storyforge.geo-map-export", version: 1, ...}`,
+      never the map image), and imports one additively — bad rows are
+      dropped individually rather than rejecting the whole file, and the
+      rows replay through the existing `createMarker`/`createTerritory`
+      mutations sequentially (no new GraphQL surface for this feature).
 - `src/index.css` only holds `apps/web`-shell layout/typography rules;
   design tokens (colors, fonts, shadows) live in
   `@storyforge/ui/tokens.css`, imported once in `main.tsx`.
@@ -1326,8 +1399,8 @@ the hook never needs a live Postgres — CI still runs the full suite
 
 Vitest, wired per-package (`packages/domain`, `apps/api`; each has its own
 `test` script, `turbo.json`'s `test` task runs them via `dependsOn: ["^build"]`
-so workspace deps are built first). Current coverage (875 tests: 302
-`packages/domain` + 573 `apps/api`).
+so workspace deps are built first). Current coverage (1009 tests: 323
+`packages/domain` + 686 `apps/api`).
 
 Every package also exposes a `test:unit` script (turbo task `test:unit`)
 that runs the same suite minus the Prisma repository integration tests —
@@ -1396,7 +1469,10 @@ Gotchas learned building this out, worth knowing before adding more:
   files relative to it.
 
 `apps/web` and `packages/ui` have Vitest + Testing Library test infra
-(component/unit level, 506 tests total: 426 `apps/web` + 80 `packages/ui`)
+(component/unit level, 695 tests total: 606 `apps/web` (2 currently failing
+in `RelationshipGraphWindow.test.tsx` — an affiliation-count assertion now
+matches more than one DOM node since the layout/grouping rework below;
+reproduces every run, not a flake) + 89 `packages/ui`)
 — `apps/web/src/router.test.tsx`, page-level tests per page
 (`LoginPage`/`RegisterPage`/`DashboardPage`/`CampaignDesktopPage.test.tsx`),
 component-level tests for the desktop shell (`DesktopBoard.test.tsx`,

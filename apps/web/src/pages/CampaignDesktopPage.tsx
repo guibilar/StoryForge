@@ -6,7 +6,6 @@ import { Link } from "@storyforge/ui";
 import { CampaignDocument, MeDocument } from "../gql/graphql";
 import { AppCommandPalette } from "../components/AppCommandPalette";
 import { DesktopBoard } from "../components/DesktopBoard";
-import { DesktopWallpaper } from "../components/DesktopWallpaper";
 import { ForceOpenEntityListener } from "../components/ForceOpenEntityListener";
 import { MobileDesktop } from "../components/MobileDesktop";
 import { StartMenu } from "../components/StartMenu";
@@ -101,7 +100,6 @@ export function CampaignDesktopPage() {
     <main className={styles.shell}>
       <DesktopWindowsContext.Provider value={desktopWindows}>
         <div className={styles.desk}>
-          <DesktopWallpaper />
           {isMobile ? (
             <MobileDesktop role={role} />
           ) : (
